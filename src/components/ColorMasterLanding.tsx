@@ -598,94 +598,96 @@ export const ColorMasterLanding: React.FC = () => {
       <section className="relative z-10 py-16 md:py-24 bg-[#f5f5f7] px-4 sm:px-6 lg:px-8 overflow-hidden">
         <ReticulaBackground bgImageSrc={authorPhotos.bgSrc} />
 
-        <div className="max-w-6xl mx-auto relative z-10">
-          <div className="grid grid-cols-1 md:grid-cols-12 gap-10 items-center">
-            {/* Teacher Photo */}
-            <div className="md:col-span-5 flex justify-center">
-              <div className="relative w-full max-w-[280px] sm:max-w-[340px] rounded-3xl overflow-hidden border border-[#d2d2d7] bg-[#ffffff] shadow-md group">
-                <img
-                  src={authorPhotos.profileSrc}
-                  alt={SITE_CONFIG.author.name}
-                  className="w-full h-auto object-contain block rounded-3xl transition-transform duration-500 hover:scale-[1.02]"
-                />
+        <div className="max-w-5xl mx-auto relative z-10 w-full">
+          <div className="rounded-3xl bg-[#ffffff]/90 backdrop-blur-md border border-[#e5e5e7] p-8 sm:p-12 shadow-sm">
+            <div className="grid grid-cols-1 md:grid-cols-12 gap-8 items-center">
+              {/* Teacher Photo */}
+              <div className="md:col-span-4 flex justify-center items-center">
+                <div className="relative w-full max-w-[260px] sm:max-w-[280px] rounded-3xl overflow-hidden border border-[#d2d2d7] bg-[#f5f5f7] shadow-md group">
+                  <img
+                    src={authorPhotos.profileSrc}
+                    alt={SITE_CONFIG.author.name}
+                    className="w-full h-auto object-contain block rounded-3xl transition-transform duration-500 ease-quadratic hover:scale-[1.02]"
+                  />
+                </div>
+              </div>
+
+              {/* Teacher Bio */}
+              <div className="md:col-span-8 flex flex-col items-start">
+                <span className="text-xs uppercase tracking-widest text-[#0071e3] font-bold mb-2 block">
+                  INSTRUTOR DA MASTERCLASS
+                </span>
+                <h2 className="text-2xl sm:text-4xl font-semibold tracking-tight text-[#1d1d1f] mb-4">
+                  Michael Oliveira
+                </h2>
+
+                <div className="space-y-4 text-base sm:text-lg text-[#6e6e73] leading-relaxed font-normal">
+                  <p>
+                    <span className="font-semibold text-[#1d1d1f]">Diretor, diretor de fotografia, colorista e finalizador</span> com <span className="font-medium text-[#3a3a3c]">mais de 20 anos de experiência prática no mercado audiovisual</span>.
+                  </p>
+                  <p>
+                    Atuou em centenas de campanhas publicitárias, videoclipes, institucionais e conteúdos comerciais para grandes marcas e produtoras em todo o Brasil. É ex-professor titular de Color Grading da <strong className="font-semibold text-[#1d1d1f]">EBAC</strong> (Escola Britânica de Artes Criativas e Tecnologia).
+                  </p>
+                  <p>
+                    Sua abordagem pedagógica combina fundamentos técnicos sólidos da ciência de cores com os atalhos e decisões práticas exigidas no fluxo de trabalho de pós-produção do dia a dia.
+                  </p>
+                </div>
+
+                {/* Highlights pills */}
+                <div className="grid grid-cols-2 gap-4 mt-8 w-full max-w-lg">
+                  <div className="p-4 rounded-2xl bg-[#ffffff] border border-[#e5e5e7] text-sm text-[#6e6e73] shadow-xs">
+                    <span className="font-bold text-[#0071e3] block">+20 ANOS</span>
+                    <span>Experiência no Audiovisual</span>
+                  </div>
+                  <div className="p-4 rounded-2xl bg-[#ffffff] border border-[#e5e5e7] text-sm text-[#6e6e73] shadow-xs">
+                    <span className="font-bold text-[#0071e3] block">EX-PROFESSOR</span>
+                    <span>EBAC Color Grading</span>
+                  </div>
+                </div>
               </div>
             </div>
 
-            {/* Teacher Bio */}
-            <div className="md:col-span-7 flex flex-col items-start">
-              <span className="text-xs uppercase tracking-widest text-[#0071e3] font-bold mb-2">
-                INSTRUTOR DA MASTERCLASS
+            {/* Produtoras Atendidas Carousel */}
+            <div className="mt-10 pt-8 border-t border-[#e5e5e7]/80 w-full">
+              <span className="text-xs uppercase tracking-widest text-[#86868b] font-semibold mb-4 block text-center sm:text-left">
+                Produtoras Atendidas e Projetos Relevantes
               </span>
-              <h2 className="text-3xl sm:text-5xl font-semibold text-[#1d1d1f] mb-6">
-                Michael Oliveira
-              </h2>
-
-              <div className="space-y-4 text-base sm:text-lg text-[#6e6e73] leading-relaxed">
-                <p>
-                  <span className="font-semibold text-[#1d1d1f]">Diretor, diretor de fotografia, colorista e finalizador</span> com <span className="font-medium text-[#3a3a3c]">mais de 20 anos de experiência prática no mercado audiovisual</span>.
-                </p>
-                <p>
-                  Atuou em centenas de campanhas publicitárias, videoclipes, institucionais e conteúdos comerciais para grandes marcas e produtoras em todo o Brasil. É ex-professor titular de Color Grading da <strong className="font-semibold text-[#1d1d1f]">EBAC</strong> (Escola Britânica de Artes Criativas e Tecnologia).
-                </p>
-                <p>
-                  Sua abordagem pedagógica combina fundamentos técnicos sólidos da ciência de cores com os atalhos e decisões práticas exigidas no fluxo de trabalho de pós-produção do dia a dia.
-                </p>
-              </div>
-
-              {/* Highlights pills */}
-              <div className="grid grid-cols-2 gap-4 mt-8 w-full max-w-lg">
-                <div className="p-4 rounded-2xl bg-[#ffffff] border border-[#e5e5e7] text-sm text-[#6e6e73] shadow-xs">
-                  <span className="font-bold text-[#0071e3] block">+20 ANOS</span>
-                  <span>Experiência no Audiovisual</span>
+              <div
+                className="relative w-full overflow-hidden select-none pointer-events-none marquee-container"
+                style={{
+                  maskImage: 'linear-gradient(to right, transparent, black 10%, black 90%, transparent)',
+                  WebkitMaskImage: 'linear-gradient(to right, transparent, black 10%, black 90%, transparent)'
+                }}
+              >
+                <div className="marquee-track py-2">
+                  {(logos.length > 0 && logos.length < 12 ? [...logos, ...logos] : logos).map((logo, lIdx) => (
+                    <div
+                      key={`t1-${lIdx}`}
+                      className="shrink-0 rounded-2xl overflow-hidden border border-[#e5e5e7] shadow-xs flex items-center justify-center bg-white"
+                    >
+                      <img
+                        src={logo.src}
+                        alt={logo.name}
+                        className="h-14 sm:h-18 w-auto max-w-[170px] object-cover block"
+                      />
+                    </div>
+                  ))}
                 </div>
-                <div className="p-4 rounded-2xl bg-[#ffffff] border border-[#e5e5e7] text-sm text-[#6e6e73] shadow-xs">
-                  <span className="font-bold text-[#0071e3] block">EX-PROFESSOR</span>
-                  <span>EBAC Color Grading</span>
+
+                <div className="marquee-track py-2" aria-hidden="true">
+                  {(logos.length > 0 && logos.length < 12 ? [...logos, ...logos] : logos).map((logo, lIdx) => (
+                    <div
+                      key={`t2-${lIdx}`}
+                      className="shrink-0 rounded-2xl overflow-hidden border border-[#e5e5e7] shadow-xs flex items-center justify-center bg-white"
+                    >
+                      <img
+                        src={logo.src}
+                        alt=""
+                        className="h-14 sm:h-18 w-auto max-w-[170px] object-cover block"
+                      />
+                    </div>
+                  ))}
                 </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Produtoras Atendidas Carousel */}
-          <div className="mt-14 pt-8 border-t border-[#d2d2d7]/60 w-full">
-            <span className="text-xs uppercase tracking-widest text-[#86868b] font-semibold mb-4 block text-center sm:text-left">
-              Produtoras e Projetos Relevantes
-            </span>
-            <div
-              className="relative w-full overflow-hidden select-none pointer-events-none marquee-container"
-              style={{
-                maskImage: 'linear-gradient(to right, transparent, black 10%, black 90%, transparent)',
-                WebkitMaskImage: 'linear-gradient(to right, transparent, black 10%, black 90%, transparent)'
-              }}
-            >
-              <div className="marquee-track py-2">
-                {(logos.length > 0 && logos.length < 12 ? [...logos, ...logos] : logos).map((logo, lIdx) => (
-                  <div
-                    key={`t1-${lIdx}`}
-                    className="shrink-0 rounded-2xl overflow-hidden border border-[#e5e5e7] shadow-xs flex items-center justify-center bg-white"
-                  >
-                    <img
-                      src={logo.src}
-                      alt={logo.name}
-                      className="h-14 sm:h-18 w-auto max-w-[170px] object-cover block"
-                    />
-                  </div>
-                ))}
-              </div>
-
-              <div className="marquee-track py-2" aria-hidden="true">
-                {(logos.length > 0 && logos.length < 12 ? [...logos, ...logos] : logos).map((logo, lIdx) => (
-                  <div
-                    key={`t2-${lIdx}`}
-                    className="shrink-0 rounded-2xl overflow-hidden border border-[#e5e5e7] shadow-xs flex items-center justify-center bg-white"
-                  >
-                    <img
-                      src={logo.src}
-                      alt=""
-                      className="h-14 sm:h-18 w-auto max-w-[170px] object-cover block"
-                    />
-                  </div>
-                ))}
               </div>
             </div>
           </div>
