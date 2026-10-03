@@ -58,9 +58,9 @@ export const ColorMasterLanding: React.FC = () => {
     batchName: string;
     nextPriceDate?: string;
   }>({
-    promoPrice: 96,
+    promoPrice: 95,
     regularPrice: 195,
-    finalPrice: 96,
+    finalPrice: 95,
     batchName: 'Lote Especial de Abertura',
     nextPriceDate: '06/10/2026'
   });
@@ -260,7 +260,7 @@ export const ColorMasterLanding: React.FC = () => {
                   <Clock className="w-3.5 h-3.5" /> Tempo de 15 min expirado
                 </span>
                 <span className="text-white/80 hidden sm:inline">
-                  • O valor promocional de R$ 96 encerrou para este dispositivo. Preço regular: R$ 195.
+                  • O valor promocional de R$ 95 encerrou para este dispositivo. Preço regular: R$ 195.
                 </span>
               </>
             )}

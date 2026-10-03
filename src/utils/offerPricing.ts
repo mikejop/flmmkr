@@ -11,7 +11,7 @@ export interface UserTimerRecord {
 
 /**
  * Função para calcular o preço promocional de acordo com as datas dos lotes:
- * - Até 06/10/2026: R$ 96
+ * - Até 06/10/2026: R$ 95
  * - De 07/10/2026 até 09/10/2026: R$ 125
  * - De 10/10/2026 até 13/10/2026: R$ 145
  * - A partir de 14/10/2026: R$ 195 (Preço normal)
@@ -36,7 +36,7 @@ export function getCurrentBatchPrice(now: Date = new Date()): {
 
   if (refDate <= lote1End) {
     return {
-      promoPrice: 96,
+      promoPrice: 95,
       regularPrice,
       batchName: 'Lote Especial de Abertura',
       nextPriceDate: '06/10/2026'
