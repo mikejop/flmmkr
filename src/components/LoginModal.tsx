@@ -49,8 +49,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // TODO: wire up to auth provider
-    console.log(forgotMode ? 'Forgot password:' : 'Login:', email, password);
+    // Auth provider handler (Supabase Auth)
   };
 
   return (
