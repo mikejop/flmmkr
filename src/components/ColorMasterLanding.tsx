@@ -324,7 +324,7 @@ export const ColorMasterLanding: React.FC = () => {
         {/* Background Video Layer with Retícula Overlay */}
         <div className="absolute inset-0 w-full h-full overflow-hidden pointer-events-none select-none z-0">
           <iframe
-            src="https://www.youtube-nocookie.com/embed/RMKnx99UCUA?autoplay=1&mute=1&controls=0&loop=1&playlist=RMKnx99UCUA&playsinline=1&rel=0&modestbranding=1&enablejsapi=1"
+            src="https://www.youtube-nocookie.com/embed/h1uEnr4ss54?autoplay=1&mute=1&controls=0&loop=1&playlist=h1uEnr4ss54&playsinline=1&rel=0&modestbranding=1&enablejsapi=1"
             title="Color Master Background Showcase"
             className="absolute top-1/2 left-1/2 w-[250%] h-[250%] min-w-full min-h-full -translate-x-1/2 -translate-y-1/2 object-cover pointer-events-none opacity-90"
             allow="autoplay; encrypted-media"
