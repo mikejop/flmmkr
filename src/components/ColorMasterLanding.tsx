@@ -8,21 +8,26 @@ import { ReticulaBackground } from '@/components/ReticulaBackground';
 import { getRandomAuthorPhotos, AuthorPhotoPair } from '@/utils/authorPhotos';
 import { LoginModal } from '@/components/LoginModal';
 import {
-  Play,
-  Film,
   Sliders,
+  Film,
   Camera,
   ArrowRight,
   CheckCircle2,
-  XCircle,
-  Award,
   ChevronDown,
   ChevronUp,
   Monitor,
   ShieldCheck,
   Check,
-  Folder,
-  Tv
+  Sparkles,
+  Layers,
+  Tv,
+  FileCheck,
+  HelpCircle,
+  Clock,
+  Infinity,
+  PlayCircle,
+  Zap,
+  Award
 } from 'lucide-react';
 
 interface BeforeAfterSliderProps {
@@ -30,6 +35,8 @@ interface BeforeAfterSliderProps {
   afterLabel?: string;
   beforeTitle?: string;
   afterTitle?: string;
+  beforeSub?: string;
+  afterSub?: string;
   heightClass?: string;
 }
 
@@ -47,7 +54,9 @@ const BeforeAfterSlider: React.FC<BeforeAfterSliderProps> = ({
   afterLabel = 'GRADE PUBLICITÁRIO FINAL',
   beforeTitle = 'Sem contraste, cores desbotadas',
   afterTitle = 'Contraste, densidade e look de comercial',
-  heightClass = 'h-[360px] sm:h-[450px] md:h-[520px]'
+  beforeSub = 'LOG / Flat Profile • Sem Tratamento',
+  afterSub = 'Rec.709 • Look Development • Commercial Grade',
+  heightClass = 'h-[360px] sm:h-[450px] md:h-[500px]'
 }) => {
   const [sliderPos, setSliderPos] = useState(50);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -88,77 +97,73 @@ const BeforeAfterSlider: React.FC<BeforeAfterSliderProps> = ({
       onMouseLeave={handleMouseUp}
       onMouseMove={handleMouseMove}
       onTouchMove={handleTouchMove}
-      className={`relative w-full ${heightClass} rounded-3xl overflow-hidden select-none border border-[#d2d2d7] shadow-xl cursor-ew-resize bg-[#ffffff] group`}
+      className={`relative w-full ${heightClass} rounded-3xl overflow-hidden select-none border border-[#d2d2d7]/80 shadow-xl cursor-ew-resize bg-[#0e0e10] group`}
     >
-      {/* AFTER IMAGE (FULL WIDTH BACKGROUND) */}
-      <div className="absolute inset-0 w-full h-full bg-[#1c1c1e] flex flex-col justify-between p-6 sm:p-8">
+      {/* AFTER (GRADE FINAL) */}
+      <div className="absolute inset-0 w-full h-full bg-gradient-to-br from-[#121214] via-[#1c1d22] to-[#0a0a0c] flex flex-col justify-between p-6 sm:p-8">
         <div className="flex items-center justify-between z-10">
-          <span className="px-3.5 py-1 rounded-full bg-[#0071e3] text-white text-xs font-semibold tracking-wide">
+          <span className="px-3.5 py-1 rounded-full bg-[#0071e3] text-white text-xs font-semibold tracking-wide shadow-md">
             {afterLabel}
           </span>
-          <span className="text-xs font-medium text-white/80 bg-black/40 px-3 py-1 rounded-full border border-white/20">
+          <span className="text-xs font-medium text-white/80 bg-black/50 px-3 py-1 rounded-full border border-white/20 backdrop-blur-xs">
             DaVinci Resolve Grade
           </span>
         </div>
 
-        {/* Visual Simulated Commercial Grade Content */}
-        <div className="my-auto flex flex-col items-center justify-center text-center py-8">
-          <div className="w-20 h-20 rounded-full bg-[#0071e3]/20 border border-[#0071e3]/40 flex items-center justify-center mb-4">
-            <Tv className="w-8 h-8 text-[#2997ff]" />
+        <div className="my-auto flex flex-col items-center justify-center text-center py-6">
+          <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-[#0071e3]/20 border border-[#0071e3]/40 flex items-center justify-center mb-4 shadow-[0_0_24px_rgba(0,113,227,0.3)]">
+            <Tv className="w-8 h-8 sm:w-9 sm:h-9 text-[#2997ff]" />
           </div>
-          <span className="text-xl sm:text-3xl font-semibold tracking-tight text-white max-w-md">
+          <span className="text-xl sm:text-2xl md:text-3xl font-semibold tracking-tight text-white max-w-lg">
             {afterTitle}
           </span>
-          <span className="text-sm text-white/70 mt-2 font-normal">
-            Rec.709 • Film Print Emulation • High Contrast
+          <span className="text-xs sm:text-sm text-white/70 mt-2 font-normal max-w-md">
+            {afterSub}
           </span>
         </div>
 
         <div className="flex items-center justify-between text-xs text-white/70 z-10 font-medium">
-          <span>Look: Publicidade TV</span>
+          <span>Look: Comercial TV / Web</span>
           <span>Resultado Final</span>
         </div>
       </div>
 
-      {/* BEFORE IMAGE (CLIPPED SLIDER OVERLAY) */}
+      {/* BEFORE (RAW / FLAT) */}
       <div
-        className="absolute top-0 bottom-0 left-0 overflow-hidden bg-[#8e8e93] border-r border-white/40 flex flex-col justify-between p-6 sm:p-8 z-20"
+        className="absolute top-0 bottom-0 left-0 overflow-hidden bg-gradient-to-br from-[#48484a] via-[#3a3a3c] to-[#2c2c2e] border-r border-white/40 flex flex-col justify-between p-6 sm:p-8 z-20"
         style={{ width: `${sliderPos}%` }}
       >
         <div className="flex items-center justify-between z-10 whitespace-nowrap">
-          <span className="px-3.5 py-1 rounded-full bg-black/40 border border-white/30 text-white text-xs font-semibold">
+          <span className="px-3.5 py-1 rounded-full bg-black/60 border border-white/30 text-white text-xs font-semibold">
             {beforeLabel}
           </span>
         </div>
 
-        {/* Visual Simulated Flat Footage */}
-        <div className="my-auto flex flex-col items-center justify-center text-center py-8 whitespace-nowrap">
-          <div className="w-20 h-20 rounded-full bg-black/20 border border-white/20 flex items-center justify-center mb-4 opacity-75">
-            <Camera className="w-8 h-8 text-white" />
+        <div className="my-auto flex flex-col items-center justify-center text-center py-6 whitespace-nowrap">
+          <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-black/30 border border-white/20 flex items-center justify-center mb-4 opacity-75">
+            <Camera className="w-8 h-8 sm:w-9 sm:h-9 text-white" />
           </div>
-          <span className="text-xl sm:text-3xl font-semibold text-white/90 max-w-md">
+          <span className="text-xl sm:text-2xl md:text-3xl font-semibold text-white/90 max-w-lg">
             {beforeTitle}
           </span>
-          <span className="text-sm text-white/70 mt-2 font-normal">
-            LOG / Flat Profile • Sem Tratamento
+          <span className="text-xs sm:text-sm text-white/70 mt-2 font-normal max-w-md">
+            {beforeSub}
           </span>
         </div>
 
         <div className="flex items-center justify-between text-xs text-white/80 z-10 whitespace-nowrap font-medium">
           <span>Camera Native</span>
-          <span>RAW Original</span>
+          <span>Perfil Flat</span>
         </div>
       </div>
 
-      {/* SLIDER DIVIDER DRAG HANDLE */}
+      {/* SLIDER DIVIDER */}
       <div
-        className="absolute top-0 bottom-0 w-0.5 bg-[#0071e3] cursor-ew-resize z-30 shadow-[0_0_15px_rgba(0,113,227,0.8)]"
+        className="absolute top-0 bottom-0 w-0.5 bg-[#0071e3] cursor-ew-resize z-30 shadow-[0_0_16px_rgba(0,113,227,0.9)]"
         style={{ left: `${sliderPos}%` }}
       >
         <div className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 w-9 h-9 rounded-full bg-[#0071e3] text-white flex items-center justify-center font-bold shadow-xl border-2 border-white group-hover:scale-110 transition-transform">
-          <div className="flex items-center gap-0.5 text-xs font-black">
-            ‹›
-          </div>
+          <span className="text-xs font-black tracking-tighter">‹›</span>
         </div>
       </div>
     </div>
@@ -172,13 +177,59 @@ export const ColorMasterLanding: React.FC = () => {
   });
   const [logos, setLogos] = useState<{ name: string; src: string }[]>(PRODUTORAS_LOGOS);
   const [openFaq, setOpenFaq] = useState<number | null>(null);
-  const [activeStep, setActiveStep] = useState<number>(0);
+  const [openModule, setOpenModule] = useState<number | null>(0);
   const [loginModalOpen, setLoginModalOpen] = useState<boolean>(false);
+
+  // 15-Minute Countdown & Batch Price State
+  const [timeLeft, setTimeLeft] = useState<number>(900); // 15 minutos em segundos
+  const [isExpired, setIsExpired] = useState<boolean>(false);
+  const [priceData, setPriceData] = useState<{
+    promoPrice: number;
+    regularPrice: number;
+    finalPrice: number;
+    batchName: string;
+    nextPriceDate?: string;
+  }>({
+    promoPrice: 96,
+    regularPrice: 195,
+    finalPrice: 96,
+    batchName: 'Lote Especial de Abertura',
+    nextPriceDate: '06/10/2026'
+  });
 
   useEffect(() => {
     setAuthorPhotos(getRandomAuthorPhotos());
 
-    // Dynamically fetch any newly added logos from the folder
+    // Gerar ou recuperar Client/Device ID no navegador
+    let clientId = '';
+    try {
+      clientId = localStorage.getItem('flmmkr_client_device_id') || '';
+      if (!clientId) {
+        clientId = 'dev_' + Math.random().toString(36).substring(2, 15) + '_' + Date.now().toString(36);
+        localStorage.setItem('flmmkr_client_device_id', clientId);
+      }
+    } catch {
+      clientId = 'client_' + Date.now();
+    }
+
+    // Sincronizar com o servidor (grava IP e Client ID, preparado para Supabase)
+    fetch(`/api/offer-timer?clientId=${encodeURIComponent(clientId)}`)
+      .then((res) => res.json())
+      .then((data) => {
+        if (data && typeof data.remainingSeconds === 'number') {
+          setTimeLeft(data.remainingSeconds);
+          setIsExpired(data.isExpired);
+          setPriceData({
+            promoPrice: data.promoPrice,
+            regularPrice: data.regularPrice,
+            finalPrice: data.finalPrice,
+            batchName: data.batchName,
+            nextPriceDate: data.nextPriceDate
+          });
+        }
+      })
+      .catch(() => {});
+
     fetch('/api/empresas')
       .then((res) => res.json())
       .then((data) => {
@@ -189,80 +240,119 @@ export const ColorMasterLanding: React.FC = () => {
       .catch(() => {});
   }, []);
 
+  // Intervalo local do cronômetro de 15 minutos
+  useEffect(() => {
+    if (timeLeft <= 0) {
+      setIsExpired(true);
+      return;
+    }
+
+    const timer = setInterval(() => {
+      setTimeLeft((prev) => {
+        if (prev <= 1) {
+          setIsExpired(true);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [timeLeft]);
+
+  const formatTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  };
+
   const toggleFaq = (index: number) => {
     setOpenFaq(openFaq === index ? null : index);
   };
 
-  const stepsPipeline = [
+  const toggleModule = (index: number) => {
+    setOpenModule(openModule === index ? null : index);
+  };
+
+  // 03. O que você vai aprender - Organização das Aulas por Etapas do Trabalho
+  const learningModules = [
     {
-      title: '01. FOOTAGE ORIGINAL',
-      subtitle: 'Perfil LOG/Flat direto da câmera',
-      desc: 'Imagem lavada, sem profundidade de cor ou contraste definido.',
-      colorBg: 'bg-[#1c1c1e] text-white',
-      badge: 'RAW Original'
+      num: '01',
+      title: 'Preparação e gerenciamento de cores',
+      subtitle: 'Configuração do projeto, ciência de cores e estruturação do fluxo de trabalho',
+      lessons: [
+        'Introdução ao DaVinci Resolve',
+        'Gerenciamento de cores',
+        'ACES',
+        'CST (Color Space Transform)',
+        'Fluxo de trabalho'
+      ]
     },
     {
-      title: '02. BALANCE',
-      subtitle: 'Exposição, Contraste e Temperatura',
-      desc: 'Ajuste inicial dos pontos de preto, branco e correção de tom de pele.',
-      colorBg: 'bg-[#2c2c2e] text-white',
-      badge: 'Correção Primária'
+      num: '02',
+      title: 'Análise e correção',
+      subtitle: 'Leitura técnica e artística, equilíbrio da imagem e continuidade entre planos',
+      lessons: [
+        'Análise artística do vídeo',
+        'Correções primárias',
+        'Shot Matching'
+      ]
     },
     {
-      title: '03. MATCHING',
-      subtitle: 'Harmonização entre diferentes planos',
-      desc: 'Garantia de continuidade visual perfeita entre os cortes do comercial.',
-      colorBg: 'bg-[#1d1d1f] text-white',
-      badge: 'Continuidade Visual'
+      num: '03',
+      title: 'Refinamento da imagem',
+      subtitle: 'Isolamento cirúrgico de elementos, pele, produto e controle de fundo',
+      lessons: [
+        'Correções secundárias',
+        'Seleções e ajustes localizados'
+      ]
     },
     {
-      title: '04. LOOK',
-      subtitle: 'Identidade visual do produto',
-      desc: 'Densidade de cores, separação cromática e tom publicitário marcante.',
-      colorBg: 'bg-[#0071e3] text-white',
-      badge: 'Look Development'
+      num: '04',
+      title: 'Criação de look',
+      subtitle: 'Desenvolvimento de identidade visual e estética autoral com ferramentas dedicadas',
+      lessons: [
+        'DIY (Criação de look manual nativa)',
+        'Look Creator',
+        'Dehancer Pro'
+      ]
     },
     {
-      title: '05. FINAL',
-      subtitle: 'Acabamento & Film Print Emulation',
-      desc: 'Textura de película, controle de destaques e entrega pronta para TV e Web.',
-      colorBg: 'bg-[#0051a8] text-white',
-      badge: 'Resultado Comercial'
+      num: '05',
+      title: 'Finalização',
+      subtitle: 'Padrões de entrega comercial, codecs e exportação para TV e Web',
+      lessons: [
+        'Deliver',
+        'Preparação e exportação do material final'
+      ]
     }
   ];
 
+  // 07. Perguntas Frequentes
   const faqList = [
     {
-      q: 'Preciso saber usar o DaVinci Resolve?',
-      a: 'A masterclass foi estruturada para ser prática e direta. É ideal que você já conheça a interface básica do DaVinci Resolve, pois o foco principal é ensinar a metodologia de tomada de decisões e criação do look comercial.'
+      q: 'Para quem é o masterclass Color Master | Produto?',
+      a: 'É indicado para coloristas, videomakers, diretores de fotografia e editores que trabalham ou desejam atuar no mercado de comerciais, publicidade e vídeos de produto. Seja você um profissional buscando refinar suas tomadas de decisão ou alguém querendo elevar o padrão visual de seus projetos, a metodologia ensina o fluxo completo de ponta a ponta.'
     },
     {
-      q: 'A masterclass é para iniciantes?',
-      a: 'É perfeita tanto para quem está começando no color grading e quer aprender a ordem correta das decisões, quanto para profissionais que desejam elevar o nível estético do seu trabalho com imagens de produto e publicidade.'
+      q: 'Quais conhecimentos prévios são necessários?',
+      a: 'É recomendável ter noções básicas da interface do DaVinci Resolve (saber criar nós e navegar pelas abas). O curso foca intensamente na metodologia, leitura visual e tomada de decisões técnicas e estéticas, explicando cada passo com clareza.'
     },
     {
-      q: 'Vou receber o footage utilizado?',
-      a: 'Sim! Você receberá acesso aos arquivos do projeto e às footages de produto utilizadas nas aulas para praticar exatamente a mesma cena acompanhando a masterclass.'
+      q: 'Qual software e quais ferramentas são utilizados?',
+      a: 'Utilizamos o DaVinci Resolve como plataforma central de trabalho. Além das ferramentas nativas do DaVinci (que cobrem todo o fluxo essencial), demonstramos ferramentas especializadas como o Dehancer Pro e Look Creator nos módulos dedicados de Look Development e emulação de película.'
     },
     {
-      q: 'Preciso do DaVinci Resolve Studio (pago)?',
-      a: 'A maioria esmagadora dos conceitos e técnicas pode ser executada perfeitamente na versão gratuita do DaVinci Resolve. Ferramentas específicas como o Dehancer Pro são abordadas como módulos de acabamento opcional.'
+      q: 'Como funciona o acesso e por quanto tempo terei direito?',
+      a: 'O acesso é liberado imediatamente após a confirmação do pagamento e tem duração de 1 ano completo (365 dias). Durante esse período, você pode assistir a todas as aulas quantas vezes quiser, além de baixar os materiais e projetos.'
     },
     {
-      q: 'O Dehancer Pro é obrigatório?',
-      a: 'Não. O Dehancer Pro é apresentado em um módulo especial para quem deseja explorar film emulation avançado, mas você aprenderá a construir o look completo usando os recursos nativos do DaVinci Resolve.'
+      q: 'Como funciona o desconto de 25% nos outros treinamentos?',
+      a: 'Quem adquire o Color Master | Produto recebe automaticamente um cupom exclusivo de 25% de desconto para aplicar em qualquer outro curso ou masterclass da FLMMKR dentro da área de membros.'
     },
     {
-      q: 'Preciso ter o Look Creator?',
-      a: 'Não. Mostramos a aplicação prática do Look Creator como ferramenta auxiliar de Look Development, mas ensinamos todo o raciocínio fundamentado para que você crie seus próprios grades independentemente de plugins.'
-    },
-    {
-      q: 'Posso usar as técnicas em outros tipos de projetos?',
-      a: 'Com certeza! Embora o foco principal seja imagens de produto e comerciais, a metodologia de análise, balanceamento, matching e construção de look aplica-se a videoclipes, filmes, documentários e conteúdo corporativo.'
-    },
-    {
-      q: 'Por quanto tempo terei acesso?',
-      a: 'Você terá acesso vitalício a todas as aulas, atualizações futuras e materiais de apoio disponibilizados na plataforma.'
+      q: 'Como funciona o pagamento e quais são as formas disponíveis?',
+      a: 'O pagamento é processado com total segurança pela plataforma Hotmart. Você pode parcelar em até 12x no cartão de crédito, pagar à vista via Pix ou boleto bancário.'
     }
   ];
 
@@ -271,12 +361,68 @@ export const ColorMasterLanding: React.FC = () => {
       {/* Login Modal */}
       <LoginModal isOpen={loginModalOpen} onClose={() => setLoginModalOpen(false)} />
 
-      {/* Glassmorphism Header Navigation — Dark Glass */}
+      {/* TOP FIXED COUNTDOWN BANNER (15 MIN TIMER & BATCH PRICING) */}
+      <div className={`sticky top-0 z-60 w-full transition-colors duration-300 ${
+        isExpired 
+          ? 'bg-[#1c1c1e] text-white border-b border-red-500/30' 
+          : 'bg-gradient-to-r from-[#0071e3] via-[#0051a8] to-[#0071e3] text-white border-b border-white/20'
+      } shadow-md`}>
+        <div className="max-w-6xl mx-auto px-4 py-2 sm:py-2.5 flex flex-wrap items-center justify-between gap-2 text-xs sm:text-sm font-medium">
+          <div className="flex items-center gap-2">
+            {!isExpired ? (
+              <>
+                <span className="flex h-2 w-2 relative">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-400"></span>
+                </span>
+                <span className="font-bold text-amber-300 uppercase tracking-wider text-[11px] sm:text-xs">
+                  Oferta Relâmpago (15 Minutos)
+                </span>
+                <span className="hidden md:inline text-white/90">
+                  • Garanta o valor de abertura de <strong className="text-white underline decoration-amber-400 font-bold">R$ {priceData.promoPrice}</strong> antes que o tempo expire!
+                </span>
+              </>
+            ) : (
+              <>
+                <span className="text-red-400 font-bold uppercase tracking-wider text-[11px] sm:text-xs flex items-center gap-1.5">
+                  <Clock className="w-3.5 h-3.5" /> Tempo de 15 min expirado
+                </span>
+                <span className="text-white/80 hidden sm:inline">
+                  • O valor promocional de R$ 96 encerrou para este dispositivo. Preço regular: R$ 195.
+                </span>
+              </>
+            )}
+          </div>
+
+          <div className="flex items-center gap-3 ml-auto">
+            {!isExpired ? (
+              <div className="flex items-center gap-1.5 bg-black/30 backdrop-blur-md px-3 py-1 rounded-full border border-white/20">
+                <Clock className="w-3.5 h-3.5 text-amber-300 animate-pulse" />
+                <span className="text-xs font-mono font-bold tracking-wider text-amber-300">
+                  {formatTime(timeLeft)}
+                </span>
+              </div>
+            ) : (
+              <span className="text-xs font-bold text-red-300 bg-red-950/60 px-2.5 py-0.5 rounded-full border border-red-800/40">
+                Expirado
+              </span>
+            )}
+
+            <a
+              href="#oferta"
+              className="px-3 py-1 rounded-full bg-white text-[#0071e3] hover:bg-white/90 text-xs font-bold transition-all shadow-xs shrink-0 active:scale-95"
+            >
+              {!isExpired ? 'Aproveitar R$ ' + priceData.promoPrice : 'Ver Preço Regular'}
+            </a>
+          </div>
+        </div>
+      </div>
+
+      {/* Glassmorphism Header Navigation */}
       <header
-        className="sticky top-0 z-50 w-full border-b border-white/10 shadow-[0_8px_32px_-4px_rgba(0,0,0,0.5)] transition-all duration-300"
-        style={{ background: 'rgba(14,14,18,0.72)', backdropFilter: 'blur(28px) saturate(180%)', WebkitBackdropFilter: 'blur(28px) saturate(180%)' }}
+        className="sticky top-9 sm:top-10 z-50 w-full border-b border-white/10 shadow-[0_8px_32px_-4px_rgba(0,0,0,0.5)] transition-all duration-300"
+        style={{ background: 'rgba(14,14,18,0.85)', backdropFilter: 'blur(28px) saturate(180%)', WebkitBackdropFilter: 'blur(28px) saturate(180%)' }}
       >
-        {/* Top specular rim */}
         <div className="absolute inset-x-0 top-0 h-[1px] bg-gradient-to-r from-transparent via-white/20 to-transparent pointer-events-none z-20" />
 
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 h-13 flex items-center justify-between">
@@ -284,14 +430,11 @@ export const ColorMasterLanding: React.FC = () => {
             FLMMKR
           </a>
 
-          <span className="hidden sm:inline-block text-xs text-white/70 font-semibold tracking-wide bg-white/8 px-3.5 py-1 rounded-full border border-white/15"
-            style={{ background: 'rgba(255,255,255,0.08)' }}
-          >
+          <span className="hidden sm:inline-block text-xs text-white/80 font-semibold tracking-wide bg-white/10 px-3.5 py-1 rounded-full border border-white/15">
             COLOR MASTER | PRODUTO
           </span>
 
           <div className="flex items-center gap-3">
-            {/* Social Icons */}
             <div className="hidden sm:flex items-center gap-1.5">
               {SITE_CONFIG.social.map((soc) => (
                 <a
@@ -310,7 +453,6 @@ export const ColorMasterLanding: React.FC = () => {
               <div className="w-px h-4 bg-white/15 mx-1" />
             </div>
 
-            {/* Acessar button */}
             <button
               onClick={() => setLoginModalOpen(true)}
               className="px-4 py-1.5 rounded-full bg-white/10 hover:bg-white/20 text-white text-xs font-semibold border border-white/15 hover:border-white/30 transition-all active:scale-95"
@@ -329,32 +471,34 @@ export const ColorMasterLanding: React.FC = () => {
         </div>
       </header>
 
-      {/* HERO SECTION WITH PURE BACKGROUND VIDEO */}
-      <section className="relative z-10 overflow-hidden pt-16 pb-24 md:pt-28 md:pb-36 px-4 sm:px-6 lg:px-8 bg-black">
-        {/* Full Background Video Layer - 100% Pure without masks or effects */}
+      {/* ========================================================================= */}
+      {/* 01. HERO: APRESENTAÇÃO DO PRODUTO (PRIORIDADE MÁXIMA)                     */}
+      {/* ========================================================================= */}
+      <section className="relative z-10 overflow-hidden pt-16 pb-20 md:pt-24 md:pb-32 px-4 sm:px-6 lg:px-8 bg-black">
+        {/* Background Video Layer with Retícula Overlay */}
         <div className="absolute inset-0 w-full h-full overflow-hidden pointer-events-none select-none z-0">
           <iframe
             src="https://www.youtube-nocookie.com/embed/RMKnx99UCUA?autoplay=1&mute=1&controls=0&loop=1&playlist=RMKnx99UCUA&playsinline=1&rel=0&modestbranding=1&enablejsapi=1"
-            title="Color Master Background Video"
-            className="absolute top-1/2 left-1/2 w-[250%] h-[250%] min-w-full min-h-full -translate-x-1/2 -translate-y-1/2 object-cover pointer-events-none opacity-100"
+            title="Color Master Background Showcase"
+            className="absolute top-1/2 left-1/2 w-[250%] h-[250%] min-w-full min-h-full -translate-x-1/2 -translate-y-1/2 object-cover pointer-events-none opacity-90"
             allow="autoplay; encrypted-media"
           />
-          {/* Retícula Overlay (Black dots grid filter over Hero video) */}
           <div
             className="absolute inset-0 z-5 pointer-events-none"
             style={{
-              backgroundImage: `radial-gradient(circle, rgba(0, 0, 0, 0.8) 1.2px, transparent 1.2px)`,
+              backgroundImage: `radial-gradient(circle, rgba(0, 0, 0, 0.85) 1.2px, transparent 1.2px)`,
               backgroundSize: '5px 5px'
             }}
           />
+          <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-black/60 pointer-events-none z-6" />
         </div>
 
-        <div className="relative z-10 max-w-6xl mx-auto">
+        <div className="relative z-10 max-w-5xl mx-auto">
           <div className="flex flex-col items-center text-center max-w-3xl mx-auto mb-10">
-            {/* Top Label */}
-            <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-black/60 backdrop-blur-md text-white/90 text-xs font-medium mb-6 border border-white/20 shadow-sm">
-              <Sliders className="w-3.5 h-3.5 text-[#0071e3]" />
-              <span>COLOR MASTER | PRODUTO</span>
+            {/* Masterclass Identification Badge */}
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-black/60 backdrop-blur-md text-white/90 text-xs font-semibold mb-6 border border-white/20 shadow-sm">
+              <Sliders className="w-3.5 h-3.5 text-[#2997ff]" />
+              <span className="tracking-wide uppercase">MASTERCLASS • COLOR MASTER | PRODUTO</span>
             </div>
 
             {/* Headline H1 */}
@@ -362,550 +506,420 @@ export const ColorMasterLanding: React.FC = () => {
               Transforme uma boa fotografia de produto em uma imagem de comercial.
             </h1>
 
-            {/* Subheadline */}
-            <p className="text-base sm:text-xl text-white/90 font-normal leading-relaxed mb-8 max-w-2xl drop-shadow-lg">
-              Aprenda, na prática, como analisar, equilibrar, igualar e construir o look de imagens de produto no DaVinci Resolve.
+            {/* Subtitle */}
+            <p className="text-base sm:text-xl text-white/90 font-normal leading-relaxed mb-8 max-w-2xl drop-shadow-md">
+              Aprenda, na prática, como analisar, equilibrar, igualar e construir o look de imagens de produto no DaVinci Resolve com padrão de publicidade de alto nível.
             </p>
 
-            {/* Hero CTAs */}
+            {/* Commercial Condition / Price Pill */}
+            <div className="inline-flex flex-wrap items-center justify-center gap-2 px-4 py-2 rounded-2xl bg-white/10 backdrop-blur-md border border-white/20 text-white text-xs sm:text-sm font-medium mb-6">
+              <Sparkles className="w-4 h-4 text-[#2997ff]" />
+              {!isExpired ? (
+                <>
+                  <span className="line-through text-white/50">R$ 195</span>
+                  <span className="font-bold text-amber-300 text-sm sm:text-base">R$ {priceData.promoPrice} à vista</span>
+                  <span className="text-white/40">•</span>
+                  <span>1 Ano de Acesso</span>
+                  <span className="text-white/40">•</span>
+                  <span className="text-emerald-400 font-semibold">+25% OFF nos outros cursos</span>
+                </>
+              ) : (
+                <>
+                  <span className="font-bold text-white text-sm sm:text-base">R$ 195 à vista</span>
+                  <span className="text-white/40">•</span>
+                  <span>1 Ano de Acesso</span>
+                  <span className="text-white/40">•</span>
+                  <span className="text-emerald-400 font-semibold">+25% OFF nos outros cursos</span>
+                </>
+              )}
+            </div>
+
+            {/* Main CTAs */}
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4 w-full sm:w-auto mb-4">
               <a
                 href="#oferta"
-                onClick={() => trackProductClick('color-master-produto', 'Color Master - Produtos', '#oferta', 'other')}
-                className="w-full sm:w-auto px-8 py-3.5 rounded-full bg-[#0071e3] hover:bg-[#0077ed] text-white font-medium text-sm transition-all shadow-xl flex items-center justify-center gap-2 active:scale-95"
+                onClick={() => trackProductClick('color-master-produto', 'Color Master Hero CTA', '#oferta', 'other')}
+                className="w-full sm:w-auto px-8 py-4 rounded-full bg-[#0071e3] hover:bg-[#0077ed] text-white font-semibold text-sm sm:text-base transition-all shadow-[0_4px_20px_rgba(0,113,227,0.5)] flex items-center justify-center gap-2 active:scale-95"
               >
-                <span>Quero aprender Color Grading de Produto</span>
+                <span>{!isExpired ? `Garantir por R$ ${priceData.promoPrice}` : 'Garantir Acesso à Masterclass'}</span>
                 <ArrowRight className="w-4 h-4" />
+              </a>
+
+              <a
+                href="#aprendizado"
+                className="w-full sm:w-auto px-6 py-4 rounded-full bg-white/10 hover:bg-white/20 text-white font-medium text-sm transition-all border border-white/20 flex items-center justify-center gap-2 active:scale-95"
+              >
+                <span>Ver Conteúdo Completo</span>
+                <ChevronDown className="w-4 h-4" />
               </a>
             </div>
 
-            {/* Trust line */}
-            <p className="text-sm text-white/80 flex items-center gap-1.5 justify-center font-normal drop-shadow-md">
-              <Check className="w-4 h-4 text-[#2997ff]" />
-              <span>Aulas práticas usando footage de produção real.</span>
-            </p>
-          </div>
-
-          {/* Hero Interactive Before / After Comparison Slider */}
-          <div className="w-full max-w-4xl mx-auto">
-            <BeforeAfterSlider
-              beforeLabel="FOOTAGE ORIGINAL (FLAT)"
-              afterLabel="GRADE COMERCIAL FINAL"
-              beforeTitle="Sem presença de marca, sem contraste"
-              afterTitle="Densidade visual e brilho de comercial de TV"
-            />
-            <div className="mt-3 text-center">
-              <span className="text-sm text-white/80 flex items-center justify-center gap-1 drop-shadow-sm font-medium">
-                Arraste o divisor para comparar o resultado antes e depois da grading
-              </span>
+            {/* Trust highlights */}
+            <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 mt-4 text-xs sm:text-sm text-white/80 font-normal">
+              <div className="flex items-center gap-1.5">
+                <Check className="w-4 h-4 text-[#2997ff]" />
+                <span>1 Ano de Acesso</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <Check className="w-4 h-4 text-[#2997ff]" />
+                <span>Footages reais inclusos</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <Check className="w-4 h-4 text-[#2997ff]" />
+                <span>25% OFF em outros cursos</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <Check className="w-4 h-4 text-[#2997ff]" />
+                <span>Garantia de 7 dias</span>
+              </div>
             </div>
           </div>
+
         </div>
       </section>
 
-      {/* 02. A PROPOSTA VISUAL (APPLE LIGHT BENTO) */}
+      {/* ========================================================================= */}
+      {/* 02. O RESULTADO VISUAL                                                    */}
+      {/* ========================================================================= */}
       <section className="relative z-10 py-16 md:py-24 bg-[#f5f5f7] border-y border-[#d2d2d7]/60 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-6xl mx-auto">
-          <div className="text-center max-w-2xl mx-auto mb-12">
-            <span className="text-xs uppercase tracking-widest text-[#0071e3] font-bold mb-2 block">
-              METODOLOGIA APLICADA À PUBLICIDADE
-            </span>
-            <h2 className="text-3xl sm:text-5xl font-semibold tracking-tight text-[#1d1d1f]">
-              Você vai aprender a construir a imagem, não apenas aplicar um LUT.
-            </h2>
-            <p className="text-base sm:text-lg text-[#6e6e73] mt-3 font-normal">
-              Veja o resultado aplicado a diferentes categorias de produtos comerciais exigentes.
-            </p>
-          </div>
-
-          {/* 4 Product Categories Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Cosmético */}
-            <div className="p-6 rounded-3xl bg-[#ffffff] border border-[#e5e5e7] shadow-sm flex flex-col">
-              <div className="flex items-center justify-between mb-4">
-                <span className="text-xs font-semibold text-[#0071e3] bg-[#0071e3]/10 px-3 py-1 rounded-full border border-[#0071e3]/20">
-                  COSMÉTICO & BELEZA
-                </span>
-                <span className="text-xs font-medium text-[#86868b]">Pele & Reflexos</span>
-              </div>
-              <BeforeAfterSlider
-                heightClass="h-[260px] sm:h-[300px]"
-                beforeTitle="Pele lavada e sem vida"
-                afterTitle="Tom de pele radiante & contraste orgânico"
-              />
-            </div>
-
-            {/* Bebida */}
-            <div className="p-6 rounded-3xl bg-[#ffffff] border border-[#e5e5e7] shadow-sm flex flex-col">
-              <div className="flex items-center justify-between mb-4">
-                <span className="text-xs font-semibold text-[#0071e3] bg-[#0071e3]/10 px-3 py-1 rounded-full border border-[#0071e3]/20">
-                  BEBIDAS & LÍQUIDOS
-                </span>
-                <span className="text-xs font-medium text-[#86868b]">Transparência & Highlights</span>
-              </div>
-              <BeforeAfterSlider
-                heightClass="h-[260px] sm:h-[300px]"
-                beforeTitle="Gotas e vidro opacos"
-                afterTitle="Destaque de refração e apetite visual"
-              />
-            </div>
-
-            {/* Alimento */}
-            <div className="p-6 rounded-3xl bg-[#ffffff] border border-[#e5e5e7] shadow-sm flex flex-col">
-              <div className="flex items-center justify-between mb-4">
-                <span className="text-xs font-semibold text-[#0071e3] bg-[#0071e3]/10 px-3 py-1 rounded-full border border-[#0071e3]/20">
-                  ALIMENTOS & GASTRONOMIA
-                </span>
-                <span className="text-xs font-medium text-[#86868b]">Saturação & Textura</span>
-              </div>
-              <BeforeAfterSlider
-                heightClass="h-[260px] sm:h-[300px]"
-                beforeTitle="Cor sem apetite"
-                afterTitle="Cores ricas, contraste e apetite appeal"
-              />
-            </div>
-
-            {/* Tecnologia */}
-            <div className="p-6 rounded-3xl bg-[#ffffff] border border-[#e5e5e7] shadow-sm flex flex-col">
-              <div className="flex items-center justify-between mb-4">
-                <span className="text-xs font-semibold text-[#0071e3] bg-[#0071e3]/10 px-3 py-1 rounded-full border border-[#0071e3]/20">
-                  PRODUTOS TECNOLÓGICOS
-                </span>
-                <span className="text-xs font-medium text-[#86868b]">Metais, Telas & Vidro</span>
-              </div>
-              <BeforeAfterSlider
-                heightClass="h-[260px] sm:h-[300px]"
-                beforeTitle="Superfície plástica"
-                afterTitle="Estética premium, acabamento metálico"
-              />
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* 03. O PROBLEMA */}
-      <section className="relative z-10 py-16 md:py-24 px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto">
-        <div className="p-8 sm:p-12 rounded-3xl bg-[#ffffff] border border-[#e5e5e7] shadow-sm">
-          <div className="max-w-3xl">
-            <span className="text-xs uppercase tracking-widest text-[#0071e3] font-bold mb-3 block">
-              DIAGNÓSTICO TÉCNICO
-            </span>
-            <h2 className="text-2xl sm:text-4xl font-semibold text-[#1d1d1f] mb-6 leading-snug">
-              Você olha para a imagem e sabe que ela ainda não chegou lá.
-            </h2>
-            <p className="text-base sm:text-lg text-[#6e6e73] mb-8 leading-relaxed">
-              Você provavelmente já domina as ferramentas do DaVinci Resolve. Porém, na hora de finalizar um projeto de produto, os problemas voltam a acontecer:
-            </p>
-
-            <div className="space-y-4 mb-8">
-              {[
-                'A imagem não está equilibrada tecnicamente;',
-                'Os planos gravados não conversam entre si no corte;',
-                'O produto perde presença e destaque para o fundo;',
-                'As cores parecem artificiais ou estouradas;',
-                'O look fica refém e dependente de LUTs genéricos;',
-                'A imagem não transmite a densidade visual de um comercial de TV.'
-              ].map((item, idx) => (
-                <div key={idx} className="flex items-start gap-3.5 text-sm sm:text-base text-[#1d1d1f] bg-[#f5f5f7] p-4 rounded-2xl border border-[#e5e5e7]">
-                  <XCircle className="w-5 h-5 text-red-500 shrink-0 mt-0.5" />
-                  <span>{item}</span>
-                </div>
-              ))}
-            </div>
-
-            <div className="p-6 rounded-2xl bg-[#0071e3]/10 border border-[#0071e3]/30">
-              <p className="text-base sm:text-lg font-semibold text-[#0071e3] leading-relaxed">
-                "O problema geralmente não é falta de ferramentas. É não saber tomar as decisões certas na ordem certa."
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* 04. O QUE É O COLOR MASTER */}
-      <section className="relative z-10 py-16 md:py-24 bg-[#f5f5f7] border-y border-[#d2d2d7]/60 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-6xl mx-auto">
-          <div className="grid grid-cols-1 md:grid-cols-12 gap-10 items-center">
-            {/* Left Info Column */}
-            <div className="md:col-span-6 flex flex-col items-start">
-              <span className="text-xs uppercase tracking-widest text-[#0071e3] font-bold mb-2">
-                FORMAÇÃO ESPECÍFICA
-              </span>
-              <h2 className="text-3xl sm:text-5xl font-semibold text-[#1d1d1f] mb-4">
-                Color Master | Produto
-              </h2>
-              <p className="text-base sm:text-lg text-[#6e6e73] leading-relaxed mb-6 font-normal">
-                Uma masterclass focada em uma situação específica: como pegar footage de produto e conduzir a imagem até um resultado final de publicidade profissional.
-              </p>
-
-              {/* Workflow Chain Visual */}
-              <div className="w-full bg-[#ffffff] p-6 rounded-3xl border border-[#e5e5e7] space-y-2.5 shadow-sm">
-                <h3 className="text-xs font-bold text-[#0071e3] block mb-3 uppercase tracking-wider">
-                  FLUXO DE TRABALHO COMPLETO:
-                </h3>
-                {[
-                  'Footage RAW / Flat Original',
-                  'Análise de Exposição & Histograma',
-                  'Balance (Correção Primária)',
-                  'Matching (Consistência entre Planos)',
-                  'Secundárias (Pele, Produto & Fundo)',
-                  'Look (Identidade Visual)',
-                  'Look Development (Look Creator / Dehancer)',
-                  'Finalização & Entrega Comercial'
-                ].map((step, idx) => (
-                  <div key={idx} className="flex items-center justify-between text-xs sm:text-sm font-medium text-[#1d1d1f] bg-[#f5f5f7] px-4 py-2.5 rounded-xl border border-[#e5e5e7]">
-                    <span className="text-[#0071e3] font-bold">0{idx + 1}.</span>
-                    <span>{step}</span>
-                    <span className="text-xs text-[#86868b]">Passo {idx + 1}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Right Visual Room Column */}
-            <div className="md:col-span-6 flex justify-center">
-              <div className="relative w-full max-w-lg rounded-3xl bg-[#ffffff] border border-[#e5e5e7] p-8 flex flex-col items-center justify-center text-center shadow-sm">
-                <div className="w-full h-64 rounded-2xl bg-[#1c1c1e] border border-[#2c2c2e] flex items-center justify-center relative mb-6">
-                  <Monitor className="w-16 h-16 text-[#2997ff]" />
-                  <span className="absolute bottom-3 right-3 text-xs bg-black/60 px-3 py-1 rounded-full text-white border border-white/20">
-                    DaVinci Resolve Grade Room
-                  </span>
-                </div>
-                <h3 className="text-xl font-semibold text-[#1d1d1f] mb-2">Processo de Grading Profissional</h3>
-                <p className="text-sm sm:text-base text-[#6e6e73] max-w-sm">
-                  Você acompanha o pensamento e a tomada de decisão em tempo real direto na interface.
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* 05. O GRANDE BLOCO: O QUE VOCÊ VAI APRENDER (TIMELINE 01 A 08) */}
-      <section className="relative z-10 py-16 md:py-24 px-4 sm:px-6 lg:px-8 max-w-5xl mx-auto">
-        <div className="text-center max-w-2xl mx-auto mb-16">
-          <span className="text-xs uppercase tracking-widest text-[#0071e3] font-bold mb-2 block">
-            ESTRUTURA DAS AULAS
-          </span>
-          <h2 className="text-3xl sm:text-5xl font-semibold text-[#1d1d1f]">
-            Dentro da Color Master
-          </h2>
-          <p className="text-base sm:text-lg text-[#6e6e73] mt-3 font-normal">
-            Acompanhe a timeline de color grading como em uma sessão de pós-produção real.
-          </p>
-        </div>
-
-        {/* Timeline Vertical */}
-        <div className="relative border-l-2 border-[#0071e3]/30 ml-4 sm:ml-8 space-y-10 pl-6 sm:pl-10">
-          {[
-            {
-              num: '01',
-              title: 'ORGANIZANDO O PROJETO',
-              desc: 'Antes de tocar na imagem, você vai entender como estruturar o projeto para trabalhar de maneira organizada e eficiente.',
-              detail: 'Node Tree Estruturada • Gerenciamento de Cor ACES/RCM • Color Space Transform'
-            },
-            {
-              num: '02',
-              title: 'ANALISANDO AS FOOTAGES',
-              desc: 'Antes de corrigir, é preciso entender o que existe na imagem. Você vai aprender a observar exposição, contraste, temperatura, saturação, cor e diferenças entre os planos.',
-              detail: 'Leitura de Scopes • Vector Scope • Waveform • Histograma'
-            },
-            {
-              num: '03',
-              title: 'PRIMÁRIAS / BALANCE',
-              desc: 'O primeiro passo para construir uma imagem sólida. Exposição, contraste, temperatura, saturação e equilíbrio geral da imagem.',
-              detail: 'Lift/Gamma/Gain • Offset Balance • Skin Tone Indicator'
-            },
-            {
-              num: '04',
-              title: 'COLOR MATCHING',
-              desc: 'Uma das partes mais importantes de um comercial. Você vai aprender a fazer diferentes planos conversarem entre si e construir continuidade visual.',
-              detail: 'Matching de Câmeras • Consistência entre Cortes • Split Screen Comparison'
-            },
-            {
-              num: '05',
-              title: 'SECUNDÁRIAS',
-              desc: 'Agora entramos nos detalhes. Selecionar, isolar e trabalhar partes específicas da imagem para controlar produto, fundo, pele, materiais e cores.',
-              detail: 'Qualifiers HSL • Power Windows • Tracker 3D • Window Rotoscoping'
-            },
-            {
-              num: '06',
-              title: 'CRIANDO UM LOOK',
-              desc: 'Depois que a imagem está tecnicamente resolvida, começa a parte criativa. Você vai aprender a desenvolver uma identidade visual para o produto.',
-              detail: 'Color Contrast • Complementary Palette • Density Controls'
-            },
-            {
-              num: '07',
-              title: 'LOOK COM LOOK CREATOR',
-              desc: 'Uma abordagem de look development utilizando o Look Creator. Mostrar o antes e depois, mas principalmente mostrar o raciocínio por trás da construção.',
-              detail: 'Custom Look Development • Curvas de Resposta de Cor • Split Toning'
-            },
-            {
-              num: '08',
-              title: 'LOOK COM DEHANCER PRO',
-              desc: 'Explorar o Dehancer Pro como ferramenta de criação e acabamento. Comparação Digital vs. Film com zoom em textura, contraste, highlights, cores e densidade.',
-              detail: 'Film Grain • Halation • Bloom • Film Print Emulation Kodak/Fuji'
-            }
-          ].map((item, idx) => (
-            <div key={idx} className="relative group">
-              {/* Timeline Bullet Node */}
-              <div className="absolute -left-[31px] sm:-left-[47px] top-0 w-9 h-9 rounded-full bg-[#ffffff] border-2 border-[#0071e3] text-[#0071e3] font-bold text-xs flex items-center justify-center shadow-md group-hover:scale-110 transition-transform">
-                {item.num}
-              </div>
-
-              <div className="p-6 sm:p-8 rounded-3xl bg-[#ffffff] border border-[#e5e5e7] shadow-sm hover:border-[#0071e3]/40 transition-all">
-                <span className="text-xs uppercase tracking-wider text-[#0071e3] font-bold block mb-1">
-                  ETAPA {item.num}
-                </span>
-                <h3 className="text-xl sm:text-2xl font-semibold text-[#1d1d1f] mb-3">{item.title}</h3>
-                <p className="text-sm sm:text-base text-[#6e6e73] leading-relaxed mb-4">{item.desc}</p>
-                <div className="text-xs sm:text-sm text-[#1d1d1f] font-medium bg-[#f5f5f7] p-3 rounded-xl border border-[#e5e5e7] flex items-center gap-2">
-                  <Check className="w-4 h-4 text-[#0071e3] shrink-0" />
-                  <span>{item.detail}</span>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* 06. DECISÕES, NÃO APENAS COMANDOS */}
-      <section className="relative z-10 py-16 md:py-24 bg-[#f5f5f7] border-y border-[#d2d2d7]/60 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-5xl mx-auto">
-          <div className="text-center max-w-2xl mx-auto mb-12">
-            <span className="text-xs uppercase tracking-widest text-[#0071e3] font-bold mb-2 block">
-              DIFERENCIAL PEDAGÓGICO
-            </span>
-            <h2 className="text-3xl sm:text-5xl font-semibold text-[#1d1d1f]">
-              Você vai acompanhar as decisões, não apenas os comandos.
-            </h2>
-          </div>
-
-          {/* Interactive Frame Annotation Preview */}
-          <div className="relative p-6 sm:p-10 rounded-3xl bg-[#ffffff] border border-[#e5e5e7] shadow-sm">
-            <div className="w-full h-64 sm:h-96 rounded-2xl bg-[#1c1c1e] border border-[#2c2c2e] p-6 flex flex-col justify-between relative overflow-hidden">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-semibold text-white bg-[#0071e3] px-3.5 py-1 rounded-full">
-                  COMERCIAL DE PRODUTO • FRAME ANÁLISE
-                </span>
-                <span className="text-xs text-white/70">DaVinci Session</span>
-              </div>
-
-              {/* Callouts grid */}
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 sm:gap-3 my-auto">
-                <div className="p-3 rounded-xl bg-black/60 border border-white/20 text-xs font-medium text-white">
-                  Por que essa exposição?
-                </div>
-                <div className="p-3 rounded-xl bg-black/60 border border-white/20 text-xs font-medium text-white">
-                  Por que essa temperatura?
-                </div>
-                <div className="p-3 rounded-xl bg-black/60 border border-white/20 text-xs font-medium text-white">
-                  Por que essa saturação?
-                </div>
-                <div className="p-3 rounded-xl bg-black/60 border border-white/20 text-xs font-medium text-white">
-                  Por que essa cor?
-                </div>
-                <div className="p-3 rounded-xl bg-black/60 border border-white/20 text-xs font-medium text-white col-span-2 sm:col-span-1">
-                  Por que esse contraste?
-                </div>
-              </div>
-
-              <div className="text-xs text-white/70">
-                Aprenda o raciocínio por trás de cada nó
-              </div>
-            </div>
-
-            <div className="mt-8 text-center max-w-xl mx-auto">
-              <p className="text-base sm:text-xl font-semibold text-[#1d1d1f] leading-relaxed">
-                "O objetivo não é decorar onde ficam as ferramentas do DaVinci Resolve. É aprender a olhar para uma imagem e entender o que precisa ser feito."
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* 07. A TRANSFORMAÇÃO: STEPPER MULTISTAGE */}
-      <section className="relative z-10 py-16 md:py-24 px-4 sm:px-6 lg:px-8 max-w-5xl mx-auto">
-        <div className="text-center max-w-2xl mx-auto mb-10">
-          <span className="text-xs uppercase tracking-widest text-[#0071e3] font-bold mb-2 block">
-            EVOLUÇÃO PASSO A PASSO
-          </span>
-          <h2 className="text-3xl sm:text-5xl font-semibold text-[#1d1d1f]">
-            Do footage ao comercial
-          </h2>
-          <p className="text-base sm:text-lg text-[#6e6e73] mt-2">
-            Clique nas etapas abaixo para ver a evolução gradual da imagem durante a masterclass.
-          </p>
-        </div>
-
-        {/* Stepper Tabs */}
-        <div className="flex flex-wrap items-center justify-center gap-2.5 mb-8">
-          {stepsPipeline.map((step, idx) => (
-            <button
-              key={idx}
-              onClick={() => setActiveStep(idx)}
-              className={`px-5 py-2.5 rounded-full text-xs sm:text-sm font-semibold transition-all ${
-                activeStep === idx
-                  ? 'bg-[#0071e3] text-white shadow-md scale-105'
-                  : 'bg-[#ffffff] text-[#6e6e73] hover:text-[#1d1d1f] border border-[#d2d2d7]'
-              }`}
-            >
-              {step.title}
-            </button>
-          ))}
-        </div>
-
-        {/* Active Stage Display Card */}
-        <div className="p-8 sm:p-10 rounded-3xl bg-[#ffffff] border border-[#e5e5e7] shadow-sm">
-          <div className={`w-full h-72 sm:h-96 rounded-2xl ${stepsPipeline[activeStep].colorBg} p-8 flex flex-col justify-between relative`}>
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-semibold bg-white/20 text-white px-3.5 py-1 rounded-full border border-white/30">
-                {stepsPipeline[activeStep].badge}
-              </span>
-              <span className="text-xs text-white/80 font-medium">
-                Etapa {activeStep + 1} de {stepsPipeline.length}
-              </span>
-            </div>
-
-            <div className="my-auto text-center max-w-xl mx-auto">
-              <h3 className="text-2xl sm:text-3xl font-semibold text-white mb-2">
-                {stepsPipeline[activeStep].title}
-              </h3>
-              <p className="text-base sm:text-lg text-white/90 font-medium mb-2">
-                {stepsPipeline[activeStep].subtitle}
-              </p>
-              <p className="text-sm sm:text-base text-white/80">
-                {stepsPipeline[activeStep].desc}
-              </p>
-            </div>
-
-            <div className="flex justify-between items-center text-xs text-white/70 font-medium">
-              <span>Status: Ativo</span>
-              <span>DaVinci Pipeline Stage</span>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* 08. PARA QUEM É */}
-      <section className="relative z-10 py-16 md:py-24 bg-[#f5f5f7] border-t border-[#d2d2d7]/60 px-4 sm:px-6 lg:px-8">
         <div className="max-w-6xl mx-auto">
           <div className="text-center max-w-2xl mx-auto mb-14">
             <span className="text-xs uppercase tracking-widest text-[#0071e3] font-bold mb-2 block">
-              PERFIL DE ALUNOS
+              DEMONSTRAÇÃO VISUAL
             </span>
-            <h2 className="text-3xl sm:text-5xl font-semibold text-[#1d1d1f]">
-              Essa masterclass é para quem trabalha com imagem de produto.
+            <h2 className="text-3xl sm:text-5xl font-semibold tracking-tight text-[#1d1d1f]">
+              O Resultado Visual
             </h2>
+            <p className="text-base sm:text-lg text-[#6e6e73] mt-3 font-normal">
+              Compare o impacto do color grading aplicado a diferentes produtos, texturas e atmosferas visuais do mercado publicitário.
+            </p>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {[
-              {
-                role: 'COLORISTA',
-                desc: 'Quer melhorar seu portfólio e atuação profissional com publicidade e produtos comerciais.',
-                icon: Sliders
-              },
-              {
-                role: 'VIDEOMAKER',
-                desc: 'Quer elevar drasticamente a qualidade estética dos comerciais e vídeos que produz.',
-                icon: Film
-              },
-              {
-                role: 'DIRETOR DE FOTOGRAFIA',
-                desc: 'Quer entender exatamente o que acontece com a sua luz e fotografia durante a pós-produção.',
-                icon: Camera
-              },
-              {
-                role: 'EDITOR',
-                desc: 'Quer desenvolver domínio de color grading para entregar imagens prontas e completas.',
-                icon: Monitor
-              }
-            ].map((card, idx) => (
-              <div key={idx} className="p-8 rounded-3xl bg-[#ffffff] border border-[#e5e5e7] shadow-sm flex flex-col justify-between">
-                <div>
-                  <div className="w-12 h-12 rounded-2xl bg-[#0071e3]/10 border border-[#0071e3]/20 text-[#0071e3] flex items-center justify-center mb-6">
-                    <card.icon className="w-6 h-6" />
-                  </div>
-                  <h3 className="text-xl font-semibold text-[#1d1d1f] mb-3">{card.role}</h3>
-                  <p className="text-sm sm:text-base text-[#6e6e73] leading-relaxed">{card.desc}</p>
+          {/* 4 Product Categories Bento Grid with Before/After */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* 1. Cosmético */}
+            <div className="p-6 sm:p-7 rounded-3xl bg-[#ffffff] border border-[#e5e5e7] shadow-sm flex flex-col justify-between">
+              <div>
+                <div className="flex items-center justify-between mb-3">
+                  <span className="text-xs font-semibold text-[#0071e3] bg-[#0071e3]/10 px-3 py-1 rounded-full border border-[#0071e3]/20">
+                    COSMÉTICO & BELEZA
+                  </span>
+                  <span className="text-xs font-medium text-[#86868b]">Pele, Brilho & Textura</span>
                 </div>
-                <span className="text-xs text-[#0071e3] font-medium mt-6 block">Perfil Recomendado</span>
+                <h3 className="text-lg font-semibold text-[#1d1d1f] mb-1">
+                  Tratamento de Pele e Embalagens Translúcidas
+                </h3>
+                <p className="text-xs sm:text-sm text-[#6e6e73] mb-4">
+                  Balanço preciso do tom de pele natural com separação do produto e controle de reflexos suaves.
+                </p>
               </div>
-            ))}
+              <BeforeAfterSlider
+                heightClass="h-[250px] sm:h-[280px]"
+                beforeTitle="Pele lavada e sem vida"
+                afterTitle="Tom de pele radiante & contraste orgânico"
+                beforeSub="LOG original sem correção"
+                afterSub="Look cosmético com densidade e brilho"
+              />
+            </div>
+
+            {/* 2. Bebidas */}
+            <div className="p-6 sm:p-7 rounded-3xl bg-[#ffffff] border border-[#e5e5e7] shadow-sm flex flex-col justify-between">
+              <div>
+                <div className="flex items-center justify-between mb-3">
+                  <span className="text-xs font-semibold text-[#0071e3] bg-[#0071e3]/10 px-3 py-1 rounded-full border border-[#0071e3]/20">
+                    BEBIDAS & LÍQUIDOS
+                  </span>
+                  <span className="text-xs font-medium text-[#86868b]">Transparência & Highlights</span>
+                </div>
+                <h3 className="text-lg font-semibold text-[#1d1d1f] mb-1">
+                  Refrações de Vidro, Gotas e Apetite Visual
+                </h3>
+                <p className="text-xs sm:text-sm text-[#6e6e73] mb-4">
+                  Destaque para o líquido, realce de condensação e preservação de altas luzes sem estourar.
+                </p>
+              </div>
+              <BeforeAfterSlider
+                heightClass="h-[250px] sm:h-[280px]"
+                beforeTitle="Vidro e gotas opacos"
+                afterTitle="Destaque de refração e apetite appeal"
+                beforeSub="Sem volume e sem contraste"
+                afterSub="Cores vivas e sensação refrescante"
+              />
+            </div>
+
+            {/* 3. Alimentos */}
+            <div className="p-6 sm:p-7 rounded-3xl bg-[#ffffff] border border-[#e5e5e7] shadow-sm flex flex-col justify-between">
+              <div>
+                <div className="flex items-center justify-between mb-3">
+                  <span className="text-xs font-semibold text-[#0071e3] bg-[#0071e3]/10 px-3 py-1 rounded-full border border-[#0071e3]/20">
+                    ALIMENTOS & GASTRONOMIA
+                  </span>
+                  <span className="text-xs font-medium text-[#86868b]">Saturação & Textura Orgânica</span>
+                </div>
+                <h3 className="text-lg font-semibold text-[#1d1d1f] mb-1">
+                  Cores Ricas, Apetite Appeal e Textura
+                </h3>
+                <p className="text-xs sm:text-sm text-[#6e6e73] mb-4">
+                  Controle da saturação seletiva para transmitir sabor, frescor e estética premium de dar água na boca.
+                </p>
+              </div>
+              <BeforeAfterSlider
+                heightClass="h-[250px] sm:h-[280px]"
+                beforeTitle="Cores frias e sem apetite"
+                afterTitle="Cores ricas, contraste e apetite appeal"
+                beforeSub="Imagem sem energia"
+                afterSub="Textura realçada e calor equilibrado"
+              />
+            </div>
+
+            {/* 4. Tecnologia */}
+            <div className="p-6 sm:p-7 rounded-3xl bg-[#ffffff] border border-[#e5e5e7] shadow-sm flex flex-col justify-between">
+              <div>
+                <div className="flex items-center justify-between mb-3">
+                  <span className="text-xs font-semibold text-[#0071e3] bg-[#0071e3]/10 px-3 py-1 rounded-full border border-[#0071e3]/20">
+                    PRODUTOS TECH & METAIS
+                  </span>
+                  <span className="text-xs font-medium text-[#86868b]">Metais, Telas & Acabamento</span>
+                </div>
+                <h3 className="text-lg font-semibold text-[#1d1d1f] mb-1">
+                  Superfícies Metálicas, Telas e Linhas Premium
+                </h3>
+                <p className="text-xs sm:text-sm text-[#6e6e73] mb-4">
+                  Micro-contraste em superfícies anodizadas, pretos profundos e isolamento do produto em fundos escuros.
+                </p>
+              </div>
+              <BeforeAfterSlider
+                heightClass="h-[250px] sm:h-[280px]"
+                beforeTitle="Superfície plástica e cinzenta"
+                afterTitle="Estética premium e acabamento metálico"
+                beforeSub="Sem definição de borda e reflexo"
+                afterSub="Densidade elegante e look moderno"
+              />
+            </div>
           </div>
         </div>
       </section>
 
-      {/* 09. O QUE VOCÊ VAI CONSEGUIR FAZER */}
-      <section className="relative z-10 py-16 md:py-24 px-4 sm:px-6 lg:px-8 max-w-6xl mx-auto">
+      {/* ========================================================================= */}
+      {/* 03. CONTEÚDO DO MASTERCLASS                                               */}
+      {/* ========================================================================= */}
+      <section id="aprendizado" className="relative z-10 py-16 md:py-24 px-4 sm:px-6 lg:px-8 max-w-5xl mx-auto">
         <div className="text-center max-w-2xl mx-auto mb-14">
           <span className="text-xs uppercase tracking-widest text-[#0071e3] font-bold mb-2 block">
-            RESULTADOS CONCRETOS
+            CONTEÚDO DO MASTERCLASS
           </span>
           <h2 className="text-3xl sm:text-5xl font-semibold text-[#1d1d1f]">
-            Depois da masterclass, você vai saber:
+            Conteúdo do Masterclass
           </h2>
+          <p className="text-base sm:text-lg text-[#6e6e73] mt-3 font-normal">
+            Aulas organizadas rigorosamente pelas 5 etapas do processo real de pós-produção e color grading de produto.
+          </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {/* Pipeline Overview Chips */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 mb-10">
           {[
-            {
-              title: 'ANALISAR',
-              desc: 'Identificar com precisão o que uma imagem precisa antes mesmo de começar a mexer nos nós.'
-            },
-            {
-              title: 'BALANCEAR',
-              desc: 'Construir uma base tecnicamente sólida, equilibrando exposição, preto, branco e tom de pele.'
-            },
-            {
-              title: 'IGUALAR',
-              desc: 'Fazer diferentes planos, lentes e câmeras conversarem entre si com perfeita continuidade.'
-            },
-            {
-              title: 'CONTROLAR',
-              desc: 'Trabalhar partes específicas da cena isolando produto, fundo, iluminação e pele com secundárias.'
-            },
-            {
-              title: 'CRIAR',
-              desc: 'Desenvolver uma identidade visual e um look próprio sob medida para cada tipo de produto.'
-            },
-            {
-              title: 'FINALIZAR',
-              desc: 'Levar a imagem até um resultado final com densidade e acabamento com padrão de publicidade de TV.'
-            }
-          ].map((item, idx) => (
-            <div key={idx} className="p-8 rounded-3xl bg-[#ffffff] border border-[#e5e5e7] shadow-sm flex flex-col justify-between">
-              <div>
-                <span className="text-xs font-semibold text-[#0071e3] bg-[#0071e3]/10 px-3 py-1 rounded-full border border-[#0071e3]/20 mb-4 inline-block">
-                  {item.title}
-                </span>
-                <p className="text-sm sm:text-base text-[#6e6e73] leading-relaxed mt-2">{item.desc}</p>
-              </div>
+            { step: '01. Preparação', desc: 'Gerenciamento & ACES' },
+            { step: '02. Análise & Correção', desc: 'Primárias & Matching' },
+            { step: '03. Refinamento', desc: 'Secundárias & Detalhes' },
+            { step: '04. Criação de Look', desc: 'DIY & Dehancer Pro' },
+            { step: '05. Finalização', desc: 'Deliver & Exportação' },
+          ].map((chip, idx) => (
+            <div key={idx} className="p-3.5 sm:p-4 rounded-2xl bg-[#ffffff] border border-[#e5e5e7] shadow-xs text-center">
+              <span className="text-xs font-bold text-[#0071e3] block">{chip.step}</span>
+              <span className="text-xs text-[#86868b] mt-0.5 block">{chip.desc}</span>
             </div>
           ))}
         </div>
+
+        {/* Accordion List for Expandable Modules */}
+        <div className="space-y-4">
+          {learningModules.map((mod, idx) => {
+            const isOpen = openModule === idx;
+            return (
+              <div
+                key={idx}
+                className="rounded-3xl bg-[#ffffff] border border-[#e5e5e7] overflow-hidden shadow-xs transition-all hover:border-[#0071e3]/30"
+              >
+                <button
+                  onClick={() => toggleModule(idx)}
+                  className="w-full p-6 sm:p-7 text-left flex items-center justify-between gap-4 transition-colors"
+                  aria-expanded={isOpen}
+                >
+                  <div className="flex items-start sm:items-center gap-4">
+                    <span className="w-10 h-10 rounded-2xl bg-[#0071e3]/10 text-[#0071e3] border border-[#0071e3]/20 font-bold text-sm flex items-center justify-center shrink-0">
+                      {mod.num}
+                    </span>
+                    <div>
+                      <h3 className="text-base sm:text-xl font-semibold text-[#1d1d1f]">
+                        {mod.title}
+                      </h3>
+                      <p className="text-xs sm:text-sm text-[#6e6e73] mt-1 font-normal">
+                        {mod.subtitle}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="shrink-0 w-8 h-8 rounded-full bg-[#f5f5f7] flex items-center justify-center text-[#86868b]">
+                    {isOpen ? <ChevronUp className="w-4 h-4 text-[#0071e3]" /> : <ChevronDown className="w-4 h-4" />}
+                  </div>
+                </button>
+
+                {isOpen && (
+                  <div className="px-6 pb-6 sm:px-7 sm:pb-7 pt-2 border-t border-[#e5e5e7]/80 bg-[#fafafc]">
+                    <span className="text-xs uppercase font-bold text-[#0071e3] tracking-wider mb-3 block">
+                      Aulas e Tópicos Deste Módulo:
+                    </span>
+                    <div className="space-y-2.5">
+                      {mod.lessons.map((lesson, lIdx) => (
+                        <div
+                          key={lIdx}
+                          className="flex items-start gap-3 text-xs sm:text-sm text-[#1d1d1f] bg-[#ffffff] p-3.5 rounded-2xl border border-[#e5e5e7]"
+                        >
+                          <CheckCircle2 className="w-4 h-4 text-[#0071e3] shrink-0 mt-0.5" />
+                          <span>{lesson}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
       </section>
 
-      {/* 10. O PROFESSOR: MICHAEL OLIVEIRA */}
-      <section className="relative z-10 py-16 md:py-24 bg-[#f5f5f7] border-y border-[#d2d2d7]/60 px-4 sm:px-6 lg:px-8 overflow-hidden">
+      {/* ========================================================================= */}
+      {/* 04. APLICAÇÃO PROFISSIONAL                                                */}
+      {/* ========================================================================= */}
+      <section className="relative z-10 py-16 md:py-24 bg-[#f5f5f7] border-y border-[#d2d2d7]/60 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center max-w-2xl mx-auto mb-14">
+            <span className="text-xs uppercase tracking-widest text-[#0071e3] font-bold mb-2 block">
+              MERCADO DE TRABALHO REAL
+            </span>
+            <h2 className="text-3xl sm:text-5xl font-semibold text-[#1d1d1f]">
+              Aplicação Profissional
+            </h2>
+            <p className="text-base sm:text-lg text-[#6e6e73] mt-3 font-normal">
+              Domine as 3 competências mais cobradas em produtoras, agências e clientes de alta exigência.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+            {/* Pilar 1: Tratamento de Cor e Densidade */}
+            <div className="p-8 rounded-3xl bg-[#ffffff] border border-[#e5e5e7] shadow-sm flex flex-col justify-between">
+              <div>
+                <div className="w-12 h-12 rounded-2xl bg-[#0071e3]/10 border border-[#0071e3]/20 text-[#0071e3] flex items-center justify-center mb-6">
+                  <Sliders className="w-6 h-6" />
+                </div>
+                <span className="text-xs uppercase tracking-wider font-bold text-[#0071e3] block mb-2">
+                  PILAR 01
+                </span>
+                <h3 className="text-xl font-semibold text-[#1d1d1f] mb-3">
+                  Tratamento de Cor & Densidade
+                </h3>
+                <p className="text-sm text-[#6e6e73] leading-relaxed">
+                  Como calibrar luz, sombra e saturação com peso visual publicitário sem estourar canais nem introduzir artefatos na compressão de entrega.
+                </p>
+              </div>
+              <div className="mt-6 pt-4 border-t border-[#e5e5e7] text-xs font-semibold text-[#1d1d1f] flex items-center gap-1.5">
+                <Check className="w-4 h-4 text-[#0071e3]" />
+                <span>Padrão Broadcast & TV Comercial</span>
+              </div>
+            </div>
+
+            {/* Pilar 2: Consistência entre Planos (Matching) */}
+            <div className="p-8 rounded-3xl bg-[#ffffff] border border-[#e5e5e7] shadow-sm flex flex-col justify-between">
+              <div>
+                <div className="w-12 h-12 rounded-2xl bg-[#0071e3]/10 border border-[#0071e3]/20 text-[#0071e3] flex items-center justify-center mb-6">
+                  <Layers className="w-6 h-6" />
+                </div>
+                <span className="text-xs uppercase tracking-wider font-bold text-[#0071e3] block mb-2">
+                  PILAR 02
+                </span>
+                <h3 className="text-xl font-semibold text-[#1d1d1f] mb-3">
+                  Consistência entre Planos (Matching)
+                </h3>
+                <p className="text-sm text-[#6e6e73] leading-relaxed">
+                  Garantir que a embalagem, a cor do produto e o tom de pele mantenham absoluta coerência visual durante todos os cortes do vídeo.
+                </p>
+              </div>
+              <div className="mt-6 pt-4 border-t border-[#e5e5e7] text-xs font-semibold text-[#1d1d1f] flex items-center gap-1.5">
+                <Check className="w-4 h-4 text-[#0071e3]" />
+                <span>Continuidade Visual Perfeita</span>
+              </div>
+            </div>
+
+            {/* Pilar 3: Criação de Looks Comerciais */}
+            <div className="p-8 rounded-3xl bg-[#ffffff] border border-[#e5e5e7] shadow-sm flex flex-col justify-between">
+              <div>
+                <div className="w-12 h-12 rounded-2xl bg-[#0071e3]/10 border border-[#0071e3]/20 text-[#0071e3] flex items-center justify-center mb-6">
+                  <Film className="w-6 h-6" />
+                </div>
+                <span className="text-xs uppercase tracking-wider font-bold text-[#0071e3] block mb-2">
+                  PILAR 03
+                </span>
+                <h3 className="text-xl font-semibold text-[#1d1d1f] mb-3">
+                  Criação de Looks Comerciais
+                </h3>
+                <p className="text-sm text-[#6e6e73] leading-relaxed">
+                  Desenvolvimento de paletas de cor autorais sob medida para a proposta de cada marca, saindo da dependência de LUTs genéricos.
+                </p>
+              </div>
+              <div className="mt-6 pt-4 border-t border-[#e5e5e7] text-xs font-semibold text-[#1d1d1f] flex items-center gap-1.5">
+                <Check className="w-4 h-4 text-[#0071e3]" />
+                <span>Look Development Autoral</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Practical Callout Banner */}
+          <div className="p-8 sm:p-10 rounded-3xl bg-[#ffffff] border border-[#0071e3]/30 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-6">
+            <div className="max-w-2xl">
+              <span className="text-xs font-bold text-[#0071e3] uppercase tracking-wider block mb-1">
+                Foco no Trabalho Real
+              </span>
+              <h3 className="text-xl sm:text-2xl font-semibold text-[#1d1d1f] mb-2">
+                "Você não vai decorar comandos. Vai aprender a tomar decisões de cor."
+              </h3>
+              <p className="text-sm sm:text-base text-[#6e6e73]">
+                Cada nó, qualifier e curva são ensinados com a justificativa técnica e criativa por trás do comercial.
+              </p>
+            </div>
+            <a
+              href="#oferta"
+              className="px-6 py-3.5 rounded-full bg-[#0071e3] hover:bg-[#0077ed] text-white font-semibold text-sm transition-all shrink-0 active:scale-95 shadow-md"
+            >
+              Garantir Minha Vaga
+            </a>
+          </div>
+        </div>
+      </section>
+
+      {/* ========================================================================= */}
+      {/* 05. QUEM ENSINA: MICHAEL OLIVEIRA                                         */}
+      {/* ========================================================================= */}
+      <section className="relative z-10 py-16 md:py-24 bg-[#f5f5f7] px-4 sm:px-6 lg:px-8 overflow-hidden">
         <ReticulaBackground bgImageSrc={authorPhotos.bgSrc} />
 
         <div className="max-w-6xl mx-auto relative z-10">
           <div className="grid grid-cols-1 md:grid-cols-12 gap-10 items-center">
+            {/* Teacher Photo */}
             <div className="md:col-span-5 flex justify-center">
-              <div className="relative w-full max-w-[280px] sm:max-w-[320px] rounded-3xl overflow-hidden border border-[#d2d2d7] bg-[#ffffff] shadow-md group">
+              <div className="relative w-full max-w-[280px] sm:max-w-[340px] rounded-3xl overflow-hidden border border-[#d2d2d7] bg-[#ffffff] shadow-md group">
                 <img
                   src={authorPhotos.profileSrc}
                   alt={SITE_CONFIG.author.name}
-                  className="w-full h-auto object-contain block rounded-3xl transition-transform duration-500 ease-quadratic hover:scale-[1.02]"
+                  className="w-full h-auto object-contain block rounded-3xl transition-transform duration-500 hover:scale-[1.02]"
                 />
               </div>
             </div>
 
+            {/* Teacher Bio */}
             <div className="md:col-span-7 flex flex-col items-start">
               <span className="text-xs uppercase tracking-widest text-[#0071e3] font-bold mb-2">
-                QUEM ESTÁ POR TRÁS DA COLOR MASTER
+                INSTRUTOR DA MASTERCLASS
               </span>
               <h2 className="text-3xl sm:text-5xl font-semibold text-[#1d1d1f] mb-6">
                 Michael Oliveira
@@ -913,36 +927,34 @@ export const ColorMasterLanding: React.FC = () => {
 
               <div className="space-y-4 text-base sm:text-lg text-[#6e6e73] leading-relaxed">
                 <p>
-                  <span className="font-semibold text-[#1d1d1f]">Diretor, diretor de fotografia, colorista e profissional de pós-produção</span>, com <span className="font-medium text-[#3a3a3c]">mais de 20 anos de experiência no audiovisual</span>.
+                  <span className="font-semibold text-[#1d1d1f]">Diretor, diretor de fotografia, colorista e finalizador</span> com <span className="font-medium text-[#3a3a3c]">mais de 20 anos de experiência prática no mercado audiovisual</span>.
                 </p>
                 <p>
-                  Ao longo da carreira, trabalhou em diferentes etapas da produção, do set à pós-produção, desenvolvendo uma <span className="font-semibold text-[#1d1d1f]">visão prática e integrada sobre a construção da imagem</span>. É ex-professor de Color Grading da <strong className="font-semibold text-[#1d1d1f]">EBAC</strong> (Escola Britânica de Artes Criativas e Tecnologia).
+                  Atuou em centenas de campanhas publicitárias, videoclipes, institucionais e conteúdos comerciais para grandes marcas e produtoras em todo o Brasil. É ex-professor titular de Color Grading da <strong className="font-semibold text-[#1d1d1f]">EBAC</strong> (Escola Britânica de Artes Criativas e Tecnologia).
                 </p>
                 <p>
-                  Hoje, além de atuar no mercado, Michael dedica parte do seu trabalho ao ensino. Nos seus treinamentos, <span className="font-bold text-[#1d1d1f] tracking-tight">transforma a experiência adquirida em projetos reais em conhecimento aplicável</span>, ensinando técnica, fundamentos e, principalmente, <span className="font-semibold text-[#2c2c2e]">como tomar decisões diante dos desafios que aparecem em uma produção</span>.
-                </p>
-                <p className="font-semibold text-[#1d1d1f] pt-1">
-                  Seu objetivo é <span className="font-bold">formar profissionais mais preparados, seguros e capazes de entregar trabalhos melhores no mercado.</span>
+                  Sua abordagem pedagógica combina fundamentos técnicos sólidos da ciência de cores com os atalhos e decisões práticas exigidas no fluxo de trabalho de pós-produção do dia a dia.
                 </p>
               </div>
 
+              {/* Highlights pills */}
               <div className="grid grid-cols-2 gap-4 mt-8 w-full max-w-lg">
                 <div className="p-4 rounded-2xl bg-[#ffffff] border border-[#e5e5e7] text-sm text-[#6e6e73] shadow-xs">
-                  <span className="font-bold text-[#0071e3] block">100% PRÁTICO</span>
-                  <span>Footage de produção real</span>
+                  <span className="font-bold text-[#0071e3] block">+20 ANOS</span>
+                  <span>Experiência no Audiovisual</span>
                 </div>
                 <div className="p-4 rounded-2xl bg-[#ffffff] border border-[#e5e5e7] text-sm text-[#6e6e73] shadow-xs">
-                  <span className="font-bold text-[#0071e3] block">PUBLICIDADE</span>
-                  <span>Padrão de entrega comercial</span>
+                  <span className="font-bold text-[#0071e3] block">EX-PROFESSOR</span>
+                  <span>EBAC Color Grading</span>
                 </div>
               </div>
             </div>
           </div>
 
-          {/* Produtoras Atendidas Carousel — Full Width across Sobre section with true Alpha Transparency Fade */}
-          <div className="mt-12 pt-8 border-t border-[#d2d2d7]/60 w-full">
+          {/* Produtoras Atendidas Carousel */}
+          <div className="mt-14 pt-8 border-t border-[#d2d2d7]/60 w-full">
             <span className="text-xs uppercase tracking-widest text-[#86868b] font-semibold mb-4 block text-center sm:text-left">
-              Produtoras Atendidas
+              Produtoras e Projetos Relevantes
             </span>
             <div
               className="relative w-full overflow-hidden select-none pointer-events-none marquee-container"
@@ -951,7 +963,6 @@ export const ColorMasterLanding: React.FC = () => {
                 WebkitMaskImage: 'linear-gradient(to right, transparent, black 10%, black 90%, transparent)'
               }}
             >
-              {/* Track 1 */}
               <div className="marquee-track py-2">
                 {(logos.length > 0 && logos.length < 12 ? [...logos, ...logos] : logos).map((logo, lIdx) => (
                   <div
@@ -967,7 +978,6 @@ export const ColorMasterLanding: React.FC = () => {
                 ))}
               </div>
 
-              {/* Track 2 (Exact clone for seamless loop) */}
               <div className="marquee-track py-2" aria-hidden="true">
                 {(logos.length > 0 && logos.length < 12 ? [...logos, ...logos] : logos).map((logo, lIdx) => (
                   <div
@@ -987,207 +997,120 @@ export const ColorMasterLanding: React.FC = () => {
         </div>
       </section>
 
-      {/* 11. FOOTAGE DA MASTERCLASS */}
-      <section className="relative z-10 py-16 md:py-24 px-4 sm:px-6 lg:px-8 max-w-5xl mx-auto text-center">
-        <span className="text-xs uppercase tracking-widest text-[#0071e3] font-bold mb-2 block">
-          MATERIAL PRÁTICO
-        </span>
-        <h2 className="text-3xl sm:text-5xl font-semibold text-[#1d1d1f] mb-4">
-          Você vai aprender trabalhando com imagens.
-        </h2>
-        <p className="text-base sm:text-lg text-[#6e6e73] max-w-2xl mx-auto mb-10">
-          Em vez de aprender apenas através de imagens perfeitas de demonstração, você vai acompanhar o processo de construção do grade em footage de produto real.
-        </p>
-
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-          {['PRODUTO 01 (Cosmético)', 'PRODUTO 02 (Bebida)', 'PRODUTO 03 (Gastronomia)', 'PRODUTO 04 (Tech)'].map((item, idx) => (
-            <div key={idx} className="p-6 rounded-2xl bg-[#ffffff] border border-[#e5e5e7] shadow-sm flex flex-col items-center">
-              <Folder className="w-8 h-8 text-[#0071e3] mb-3" />
-              <span className="text-sm font-semibold text-[#1d1d1f]">{item}</span>
-              <span className="text-xs text-[#86868b] mt-1">RAW / LOG Included</span>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* 12. COMO FUNCIONA */}
-      <section className="relative z-10 py-16 md:py-24 bg-[#f5f5f7] border-t border-[#d2d2d7]/60 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-5xl mx-auto text-center">
-          <span className="text-xs uppercase tracking-widest text-[#0071e3] font-bold mb-2 block">
-            PASSO A PASSO DA EXPERIÊNCIA
-          </span>
-          <h2 className="text-3xl sm:text-5xl font-semibold text-[#1d1d1f] mb-12">
-            Como funciona o treinamento
-          </h2>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {[
-              { title: '1. Você assiste', desc: 'Entende o processo e o raciocínio das decisões de cor.' },
-              { title: '2. Você abre o projeto', desc: 'Acompanha com as mesmas footages no DaVinci Resolve.' },
-              { title: '3. Você pratica', desc: 'Reproduz o processo passo a passo no seu computador.' },
-              { title: '4. Você desenvolve', desc: 'Aplica a metodologia em seus próprios comerciais e clientes.' }
-            ].map((step, idx) => (
-              <div key={idx} className="p-8 rounded-3xl bg-[#ffffff] border border-[#e5e5e7] shadow-sm text-left">
-                <span className="text-xs font-bold text-[#0071e3] mb-2 block">ETAPA 0{idx + 1}</span>
-                <h3 className="text-lg font-semibold text-[#1d1d1f] mb-2">{step.title}</h3>
-                <p className="text-sm text-[#6e6e73] leading-relaxed">{step.desc}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* 13. O CONTEÚDO COMPLETO */}
-      <section className="relative z-10 py-16 md:py-24 px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto">
-        <div className="text-center max-w-2xl mx-auto mb-12">
-          <span className="text-xs uppercase tracking-widest text-[#0071e3] font-bold mb-2 block">
-            FLUXO DE APRENDIZADO
-          </span>
-          <h2 className="text-3xl sm:text-5xl font-semibold text-[#1d1d1f]">
-            Currículo Completo
-          </h2>
-        </div>
-
-        <div className="space-y-4">
-          {[
-            { title: '01. Organizando o projeto', desc: 'Estrutura de nós, color management e preparação técnica.' },
-            { title: '02. Analisando as footages', desc: 'Leitura da imagem, scopes e identificação dos problemas.' },
-            { title: '03. Primárias / Balance', desc: 'Ajustes de exposição, contraste, temperatura e saturação.' },
-            { title: '04. Color Matching', desc: 'Consistência de cor entre diferentes planos e cortes.' },
-            { title: '05. Secundárias', desc: 'Seleção, isolamento e controle fino de elementos da cena.' },
-            { title: '06. Criando um Look', desc: 'Construção da identidade visual e estética do produto.' },
-            { title: '07. Look com Look Creator', desc: 'Desenvolvimento de look avançado com ferramenta dedicada.' },
-            { title: '08. Look com Dehancer Pro', desc: 'Film emulation, textura, grain e acabamento de película.' }
-          ].map((item, idx) => (
-            <div key={idx} className="p-5 sm:p-6 rounded-2xl bg-[#ffffff] border border-[#e5e5e7] shadow-sm flex items-center justify-between">
-              <div>
-                <h3 className="text-base sm:text-lg font-semibold text-[#1d1d1f]">{item.title}</h3>
-                <p className="text-sm text-[#6e6e73] mt-1">{item.desc}</p>
-              </div>
-              <CheckCircle2 className="w-5 h-5 text-[#0071e3] shrink-0 ml-4" />
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* 14. OFERTA */}
+      {/* ========================================================================= */}
+      {/* 06. OFERTA E COMPRA                                                       */}
+      {/* ========================================================================= */}
       <section id="oferta" className="relative z-10 py-16 md:py-24 bg-[#f5f5f7] border-t border-[#d2d2d7]/60 px-4 sm:px-6 lg:px-8">
         <div className="max-w-3xl mx-auto text-center">
-          <div className="p-8 sm:p-14 rounded-3xl bg-[#ffffff] border border-[#0071e3]/30 shadow-xl relative overflow-hidden">
+          <div className="p-8 sm:p-14 rounded-3xl bg-[#ffffff] border border-[#0071e3]/30 shadow-2xl relative overflow-hidden">
+            {/* Offer Header Tag */}
             <span className="px-4 py-1.5 rounded-full bg-[#0071e3]/10 text-[#0071e3] text-xs font-semibold uppercase tracking-wider mb-6 inline-block border border-[#0071e3]/20">
-              OFERTA ESPECIAL DE LANÇAMENTO
+              OFERTA ESPECIAL DE ACESSO
             </span>
 
             <h2 className="text-3xl sm:text-5xl font-semibold text-[#1d1d1f] mb-3">
               Color Master | Produto
             </h2>
             <p className="text-base sm:text-lg text-[#6e6e73] mb-8 font-normal">
-              Masterclass de Color Grading para comerciais e imagens de produto.
+              Masterclass completa de Color Grading para comerciais e imagens de produto no DaVinci Resolve.
             </p>
 
-            {/* Checklist */}
-            <div className="text-left space-y-3.5 max-w-md mx-auto mb-8 text-sm sm:text-base text-[#1d1d1f] border-y border-[#e5e5e7] py-6">
+            {/* Checklist of What's Included */}
+            <div className="text-left space-y-3.5 max-w-lg mx-auto mb-8 text-sm sm:text-base text-[#1d1d1f] border-y border-[#e5e5e7] py-6">
               <div className="flex items-center gap-3">
                 <Check className="w-5 h-5 text-[#0071e3] shrink-0" />
                 <span>Masterclass completa do básico ao acabamento final</span>
               </div>
               <div className="flex items-center gap-3">
                 <Check className="w-5 h-5 text-[#0071e3] shrink-0" />
-                <span>Aulas práticas no DaVinci Resolve</span>
+                <span>Aulas práticas gravadas em alta resolução no DaVinci Resolve</span>
               </div>
               <div className="flex items-center gap-3">
                 <Check className="w-5 h-5 text-[#0071e3] shrink-0" />
-                <span>Projetos e Node Trees utilizados nas aulas</span>
+                <span>Footages reais de produto (RAW / LOG) para acompanhar a prática</span>
               </div>
               <div className="flex items-center gap-3">
                 <Check className="w-5 h-5 text-[#0071e3] shrink-0" />
-                <span>Footages de produto para prática</span>
+                <span>Estrutura de Node Trees e PowerGrades prontos para uso</span>
               </div>
               <div className="flex items-center gap-3">
                 <Check className="w-5 h-5 text-[#0071e3] shrink-0" />
-                <span>Acesso vitalício às aulas e atualizações</span>
+                <span>Módulos de Look Development (Look Creator & Dehancer Pro)</span>
+              </div>
+              <div className="flex items-center gap-3 font-semibold text-[#1d1d1f]">
+                <Clock className="w-5 h-5 text-[#0071e3] shrink-0" />
+                <span>1 Ano de Acesso Completo e Ilimitado à Plataforma</span>
+              </div>
+              <div className="flex items-center gap-3 font-semibold text-[#0071e3] bg-[#0071e3]/10 p-2.5 rounded-xl border border-[#0071e3]/20">
+                <Sparkles className="w-5 h-5 text-[#0071e3] shrink-0" />
+                <span>🎁 Bônus: 25% de Desconto em Qualquer Outro Treinamento FLMMKR</span>
               </div>
             </div>
 
-            {/* Price Box */}
+            {/* Dynamic Price Box with 15-min countdown condition */}
             <div className="mb-8">
-              <span className="text-xs text-[#86868b] uppercase font-semibold block mb-1">Investimento único</span>
-              <div className="text-4xl sm:text-6xl font-extrabold text-[#1d1d1f] tracking-tight">
-                R$ 497
-              </div>
-              <span className="text-sm text-[#6e6e73] mt-2 block">ou 12x de R$ 49,60 no cartão</span>
+              {!isExpired ? (
+                <>
+                  <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/10 text-amber-700 text-xs font-bold uppercase tracking-wider mb-2 border border-amber-500/30">
+                    <Clock className="w-3.5 h-3.5 text-amber-600 animate-pulse" />
+                    <span>Tempo Restante da Oferta: {formatTime(timeLeft)}</span>
+                  </div>
+                  <span className="text-xs sm:text-sm text-[#86868b] block line-through">
+                    De R$ 195 por apenas:
+                  </span>
+                  <div className="text-4xl sm:text-6xl font-extrabold text-[#1d1d1f] tracking-tight mt-1">
+                    R$ {priceData.promoPrice}
+                  </div>
+                  <span className="text-xs sm:text-sm font-semibold text-[#0071e3] mt-1.5 block">
+                    {priceData.batchName} {priceData.nextPriceDate ? `(Válido até ${priceData.nextPriceDate})` : ''}
+                  </span>
+                  <span className="text-xs text-[#86868b] mt-1 block">
+                    ou em até 12x no cartão de crédito
+                  </span>
+                </>
+              ) : (
+                <>
+                  <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-red-500/10 text-red-600 text-xs font-bold uppercase tracking-wider mb-2 border border-red-500/30">
+                    <Clock className="w-3.5 h-3.5" />
+                    <span>Tempo de 15 Minutos Expirado</span>
+                  </div>
+                  <span className="text-xs text-[#86868b] uppercase font-semibold block mb-1">
+                    Preço Regular Oficial
+                  </span>
+                  <div className="text-4xl sm:text-6xl font-extrabold text-[#1d1d1f] tracking-tight">
+                    R$ 195
+                  </div>
+                  <span className="text-xs text-[#86868b] mt-1.5 block">
+                    ou em até 12x no cartão de crédito
+                  </span>
+                </>
+              )}
             </div>
 
+            {/* Primary Buy CTA */}
             <a
               href="https://pay.hotmart.com/placeholder"
               target="_blank"
               rel="noopener noreferrer"
-              onClick={() => trackProductClick('color-master-buy', 'Color Master | Buy CTA', 'https://pay.hotmart.com/placeholder', 'other')}
-              className="w-full sm:w-auto px-10 py-4 rounded-full bg-[#0071e3] hover:bg-[#0077ed] text-white font-semibold text-base transition-all shadow-xl inline-flex items-center justify-center gap-2 active:scale-95"
+              onClick={() => trackProductClick('color-master-buy', 'Color Master Buy Checkout', 'https://pay.hotmart.com/placeholder', 'other')}
+              className="w-full sm:w-auto px-10 py-4 rounded-full bg-[#0071e3] hover:bg-[#0077ed] text-white font-semibold text-base transition-all shadow-[0_4px_24px_rgba(0,113,227,0.4)] inline-flex items-center justify-center gap-2 active:scale-95"
             >
-              <span>QUERO ENTRAR NA COLOR MASTER</span>
+              <span>GARANTIR MINHA VAGA AGORA</span>
               <ArrowRight className="w-5 h-5" />
             </a>
 
-            <div className="mt-5 flex items-center justify-center gap-2 text-xs sm:text-sm text-[#6e6e73] font-medium">
-              <ShieldCheck className="w-5 h-5 text-emerald-600" />
-              <span>Garantia incondicional de 7 dias</span>
+            {/* Guarantee and Security */}
+            <div className="mt-6 flex items-center justify-center gap-2 text-xs sm:text-sm text-[#6e6e73] font-medium">
+              <ShieldCheck className="w-5 h-5 text-emerald-600 shrink-0" />
+              <span>Garantia incondicional de 7 dias • Risco zero</span>
             </div>
           </div>
         </div>
       </section>
 
-      {/* 15. PROVA SOCIAL */}
-      <section className="relative z-10 py-16 md:py-24 px-4 sm:px-6 lg:px-8 max-w-5xl mx-auto">
-        <div className="text-center max-w-2xl mx-auto mb-12">
-          <span className="text-xs uppercase tracking-widest text-[#0071e3] font-bold mb-2 block">
-            TRANSFORMAÇÃO DOS ALUNOS
-          </span>
-          <h2 className="text-3xl sm:text-5xl font-semibold text-[#1d1d1f]">
-            Resultados de quem aplicou o método
-          </h2>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="p-8 rounded-3xl bg-[#ffffff] border border-[#e5e5e7] shadow-sm flex flex-col justify-between">
-            <div>
-              <span className="text-xs font-semibold text-[#0071e3] block mb-3 uppercase tracking-wider">PROJETO COMERCIAL</span>
-              <p className="text-sm sm:text-base text-[#6e6e73] leading-relaxed italic mb-6">
-                "Eu tinha extrema dificuldade em fazer os cortes de produtos diferentes combinarem no mesmo comercial. Depois de aplicar o módulo de Color Matching, o fluxo ficou automático."
-              </p>
-            </div>
-            <div className="flex items-center gap-3.5 pt-4 border-t border-[#e5e5e7]">
-              <div className="w-10 h-10 rounded-full bg-[#0071e3]/10 border border-[#0071e3]/30 font-bold text-[#0071e3] flex items-center justify-center text-sm">
-                LR
-              </div>
-              <div className="flex flex-col">
-                <span className="text-sm font-semibold text-[#1d1d1f]">Lucas R.</span>
-                <span className="text-xs text-[#86868b]">Filmmaker & Colorista</span>
-              </div>
-            </div>
-          </div>
-
-          <div className="p-8 rounded-3xl bg-[#ffffff] border border-[#e5e5e7] shadow-sm flex flex-col justify-between">
-            <div>
-              <span className="text-xs font-semibold text-[#0071e3] block mb-3 uppercase tracking-wider">PRODUTOS ELETRÔNICOS</span>
-              <p className="text-sm sm:text-base text-[#6e6e73] leading-relaxed italic mb-6">
-                "O grande diferencial foi entender as secundárias em materiais como metal e vidro. As imagens dos meus comerciais ganharam um ar sofisticado de comercial de TV."
-              </p>
-            </div>
-            <div className="flex items-center gap-3.5 pt-4 border-t border-[#e5e5e7]">
-              <div className="w-10 h-10 rounded-full bg-[#0071e3]/10 border border-[#0071e3]/30 font-bold text-[#0071e3] flex items-center justify-center text-sm">
-                MB
-              </div>
-              <div className="flex flex-col">
-                <span className="text-sm font-semibold text-[#1d1d1f]">Mateus B.</span>
-                <span className="text-xs text-[#86868b]">Diretor de Pós-Produção</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* 16. FAQ */}
+      {/* ========================================================================= */}
+      {/* 07. PERGUNTAS FREQUENTES (FAQ ACCORDION)                                  */}
+      {/* ========================================================================= */}
       <section className="relative z-10 py-16 md:py-24 bg-[#f5f5f7] border-t border-[#d2d2d7]/60 px-4 sm:px-6 lg:px-8">
         <div className="max-w-4xl mx-auto">
           <div className="text-center max-w-2xl mx-auto mb-12">
@@ -1197,6 +1120,9 @@ export const ColorMasterLanding: React.FC = () => {
             <h2 className="text-3xl sm:text-5xl font-semibold text-[#1d1d1f]">
               Perguntas Frequentes
             </h2>
+            <p className="text-base text-[#6e6e73] mt-2">
+              Tudo o que você precisa saber sobre a masterclass, acesso e metodologia.
+            </p>
           </div>
 
           <div className="space-y-4">
@@ -1204,9 +1130,9 @@ export const ColorMasterLanding: React.FC = () => {
               <div key={idx} className="rounded-2xl bg-[#ffffff] border border-[#e5e5e7] overflow-hidden shadow-xs">
                 <button
                   onClick={() => toggleFaq(idx)}
-                  className="w-full p-6 text-left flex items-center justify-between text-base font-semibold text-[#1d1d1f] hover:text-[#0071e3] transition-colors"
+                  className="w-full p-6 text-left flex items-center justify-between text-base sm:text-lg font-semibold text-[#1d1d1f] hover:text-[#0071e3] transition-colors"
                 >
-                  <span>{faq.q}</span>
+                  <span className="pr-4">{faq.q}</span>
                   {openFaq === idx ? (
                     <ChevronUp className="w-5 h-5 text-[#0071e3] shrink-0" />
                   ) : (
@@ -1225,27 +1151,36 @@ export const ColorMasterLanding: React.FC = () => {
         </div>
       </section>
 
-      {/* 17. CTA FINAL */}
-      <section className="relative z-10 py-20 md:py-32 px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto text-center">
-        <div className="p-10 sm:p-16 rounded-3xl bg-[#ffffff] border border-[#e5e5e7] shadow-sm">
+      {/* ========================================================================= */}
+      {/* 08. ENCERRAMENTO                                                          */}
+      {/* ========================================================================= */}
+      <section className="relative z-10 py-20 md:py-28 px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto text-center">
+        <div className="p-10 sm:p-16 rounded-3xl bg-[#ffffff] border border-[#e5e5e7] shadow-xl relative overflow-hidden">
+          {/* Subtle top rim glow */}
+          <div className="w-16 h-16 rounded-3xl bg-[#0071e3]/10 border border-[#0071e3]/20 flex items-center justify-center mx-auto mb-6 text-[#0071e3]">
+            <Award className="w-8 h-8" />
+          </div>
+
           <h2 className="text-3xl sm:text-5xl font-semibold text-[#1d1d1f] mb-4 leading-tight">
-            Agora você sabe como a imagem chegou até aqui.
+            Domine a construção visual de produtos e eleve seus comerciais.
           </h2>
           <p className="text-base sm:text-lg text-[#6e6e73] max-w-xl mx-auto mb-8">
-            Aprenda o processo completo de color grading para produto e comerciais no DaVinci Resolve.
+            Aprenda o método definitivo para analisar, equilibrar e finalizar imagens de alto impacto no DaVinci Resolve.
           </p>
 
           <a
             href="#oferta"
-            className="px-10 py-4 rounded-full bg-[#0071e3] hover:bg-[#0077ed] text-white font-semibold text-base transition-all shadow-xl inline-flex items-center justify-center gap-2 active:scale-95"
+            className="px-10 py-4 rounded-full bg-[#0071e3] hover:bg-[#0077ed] text-white font-semibold text-base transition-all shadow-[0_4px_20px_rgba(0,113,227,0.4)] inline-flex items-center justify-center gap-2 active:scale-95"
           >
-            <span>QUERO FAZER A COLOR MASTER</span>
+            <span>ENTRAR NO COLOR MASTER | PRODUTO</span>
             <ArrowRight className="w-5 h-5" />
           </a>
         </div>
       </section>
 
-      {/* FOOTER */}
+      {/* ========================================================================= */}
+      {/* FOOTER & LINKS LEGAIS / SUPORTE                                           */}
+      {/* ========================================================================= */}
       <footer className="relative z-10 py-12 bg-[#ffffff] border-t border-[#d2d2d7]/60 text-[#6e6e73] text-xs px-4 sm:px-6 lg:px-8">
         <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
           <div className="flex flex-col items-center md:items-start text-center md:text-left">
@@ -1253,11 +1188,25 @@ export const ColorMasterLanding: React.FC = () => {
               FLMMKR
             </span>
             <span className="text-[#86868b]">
-              Color Master | Produto • Michael Oliveira
+              Color Master | Produto • Treinamento Oficial Michael Oliveira
             </span>
             <p className="text-xs text-[#86868b] mt-2">
               © {new Date().getFullYear()} FLMMKR. Todos os direitos reservados.
             </p>
+          </div>
+
+          <div className="flex flex-wrap items-center justify-center gap-4 text-xs font-medium text-[#6e6e73]">
+            <a href="mailto:contato@flmmkr.com.br" className="hover:text-[#1d1d1f] transition-colors">
+              Suporte ao Aluno
+            </a>
+            <span>•</span>
+            <a href="/termos" className="hover:text-[#1d1d1f] transition-colors">
+              Termos de Uso
+            </a>
+            <span>•</span>
+            <a href="/privacidade" className="hover:text-[#1d1d1f] transition-colors">
+              Política de Privacidade
+            </a>
           </div>
 
           <div className="flex items-center gap-4">
