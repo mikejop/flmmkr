@@ -1,35 +1,11 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { SITE_CONFIG } from '@/config/siteConfig';
 import { trackProductClick, trackSocialClick } from '@/utils/analytics';
-import { InstagramIcon, YouTubeIcon, TikTokIcon } from '@/components/SocialIcons';
 import { ReticulaBackground } from '@/components/ReticulaBackground';
 import { getRandomAuthorPhotos, AuthorPhotoPair } from '@/utils/authorPhotos';
 import { LoginModal } from '@/components/LoginModal';
-import {
-  Sliders,
-  Film,
-  Camera,
-  ArrowRight,
-  CheckCircle2,
-  ChevronDown,
-  ChevronUp,
-  Monitor,
-  ShieldCheck,
-  Check,
-  Layers,
-  Tv,
-  FileCheck,
-  HelpCircle,
-  Clock,
-  Infinity,
-  PlayCircle,
-  Zap,
-  Award,
-  Tag,
-  Percent
-} from 'lucide-react';
 const PRODUTORAS_LOGOS = [
   { name: 'Astronautas Filmes', src: '/assets/empresas/astronautas-filmes.jpg' },
   { name: 'At Work', src: '/assets/empresas/at-work.jpg' },
@@ -257,8 +233,8 @@ export const ColorMasterLanding: React.FC = () => {
               </>
             ) : (
               <>
-                <span className="text-red-400 font-bold uppercase tracking-wider text-[11px] sm:text-xs flex items-center gap-1.5">
-                  <Clock className="w-3.5 h-3.5" /> Tempo de 15 min expirado
+                <span className="text-red-400 font-bold uppercase tracking-wider text-[11px] sm:text-xs">
+                  Tempo de 15 min expirado
                 </span>
                 <span className="text-white/80 hidden sm:inline">
                   • O valor promocional de R$ 95 encerrou para este dispositivo. Preço regular: R$ 195.
@@ -270,7 +246,7 @@ export const ColorMasterLanding: React.FC = () => {
           <div className="flex items-center gap-3 ml-auto">
             {!isExpired ? (
               <div className="flex items-center gap-1.5 bg-black/30 backdrop-blur-md px-3 py-1 rounded-full border border-white/20">
-                <Clock className="w-3.5 h-3.5 text-amber-300 animate-pulse" />
+                <span className="text-[10px] uppercase font-bold text-amber-300/80">Tempo:</span>
                 <span className="text-xs font-mono font-bold tracking-wider text-amber-300">
                   {formatTime(timeLeft)}
                 </span>
@@ -308,24 +284,6 @@ export const ColorMasterLanding: React.FC = () => {
           </span>
 
           <div className="flex items-center gap-3">
-            <div className="hidden sm:flex items-center gap-1.5">
-              {SITE_CONFIG.social.map((soc) => (
-                <a
-                  key={soc.name}
-                  href={soc.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  aria-label={soc.name}
-                  className="w-7 h-7 rounded-full flex items-center justify-center text-white/50 hover:text-white hover:bg-white/10 transition-all"
-                >
-                  {soc.name === 'Instagram' && <InstagramIcon className="w-3.5 h-3.5" />}
-                  {soc.name === 'YouTube' && <YouTubeIcon className="w-3.5 h-3.5" />}
-                  {soc.name === 'TikTok' && <TikTokIcon className="w-3.5 h-3.5" />}
-                </a>
-              ))}
-              <div className="w-px h-4 bg-white/15 mx-1" />
-            </div>
-
             <button
               onClick={() => setLoginModalOpen(true)}
               className="px-4 py-1.5 rounded-full bg-white/10 hover:bg-white/20 text-white text-xs font-semibold border border-white/15 hover:border-white/30 transition-all active:scale-95"
@@ -335,10 +293,9 @@ export const ColorMasterLanding: React.FC = () => {
 
             <a
               href="#oferta"
-              className="px-4 py-1.5 rounded-full bg-[#0071e3] hover:bg-[#0077ed] text-white text-xs font-semibold shadow-[0_2px_12px_rgba(0,113,227,0.4),inset_0_1px_1px_rgba(255,255,255,0.3)] transition-all active:scale-95 flex items-center gap-1.5"
+              className="px-4 py-1.5 rounded-full bg-[#0071e3] hover:bg-[#0077ed] text-white text-xs font-semibold shadow-[0_2px_12px_rgba(0,113,227,0.4),inset_0_1px_1px_rgba(255,255,255,0.3)] transition-all active:scale-95"
             >
-              <span>Garantir Acesso</span>
-              <ArrowRight className="w-3.5 h-3.5" />
+              Garantir Acesso
             </a>
           </div>
         </div>
@@ -369,14 +326,14 @@ export const ColorMasterLanding: React.FC = () => {
         <div className="relative z-10 max-w-5xl mx-auto">
           <div className="flex flex-col items-center text-center max-w-3xl mx-auto mb-10">
             {/* Masterclass Identification Badge */}
-            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-black/60 backdrop-blur-md text-white/90 text-xs font-semibold mb-5 border border-white/20 shadow-sm">
-              <Sliders className="w-3.5 h-3.5 text-[#2997ff]" />
-              <span className="tracking-wide uppercase">MASTERCLASS • COLOR MASTER | PRODUTO</span>
+            <div className="inline-flex items-center px-4 py-1.5 rounded-full bg-black/60 backdrop-blur-md text-white/90 text-xs font-semibold mb-5 border border-white/20 shadow-sm">
+              <span className="tracking-wide uppercase font-semibold text-[#2997ff]">MASTERCLASS</span>
+              <span className="mx-2 text-white/30">•</span>
+              <span className="tracking-wide uppercase">COLOR MASTER | PRODUTO</span>
             </div>
 
             {/* Exclusive Mentorship Notice Badge */}
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-2xl bg-amber-500/20 backdrop-blur-md border border-amber-400/40 text-amber-200 text-xs sm:text-sm font-semibold mb-6 shadow-lg">
-              <Award className="w-4 h-4 text-amber-400 shrink-0" />
+            <div className="inline-flex items-center px-4 py-2 rounded-2xl bg-amber-500/20 backdrop-blur-md border border-amber-400/40 text-amber-200 text-xs sm:text-sm font-semibold mb-6 shadow-lg">
               <span>BÔNUS EXCLUSIVO: Os 10 primeiros inscritos ganham Mentoria em Grupo ao vivo com análise dos seus trabalhos!</span>
             </div>
 
@@ -392,7 +349,6 @@ export const ColorMasterLanding: React.FC = () => {
 
             {/* Commercial Condition / Price Pill */}
             <div className="inline-flex flex-wrap items-center justify-center gap-2 px-4 py-2 rounded-2xl bg-white/10 backdrop-blur-md border border-white/20 text-white text-xs sm:text-sm font-medium mb-6">
-              <Tag className="w-4 h-4 text-[#2997ff]" />
               {!isExpired ? (
                 <>
                   <span className="line-through text-white/50">R$ 195</span>
@@ -418,46 +374,41 @@ export const ColorMasterLanding: React.FC = () => {
               <a
                 href="#oferta"
                 onClick={() => trackProductClick('color-master-produto', 'Color Master Hero CTA', '#oferta', 'other')}
-                className="w-full sm:w-auto px-8 py-4 rounded-full bg-[#0071e3] hover:bg-[#0077ed] text-white font-semibold text-sm sm:text-base transition-all shadow-[0_4px_20px_rgba(0,113,227,0.5)] flex items-center justify-center gap-2 active:scale-95"
+                className="w-full sm:w-auto px-8 py-4 rounded-full bg-[#0071e3] hover:bg-[#0077ed] text-white font-semibold text-sm sm:text-base transition-all shadow-[0_4px_20px_rgba(0,113,227,0.5)] flex items-center justify-center active:scale-95"
               >
-                <span>{!isExpired ? `Garantir por R$ ${priceData.promoPrice}` : 'Garantir Acesso à Masterclass'}</span>
-                <ArrowRight className="w-4 h-4" />
+                {!isExpired ? `Garantir por R$ ${priceData.promoPrice}` : 'Garantir Acesso à Masterclass'}
               </a>
 
               <a
                 href="#aprendizado"
-                className="w-full sm:w-auto px-6 py-4 rounded-full bg-white/10 hover:bg-white/20 text-white font-medium text-sm transition-all border border-white/20 flex items-center justify-center gap-2 active:scale-95"
+                className="w-full sm:w-auto px-6 py-4 rounded-full bg-white/10 hover:bg-white/20 text-white font-medium text-sm transition-all border border-white/20 flex items-center justify-center active:scale-95"
               >
-                <span>Ver Conteúdo Completo</span>
-                <ChevronDown className="w-4 h-4" />
+                Ver Conteúdo Completo
               </a>
             </div>
 
             {/* Trust highlights */}
             <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 mt-4 text-xs sm:text-sm text-white/80 font-normal">
               <div className="flex items-center gap-1.5">
-                <Award className="w-4 h-4 text-amber-400" />
+                <span className="text-amber-400 font-bold">•</span>
                 <span>Mentoria para os 10 primeiros</span>
               </div>
               <div className="flex items-center gap-1.5">
-                <Check className="w-4 h-4 text-[#2997ff]" />
+                <span className="text-[#2997ff] font-bold">•</span>
                 <span>1 Ano de Acesso</span>
               </div>
               <div className="flex items-center gap-1.5">
-                <Check className="w-4 h-4 text-[#2997ff]" />
+                <span className="text-[#2997ff] font-bold">•</span>
                 <span>Footages reais inclusos</span>
               </div>
               <div className="flex items-center gap-1.5">
-                <Check className="w-4 h-4 text-[#2997ff]" />
+                <span className="text-[#2997ff] font-bold">•</span>
                 <span>25% OFF em outros cursos</span>
               </div>
             </div>
           </div>
-
         </div>
       </section>
-
-
 
       {/* ========================================================================= */}
       {/* 03. CONTEÚDO DO MASTERCLASS                                               */}
@@ -519,8 +470,8 @@ export const ColorMasterLanding: React.FC = () => {
                     </div>
                   </div>
 
-                  <div className="shrink-0 w-8 h-8 rounded-full bg-[#f5f5f7] flex items-center justify-center text-[#86868b]">
-                    {isOpen ? <ChevronUp className="w-4 h-4 text-[#0071e3]" /> : <ChevronDown className="w-4 h-4" />}
+                  <div className="shrink-0 w-8 h-8 rounded-full bg-[#f5f5f7] flex items-center justify-center text-sm font-semibold text-[#86868b]">
+                    {isOpen ? '−' : '+'}
                   </div>
                 </button>
 
@@ -535,7 +486,9 @@ export const ColorMasterLanding: React.FC = () => {
                           key={lIdx}
                           className="flex items-start gap-3 text-xs sm:text-sm text-[#1d1d1f] bg-[#ffffff] p-3.5 rounded-2xl border border-[#e5e5e7]"
                         >
-                          <CheckCircle2 className="w-4 h-4 text-[#0071e3] shrink-0 mt-0.5" />
+                          <span className="text-xs font-mono font-bold text-[#0071e3] shrink-0 mt-0.5">
+                            {(lIdx + 1).toString().padStart(2, '0')}.
+                          </span>
                           <span>{lesson}</span>
                         </div>
                       ))}
@@ -569,10 +522,7 @@ export const ColorMasterLanding: React.FC = () => {
             {/* Pilar 1: Tratamento de Cor e Densidade */}
             <div className="p-8 rounded-3xl bg-[#ffffff] border border-[#e5e5e7] shadow-sm flex flex-col justify-between">
               <div>
-                <div className="w-12 h-12 rounded-2xl bg-[#0071e3]/10 border border-[#0071e3]/20 text-[#0071e3] flex items-center justify-center mb-6">
-                  <Sliders className="w-6 h-6" />
-                </div>
-                <span className="text-xs uppercase tracking-wider font-bold text-[#0071e3] block mb-2">
+                <span className="inline-block px-3 py-1 rounded-full bg-[#0071e3]/10 text-[#0071e3] text-xs uppercase tracking-wider font-bold mb-4 border border-[#0071e3]/20">
                   PILAR 01
                 </span>
                 <h3 className="text-xl font-semibold text-[#1d1d1f] mb-3">
@@ -582,19 +532,15 @@ export const ColorMasterLanding: React.FC = () => {
                   Como calibrar luz, sombra e saturação com peso visual publicitário sem estourar canais nem introduzir artefatos na compressão de entrega.
                 </p>
               </div>
-              <div className="mt-6 pt-4 border-t border-[#e5e5e7] text-xs font-semibold text-[#1d1d1f] flex items-center gap-1.5">
-                <Check className="w-4 h-4 text-[#0071e3]" />
-                <span>Padrão Broadcast & TV Comercial</span>
+              <div className="mt-6 pt-4 border-t border-[#e5e5e7] text-xs font-semibold text-[#1d1d1f]">
+                Padrão Broadcast & TV Comercial
               </div>
             </div>
 
             {/* Pilar 2: Consistência entre Planos (Matching) */}
             <div className="p-8 rounded-3xl bg-[#ffffff] border border-[#e5e5e7] shadow-sm flex flex-col justify-between">
               <div>
-                <div className="w-12 h-12 rounded-2xl bg-[#0071e3]/10 border border-[#0071e3]/20 text-[#0071e3] flex items-center justify-center mb-6">
-                  <Layers className="w-6 h-6" />
-                </div>
-                <span className="text-xs uppercase tracking-wider font-bold text-[#0071e3] block mb-2">
+                <span className="inline-block px-3 py-1 rounded-full bg-[#0071e3]/10 text-[#0071e3] text-xs uppercase tracking-wider font-bold mb-4 border border-[#0071e3]/20">
                   PILAR 02
                 </span>
                 <h3 className="text-xl font-semibold text-[#1d1d1f] mb-3">
@@ -604,19 +550,15 @@ export const ColorMasterLanding: React.FC = () => {
                   Garantir que a embalagem, a cor do produto e o tom de pele mantenham absoluta coerência visual durante todos os cortes do vídeo.
                 </p>
               </div>
-              <div className="mt-6 pt-4 border-t border-[#e5e5e7] text-xs font-semibold text-[#1d1d1f] flex items-center gap-1.5">
-                <Check className="w-4 h-4 text-[#0071e3]" />
-                <span>Continuidade Visual Perfeita</span>
+              <div className="mt-6 pt-4 border-t border-[#e5e5e7] text-xs font-semibold text-[#1d1d1f]">
+                Continuidade Visual Perfeita
               </div>
             </div>
 
             {/* Pilar 3: Criação de Looks Comerciais */}
             <div className="p-8 rounded-3xl bg-[#ffffff] border border-[#e5e5e7] shadow-sm flex flex-col justify-between">
               <div>
-                <div className="w-12 h-12 rounded-2xl bg-[#0071e3]/10 border border-[#0071e3]/20 text-[#0071e3] flex items-center justify-center mb-6">
-                  <Film className="w-6 h-6" />
-                </div>
-                <span className="text-xs uppercase tracking-wider font-bold text-[#0071e3] block mb-2">
+                <span className="inline-block px-3 py-1 rounded-full bg-[#0071e3]/10 text-[#0071e3] text-xs uppercase tracking-wider font-bold mb-4 border border-[#0071e3]/20">
                   PILAR 03
                 </span>
                 <h3 className="text-xl font-semibold text-[#1d1d1f] mb-3">
@@ -626,9 +568,8 @@ export const ColorMasterLanding: React.FC = () => {
                   Desenvolvimento de paletas de cor autorais sob medida para a proposta de cada marca, saindo da dependência de LUTs genéricos.
                 </p>
               </div>
-              <div className="mt-6 pt-4 border-t border-[#e5e5e7] text-xs font-semibold text-[#1d1d1f] flex items-center gap-1.5">
-                <Check className="w-4 h-4 text-[#0071e3]" />
-                <span>Look Development Autoral</span>
+              <div className="mt-6 pt-4 border-t border-[#e5e5e7] text-xs font-semibold text-[#1d1d1f]">
+                Look Development Autoral
               </div>
             </div>
           </div>
@@ -776,10 +717,9 @@ export const ColorMasterLanding: React.FC = () => {
 
             {/* Special Mentorship Callout Card for First 10 */}
             <div className="mb-6 p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-amber-500/10 via-amber-400/15 to-amber-500/10 border border-amber-400/40 text-left max-w-lg mx-auto shadow-xs">
-              <div className="flex items-center gap-2 text-amber-800 font-bold text-xs uppercase tracking-wider mb-1.5">
-                <Award className="w-4 h-4 text-amber-600 shrink-0" />
-                <span>BÔNUS EXCLUSIVO (APENAS 10 PRIMEIROS)</span>
-              </div>
+              <span className="text-amber-800 font-bold text-xs uppercase tracking-wider mb-1.5 block">
+                BÔNUS EXCLUSIVO (APENAS 10 PRIMEIROS)
+              </span>
               <h3 className="text-sm sm:text-base font-bold text-[#1d1d1f] mb-1">
                 Mentoria em Grupo ao Vivo com Michael Oliveira
               </h3>
@@ -790,37 +730,29 @@ export const ColorMasterLanding: React.FC = () => {
 
             {/* Checklist of What's Included */}
             <div className="text-left space-y-3.5 max-w-lg mx-auto mb-8 text-sm sm:text-base text-[#1d1d1f] border-y border-[#e5e5e7] py-6">
-              <div className="flex items-center gap-3 font-semibold text-amber-950 bg-amber-500/10 p-2.5 rounded-xl border border-amber-400/40">
-                <Award className="w-5 h-5 text-amber-600 shrink-0" />
-                <span>Vaga na Mentoria em Grupo ao Vivo (Primeiros 10 Alunos)</span>
+              <div className="font-semibold text-amber-950 bg-amber-500/10 p-3 rounded-xl border border-amber-400/40">
+                • Vaga na Mentoria em Grupo ao Vivo (Primeiros 10 Alunos)
               </div>
-              <div className="flex items-center gap-3">
-                <Check className="w-5 h-5 text-[#0071e3] shrink-0" />
-                <span>Masterclass completa do básico ao acabamento final</span>
+              <div className="py-1 border-b border-[#e5e5e7]/50">
+                • Masterclass completa do básico ao acabamento final
               </div>
-              <div className="flex items-center gap-3">
-                <Check className="w-5 h-5 text-[#0071e3] shrink-0" />
-                <span>Aulas práticas gravadas em alta resolução no DaVinci Resolve</span>
+              <div className="py-1 border-b border-[#e5e5e7]/50">
+                • Aulas práticas gravadas em alta resolução no DaVinci Resolve
               </div>
-              <div className="flex items-center gap-3">
-                <Check className="w-5 h-5 text-[#0071e3] shrink-0" />
-                <span>Footages reais de produto (RAW / LOG) para acompanhar a prática</span>
+              <div className="py-1 border-b border-[#e5e5e7]/50">
+                • Footages reais de produto (RAW / LOG) para acompanhar a prática
               </div>
-              <div className="flex items-center gap-3">
-                <Check className="w-5 h-5 text-[#0071e3] shrink-0" />
-                <span>Estrutura de Node Trees e PowerGrades prontos para uso</span>
+              <div className="py-1 border-b border-[#e5e5e7]/50">
+                • Estrutura de Node Trees e PowerGrades prontos para uso
               </div>
-              <div className="flex items-center gap-3">
-                <Check className="w-5 h-5 text-[#0071e3] shrink-0" />
-                <span>Módulos de Look Development (Look Creator & Dehancer Pro)</span>
+              <div className="py-1 border-b border-[#e5e5e7]/50">
+                • Módulos de Look Development (Look Creator & Dehancer Pro)
               </div>
-              <div className="flex items-center gap-3 font-semibold text-[#1d1d1f]">
-                <Clock className="w-5 h-5 text-[#0071e3] shrink-0" />
-                <span>1 Ano de Acesso Completo e Ilimitado à Plataforma</span>
+              <div className="py-1 font-semibold text-[#1d1d1f] border-b border-[#e5e5e7]/50">
+                • 1 Ano de Acesso Completo e Ilimitado à Plataforma
               </div>
-              <div className="flex items-center gap-3 font-semibold text-[#0071e3] bg-[#0071e3]/10 p-2.5 rounded-xl border border-[#0071e3]/20">
-                <Percent className="w-5 h-5 text-[#0071e3] shrink-0" />
-                <span>Bônus: 25% de Desconto em Qualquer Outro Treinamento FLMMKR</span>
+              <div className="font-semibold text-[#0071e3] bg-[#0071e3]/10 p-3 rounded-xl border border-[#0071e3]/20">
+                • Bônus: 25% de Desconto em Qualquer Outro Treinamento FLMMKR
               </div>
             </div>
 
@@ -828,9 +760,8 @@ export const ColorMasterLanding: React.FC = () => {
             <div className="mb-8">
               {!isExpired ? (
                 <>
-                  <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/10 text-amber-700 text-xs font-bold uppercase tracking-wider mb-2 border border-amber-500/30">
-                    <Clock className="w-3.5 h-3.5 text-amber-600 animate-pulse" />
-                    <span>Tempo Restante da Oferta: {formatTime(timeLeft)}</span>
+                  <div className="inline-block px-3 py-1 rounded-full bg-amber-500/10 text-amber-700 text-xs font-bold uppercase tracking-wider mb-2 border border-amber-500/30">
+                    Tempo Restante da Oferta: {formatTime(timeLeft)}
                   </div>
                   <span className="text-xs sm:text-sm text-[#86868b] block line-through">
                     De R$ 195 por apenas:
@@ -847,9 +778,8 @@ export const ColorMasterLanding: React.FC = () => {
                 </>
               ) : (
                 <>
-                  <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-red-500/10 text-red-600 text-xs font-bold uppercase tracking-wider mb-2 border border-red-500/30">
-                    <Clock className="w-3.5 h-3.5" />
-                    <span>Tempo de 15 Minutos Expirado</span>
+                  <div className="inline-block px-3 py-1 rounded-full bg-red-500/10 text-red-600 text-xs font-bold uppercase tracking-wider mb-2 border border-red-500/30">
+                    Tempo de 15 Minutos Expirado
                   </div>
                   <span className="text-xs text-[#86868b] uppercase font-semibold block mb-1">
                     Preço Regular Oficial
@@ -870,16 +800,14 @@ export const ColorMasterLanding: React.FC = () => {
               target="_blank"
               rel="noopener noreferrer"
               onClick={() => trackProductClick('color-master-buy', 'Color Master Buy Checkout', 'https://pay.hotmart.com/placeholder', 'other')}
-              className="w-full sm:w-auto px-10 py-4 rounded-full bg-[#0071e3] hover:bg-[#0077ed] text-white font-semibold text-base transition-all shadow-[0_4px_24px_rgba(0,113,227,0.4)] inline-flex items-center justify-center gap-2 active:scale-95"
+              className="w-full sm:w-auto px-10 py-4 rounded-full bg-[#0071e3] hover:bg-[#0077ed] text-white font-semibold text-base transition-all shadow-[0_4px_24px_rgba(0,113,227,0.4)] inline-flex items-center justify-center active:scale-95"
             >
-              <span>GARANTIR MINHA VAGA AGORA</span>
-              <ArrowRight className="w-5 h-5" />
+              GARANTIR MINHA VAGA AGORA
             </a>
 
             {/* Guarantee and Security */}
-            <div className="mt-6 flex items-center justify-center gap-2 text-xs sm:text-sm text-[#6e6e73] font-medium">
-              <ShieldCheck className="w-5 h-5 text-emerald-600 shrink-0" />
-              <span>Garantia incondicional de 7 dias • Risco zero</span>
+            <div className="mt-6 text-xs sm:text-sm text-[#6e6e73] font-medium">
+              Garantia incondicional de 7 dias • Risco zero
             </div>
           </div>
         </div>
@@ -910,11 +838,9 @@ export const ColorMasterLanding: React.FC = () => {
                   className="w-full p-6 text-left flex items-center justify-between text-base sm:text-lg font-semibold text-[#1d1d1f] hover:text-[#0071e3] transition-colors"
                 >
                   <span className="pr-4">{faq.q}</span>
-                  {openFaq === idx ? (
-                    <ChevronUp className="w-5 h-5 text-[#0071e3] shrink-0" />
-                  ) : (
-                    <ChevronDown className="w-5 h-5 text-[#86868b] shrink-0" />
-                  )}
+                  <span className="text-lg font-semibold text-[#86868b] shrink-0">
+                    {openFaq === idx ? '−' : '+'}
+                  </span>
                 </button>
 
                 {openFaq === idx && (
@@ -933,11 +859,6 @@ export const ColorMasterLanding: React.FC = () => {
       {/* ========================================================================= */}
       <section className="relative z-10 py-20 md:py-28 px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto text-center">
         <div className="p-10 sm:p-16 rounded-3xl bg-[#ffffff] border border-[#e5e5e7] shadow-xl relative overflow-hidden">
-          {/* Subtle top rim glow */}
-          <div className="w-16 h-16 rounded-3xl bg-[#0071e3]/10 border border-[#0071e3]/20 flex items-center justify-center mx-auto mb-6 text-[#0071e3]">
-            <Award className="w-8 h-8" />
-          </div>
-
           <h2 className="text-3xl sm:text-5xl font-semibold text-[#1d1d1f] mb-4 leading-tight">
             Domine a construção visual de produtos e eleve seus comerciais.
           </h2>
@@ -947,10 +868,9 @@ export const ColorMasterLanding: React.FC = () => {
 
           <a
             href="#oferta"
-            className="px-10 py-4 rounded-full bg-[#0071e3] hover:bg-[#0077ed] text-white font-semibold text-base transition-all shadow-[0_4px_20px_rgba(0,113,227,0.4)] inline-flex items-center justify-center gap-2 active:scale-95"
+            className="px-10 py-4 rounded-full bg-[#0071e3] hover:bg-[#0077ed] text-white font-semibold text-base transition-all shadow-[0_4px_20px_rgba(0,113,227,0.4)] inline-flex items-center justify-center active:scale-95"
           >
-            <span>ENTRAR NO COLOR MASTER | PRODUTO</span>
-            <ArrowRight className="w-5 h-5" />
+            ENTRAR NO COLOR MASTER | PRODUTO
           </a>
         </div>
       </section>
@@ -994,12 +914,10 @@ export const ColorMasterLanding: React.FC = () => {
                 target="_blank"
                 rel="noopener noreferrer"
                 onClick={() => trackSocialClick(soc.name, 'other')}
-                className="p-2.5 rounded-full bg-[#f5f5f7] hover:bg-[#e8e8ed] text-[#6e6e73] hover:text-[#1d1d1f] border border-[#d2d2d7] transition-colors"
+                className="px-3 py-1.5 rounded-full bg-[#f5f5f7] hover:bg-[#e8e8ed] text-[#6e6e73] hover:text-[#1d1d1f] border border-[#d2d2d7] transition-colors text-xs font-medium"
                 aria-label={soc.name}
               >
-                {soc.name === 'Instagram' && <InstagramIcon className="w-4 h-4" />}
-                {soc.name === 'YouTube' && <YouTubeIcon className="w-4 h-4" />}
-                {soc.name === 'TikTok' && <TikTokIcon className="w-4 h-4" />}
+                {soc.name}
               </a>
             ))}
           </div>
