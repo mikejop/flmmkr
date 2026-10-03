@@ -1,26 +1,100 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #0A0B0E;
+  --foreground: #1d1d1f;
+  --ease-quadratic: cubic-bezier(0.45, 0, 0.55, 1);
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html {
+  scroll-behavior: smooth;
+  scroll-snap-type: y mandatory;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: #0A0B0E;
+  color: #1d1d1f;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  overflow-x: hidden;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Quadratic Easing Transitions */
+.ease-quadratic {
+  transition-timing-function: cubic-bezier(0.45, 0, 0.55, 1);
+}
+
+/* Scroll Bounce Indicator Animation with Quadratic Curve */
+@keyframes bounce-quadratic {
+  0%, 100% {
+    transform: translateY(0);
+    animation-timing-function: cubic-bezier(0.45, 0, 0.55, 1);
+  }
+  50% {
+    transform: translateY(12px);
+    animation-timing-function: cubic-bezier(0.45, 0, 0.55, 1);
+  }
+}
+
+.animate-scroll-bounce {
+  animation: bounce-quadratic 2s infinite;
+}
+
+/* Performance Optimized Section Containers with Content Visibility */
+.scroll-section {
+  position: relative;
+  width: 100%;
+  content-visibility: auto;
+  contain-intrinsic-size: 100vh;
+}
+
+/* Inner Section Content Smooth Reveal & Vanish Animation */
+.scroll-content {
+  opacity: 0;
+  transform: translateY(20px) scale(0.98);
+  transition: opacity 0.45s cubic-bezier(0.45, 0, 0.55, 1), transform 0.45s cubic-bezier(0.45, 0, 0.55, 1);
+}
+
+.scroll-section.is-visible .scroll-content,
+.scroll-content.is-visible {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+}
+
+:root {
+  --marquee-gap: 1.5rem;
+}
+
+/* Seamless Infinite Marquee Animation */
+@keyframes marquee-track {
+  0% {
+    transform: translate3d(0, 0, 0);
+  }
+  100% {
+    transform: translate3d(calc(-100% - var(--marquee-gap)), 0, 0);
+  }
+}
+
+.marquee-container {
+  display: flex;
+  overflow: hidden;
+  user-select: none;
+  gap: var(--marquee-gap);
+  width: 100%;
+}
+
+.marquee-track {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: var(--marquee-gap);
+  min-width: max-content;
+  animation: marquee-track 32s linear infinite;
+  will-change: transform;
 }
