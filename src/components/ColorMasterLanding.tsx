@@ -201,9 +201,25 @@ export const ColorMasterLanding: React.FC = () => {
     },
     {
       q: 'Como funciona o pagamento e quais são as formas disponíveis?',
-      a: 'O pagamento é processado com total segurança pela plataforma Hotmart. Você pode parcelar em até 12x no cartão de crédito, pagar à vista via Pix ou boleto bancário.'
+      a: 'O pagamento é processado com total segurança pelo Asaas (instituição de pagamento autorizada pelo Banco Central). Você pode parcelar em até 12x no cartão de crédito, pagar à vista via Pix com liberação imediata ou via boleto bancário.'
     }
   ];
+
+  const getAsaasCheckoutUrl = () => {
+    if (isExpired) {
+      return 'https://www.asaas.com/000/c/iv2p2s5tkbt1qi79'; // R$ 195 (Regular)
+    }
+    if (priceData.promoPrice === 95) {
+      return 'https://www.asaas.com/000/c/shb377el3w1mrucx'; // R$ 95 (Lote 1)
+    }
+    if (priceData.promoPrice === 125) {
+      return 'https://www.asaas.com/000/c/nbka8c38x8ao6cl2'; // R$ 125 (Lote 2)
+    }
+    if (priceData.promoPrice === 145) {
+      return 'https://www.asaas.com/000/c/8838cr0upgtyi6bp'; // R$ 145 (Lote 3)
+    }
+    return 'https://www.asaas.com/000/c/iv2p2s5tkbt1qi79'; // R$ 195 (Regular)
+  };
 
   return (
     <div className="min-h-screen bg-[#f5f5f7] text-[#1d1d1f] font-sans antialiased selection:bg-[#0071e3]/20 selection:text-[#0071e3]">
@@ -793,10 +809,10 @@ export const ColorMasterLanding: React.FC = () => {
 
             {/* Primary Buy CTA */}
             <a
-              href="https://pay.hotmart.com/placeholder"
+              href={getAsaasCheckoutUrl()}
               target="_blank"
               rel="noopener noreferrer"
-              onClick={() => trackProductClick('color-master-buy', 'Color Master Buy Checkout', 'https://pay.hotmart.com/placeholder', 'other')}
+              onClick={() => trackProductClick('color-master-buy', 'Color Master Buy Checkout', getAsaasCheckoutUrl(), 'other')}
               className="w-full sm:w-auto px-10 py-4 rounded-full bg-[#0071e3] hover:bg-[#0077ed] text-white font-semibold text-base transition-all shadow-[0_4px_24px_rgba(0,113,227,0.4)] inline-flex items-center justify-center active:scale-95"
             >
               GARANTIR MINHA VAGA AGORA
