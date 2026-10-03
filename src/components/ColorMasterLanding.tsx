@@ -737,7 +737,7 @@ export const ColorMasterLanding: React.FC = () => {
                 • Aulas práticas gravadas em alta resolução no DaVinci Resolve
               </div>
               <div className="py-1 border-b border-[#e5e5e7]/50">
-                • Footages reais de produto (RAW / LOG) para acompanhar a prática
+                • Footages reais de produto em LOG para acompanhar a prática
               </div>
               <div className="py-1 border-b border-[#e5e5e7]/50">
                 • Estrutura de Node Trees e PowerGrades prontos para uso
