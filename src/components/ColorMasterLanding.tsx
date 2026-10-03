@@ -18,7 +18,6 @@ import {
   Monitor,
   ShieldCheck,
   Check,
-  Sparkles,
   Layers,
   Tv,
   FileCheck,
@@ -27,7 +26,9 @@ import {
   Infinity,
   PlayCircle,
   Zap,
-  Award
+  Award,
+  Tag,
+  Percent
 } from 'lucide-react';
 const PRODUTORAS_LOGOS = [
   { name: 'Astronautas Filmes', src: '/assets/empresas/astronautas-filmes.jpg' },
@@ -391,7 +392,7 @@ export const ColorMasterLanding: React.FC = () => {
 
             {/* Commercial Condition / Price Pill */}
             <div className="inline-flex flex-wrap items-center justify-center gap-2 px-4 py-2 rounded-2xl bg-white/10 backdrop-blur-md border border-white/20 text-white text-xs sm:text-sm font-medium mb-6">
-              <Sparkles className="w-4 h-4 text-[#2997ff]" />
+              <Tag className="w-4 h-4 text-[#2997ff]" />
               {!isExpired ? (
                 <>
                   <span className="line-through text-white/50">R$ 195</span>
@@ -818,7 +819,7 @@ export const ColorMasterLanding: React.FC = () => {
                 <span>1 Ano de Acesso Completo e Ilimitado à Plataforma</span>
               </div>
               <div className="flex items-center gap-3 font-semibold text-[#0071e3] bg-[#0071e3]/10 p-2.5 rounded-xl border border-[#0071e3]/20">
-                <Sparkles className="w-5 h-5 text-[#0071e3] shrink-0" />
+                <Percent className="w-5 h-5 text-[#0071e3] shrink-0" />
                 <span>🎁 Bônus: 25% de Desconto em Qualquer Outro Treinamento FLMMKR</span>
               </div>
             </div>
