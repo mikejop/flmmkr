@@ -377,7 +377,7 @@ export const ColorMasterLanding: React.FC = () => {
             {/* Exclusive Mentorship Notice Badge */}
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-2xl bg-amber-500/20 backdrop-blur-md border border-amber-400/40 text-amber-200 text-xs sm:text-sm font-semibold mb-6 shadow-lg">
               <Award className="w-4 h-4 text-amber-400 shrink-0" />
-              <span>🔥 BÔNUS EXCLUSIVO: Os 10 primeiros inscritos ganham Mentoria em Grupo ao vivo com análise dos seus trabalhos!</span>
+              <span>BÔNUS EXCLUSIVO: Os 10 primeiros inscritos ganham Mentoria em Grupo ao vivo com análise dos seus trabalhos!</span>
             </div>
 
             {/* Headline H1 */}
@@ -792,7 +792,7 @@ export const ColorMasterLanding: React.FC = () => {
             <div className="text-left space-y-3.5 max-w-lg mx-auto mb-8 text-sm sm:text-base text-[#1d1d1f] border-y border-[#e5e5e7] py-6">
               <div className="flex items-center gap-3 font-semibold text-amber-950 bg-amber-500/10 p-2.5 rounded-xl border border-amber-400/40">
                 <Award className="w-5 h-5 text-amber-600 shrink-0" />
-                <span>⭐ Vaga na Mentoria em Grupo ao Vivo (Primeiros 10 Alunos)</span>
+                <span>Vaga na Mentoria em Grupo ao Vivo (Primeiros 10 Alunos)</span>
               </div>
               <div className="flex items-center gap-3">
                 <Check className="w-5 h-5 text-[#0071e3] shrink-0" />
@@ -820,7 +820,7 @@ export const ColorMasterLanding: React.FC = () => {
               </div>
               <div className="flex items-center gap-3 font-semibold text-[#0071e3] bg-[#0071e3]/10 p-2.5 rounded-xl border border-[#0071e3]/20">
                 <Percent className="w-5 h-5 text-[#0071e3] shrink-0" />
-                <span>🎁 Bônus: 25% de Desconto em Qualquer Outro Treinamento FLMMKR</span>
+                <span>Bônus: 25% de Desconto em Qualquer Outro Treinamento FLMMKR</span>
               </div>
             </div>
 
