@@ -193,7 +193,7 @@ export const ColorMasterLanding: React.FC = () => {
     },
     {
       q: 'Como funciona a mentoria em grupo para os 10 primeiros inscritos?',
-      a: 'Os 10 primeiros alunos garantem vaga exclusiva em uma mentoria fechada ao vivo com Michael Oliveira. Nessa sessão, analisaremos os trabalhos e projetos de cada um individualmente, identificando pontos de melhoria e apontando soluções práticas para elevar o padrão estético e profissional das suas imagens.'
+      a: 'Os 10 primeiros inscritos ganham a Mentoria em Grupo ao vivo com Michael Oliveira. A mentoria tem duração de 4 semanas, sendo um encontro ao vivo por semana, onde vamos analisar os trabalhos de cada um e buscar soluções práticas para melhorar e elevar o nível das produções.'
     },
     {
       q: 'Como funciona o desconto de 25% nos outros treinamentos?',
@@ -332,11 +332,6 @@ export const ColorMasterLanding: React.FC = () => {
               <span className="tracking-wide uppercase">COLOR MASTER | PRODUTO</span>
             </div>
 
-            {/* Exclusive Mentorship Notice Badge */}
-            <div className="inline-flex items-center px-4 py-2 rounded-2xl bg-amber-500/20 backdrop-blur-md border border-amber-400/40 text-amber-200 text-xs sm:text-sm font-semibold mb-6 shadow-lg">
-              <span>BÔNUS EXCLUSIVO: Os 10 primeiros inscritos ganham Mentoria em Grupo ao vivo com análise dos seus trabalhos!</span>
-            </div>
-
             {/* Headline H1 */}
             <h1 className="text-4xl sm:text-6xl lg:text-7xl font-semibold tracking-tight text-white leading-[1.08] mb-6 drop-shadow-xl">
               Transforme uma boa fotografia de produto em uma imagem de comercial.
@@ -390,16 +385,16 @@ export const ColorMasterLanding: React.FC = () => {
             {/* Trust highlights */}
             <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 mt-4 text-xs sm:text-sm text-white/80 font-normal">
               <div className="flex items-center gap-1.5">
-                <span className="text-amber-400 font-bold">•</span>
-                <span>Mentoria para os 10 primeiros</span>
-              </div>
-              <div className="flex items-center gap-1.5">
                 <span className="text-[#2997ff] font-bold">•</span>
                 <span>1 Ano de Acesso</span>
               </div>
               <div className="flex items-center gap-1.5">
                 <span className="text-[#2997ff] font-bold">•</span>
                 <span>Footages reais inclusos</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <span className="text-[#2997ff] font-bold">•</span>
+                <span>Metodologia 100% prática</span>
               </div>
               <div className="flex items-center gap-1.5">
                 <span className="text-[#2997ff] font-bold">•</span>
@@ -716,22 +711,22 @@ export const ColorMasterLanding: React.FC = () => {
             </p>
 
             {/* Special Mentorship Callout Card for First 10 */}
-            <div className="mb-6 p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-amber-500/10 via-amber-400/15 to-amber-500/10 border border-amber-400/40 text-left max-w-lg mx-auto shadow-xs">
-              <span className="text-amber-800 font-bold text-xs uppercase tracking-wider mb-1.5 block">
-                BÔNUS EXCLUSIVO (APENAS 10 PRIMEIROS)
+            <div className="mb-6 p-5 sm:p-6 rounded-2xl bg-gradient-to-r from-amber-500/10 via-amber-400/15 to-amber-500/10 border border-amber-400/40 text-left max-w-lg mx-auto shadow-xs">
+              <span className="text-amber-800 font-bold text-xs uppercase tracking-wider mb-2 block">
+                BÔNUS EXCLUSIVO
               </span>
-              <h3 className="text-sm sm:text-base font-bold text-[#1d1d1f] mb-1">
-                Mentoria em Grupo ao Vivo com Michael Oliveira
+              <h3 className="text-base sm:text-lg font-bold text-[#1d1d1f] mb-2 leading-snug">
+                Os 10 primeiros inscritos ganham Mentoria em Grupo ao vivo com análise dos seus trabalhos!
               </h3>
               <p className="text-xs sm:text-sm text-[#48484a] leading-relaxed">
-                Encontro fechado ao vivo para analisar os trabalhos e projetos de cada participante, diagnosticando gargalos e apontando soluções práticas para elevar suas produções ao nível de comercial.
+                Mentoria de 4 semanas, sendo um encontro ao vivo por semana com Michael Oliveira. Uma oportunidade fechada para analisar os trabalhos de cada um e buscar soluções práticas para melhorar seus projetos e atingir o padrão de comercial.
               </p>
             </div>
 
             {/* Checklist of What's Included */}
             <div className="text-left space-y-3.5 max-w-lg mx-auto mb-8 text-sm sm:text-base text-[#1d1d1f] border-y border-[#e5e5e7] py-6">
               <div className="font-semibold text-amber-950 bg-amber-500/10 p-3 rounded-xl border border-amber-400/40">
-                • Vaga na Mentoria em Grupo ao Vivo (Primeiros 10 Alunos)
+                • Vaga na Mentoria em Grupo ao Vivo (4 semanas • 1 encontro por semana para os 10 primeiros inscritos)
               </div>
               <div className="py-1 border-b border-[#e5e5e7]/50">
                 • Masterclass completa do básico ao acabamento final
