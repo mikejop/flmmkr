@@ -7,3 +7,20 @@ datasource db {
   url       = env("DATABASE_URL")
   directUrl = env("DIRECT_URL")
 }
+
+model OfferTimerSession {
+  id               String   @id @default(uuid())
+  ip               String
+  clientIdentifier String   @unique @map("client_identifier")
+  userAgent        String?  @map("user_agent")
+  firstAccessAt    DateTime @default(now()) @map("first_access_at")
+  expiresAt        DateTime @map("expires_at")
+  cooldownUntil    DateTime @map("cooldown_until")
+  isExpired        Boolean  @default(false) @map("is_expired")
+  createdAt        DateTime @default(now()) @map("created_at")
+  updatedAt        DateTime @updatedAt @map("updated_at")
+
+  @@index([ip])
+  @@index([clientIdentifier])
+  @@map("offer_timer_sessions")
+}

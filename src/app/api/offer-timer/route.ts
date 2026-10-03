@@ -1,10 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getCurrentBatchPrice, saveSessionToSupabase } from '@/utils/offerPricing';
+import {
+  getCurrentBatchPrice,
+  getOrUpdateSupabaseSession,
+  updateSessionExpirationInSupabase,
+  UserTimerRecord
+} from '@/utils/offerPricing';
 
-// Armazenamento em memória do servidor (será conectado ao Supabase futuramente)
-const timerStore = new Map<string, { firstAccessAt: number; expiresAt: number; ip: string; clientIdentifier: string }>();
+// Cache em memória do servidor com retenção
+const memoryStore = new Map<string, UserTimerRecord>();
 
-const TIMER_DURATION_MS = 15 * 60 * 1000; // 15 minutos
+const TIMER_DURATION_MS = 15 * 60 * 1000; // 15 minutos de preço promocional
+const COOLDOWN_DURATION_MS = 36 * 60 * 60 * 1000; // 36 horas até poder resetar
 
 export async function GET(req: NextRequest) {
   const forwardedFor = req.headers.get('x-forwarded-for');
@@ -13,38 +19,90 @@ export async function GET(req: NextRequest) {
   const userAgent = req.headers.get('user-agent') || 'unknown';
 
   const { searchParams } = new URL(req.url);
-  const clientIdentifier = searchParams.get('clientId') || ip;
+  const cookieClientId = req.cookies.get('flmmkr_offer_timer')?.value;
+  const clientIdentifier = searchParams.get('clientId') || cookieClientId || `dev_${ip.replace(/[^a-zA-Z0-9]/g, '_')}`;
 
-  const key = `${ip}_${clientIdentifier}`;
   const now = Date.now();
+  const cacheKey = `sess_${clientIdentifier}_${ip}`;
 
-  let session = timerStore.get(key);
+  // 1. Verificar se já existe sessão no cache de memória ou Supabase
+  let session = memoryStore.get(cacheKey);
 
   if (!session) {
-    // Primeiro acesso
-    const firstAccessAt = now;
-    const expiresAt = now + TIMER_DURATION_MS;
-    session = { firstAccessAt, expiresAt, ip, clientIdentifier };
-    timerStore.set(key, session);
-
-    // Preparado para gravar no Supabase
-    await saveSessionToSupabase({
+    // Tenta buscar no Supabase
+    const supabaseSession = await getOrUpdateSupabaseSession({
       ip,
       clientIdentifier,
       userAgent,
-      firstAccessAt: new Date(firstAccessAt).toISOString(),
-      expiresAt: new Date(expiresAt).toISOString(),
+      firstAccessAt: new Date(now).toISOString(),
+      expiresAt: new Date(now + TIMER_DURATION_MS).toISOString(),
+      cooldownUntil: new Date(now + COOLDOWN_DURATION_MS).toISOString(),
       isExpired: false
     });
+
+    if (supabaseSession) {
+      session = supabaseSession;
+      memoryStore.set(cacheKey, session);
+    }
   }
 
-  const remainingSeconds = Math.max(0, Math.floor((session.expiresAt - now) / 1000));
+  // 2. Se não existia, cria uma nova sessão
+  if (!session) {
+    const firstAccessAt = new Date(now).toISOString();
+    const expiresAt = new Date(now + TIMER_DURATION_MS).toISOString();
+    const cooldownUntil = new Date(now + COOLDOWN_DURATION_MS).toISOString();
+
+    session = {
+      ip,
+      clientIdentifier,
+      userAgent,
+      firstAccessAt,
+      expiresAt,
+      cooldownUntil,
+      isExpired: false
+    };
+
+    memoryStore.set(cacheKey, session);
+  } else {
+    // 3. Verificar se as 36 horas de cooldown já se passaram para resetar
+    const cooldownTime = new Date(session.cooldownUntil).getTime();
+    if (now >= cooldownTime) {
+      // 36h passaram! Resetar o cronômetro para uma nova janela promocional
+      const firstAccessAt = new Date(now).toISOString();
+      const expiresAt = new Date(now + TIMER_DURATION_MS).toISOString();
+      const cooldownUntil = new Date(now + COOLDOWN_DURATION_MS).toISOString();
+
+      session = {
+        ...session,
+        firstAccessAt,
+        expiresAt,
+        cooldownUntil,
+        isExpired: false
+      };
+
+      memoryStore.set(cacheKey, session);
+      await getOrUpdateSupabaseSession(session);
+    }
+  }
+
+  // 4. Calcular tempo restante exato a partir do expiresAt original
+  const expiresAtTime = new Date(session.expiresAt).getTime();
+  const remainingSeconds = Math.max(0, Math.floor((expiresAtTime - now) / 1000));
   const isExpired = remainingSeconds <= 0;
 
+  // Atualizar flag de expiração se mudou
+  if (isExpired !== session.isExpired) {
+    session.isExpired = isExpired;
+    memoryStore.set(cacheKey, session);
+    updateSessionExpirationInSupabase(clientIdentifier, isExpired);
+  }
+
+  // 5. Preço atual do lote
   const batchInfo = getCurrentBatchPrice(new Date());
   const finalPrice = isExpired ? batchInfo.regularPrice : batchInfo.promoPrice;
 
-  return NextResponse.json({
+  // 6. Resposta com cookie seguro de 36h
+  const response = NextResponse.json({
     ip,
     clientIdentifier,
     remainingSeconds,
@@ -54,7 +112,18 @@ export async function GET(req: NextRequest) {
     finalPrice,
     batchName: batchInfo.batchName,
     nextPriceDate: batchInfo.nextPriceDate,
-    firstAccessAt: new Date(session.firstAccessAt).toISOString(),
-    expiresAt: new Date(session.expiresAt).toISOString()
+    firstAccessAt: session.firstAccessAt,
+    expiresAt: session.expiresAt,
+    cooldownUntil: session.cooldownUntil
   });
+
+  // Grava cookie no navegador com validade de 36 horas
+  response.cookies.set('flmmkr_offer_timer', clientIdentifier, {
+    maxAge: 36 * 60 * 60, // 36 horas em segundos
+    path: '/',
+    httpOnly: false,
+    sameSite: 'lax'
+  });
+
+  return response;
 }
