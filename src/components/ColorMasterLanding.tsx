@@ -215,6 +215,10 @@ export const ColorMasterLanding: React.FC = () => {
       a: 'O acesso é liberado imediatamente após a confirmação do pagamento e tem duração de 1 ano completo (365 dias). Durante esse período, você pode assistir a todas as aulas quantas vezes quiser, além de baixar os materiais e projetos.'
     },
     {
+      q: 'Como funciona a mentoria em grupo para os 10 primeiros inscritos?',
+      a: 'Os 10 primeiros alunos garantem vaga exclusiva em uma mentoria fechada ao vivo com Michael Oliveira. Nessa sessão, analisaremos os trabalhos e projetos de cada um individualmente, identificando pontos de melhoria e apontando soluções práticas para elevar o padrão estético e profissional das suas imagens.'
+    },
+    {
       q: 'Como funciona o desconto de 25% nos outros treinamentos?',
       a: 'Quem adquire o Color Master | Produto recebe automaticamente um cupom exclusivo de 25% de desconto para aplicar em qualquer outro curso ou masterclass da FLMMKR dentro da área de membros.'
     },
@@ -244,10 +248,10 @@ export const ColorMasterLanding: React.FC = () => {
                   <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-400"></span>
                 </span>
                 <span className="font-bold text-amber-300 uppercase tracking-wider text-[11px] sm:text-xs">
-                  Oferta Relâmpago (15 Minutos)
+                  Oferta de Abertura (15 Minutos)
                 </span>
                 <span className="hidden md:inline text-white/90">
-                  • Garanta o valor de abertura de <strong className="text-white underline decoration-amber-400 font-bold">R$ {priceData.promoPrice}</strong> antes que o tempo expire!
+                  • Garanta por apenas <strong className="text-white underline decoration-amber-400 font-bold">R$ {priceData.promoPrice}</strong> + Mentoria em Grupo para os 10 primeiros!
                 </span>
               </>
             ) : (
@@ -364,9 +368,15 @@ export const ColorMasterLanding: React.FC = () => {
         <div className="relative z-10 max-w-5xl mx-auto">
           <div className="flex flex-col items-center text-center max-w-3xl mx-auto mb-10">
             {/* Masterclass Identification Badge */}
-            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-black/60 backdrop-blur-md text-white/90 text-xs font-semibold mb-6 border border-white/20 shadow-sm">
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-black/60 backdrop-blur-md text-white/90 text-xs font-semibold mb-5 border border-white/20 shadow-sm">
               <Sliders className="w-3.5 h-3.5 text-[#2997ff]" />
               <span className="tracking-wide uppercase">MASTERCLASS • COLOR MASTER | PRODUTO</span>
+            </div>
+
+            {/* Exclusive Mentorship Notice Badge */}
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-2xl bg-amber-500/20 backdrop-blur-md border border-amber-400/40 text-amber-200 text-xs sm:text-sm font-semibold mb-6 shadow-lg">
+              <Award className="w-4 h-4 text-amber-400 shrink-0" />
+              <span>🔥 BÔNUS EXCLUSIVO: Os 10 primeiros inscritos ganham Mentoria em Grupo ao vivo com análise dos seus trabalhos!</span>
             </div>
 
             {/* Headline H1 */}
@@ -425,6 +435,10 @@ export const ColorMasterLanding: React.FC = () => {
             {/* Trust highlights */}
             <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 mt-4 text-xs sm:text-sm text-white/80 font-normal">
               <div className="flex items-center gap-1.5">
+                <Award className="w-4 h-4 text-amber-400" />
+                <span>Mentoria para os 10 primeiros</span>
+              </div>
+              <div className="flex items-center gap-1.5">
                 <Check className="w-4 h-4 text-[#2997ff]" />
                 <span>1 Ano de Acesso</span>
               </div>
@@ -435,10 +449,6 @@ export const ColorMasterLanding: React.FC = () => {
               <div className="flex items-center gap-1.5">
                 <Check className="w-4 h-4 text-[#2997ff]" />
                 <span>25% OFF em outros cursos</span>
-              </div>
-              <div className="flex items-center gap-1.5">
-                <Check className="w-4 h-4 text-[#2997ff]" />
-                <span>Garantia de 7 dias</span>
               </div>
             </div>
           </div>
@@ -763,8 +773,26 @@ export const ColorMasterLanding: React.FC = () => {
               Masterclass completa de Color Grading para comerciais e imagens de produto no DaVinci Resolve.
             </p>
 
+            {/* Special Mentorship Callout Card for First 10 */}
+            <div className="mb-6 p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-amber-500/10 via-amber-400/15 to-amber-500/10 border border-amber-400/40 text-left max-w-lg mx-auto shadow-xs">
+              <div className="flex items-center gap-2 text-amber-800 font-bold text-xs uppercase tracking-wider mb-1.5">
+                <Award className="w-4 h-4 text-amber-600 shrink-0" />
+                <span>BÔNUS EXCLUSIVO (APENAS 10 PRIMEIROS)</span>
+              </div>
+              <h3 className="text-sm sm:text-base font-bold text-[#1d1d1f] mb-1">
+                Mentoria em Grupo ao Vivo com Michael Oliveira
+              </h3>
+              <p className="text-xs sm:text-sm text-[#48484a] leading-relaxed">
+                Encontro fechado ao vivo para analisar os trabalhos e projetos de cada participante, diagnosticando gargalos e apontando soluções práticas para elevar suas produções ao nível de comercial.
+              </p>
+            </div>
+
             {/* Checklist of What's Included */}
             <div className="text-left space-y-3.5 max-w-lg mx-auto mb-8 text-sm sm:text-base text-[#1d1d1f] border-y border-[#e5e5e7] py-6">
+              <div className="flex items-center gap-3 font-semibold text-amber-950 bg-amber-500/10 p-2.5 rounded-xl border border-amber-400/40">
+                <Award className="w-5 h-5 text-amber-600 shrink-0" />
+                <span>⭐ Vaga na Mentoria em Grupo ao Vivo (Primeiros 10 Alunos)</span>
+              </div>
               <div className="flex items-center gap-3">
                 <Check className="w-5 h-5 text-[#0071e3] shrink-0" />
                 <span>Masterclass completa do básico ao acabamento final</span>
