@@ -699,7 +699,7 @@ export const ColorMasterLanding: React.FC = () => {
                 </p>
               </div>
               <div className="mt-8 pt-4 border-t border-[#e5e5e7] text-xs font-semibold text-[#1d1d1f]">
-                Padrão Broadcast & Marcas Globais
+                Padrão Broadcast
               </div>
             </div>
 
