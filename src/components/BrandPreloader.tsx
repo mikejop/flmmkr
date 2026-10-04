@@ -131,7 +131,7 @@ export const BrandPreloader: React.FC<BrandPreloaderProps> = ({
           className="absolute inset-0 flex items-center justify-center"
           aria-hidden={isMorphingOrBeyond}
         >
-          <div className="flex items-center tracking-[0.22em] font-black text-2xl sm:text-4xl text-white">
+          <div className="flex items-center tracking-[0.16em] font-black text-3xl sm:text-5xl md:text-6xl text-white">
             {flmmkrLetters.map((letter, idx) => (
               <span
                 key={idx}
@@ -151,18 +151,18 @@ export const BrandPreloader: React.FC<BrandPreloaderProps> = ({
 
         {/* COLOR MASTER® Layer (Slides UP from below with accentuated quadratic acceleration) */}
         <div
-          className="flex items-center font-bold tracking-tight text-xl sm:text-3xl text-white"
+          className="flex items-center font-black tracking-tight text-3xl sm:text-5xl md:text-6xl text-white"
           aria-hidden={!isMorphingOrBeyond}
         >
           {colorMasterLetters.map((item, idx) => {
             if (item.isSpace) {
-              return <span key={idx} className="w-2 sm:w-3" />;
+              return <span key={idx} className="w-2.5 sm:w-4" />;
             }
             if (item.isSup) {
               return (
                 <span
                   key={idx}
-                  className="inline-block text-xs sm:text-sm text-white ml-1 self-start font-semibold transition-all duration-600 will-change-transform"
+                  className="inline-block text-sm sm:text-xl md:text-2xl text-white ml-1 self-start font-bold transition-all duration-600 will-change-transform"
                   style={{
                     transform: isMorphingOrBeyond ? 'translate3d(0, 0%, 0) scale(1)' : 'translate3d(0, 150%, 0) scale(0.6)',
                     opacity: isMorphingOrBeyond ? 1 : 0,
