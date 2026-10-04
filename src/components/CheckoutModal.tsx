@@ -1019,6 +1019,9 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                     <input
                       type="text"
                       required
+                      autoComplete="off"
+                      data-lpignore="true"
+                      data-1p-ignore="true"
                       value={cardNumber}
                       onChange={(e) => handleCardNumberChange(e.target.value)}
                       placeholder="0000 0000 0000 0000"
@@ -1033,6 +1036,9 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                     <input
                       type="text"
                       required
+                      autoComplete="off"
+                      data-lpignore="true"
+                      data-1p-ignore="true"
                       value={cardHolder}
                       onChange={(e) => setCardHolder(e.target.value.toUpperCase())}
                       placeholder="NOME COMO NO CARTÃO"
@@ -1048,6 +1054,9 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                       <input
                         type="text"
                         required
+                        autoComplete="off"
+                        data-lpignore="true"
+                        data-1p-ignore="true"
                         value={cardExpiry}
                         onChange={(e) => handleExpiryChange(e.target.value)}
                         placeholder="MM/AA"
@@ -1062,6 +1071,9 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                       <input
                         type="text"
                         required
+                        autoComplete="off"
+                        data-lpignore="true"
+                        data-1p-ignore="true"
                         maxLength={4}
                         value={cardCvv}
                         onChange={(e) => setCardCvv(e.target.value.replace(/\D/g, ''))}
