@@ -442,23 +442,37 @@ export const ColorMasterLanding: React.FC = () => {
             </p>
 
             {/* Commercial Condition / Price Pill */}
-            <div className="inline-flex flex-wrap items-center justify-center gap-2 px-4 py-2 rounded-2xl bg-white/10 backdrop-blur-md border border-white/20 text-white text-xs sm:text-sm font-medium mb-6">
+            <div className="inline-flex flex-wrap items-center justify-center gap-x-4 gap-y-2 px-6 py-3 sm:px-8 sm:py-3.5 rounded-full bg-black/60 backdrop-blur-xl border border-white/20 text-white shadow-2xl mb-8">
               {!isExpired ? (
                 <>
-                  <span className="line-through text-white/50">R$ 195</span>
-                  <span className="font-bold text-white text-sm sm:text-base">R$ {priceData.promoPrice} à vista</span>
-                  <span className="text-white/40">•</span>
-                  <span className="font-semibold text-white/90">ou {formatInstallment(priceData.promoPrice)}</span>
-                  <span className="text-white/40">•</span>
-                  <span>1 Ano de Acesso</span>
+                  <div className="flex items-baseline gap-1.5">
+                    <span className="text-xs sm:text-sm text-white/70 font-medium">12x de</span>
+                    <span className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
+                      R$ {(priceData.promoPrice / 12).toFixed(2).replace('.', ',')}
+                    </span>
+                  </div>
+                  <span className="text-white/30 hidden sm:inline">•</span>
+                  <div className="flex items-center gap-1.5 text-xs sm:text-sm text-white/70">
+                    <span className="line-through text-white/40">R$ 195</span>
+                    <span>ou <strong className="text-white font-semibold">R$ {priceData.promoPrice}</strong> à vista</span>
+                  </div>
+                  <span className="text-white/30 hidden sm:inline">•</span>
+                  <span className="text-xs sm:text-sm text-white/80 font-medium">1 Ano de Acesso</span>
                 </>
               ) : (
                 <>
-                  <span className="font-bold text-white text-sm sm:text-base">R$ 195 à vista</span>
-                  <span className="text-white/40">•</span>
-                  <span className="font-semibold text-white/90">ou 12x de R$ 16,25</span>
-                  <span className="text-white/40">•</span>
-                  <span>1 Ano de Acesso</span>
+                  <div className="flex items-baseline gap-1.5">
+                    <span className="text-xs sm:text-sm text-white/70 font-medium">12x de</span>
+                    <span className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
+                      R$ 16,25
+                    </span>
+                  </div>
+                  <span className="text-white/30 hidden sm:inline">•</span>
+                  <span className="text-xs sm:text-sm text-white/70">
+                    ou <strong className="text-white font-semibold">R$ 195</strong> à vista
+                  </span>
+                  <span className="text-white/30 hidden sm:inline">•</span>
+                  <span className="text-xs sm:text-sm text-white/80 font-medium">1 Ano de Acesso</span>
                 </>
               )}
             </div>
