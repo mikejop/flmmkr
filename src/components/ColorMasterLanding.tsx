@@ -178,6 +178,11 @@ export const ColorMasterLanding: React.FC = () => {
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
 
+  const formatInstallment = (price: number) => {
+    const installment = (price / 12).toFixed(2).replace('.', ',');
+    return `12x de R$ ${installment}`;
+  };
+
   const toggleFaq = (index: number) => {
     setOpenFaq(openFaq === index ? null : index);
   };
@@ -437,11 +442,15 @@ export const ColorMasterLanding: React.FC = () => {
                   <span className="line-through text-white/50">R$ 195</span>
                   <span className="font-bold text-amber-300 text-sm sm:text-base">R$ {priceData.promoPrice} à vista</span>
                   <span className="text-white/40">•</span>
+                  <span className="font-bold text-white">ou {formatInstallment(priceData.promoPrice)}</span>
+                  <span className="text-white/40">•</span>
                   <span>1 Ano de Acesso</span>
                 </>
               ) : (
                 <>
                   <span className="font-bold text-white text-sm sm:text-base">R$ 195 à vista</span>
+                  <span className="text-white/40">•</span>
+                  <span className="font-bold text-white">ou 12x de R$ 16,25</span>
                   <span className="text-white/40">•</span>
                   <span>1 Ano de Acesso</span>
                 </>
@@ -900,13 +909,13 @@ export const ColorMasterLanding: React.FC = () => {
                     De R$ 195 por apenas:
                   </span>
                   <div className="text-4xl sm:text-6xl font-extrabold text-[#1d1d1f] tracking-tight mt-1">
-                    R$ {priceData.promoPrice}
+                    R$ {priceData.promoPrice} <span className="text-base sm:text-xl font-normal text-[#6e6e73]">à vista</span>
                   </div>
-                  <span className="text-xs sm:text-sm font-semibold text-[#0071e3] mt-1.5 block">
+                  <div className="text-base sm:text-lg font-bold text-[#0071e3] mt-2">
+                    ou em {formatInstallment(priceData.promoPrice)} no cartão
+                  </div>
+                  <span className="text-xs sm:text-sm font-medium text-[#86868b] mt-1.5 block">
                     {priceData.batchName} {priceData.nextPriceDate ? `(Válido até ${priceData.nextPriceDate})` : ''}
-                  </span>
-                  <span className="text-xs text-[#86868b] mt-1 block">
-                    ou em até 12x no cartão de crédito
                   </span>
                 </>
               ) : (
@@ -918,11 +927,11 @@ export const ColorMasterLanding: React.FC = () => {
                     Preço Regular Oficial
                   </span>
                   <div className="text-4xl sm:text-6xl font-extrabold text-[#1d1d1f] tracking-tight">
-                    R$ 195
+                    R$ 195 <span className="text-base sm:text-xl font-normal text-[#6e6e73]">à vista</span>
                   </div>
-                  <span className="text-xs text-[#86868b] mt-1.5 block">
-                    ou em até 12x no cartão de crédito
-                  </span>
+                  <div className="text-base sm:text-lg font-bold text-[#0071e3] mt-2">
+                    ou em 12x de R$ 16,25 no cartão
+                  </div>
                 </>
               )}
             </div>
