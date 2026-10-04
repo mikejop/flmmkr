@@ -885,7 +885,7 @@ export const ColorMasterLanding: React.FC = () => {
       {/* ========================================================================= */}
       {/* 07. OFERTA E COMPRA                                                       */}
       {/* ========================================================================= */}
-      <section id="oferta" className="relative z-10 py-16 md:py-24 bg-[#f5f5f7] border-t border-[#d2d2d7]/60 px-4 sm:px-6 lg:px-8 overflow-hidden min-h-[90dvh] flex flex-col justify-center">
+      <section id="oferta" className="relative z-10 py-16 md:py-24 bg-[#f5f5f7] px-4 sm:px-6 lg:px-8 overflow-hidden min-h-[90dvh] flex flex-col justify-center">
         {/* Background Images Showcase Layer */}
         <div className="absolute inset-0 pointer-events-none z-0 overflow-hidden">
           {OFFER_IMAGES.map((img, idx) => (
