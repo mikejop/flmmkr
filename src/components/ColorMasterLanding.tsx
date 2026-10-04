@@ -842,22 +842,16 @@ export const ColorMasterLanding: React.FC = () => {
             {/* Checklist of What's Included */}
             <div className="text-left space-y-3.5 max-w-lg mx-auto mb-8 text-sm sm:text-base text-[#1d1d1f] border-y border-[#e5e5e7] py-6">
               <div className="font-semibold text-amber-950 bg-amber-500/10 p-3 rounded-xl border border-amber-400/40">
-                • Vaga na Mentoria em Grupo ao Vivo (4 semanas • 1 encontro por semana para os 10 primeiros inscritos)
+                • Mentoria de 4 Semanas para os 10 primeiros
               </div>
               <div className="py-1 border-b border-[#e5e5e7]/50">
-                • Masterclass completa do básico ao acabamento final
+                • Masterclass Completo*
               </div>
               <div className="py-1 border-b border-[#e5e5e7]/50">
                 • Aulas práticas gravadas em alta resolução no DaVinci Resolve
               </div>
               <div className="py-1 border-b border-[#e5e5e7]/50">
-                • Footages reais de produto em LOG para acompanhar a prática
-              </div>
-              <div className="py-1 border-b border-[#e5e5e7]/50">
-                • Estrutura de Node Trees e PowerGrades prontos para uso
-              </div>
-              <div className="py-1 border-b border-[#e5e5e7]/50">
-                • Módulos de Look Development (Look Creator & Dehancer Pro)
+                • Footages reais de produto em LOG como material de apoio
               </div>
               <div className="py-1 font-semibold text-[#1d1d1f] border-b border-[#e5e5e7]/50">
                 • 1 Ano de Acesso Completo e Ilimitado à Plataforma
