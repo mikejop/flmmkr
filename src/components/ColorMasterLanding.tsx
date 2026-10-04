@@ -46,12 +46,18 @@ export const ColorMasterLanding: React.FC = () => {
   useEffect(() => {
     const handleScroll = () => {
       const heroSection = document.getElementById('hero-section');
-      if (heroSection) {
-        const rect = heroSection.getBoundingClientRect();
-        setShowStickyTimer(rect.bottom <= 120);
-      } else {
-        setShowStickyTimer(window.scrollY > window.innerHeight * 0.7);
-      }
+      const ofertaSection = document.getElementById('oferta');
+
+      const isPastHero = heroSection
+        ? heroSection.getBoundingClientRect().bottom <= 100
+        : window.scrollY > 400;
+
+      const isReachedOferta = ofertaSection
+        ? ofertaSection.getBoundingClientRect().top <= 120
+        : false;
+
+      // Mostra a barra após sair da Hero e oculta ao chegar na seção de Oferta
+      setShowStickyTimer(isPastHero && !isReachedOferta);
     };
 
     window.addEventListener('scroll', handleScroll, { passive: true });
