@@ -99,8 +99,8 @@ body {
   will-change: transform;
 }
 
-/* Desativa animações de scroll no modo tablet (768px a 1180px) */
-@media (min-width: 768px) and (max-width: 1180px) {
+/* Desativa animações de scroll no modo mobile e tablet (até 1180px) */
+@media (max-width: 1180px) {
   .scroll-content {
     opacity: 1 !important;
     transform: none !important;

@@ -138,11 +138,11 @@ export const ColorMasterLanding: React.FC = () => {
     const updateBonusParallax = () => {
       if (!bonusSectionRef.current || !bonusWrapperRef.current) return;
 
-      const isTablet = typeof window !== 'undefined' && window.innerWidth >= 768 && window.innerWidth <= 1180;
+      const isMobileOrTablet = typeof window !== 'undefined' && window.innerWidth <= 1180;
       const prefersReduced = typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-      // No modo tablet (768px a 1180px) ou com movimento reduzido, desativa animações de scroll
-      if (isTablet || prefersReduced) {
+      // No modo mobile e tablet (até 1180px) ou com movimento reduzido, desativa animações de scroll
+      if (isMobileOrTablet || prefersReduced) {
         bonusWrapperRef.current.style.transform = 'none';
         bonusWrapperRef.current.style.opacity = '1';
         return;
