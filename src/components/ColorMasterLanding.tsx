@@ -454,7 +454,7 @@ export const ColorMasterLanding: React.FC = () => {
                   <span className="text-white/30 hidden sm:inline">•</span>
                   <div className="flex items-center gap-1.5 text-xs sm:text-sm text-white/70">
                     <span className="line-through text-white/40">R$ 195</span>
-                    <span>ou <strong className="text-white font-semibold">R$ {priceData.promoPrice}</strong> à vista</span>
+                    <span>ou <strong className="text-white font-semibold">R$ {priceData.promoPrice}</strong> no Pix</span>
                   </div>
                   <span className="text-white/30 hidden sm:inline">•</span>
                   <span className="text-xs sm:text-sm text-white/80 font-medium">1 Ano de Acesso</span>
@@ -469,7 +469,7 @@ export const ColorMasterLanding: React.FC = () => {
                   </div>
                   <span className="text-white/30 hidden sm:inline">•</span>
                   <span className="text-xs sm:text-sm text-white/70">
-                    ou <strong className="text-white font-semibold">R$ 195</strong> à vista
+                    ou <strong className="text-white font-semibold">R$ 195</strong> no Pix
                   </span>
                   <span className="text-white/30 hidden sm:inline">•</span>
                   <span className="text-xs sm:text-sm text-white/80 font-medium">1 Ano de Acesso</span>
@@ -932,7 +932,7 @@ export const ColorMasterLanding: React.FC = () => {
                     De R$ 195 por apenas:
                   </span>
                   <div className="text-4xl sm:text-6xl font-extrabold text-[#1d1d1f] tracking-tight mt-1">
-                    R$ {priceData.promoPrice} <span className="text-base sm:text-xl font-normal text-[#6e6e73]">à vista</span>
+                    R$ {priceData.promoPrice} <span className="text-base sm:text-xl font-normal text-[#6e6e73]">no Pix</span>
                   </div>
                   <div className="text-base sm:text-lg font-bold text-[#0071e3] mt-2">
                     ou em {formatInstallment(priceData.promoPrice)} no cartão
@@ -950,7 +950,7 @@ export const ColorMasterLanding: React.FC = () => {
                     Preço Regular Oficial
                   </span>
                   <div className="text-4xl sm:text-6xl font-extrabold text-[#1d1d1f] tracking-tight">
-                    R$ 195 <span className="text-base sm:text-xl font-normal text-[#6e6e73]">à vista</span>
+                    R$ 195 <span className="text-base sm:text-xl font-normal text-[#6e6e73]">no Pix</span>
                   </div>
                   <div className="text-base sm:text-lg font-bold text-[#0071e3] mt-2">
                     ou em 12x de R$ 16,25 no cartão
