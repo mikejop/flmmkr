@@ -13,6 +13,7 @@ interface PromoModalsProps {
   regularPrice: number;
   checkoutUrl: string;
   formatTime: (sec: number) => string;
+  onOpenCheckout?: () => void;
 }
 
 export const PromoModals: React.FC<PromoModalsProps> = ({
@@ -25,6 +26,7 @@ export const PromoModals: React.FC<PromoModalsProps> = ({
   regularPrice,
   checkoutUrl,
   formatTime,
+  onOpenCheckout,
 }) => {
   const warningOverlayRef = useRef<HTMLDivElement>(null);
   const expiredOverlayRef = useRef<HTMLDivElement>(null);
@@ -134,14 +136,27 @@ export const PromoModals: React.FC<PromoModalsProps> = ({
 
               {/* Primary Action Button */}
               <div className="w-full flex flex-col gap-2.5">
-                <a
-                  href={checkoutUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="w-full py-3.5 sm:py-4 px-6 rounded-full bg-[#0071e3] hover:bg-[#0077ed] text-white font-semibold text-[15px] sm:text-base shadow-[0_4px_20px_rgba(0,113,227,0.4)] flex items-center justify-center transition-all active:scale-95 cursor-pointer"
-                >
-                  Aproveitar Desconto de R$ {promoPrice} Agora
-                </a>
+                {onOpenCheckout ? (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      onCloseWarning();
+                      onOpenCheckout();
+                    }}
+                    className="w-full py-3.5 sm:py-4 px-6 rounded-full bg-[#0071e3] hover:bg-[#0077ed] text-white font-semibold text-[15px] sm:text-base shadow-[0_4px_20px_rgba(0,113,227,0.4)] flex items-center justify-center transition-all active:scale-95 cursor-pointer"
+                  >
+                    Aproveitar Desconto de R$ {promoPrice} Agora
+                  </button>
+                ) : (
+                  <a
+                    href={checkoutUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-full py-3.5 sm:py-4 px-6 rounded-full bg-[#0071e3] hover:bg-[#0077ed] text-white font-semibold text-[15px] sm:text-base shadow-[0_4px_20px_rgba(0,113,227,0.4)] flex items-center justify-center transition-all active:scale-95 cursor-pointer"
+                  >
+                    Aproveitar Desconto de R$ {promoPrice} Agora
+                  </a>
+                )}
 
                 <button
                   type="button"
@@ -230,14 +245,27 @@ export const PromoModals: React.FC<PromoModalsProps> = ({
 
               {/* Primary Action Button */}
               <div className="w-full flex flex-col gap-2.5">
-                <a
-                  href={checkoutUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="w-full py-3.5 sm:py-4 px-6 rounded-full bg-[#0071e3] hover:bg-[#0077ed] text-white font-semibold text-[15px] sm:text-base shadow-[0_4px_20px_rgba(0,113,227,0.4)] flex items-center justify-center transition-all active:scale-95 cursor-pointer"
-                >
-                  Comprar pelo Valor Oficial
-                </a>
+                {onOpenCheckout ? (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      onCloseExpired();
+                      onOpenCheckout();
+                    }}
+                    className="w-full py-3.5 sm:py-4 px-6 rounded-full bg-[#0071e3] hover:bg-[#0077ed] text-white font-semibold text-[15px] sm:text-base shadow-[0_4px_20px_rgba(0,113,227,0.4)] flex items-center justify-center transition-all active:scale-95 cursor-pointer"
+                  >
+                    Comprar pelo Valor Oficial
+                  </button>
+                ) : (
+                  <a
+                    href={checkoutUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-full py-3.5 sm:py-4 px-6 rounded-full bg-[#0071e3] hover:bg-[#0077ed] text-white font-semibold text-[15px] sm:text-base shadow-[0_4px_20px_rgba(0,113,227,0.4)] flex items-center justify-center transition-all active:scale-95 cursor-pointer"
+                  >
+                    Comprar pelo Valor Oficial
+                  </a>
+                )}
 
                 <button
                   type="button"

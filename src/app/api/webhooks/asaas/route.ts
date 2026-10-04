@@ -20,8 +20,41 @@ export async function POST(req: NextRequest) {
     switch (event) {
       case 'PAYMENT_RECEIVED':
       case 'PAYMENT_CONFIRMED':
-        // Pagamento aprovado -> Liberar acesso do aluno
+        // Pagamento aprovado -> Liberar acesso do aluno e criar perfil no Supabase
         console.log(`[Asaas Webhook] Pagamento confirmado: ${payment?.id}, valor: ${payment?.value}`);
+        if (payment?.id) {
+          try {
+            const { supabaseAdmin } = await import('@/utils/supabase/admin');
+            const { provisionSupabaseUserAndProfile } = await import('@/services/userService');
+
+
+            const { data: pending } = await supabaseAdmin
+              .from('pending_checkouts')
+              .select('*')
+              .eq('payment_id', payment.id)
+              .maybeSingle();
+
+            if (pending && pending.status !== 'CONFIRMED') {
+              await provisionSupabaseUserAndProfile({
+                email: pending.email,
+                name: pending.full_name,
+                phone: pending.phone,
+                age: pending.age,
+                profession: pending.profession,
+                address: pending.address,
+                asaasCustomerId: pending.asaas_customer_id,
+                asaasPaymentId: payment.id
+              });
+
+              await supabaseAdmin
+                .from('pending_checkouts')
+                .update({ status: 'CONFIRMED', updated_at: new Date().toISOString() })
+                .eq('payment_id', payment.id);
+            }
+          } catch (provErr) {
+            console.error('[Asaas Webhook Provisioning Error]:', provErr);
+          }
+        }
         break;
 
       case 'PAYMENT_OVERDUE':

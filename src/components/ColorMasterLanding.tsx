@@ -8,6 +8,7 @@ import { ReticulaBackground } from '@/components/ReticulaBackground';
 import { getRandomAuthorPhotos, AuthorPhotoPair } from '@/utils/authorPhotos';
 import { LoginModal } from '@/components/LoginModal';
 import { PromoModals } from '@/components/PromoModals';
+import { CheckoutModal } from '@/components/CheckoutModal';
 import { InstagramIcon, YouTubeIcon, TikTokIcon } from '@/components/SocialIcons';
 import { BrandPreloader } from '@/components/BrandPreloader';
 
@@ -46,6 +47,7 @@ export const ColorMasterLanding: React.FC = () => {
   const [openFaq, setOpenFaq] = useState<number | null>(null);
   const [openModule, setOpenModule] = useState<number | null>(null);
   const [loginModalOpen, setLoginModalOpen] = useState<boolean>(false);
+  const [checkoutModalOpen, setCheckoutModalOpen] = useState<boolean>(false);
   const [showStickyTimer, setShowStickyTimer] = useState<boolean>(false);
   const [activeOfferBg, setActiveOfferBg] = useState<number>(0);
 
@@ -455,6 +457,15 @@ export const ColorMasterLanding: React.FC = () => {
       {/* Login Modal */}
       <LoginModal isOpen={loginModalOpen} onClose={() => setLoginModalOpen(false)} />
 
+      {/* Custom Checkout Modal (Asaas + Supabase) */}
+      <CheckoutModal
+        isOpen={checkoutModalOpen}
+        onClose={() => setCheckoutModalOpen(false)}
+        price={priceData.promoPrice}
+        regularPrice={priceData.regularPrice}
+        isExpired={isExpired}
+      />
+
       {/* Modais de Alerta (1:30) e Expiração (Preço Real) */}
       <PromoModals
         warningOpen={warningModalOpen}
@@ -472,6 +483,7 @@ export const ColorMasterLanding: React.FC = () => {
         regularPrice={priceData.regularPrice}
         checkoutUrl={isExpired ? 'https://www.asaas.com/000/c/iv2p2s5tkbt1qi79' : getAsaasCheckoutUrl()}
         formatTime={formatTime}
+        onOpenCheckout={() => setCheckoutModalOpen(true)}
       />
 
       {/* TOP FIXED COUNTDOWN BANNER (SÓ APARECE APÓS SAIR DA HERO) */}
@@ -563,12 +575,13 @@ export const ColorMasterLanding: React.FC = () => {
               Acessar
             </button>
 
-            <a
-              href="#oferta"
-              className="px-3.5 sm:px-4 py-2 sm:py-1.5 rounded-full bg-[#0071e3] hover:bg-[#0077ed] text-white text-xs font-semibold shadow-[0_2px_12px_rgba(0,113,227,0.4),inset_0_1px_1px_rgba(255,255,255,0.3)] transition-all active:scale-95 min-h-[44px] sm:min-h-0 flex items-center justify-center"
+            <button
+              type="button"
+              onClick={() => setCheckoutModalOpen(true)}
+              className="px-3.5 sm:px-4 py-2 sm:py-1.5 rounded-full bg-[#0071e3] hover:bg-[#0077ed] text-white text-xs font-semibold shadow-[0_2px_12px_rgba(0,113,227,0.4),inset_0_1px_1px_rgba(255,255,255,0.3)] transition-all active:scale-95 min-h-[44px] sm:min-h-0 flex items-center justify-center cursor-pointer"
             >
               Garantir Acesso
-            </a>
+            </button>
           </div>
         </div>
       </header>
@@ -676,13 +689,16 @@ export const ColorMasterLanding: React.FC = () => {
 
             {/* Main CTAs (Apple button typography: 14px / text-sm, compact pill) */}
             <div className="flex flex-col sm:flex-row items-center justify-center gap-2.5 sm:gap-4 w-full sm:w-auto mb-4">
-              <a
-                href="#oferta"
-                onClick={() => trackProductClick('color-master-produto', 'Color Master Hero CTA', '#oferta', 'other')}
+              <button
+                type="button"
+                onClick={() => {
+                  trackProductClick('color-master-produto', 'Color Master Hero CTA', '#checkout', 'other');
+                  setCheckoutModalOpen(true);
+                }}
                 className="w-full max-w-[260px] sm:max-w-none sm:w-auto px-5 sm:px-8 py-2.5 sm:py-4 rounded-full bg-[#0071e3] hover:bg-[#0077ed] text-white font-semibold text-[14px] sm:text-base transition-all shadow-[0_3px_14px_rgba(0,113,227,0.4)] flex items-center justify-center active:scale-95 cursor-pointer"
               >
                 {!isExpired ? `Garantir por R$ ${priceData.promoPrice}` : 'Garantir Acesso à Masterclass'}
-              </a>
+              </button>
 
               <a
                 href="#aprendizado"
@@ -1187,15 +1203,16 @@ export const ColorMasterLanding: React.FC = () => {
             </div>
 
             {/* Primary Buy CTA */}
-            <a
-              href={getAsaasCheckoutUrl()}
-              target="_blank"
-              rel="noopener noreferrer"
-              onClick={() => trackProductClick('color-master-buy', 'Color Master Buy Checkout', getAsaasCheckoutUrl(), 'other')}
+            <button
+              type="button"
+              onClick={() => {
+                trackProductClick('color-master-buy', 'Color Master Buy Checkout', '#checkout', 'other');
+                setCheckoutModalOpen(true);
+              }}
               className="w-full max-w-[280px] sm:max-w-none sm:w-auto px-6 sm:px-10 py-3 sm:py-4 rounded-full bg-[#0071e3] hover:bg-[#0077ed] text-white font-semibold text-[14px] sm:text-base transition-all shadow-[0_4px_24px_rgba(0,113,227,0.4)] inline-flex items-center justify-center active:scale-95 cursor-pointer"
             >
               GARANTIR MINHA VAGA AGORA
-            </a>
+            </button>
 
             {/* Guarantee and Security */}
             <div className="mt-5 sm:mt-6 text-[12px] sm:text-sm text-[#6e6e73] font-medium">
@@ -1324,12 +1341,13 @@ export const ColorMasterLanding: React.FC = () => {
               <span className="text-[10px] font-normal text-white/60 ml-1">no Pix</span>
             </span>
           </div>
-          <a
-            href="#oferta"
+          <button
+            type="button"
+            onClick={() => setCheckoutModalOpen(true)}
             className="px-5 py-2.5 rounded-full bg-[#0071e3] text-white text-xs font-bold shadow-md active:scale-95 shrink-0 min-h-[38px] flex items-center justify-center cursor-pointer"
           >
             Garantir Vaga
-          </a>
+          </button>
         </div>
       </div>
       </main>

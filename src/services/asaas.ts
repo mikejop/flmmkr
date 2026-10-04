@@ -13,7 +13,10 @@ interface AsaasCustomerInput {
   email: string;
   phone?: string;
   postalCode?: string;
+  address?: string;
   addressNumber?: string;
+  complement?: string;
+  province?: string;
 }
 
 interface AsaasPaymentInput {
@@ -89,7 +92,10 @@ export const asaasService = {
         email: input.email,
         phone: input.phone?.replace(/\D/g, ''),
         postalCode: input.postalCode?.replace(/\D/g, ''),
-        addressNumber: input.addressNumber
+        address: input.address,
+        addressNumber: input.addressNumber,
+        complement: input.complement,
+        province: input.province
       })
     });
 
