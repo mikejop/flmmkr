@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { SITE_CONFIG } from '@/config/siteConfig';
 import { trackProductClick, trackSocialClick } from '@/utils/analytics';
@@ -26,6 +26,9 @@ const PRODUTORAS_LOGOS = [
 ];
 
 export const ColorMasterLanding: React.FC = () => {
+  const bonusCardRef = useRef<HTMLDivElement>(null);
+  const bonusGlowRef = useRef<HTMLDivElement>(null);
+
   const [authorPhotos, setAuthorPhotos] = useState<AuthorPhotoPair>({
     profileSrc: '/assets/mike-photos/01.jpg',
     bgSrc: '/assets/bg/about-mike/02.jpg'
@@ -63,6 +66,8 @@ export const ColorMasterLanding: React.FC = () => {
   });
 
   useEffect(() => {
+    let animFrameId: number;
+
     const handleScroll = () => {
       const heroSection = document.getElementById('hero-section');
       const ofertaSection = document.getElementById('oferta');
@@ -77,11 +82,40 @@ export const ColorMasterLanding: React.FC = () => {
 
       // Mostra a barra após sair da Hero e oculta ao chegar na seção de Oferta
       setShowStickyTimer(isPastHero && !isReachedOferta);
+
+      // Movimento fluido do brilho azul no bônus exclusivo com base no scroll
+      if (bonusCardRef.current && bonusGlowRef.current) {
+        const rect = bonusCardRef.current.getBoundingClientRect();
+        const windowHeight = window.innerHeight || 800;
+        const totalDistance = windowHeight + rect.height;
+        const currentPos = windowHeight - rect.top;
+        const progress = Math.max(0, Math.min(1, currentPos / totalDistance));
+
+        // Translação do brilho em arco suave de cima à direita para centro/esquerda
+        const translateX = 100 - progress * 360;
+        const translateY = -100 + progress * 320;
+        const scale = 0.9 + Math.sin(progress * Math.PI) * 0.45;
+        const opacity = 0.12 + Math.sin(progress * Math.PI) * 0.22;
+
+        bonusGlowRef.current.style.transform = `translate3d(${translateX}px, ${translateY}px, 0) scale(${scale})`;
+        bonusGlowRef.current.style.opacity = `${opacity}`;
+      }
     };
 
-    window.addEventListener('scroll', handleScroll, { passive: true });
+    const onScroll = () => {
+      cancelAnimationFrame(animFrameId);
+      animFrameId = requestAnimationFrame(handleScroll);
+    };
+
+    window.addEventListener('scroll', onScroll, { passive: true });
+    window.addEventListener('resize', onScroll, { passive: true });
     handleScroll();
-    return () => window.removeEventListener('scroll', handleScroll);
+
+    return () => {
+      cancelAnimationFrame(animFrameId);
+      window.removeEventListener('scroll', onScroll);
+      window.removeEventListener('resize', onScroll);
+    };
   }, []);
 
   useEffect(() => {
@@ -837,9 +871,20 @@ export const ColorMasterLanding: React.FC = () => {
       {/* ========================================================================= */}
       <section className="relative z-10 min-h-[100dvh] flex flex-col justify-center py-12 md:py-16 bg-[#000000] text-white px-4 sm:px-6 lg:px-8 border-t border-white/10 overflow-hidden">
         <div className="max-w-4xl mx-auto w-full my-auto">
-          <div className="p-8 sm:p-12 md:p-14 rounded-3xl bg-gradient-to-b from-[#1c1c1e] to-[#0d0d0f] border border-[#0071e3]/30 shadow-2xl relative overflow-hidden">
-            {/* Subtle background glow */}
-            <div className="absolute top-0 right-0 w-96 h-96 bg-[#0071e3]/10 rounded-full blur-3xl pointer-events-none -mr-20 -mt-20" />
+          <div
+            ref={bonusCardRef}
+            className="p-8 sm:p-12 md:p-14 rounded-3xl bg-gradient-to-b from-[#1c1c1e] to-[#0d0d0f] border border-[#0071e3]/30 shadow-2xl relative overflow-hidden"
+          >
+            {/* Scroll-driven dynamic background glow */}
+            <div
+              ref={bonusGlowRef}
+              className="absolute top-0 right-0 w-[460px] h-[460px] bg-[#0071e3] rounded-full blur-[100px] pointer-events-none will-change-transform"
+              style={{
+                opacity: 0.2,
+                transform: 'translate3d(0px, 0px, 0)',
+                transition: 'opacity 0.2s ease-out',
+              }}
+            />
             
             <div className="relative z-10">
               <div className="inline-flex items-center px-3.5 py-1.5 rounded-full bg-[#0071e3]/15 border border-[#0071e3]/30 text-[#2997ff] text-xs font-semibold uppercase tracking-wider mb-6">
