@@ -627,18 +627,18 @@ export const ColorMasterLanding: React.FC = () => {
             </div>
 
             {/* Main CTAs */}
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4 w-full sm:w-auto mb-4">
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-4 w-full sm:w-auto mb-4">
               <a
                 href="#oferta"
                 onClick={() => trackProductClick('color-master-produto', 'Color Master Hero CTA', '#oferta', 'other')}
-                className="w-full sm:w-auto min-h-[48px] px-6 sm:px-8 py-3.5 sm:py-4 rounded-full bg-[#0071e3] hover:bg-[#0077ed] text-white font-semibold text-sm sm:text-base transition-all shadow-[0_4px_20px_rgba(0,113,227,0.5)] flex items-center justify-center active:scale-95 cursor-pointer"
+                className="w-full max-w-[260px] sm:max-w-none sm:w-auto px-5 sm:px-8 py-2.5 sm:py-4 rounded-full bg-[#0071e3] hover:bg-[#0077ed] text-white font-semibold text-xs sm:text-base transition-all shadow-[0_3px_14px_rgba(0,113,227,0.4)] flex items-center justify-center active:scale-95 cursor-pointer"
               >
                 {!isExpired ? `Garantir por R$ ${priceData.promoPrice}` : 'Garantir Acesso à Masterclass'}
               </a>
 
               <a
                 href="#aprendizado"
-                className="w-full sm:w-auto min-h-[44px] px-5 sm:px-6 py-3 sm:py-4 rounded-full bg-white/10 hover:bg-white/20 text-white font-medium text-xs sm:text-sm transition-all border border-white/20 flex items-center justify-center active:scale-95 cursor-pointer"
+                className="w-full max-w-[260px] sm:max-w-none sm:w-auto px-4 sm:px-6 py-2 sm:py-4 rounded-full bg-white/10 hover:bg-white/20 text-white font-medium text-[11px] sm:text-sm transition-all border border-white/20 flex items-center justify-center active:scale-95 cursor-pointer"
               >
                 Ver Conteúdo Completo
               </a>
@@ -834,7 +834,7 @@ export const ColorMasterLanding: React.FC = () => {
             </div>
             <a
               href="#oferta"
-              className="w-full sm:w-auto min-h-[48px] px-6 py-3.5 rounded-full bg-[#0071e3] hover:bg-[#0077ed] text-white font-semibold text-sm transition-all shrink-0 active:scale-95 shadow-md flex items-center justify-center cursor-pointer"
+              className="w-full max-w-[260px] sm:max-w-none sm:w-auto px-5 sm:px-6 py-2.5 sm:py-3.5 rounded-full bg-[#0071e3] hover:bg-[#0077ed] text-white font-semibold text-xs sm:text-sm transition-all shrink-0 active:scale-95 shadow-md flex items-center justify-center cursor-pointer"
             >
               Garantir Minha Vaga
             </a>
@@ -1148,7 +1148,7 @@ export const ColorMasterLanding: React.FC = () => {
               target="_blank"
               rel="noopener noreferrer"
               onClick={() => trackProductClick('color-master-buy', 'Color Master Buy Checkout', getAsaasCheckoutUrl(), 'other')}
-              className="w-full sm:w-auto min-h-[50px] px-6 sm:px-10 py-3.5 sm:py-4 rounded-full bg-[#0071e3] hover:bg-[#0077ed] text-white font-semibold text-sm sm:text-base transition-all shadow-[0_4px_24px_rgba(0,113,227,0.4)] inline-flex items-center justify-center active:scale-95 cursor-pointer"
+              className="w-full max-w-[280px] sm:max-w-none sm:w-auto px-6 sm:px-10 py-3 sm:py-4 rounded-full bg-[#0071e3] hover:bg-[#0077ed] text-white font-semibold text-xs sm:text-base transition-all shadow-[0_4px_24px_rgba(0,113,227,0.4)] inline-flex items-center justify-center active:scale-95 cursor-pointer"
             >
               GARANTIR MINHA VAGA AGORA
             </a>
@@ -1253,7 +1253,7 @@ export const ColorMasterLanding: React.FC = () => {
 
             <a
               href="#oferta"
-              className="w-full sm:w-auto min-h-[48px] px-8 sm:px-10 py-3.5 sm:py-4 rounded-full bg-[#0071e3] hover:bg-[#0077ed] text-white font-semibold text-sm sm:text-base transition-all shadow-[0_4px_24px_rgba(0,113,227,0.4)] inline-flex items-center justify-center active:scale-95 cursor-pointer"
+              className="w-full max-w-[280px] sm:max-w-none sm:w-auto px-6 sm:px-10 py-3 sm:py-4 rounded-full bg-[#0071e3] hover:bg-[#0077ed] text-white font-semibold text-xs sm:text-base transition-all shadow-[0_4px_24px_rgba(0,113,227,0.4)] inline-flex items-center justify-center active:scale-95 cursor-pointer"
             >
               ENTRAR NO COLOR MASTER | PRODUTO
             </a>
