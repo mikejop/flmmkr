@@ -695,7 +695,7 @@ export const ColorMasterLanding: React.FC = () => {
                   Comerciais & Campanhas de TV
                 </h3>
                 <p className="text-sm sm:text-base text-[#6e6e73] leading-relaxed">
-                  Tratamento de cor de alto impacto, controle rigoroso de densidade, matching impecável de produto e look development autoral exigido por grandes agências e produtoras.
+                  Leve projetos de produto a um acabamento visual à altura da publicidade. Trabalhe cor, contraste, consistência entre planos e construção de look para valorizar o produto e dar ao projeto a qualidade visual esperada em uma entrega para televisão.
                 </p>
               </div>
               <div className="mt-8 pt-4 border-t border-[#e5e5e7] text-xs font-semibold text-[#1d1d1f]">
