@@ -31,6 +31,8 @@ const PRODUTORAS_LOGOS = [
 ];
 
 export const ColorMasterLanding: React.FC = () => {
+  const bonusSectionRef = useRef<HTMLElement>(null);
+  const bonusWrapperRef = useRef<HTMLDivElement>(null);
   const bonusCardRef = useRef<HTMLDivElement>(null);
   const bonusGlowRef = useRef<HTMLDivElement>(null);
   const instructorCardRef = useRef<HTMLDivElement>(null);
@@ -117,6 +119,50 @@ export const ColorMasterLanding: React.FC = () => {
     window.addEventListener('scroll', handleScroll, { passive: true });
     handleScroll();
     return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  // Animação de Scroll: o bloco do Bônus começa embaixo e vai subindo conforme o usuário rola
+  useEffect(() => {
+    let animFrame: number;
+
+    const updateBonusParallax = () => {
+      if (!bonusSectionRef.current || !bonusWrapperRef.current) return;
+      const rect = bonusSectionRef.current.getBoundingClientRect();
+      const windowHeight = window.innerHeight || 800;
+
+      // Inicia a subida quando o topo da seção entra no rodapé da janela
+      const start = windowHeight;
+      // Conclui a subida quando a seção atinge o terço superior (centralizada confortavelmente)
+      const end = windowHeight * 0.22;
+
+      const rawProgress = Math.min(1, Math.max(0, (start - rect.top) / (start - end)));
+
+      // Curva quadrática suave de desaceleração (ease-out)
+      const easedProgress = 1 - Math.pow(1 - rawProgress, 2);
+
+      // Deslocamento de 110px embaixo subindo suavemente até 0px
+      const translateY = (1 - easedProgress) * 110;
+      const opacity = 0.25 + 0.75 * easedProgress;
+      const scale = 0.95 + 0.05 * easedProgress;
+
+      bonusWrapperRef.current.style.transform = `translate3d(0, ${translateY.toFixed(1)}px, 0) scale(${scale.toFixed(3)})`;
+      bonusWrapperRef.current.style.opacity = opacity.toFixed(3);
+    };
+
+    const onScroll = () => {
+      cancelAnimationFrame(animFrame);
+      animFrame = requestAnimationFrame(updateBonusParallax);
+    };
+
+    updateBonusParallax();
+    window.addEventListener('scroll', onScroll, { passive: true });
+    window.addEventListener('resize', onScroll, { passive: true });
+
+    return () => {
+      cancelAnimationFrame(animFrame);
+      window.removeEventListener('scroll', onScroll);
+      window.removeEventListener('resize', onScroll);
+    };
   }, []);
 
   useEffect(() => {
@@ -882,8 +928,14 @@ export const ColorMasterLanding: React.FC = () => {
       {/* ========================================================================= */}
       {/* 06. BÔNUS EXCLUSIVO: MENTORIA EM GRUPO AO VIVO                            */}
       {/* ========================================================================= */}
-      <section className="relative z-10 min-h-[100dvh] flex flex-col justify-center py-12 md:py-16 bg-[#000000] text-white px-4 sm:px-6 lg:px-8 overflow-hidden">
-        <div className="max-w-4xl mx-auto w-full my-auto">
+      <section
+        ref={bonusSectionRef}
+        className="relative z-10 min-h-[100dvh] flex flex-col justify-center py-12 md:py-16 bg-[#000000] text-white px-4 sm:px-6 lg:px-8 overflow-hidden"
+      >
+        <div
+          ref={bonusWrapperRef}
+          className="max-w-4xl mx-auto w-full my-auto will-change-transform"
+        >
           <div
             ref={bonusCardRef}
             onMouseMove={handleBonusMouseMove}
