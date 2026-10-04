@@ -35,7 +35,15 @@ export const ColorMasterLanding: React.FC = () => {
   const [openModule, setOpenModule] = useState<number | null>(null);
   const [loginModalOpen, setLoginModalOpen] = useState<boolean>(false);
   const [showStickyTimer, setShowStickyTimer] = useState<boolean>(false);
-  const [selectedOfferImage, setSelectedOfferImage] = useState<number>(0);
+  const [activeOfferBg, setActiveOfferBg] = useState<number>(0);
+
+  // Auto cycle offer background footage stills
+  useEffect(() => {
+    const bgTimer = setInterval(() => {
+      setActiveOfferBg((prev) => (prev + 1) % OFFER_IMAGES.length);
+    }, 4500);
+    return () => clearInterval(bgTimer);
+  }, []);
 
   // 15-Minute Countdown & Batch Price State
   const [timeLeft, setTimeLeft] = useState<number>(900); // 15 minutos em segundos
@@ -877,9 +885,35 @@ export const ColorMasterLanding: React.FC = () => {
       {/* ========================================================================= */}
       {/* 07. OFERTA E COMPRA                                                       */}
       {/* ========================================================================= */}
-      <section id="oferta" className="relative z-10 py-16 md:py-24 bg-[#f5f5f7] border-t border-[#d2d2d7]/60 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-3xl mx-auto text-center">
-          <div className="p-8 sm:p-14 rounded-3xl bg-[#ffffff] border border-[#0071e3]/30 shadow-2xl relative overflow-hidden">
+      <section id="oferta" className="relative z-10 py-16 md:py-24 bg-[#f5f5f7] border-t border-[#d2d2d7]/60 px-4 sm:px-6 lg:px-8 overflow-hidden min-h-[90dvh] flex flex-col justify-center">
+        {/* Background Images Showcase Layer */}
+        <div className="absolute inset-0 pointer-events-none z-0 overflow-hidden">
+          {OFFER_IMAGES.map((img, idx) => (
+            <div
+              key={idx}
+              className="absolute inset-0 bg-cover bg-center transition-opacity duration-1000 ease-in-out transform scale-105"
+              style={{
+                backgroundImage: `url('${img.src}')`,
+                opacity: activeOfferBg === idx ? 0.35 : 0,
+              }}
+            />
+          ))}
+
+          {/* Retícula Overlay */}
+          <div
+            className="absolute inset-0 z-1 pointer-events-none"
+            style={{
+              backgroundImage: `radial-gradient(circle, rgba(0, 0, 0, 0.45) 1.2px, transparent 1.2px)`,
+              backgroundSize: '5px 5px',
+            }}
+          />
+
+          {/* Vignette / Gradient overlays for contrast */}
+          <div className="absolute inset-0 z-2 bg-gradient-to-b from-[#f5f5f7] via-[#f5f5f7]/50 to-[#f5f5f7]" />
+        </div>
+
+        <div className="max-w-3xl mx-auto text-center relative z-10 w-full">
+          <div className="p-8 sm:p-14 rounded-3xl bg-[#ffffff]/95 backdrop-blur-xl border border-[#0071e3]/30 shadow-2xl relative overflow-hidden">
             {/* Offer Header Tag */}
             <span className="px-4 py-1.5 rounded-full bg-[#0071e3]/10 text-[#0071e3] text-xs font-semibold uppercase tracking-wider mb-6 inline-block border border-[#0071e3]/20">
               OFERTA ESPECIAL DE ACESSO
@@ -891,62 +925,6 @@ export const ColorMasterLanding: React.FC = () => {
             <p className="text-base sm:text-lg text-[#6e6e73] mb-8 font-normal">
               Masterclass completa de Color Grading para comerciais e imagens de produto no DaVinci Resolve.
             </p>
-
-            {/* Gallery Showcase of Course Assets */}
-            <div className="mb-10 max-w-xl mx-auto">
-              <div className="relative aspect-video rounded-2xl overflow-hidden bg-black/5 border border-black/10 shadow-lg group">
-                <img
-                  src={OFFER_IMAGES[selectedOfferImage].src}
-                  alt={OFFER_IMAGES[selectedOfferImage].alt}
-                  className="w-full h-full object-cover transition-all duration-300"
-                />
-
-                {/* Left/Right Navigation Controls */}
-                <button
-                  type="button"
-                  onClick={() => setSelectedOfferImage((prev) => (prev === 0 ? OFFER_IMAGES.length - 1 : prev - 1))}
-                  className="absolute left-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-black/40 hover:bg-black/70 text-white backdrop-blur-md flex items-center justify-center transition-all opacity-80 hover:opacity-100 hover:scale-105"
-                  aria-label="Imagem anterior"
-                >
-                  <ChevronLeft className="w-5 h-5" />
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setSelectedOfferImage((prev) => (prev === OFFER_IMAGES.length - 1 ? 0 : prev + 1))}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-black/40 hover:bg-black/70 text-white backdrop-blur-md flex items-center justify-center transition-all opacity-80 hover:opacity-100 hover:scale-105"
-                  aria-label="Próxima imagem"
-                >
-                  <ChevronRight className="w-5 h-5" />
-                </button>
-
-                {/* Counter indicator badge */}
-                <div className="absolute bottom-3 right-3 px-2.5 py-1 rounded-full bg-black/50 backdrop-blur-md text-white text-[11px] font-medium tracking-wide">
-                  {selectedOfferImage + 1} / {OFFER_IMAGES.length}
-                </div>
-              </div>
-
-              {/* Thumbnails Row */}
-              <div className="grid grid-cols-5 gap-2 mt-3">
-                {OFFER_IMAGES.map((img, idx) => (
-                  <button
-                    key={idx}
-                    type="button"
-                    onClick={() => setSelectedOfferImage(idx)}
-                    className={`relative aspect-video rounded-lg overflow-hidden border-2 transition-all cursor-pointer ${
-                      selectedOfferImage === idx
-                        ? 'border-[#0071e3] shadow-md ring-2 ring-[#0071e3]/30 scale-[1.02]'
-                        : 'border-transparent opacity-60 hover:opacity-100 hover:border-black/20'
-                    }`}
-                  >
-                    <img
-                      src={img.src}
-                      alt={img.alt}
-                      className="w-full h-full object-cover"
-                    />
-                  </button>
-                ))}
-              </div>
-            </div>
 
             {/* Checklist of What's Included */}
             <div className="text-left space-y-3.5 max-w-lg mx-auto mb-8 text-sm sm:text-base text-[#1d1d1f] border-y border-[#e5e5e7] py-6">
@@ -1041,6 +1019,23 @@ export const ColorMasterLanding: React.FC = () => {
             <div className="mt-6 text-xs sm:text-sm text-[#6e6e73] font-medium">
               Garantia incondicional de 7 dias • Risco zero
             </div>
+          </div>
+
+          {/* Background Footage Indicator Pills */}
+          <div className="mt-6 flex items-center justify-center gap-2">
+            {OFFER_IMAGES.map((img, idx) => (
+              <button
+                key={idx}
+                type="button"
+                onClick={() => setActiveOfferBg(idx)}
+                className={`h-1.5 rounded-full transition-all cursor-pointer ${
+                  activeOfferBg === idx
+                    ? 'w-6 bg-[#0071e3]'
+                    : 'w-1.5 bg-[#1d1d1f]/20 hover:bg-[#1d1d1f]/40'
+                }`}
+                aria-label={`Ver frame de fundo ${idx + 1}`}
+              />
+            ))}
           </div>
         </div>
       </section>
