@@ -8,6 +8,7 @@ import { ReticulaBackground } from '@/components/ReticulaBackground';
 import { getRandomAuthorPhotos, AuthorPhotoPair } from '@/utils/authorPhotos';
 import { LoginModal } from '@/components/LoginModal';
 import { InstagramIcon, YouTubeIcon, TikTokIcon } from '@/components/SocialIcons';
+import { BrandPreloader } from '@/components/BrandPreloader';
 
 const OFFER_IMAGES = [
   { src: '/assets/produtos/color-master/offer/offer-1.webp', alt: 'Material do Masterclass - Visual 1' },
@@ -349,6 +350,9 @@ export const ColorMasterLanding: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-[#f5f5f7] text-[#1d1d1f] font-sans antialiased selection:bg-[#0071e3]/20 selection:text-[#0071e3]">
+      {/* Brand Transition Preloader */}
+      <BrandPreloader />
+
       {/* Login Modal */}
       <LoginModal isOpen={loginModalOpen} onClose={() => setLoginModalOpen(false)} />
 
