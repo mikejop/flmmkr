@@ -81,15 +81,15 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
         {/* Close button */}
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white/60 hover:text-white transition-all"
+          className="absolute top-3 right-3 sm:top-4 sm:right-4 w-11 h-11 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white/60 hover:text-white transition-all cursor-pointer"
           aria-label="Fechar"
         >
-          <X className="w-4 h-4" />
+          <X className="w-5 h-5" />
         </button>
 
-        <div className="px-8 py-8">
+        <div className="px-6 py-7 sm:px-8 sm:py-8">
           {/* Header */}
-          <div className="mb-7 text-center">
+          <div className="mb-6 sm:mb-7 text-center">
             <span className="text-xs font-semibold tracking-widest text-[#0071e3] uppercase mb-2 block">
               FLMMKR
             </span>
@@ -106,20 +106,21 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
           <form onSubmit={handleSubmit} className="space-y-4">
             {/* Email field */}
             <div className="relative">
-              <label className="block text-xs font-medium text-white/50 mb-1.5 ml-0.5">
+              <label className="block text-xs font-medium text-white/60 mb-1.5 ml-0.5">
                 E-mail
               </label>
               <div className="relative">
-                <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30 pointer-events-none" />
+                <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40 pointer-events-none" />
                 <input
                   ref={emailRef}
                   type="email"
+                  inputMode="email"
                   autoComplete="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
                   placeholder="seu@email.com"
-                  className="w-full pl-10 pr-4 py-3 rounded-xl bg-white/8 border border-white/12 text-white placeholder-white/25 text-sm focus:outline-none focus:border-[#0071e3]/70 focus:bg-white/12 transition-all"
+                  className="w-full pl-10 pr-4 py-3 rounded-xl bg-white/8 border border-white/12 text-white placeholder-white/25 text-base sm:text-sm focus:outline-none focus:border-[#0071e3]/70 focus:bg-white/12 transition-all min-h-[44px]"
                   style={{ background: 'rgba(255,255,255,0.06)' }}
                 />
               </div>
@@ -128,11 +129,11 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
             {/* Password field — only in login mode */}
             {!forgotMode && (
               <div>
-                <label className="block text-xs font-medium text-white/50 mb-1.5 ml-0.5">
+                <label className="block text-xs font-medium text-white/60 mb-1.5 ml-0.5">
                   Senha
                 </label>
                 <div className="relative">
-                  <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30 pointer-events-none" />
+                  <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40 pointer-events-none" />
                   <input
                     type={showPassword ? 'text' : 'password'}
                     autoComplete="current-password"
@@ -140,13 +141,13 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
                     onChange={(e) => setPassword(e.target.value)}
                     required={!forgotMode}
                     placeholder="••••••••"
-                    className="w-full pl-10 pr-11 py-3 rounded-xl border border-white/12 text-white placeholder-white/25 text-sm focus:outline-none focus:border-[#0071e3]/70 focus:bg-white/12 transition-all"
+                    className="w-full pl-10 pr-12 py-3 rounded-xl border border-white/12 text-white placeholder-white/25 text-base sm:text-sm focus:outline-none focus:border-[#0071e3]/70 focus:bg-white/12 transition-all min-h-[44px]"
                     style={{ background: 'rgba(255,255,255,0.06)' }}
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-white/30 hover:text-white/70 transition-colors"
+                    className="absolute right-1 top-1/2 -translate-y-1/2 w-10 h-10 flex items-center justify-center text-white/40 hover:text-white/80 transition-colors cursor-pointer"
                     tabIndex={-1}
                     aria-label={showPassword ? 'Ocultar senha' : 'Mostrar senha'}
                   >
@@ -159,7 +160,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
             {/* Submit button */}
             <button
               type="submit"
-              className="w-full py-3 rounded-xl bg-[#0071e3] hover:bg-[#0077ed] text-white text-sm font-semibold shadow-[0_4px_16px_rgba(0,113,227,0.4),inset_0_1px_1px_rgba(255,255,255,0.3)] transition-all active:scale-[0.98] mt-1"
+              className="w-full min-h-[48px] py-3 rounded-xl bg-[#0071e3] hover:bg-[#0077ed] text-white text-sm font-semibold shadow-[0_4px_16px_rgba(0,113,227,0.4),inset_0_1px_1px_rgba(255,255,255,0.3)] transition-all active:scale-[0.98] mt-2 cursor-pointer flex items-center justify-center"
             >
               {forgotMode ? 'Enviar link de redefinição' : 'Entrar'}
             </button>
@@ -170,14 +171,14 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
             {forgotMode ? (
               <button
                 onClick={() => setForgotMode(false)}
-                className="text-xs text-white/40 hover:text-[#0071e3] transition-colors"
+                className="text-xs text-white/50 hover:text-[#0071e3] transition-colors py-2 px-3 cursor-pointer"
               >
                 ← Voltar ao login
               </button>
             ) : (
               <button
                 onClick={() => setForgotMode(true)}
-                className="text-xs text-white/40 hover:text-[#0071e3] transition-colors"
+                className="text-xs text-white/50 hover:text-[#0071e3] transition-colors py-2 px-3 cursor-pointer"
               >
                 Esqueci a senha
               </button>

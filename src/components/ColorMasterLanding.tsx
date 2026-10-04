@@ -127,6 +127,14 @@ export const ColorMasterLanding: React.FC = () => {
 
     const updateBonusParallax = () => {
       if (!bonusSectionRef.current || !bonusWrapperRef.current) return;
+
+      // Respeitar preferência de movimento reduzido (acessibilidade e performance)
+      if (typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        bonusWrapperRef.current.style.transform = 'none';
+        bonusWrapperRef.current.style.opacity = '1';
+        return;
+      }
+
       const rect = bonusSectionRef.current.getBoundingClientRect();
       const windowHeight = window.innerHeight || 800;
 
@@ -427,16 +435,16 @@ export const ColorMasterLanding: React.FC = () => {
             : 'bg-gradient-to-r from-[#0071e3] via-[#0051a8] to-[#0071e3] text-white border-b border-white/20'
         } backdrop-blur-md shadow-md`}
       >
-        <div className="max-w-6xl mx-auto px-4 py-2 sm:py-2.5 flex flex-wrap items-center justify-between gap-2 text-xs sm:text-sm font-medium">
-          <div className="flex items-center gap-2">
+        <div className="max-w-6xl mx-auto px-3 sm:px-4 py-2 sm:py-2.5 flex items-center justify-between gap-2 text-xs sm:text-sm font-medium">
+          <div className="flex items-center gap-1.5 sm:gap-2 min-w-0">
             {!isExpired ? (
               <>
-                <span className="flex h-2 w-2 relative">
+                <span className="flex h-2 w-2 relative shrink-0">
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#2997ff] opacity-75"></span>
                   <span className="relative inline-flex rounded-full h-2 w-2 bg-[#2997ff]"></span>
                 </span>
-                <span className="font-bold text-white uppercase tracking-wider text-[11px] sm:text-xs">
-                  Oferta de Abertura (15 Minutos)
+                <span className="font-bold text-white uppercase tracking-wider text-[10px] sm:text-xs truncate">
+                  Oferta 15 Minutos
                 </span>
                 <span className="hidden md:inline text-white/90">
                   • Garanta por apenas <strong className="text-white underline decoration-white/60 font-bold">R$ {priceData.promoPrice}</strong> + Mentoria em Grupo para os 10 primeiros!
@@ -444,35 +452,35 @@ export const ColorMasterLanding: React.FC = () => {
               </>
             ) : (
               <>
-                <span className="text-red-400 font-bold uppercase tracking-wider text-[11px] sm:text-xs">
-                  Tempo de 15 min expirado
+                <span className="text-red-400 font-bold uppercase tracking-wider text-[10px] sm:text-xs shrink-0">
+                  Tempo Expirado
                 </span>
-                <span className="text-white/80 hidden sm:inline">
-                  • O valor promocional de R$ 95 encerrou para este dispositivo. Preço regular: R$ 195.
+                <span className="text-white/80 hidden sm:inline truncate">
+                  • Preço regular: R$ 195.
                 </span>
               </>
             )}
           </div>
 
-          <div className="flex items-center gap-3 ml-auto">
+          <div className="flex items-center gap-2 sm:gap-3 shrink-0">
             {!isExpired ? (
-              <div className="flex items-center gap-1.5 bg-black/40 backdrop-blur-md px-3 py-1 rounded-full border border-white/20">
-                <span className="text-[10px] uppercase font-bold text-white/70">Tempo:</span>
-                <span className="text-xs font-mono font-bold tracking-wider text-[#2997ff]">
+              <div className="flex items-center gap-1 sm:gap-1.5 bg-black/40 backdrop-blur-md px-2.5 sm:px-3 py-1 rounded-full border border-white/20">
+                <span className="text-[9px] sm:text-[10px] uppercase font-bold text-white/70">Tempo:</span>
+                <span className="text-[11px] sm:text-xs font-mono font-bold tracking-wider text-[#2997ff]">
                   {formatTime(timeLeft)}
                 </span>
               </div>
             ) : (
-              <span className="text-xs font-bold text-red-300 bg-red-950/60 px-2.5 py-0.5 rounded-full border border-red-800/40">
+              <span className="text-[10px] sm:text-xs font-bold text-red-300 bg-red-950/60 px-2 py-0.5 rounded-full border border-red-800/40">
                 Expirado
               </span>
             )}
 
             <a
               href="#oferta"
-              className="px-3 py-1 rounded-full bg-white text-[#0071e3] hover:bg-white/90 text-xs font-bold transition-all shadow-xs shrink-0 active:scale-95"
+              className="px-2.5 sm:px-3 py-1 rounded-full bg-white text-[#0071e3] hover:bg-white/90 text-[11px] sm:text-xs font-bold transition-all shadow-xs shrink-0 active:scale-95"
             >
-              {!isExpired ? 'Aproveitar R$ ' + priceData.promoPrice : 'Ver Preço Regular'}
+              {!isExpired ? 'Aproveitar' : 'Ver Preço'}
             </a>
           </div>
         </div>
@@ -481,14 +489,14 @@ export const ColorMasterLanding: React.FC = () => {
       {/* Glassmorphism Header Navigation */}
       <header
         className={`sticky z-40 w-full border-b border-white/10 shadow-[0_8px_32px_-4px_rgba(0,0,0,0.5)] transition-all duration-300 ${
-          showStickyTimer ? 'top-[41px] sm:top-[42px]' : 'top-0'
+          showStickyTimer ? 'top-[39px] sm:top-[42px]' : 'top-0'
         }`}
         style={{ background: 'rgba(14,14,18,0.85)', backdropFilter: 'blur(28px) saturate(180%)', WebkitBackdropFilter: 'blur(28px) saturate(180%)' }}
       >
         <div className="absolute inset-x-0 top-0 h-[1px] bg-gradient-to-r from-transparent via-white/20 to-transparent pointer-events-none z-20" />
 
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 h-13 flex items-center justify-between">
-          <a href="/" className="font-semibold text-sm tracking-tight text-white hover:opacity-75 transition-opacity">
+          <a href="/" className="font-semibold text-sm tracking-tight text-white hover:opacity-75 transition-opacity min-h-[44px] flex items-center">
             FLMMKR
           </a>
 
@@ -496,17 +504,17 @@ export const ColorMasterLanding: React.FC = () => {
             COLOR MASTER | PRODUTO
           </span>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3">
             <button
               onClick={() => setLoginModalOpen(true)}
-              className="px-4 py-1.5 rounded-full bg-white/10 hover:bg-white/20 text-white text-xs font-semibold border border-white/15 hover:border-white/30 transition-all active:scale-95"
+              className="px-3.5 sm:px-4 py-2 sm:py-1.5 rounded-full bg-white/10 hover:bg-white/20 text-white text-xs font-semibold border border-white/15 hover:border-white/30 transition-all active:scale-95 min-h-[44px] sm:min-h-0 flex items-center justify-center cursor-pointer"
             >
               Acessar
             </button>
 
             <a
               href="#oferta"
-              className="px-4 py-1.5 rounded-full bg-[#0071e3] hover:bg-[#0077ed] text-white text-xs font-semibold shadow-[0_2px_12px_rgba(0,113,227,0.4),inset_0_1px_1px_rgba(255,255,255,0.3)] transition-all active:scale-95"
+              className="px-3.5 sm:px-4 py-2 sm:py-1.5 rounded-full bg-[#0071e3] hover:bg-[#0077ed] text-white text-xs font-semibold shadow-[0_2px_12px_rgba(0,113,227,0.4),inset_0_1px_1px_rgba(255,255,255,0.3)] transition-all active:scale-95 min-h-[44px] sm:min-h-0 flex items-center justify-center"
             >
               Garantir Acesso
             </a>
@@ -520,9 +528,15 @@ export const ColorMasterLanding: React.FC = () => {
       {/* ========================================================================= */}
       {/* 01. HERO: APRESENTAÇÃO DO PRODUTO (PRIORIDADE MÁXIMA)                     */}
       {/* ========================================================================= */}
-      <section id="hero-section" className="relative z-10 overflow-hidden min-h-[100dvh] flex flex-col justify-center pt-16 pb-20 md:pt-24 md:pb-24 px-4 sm:px-6 lg:px-8 bg-black">
-        {/* Background Video Layer with Retícula Overlay */}
-        <div className="absolute inset-0 w-full h-full overflow-hidden pointer-events-none select-none z-0">
+      <section id="hero-section" className="relative z-10 overflow-hidden min-h-[100dvh] flex flex-col justify-center pt-8 pb-14 sm:pt-16 sm:pb-20 md:pt-24 md:pb-24 px-4 sm:px-6 lg:px-8 bg-black">
+        {/* Mobile Poster Image Layer (Zero bandwidth waste, instant LCP < 1s) */}
+        <div
+          className="absolute inset-0 w-full h-full bg-cover bg-center md:hidden pointer-events-none select-none z-0"
+          style={{ backgroundImage: `url('/assets/produtos/color-master/offer/offer-1.webp')` }}
+        />
+
+        {/* Desktop / Tablet Background Video Layer with Retícula Overlay */}
+        <div className="hidden md:block absolute inset-0 w-full h-full overflow-hidden pointer-events-none select-none z-0">
           <iframe
             id="hero-yt-player"
             src="https://www.youtube-nocookie.com/embed/gp75L5H0kIU?autoplay=1&mute=1&controls=0&loop=1&playlist=gp75L5H0kIU&playsinline=1&rel=0&modestbranding=1&enablejsapi=1"
@@ -540,92 +554,104 @@ export const ColorMasterLanding: React.FC = () => {
           <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-black/60 pointer-events-none z-6" />
         </div>
 
-        <div className="relative z-10 max-w-5xl mx-auto">
-          <div className="flex flex-col items-center text-center max-w-3xl mx-auto mb-10">
+        {/* Mobile Retícula Overlay over Poster */}
+        <div className="md:hidden absolute inset-0 z-1 pointer-events-none select-none">
+          <div
+            className="absolute inset-0"
+            style={{
+              backgroundImage: `radial-gradient(circle, rgba(0, 0, 0, 0.85) 1.2px, transparent 1.2px)`,
+              backgroundSize: '5px 5px'
+            }}
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-black via-black/55 to-black/75" />
+        </div>
+
+        <div className="relative z-10 max-w-5xl mx-auto w-full">
+          <div className="flex flex-col items-center text-center max-w-3xl mx-auto mb-6 sm:mb-10">
             {/* Masterclass Identification Badge */}
-            <div className="inline-flex items-center px-4 py-1.5 rounded-full bg-black/60 backdrop-blur-md text-white/90 text-xs font-semibold mb-5 border border-white/20 shadow-sm">
+            <div className="inline-flex items-center px-3 sm:px-4 py-1 sm:py-1.5 rounded-full bg-black/60 backdrop-blur-md text-white/90 text-[11px] sm:text-xs font-semibold mb-3.5 sm:mb-5 border border-white/20 shadow-sm">
               <span className="tracking-wide uppercase font-semibold text-[#2997ff]">MASTERCLASS</span>
-              <span className="mx-2 text-white/30">•</span>
+              <span className="mx-1.5 sm:mx-2 text-white/30">•</span>
               <span className="tracking-wide uppercase">COLOR MASTER | PRODUTO</span>
             </div>
 
-            {/* Headline H1 */}
-            <h1 className="text-4xl sm:text-6xl lg:text-7xl font-semibold tracking-tight text-white leading-[1.08] mb-6 drop-shadow-xl">
+            {/* Headline H1 with Fluid Clamp */}
+            <h1 className="text-[clamp(1.85rem,5.5vw,4.5rem)] font-semibold tracking-tight text-white leading-[1.08] mb-3.5 sm:mb-6 drop-shadow-xl max-w-4xl mx-auto">
               Potencialize seu trabalho com color grading.
             </h1>
 
             {/* Subtitle */}
-            <p className="text-base sm:text-xl text-white/90 font-normal leading-relaxed mb-8 max-w-2xl drop-shadow-md">
+            <p className="text-sm sm:text-lg md:text-xl text-white/90 font-normal leading-relaxed mb-5 sm:mb-8 max-w-2xl drop-shadow-md">
               Trabalhe a cor com mais precisão, do material recebido ao look final, usando o DaVinci Resolve em projetos de produto para publicidade e conteúdos.
             </p>
 
             {/* Commercial Condition / Price Pill */}
-            <div className="inline-flex flex-wrap items-center justify-center gap-x-4 gap-y-2 px-6 py-3 sm:px-8 sm:py-3.5 rounded-full bg-black/60 backdrop-blur-xl border border-white/20 text-white shadow-2xl mb-8">
+            <div className="inline-flex flex-wrap items-center justify-center gap-x-3 sm:gap-x-4 gap-y-1.5 sm:gap-y-2 px-4 py-2 sm:px-8 sm:py-3.5 rounded-2xl sm:rounded-full bg-black/60 backdrop-blur-xl border border-white/20 text-white shadow-2xl mb-6 sm:mb-8 max-w-full">
               {!isExpired ? (
                 <>
-                  <div className="flex items-baseline gap-1.5">
-                    <span className="text-xs sm:text-sm text-white/70 font-medium">12x de</span>
-                    <span className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
+                  <div className="flex items-baseline gap-1 sm:gap-1.5">
+                    <span className="text-[11px] sm:text-sm text-white/70 font-medium">12x de</span>
+                    <span className="text-xl sm:text-3xl font-extrabold text-white tracking-tight">
                       R$ {(priceData.promoPrice / 12).toFixed(2).replace('.', ',')}
                     </span>
                   </div>
                   <span className="text-white/30 hidden sm:inline">•</span>
-                  <div className="flex items-center gap-1.5 text-xs sm:text-sm text-white/70">
+                  <div className="flex items-center gap-1.5 text-[11px] sm:text-sm text-white/70">
                     <span className="line-through text-white/40">R$ 195</span>
                     <span>ou <strong className="text-white font-semibold">R$ {priceData.promoPrice}</strong> no Pix</span>
                   </div>
                   <span className="text-white/30 hidden sm:inline">•</span>
-                  <span className="text-xs sm:text-sm text-white/80 font-medium">1 Ano de Acesso</span>
+                  <span className="text-[11px] sm:text-sm text-white/80 font-medium">1 Ano de Acesso</span>
                 </>
               ) : (
                 <>
-                  <div className="flex items-baseline gap-1.5">
-                    <span className="text-xs sm:text-sm text-white/70 font-medium">12x de</span>
-                    <span className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
+                  <div className="flex items-baseline gap-1 sm:gap-1.5">
+                    <span className="text-[11px] sm:text-sm text-white/70 font-medium">12x de</span>
+                    <span className="text-xl sm:text-3xl font-extrabold text-white tracking-tight">
                       R$ 16,25
                     </span>
                   </div>
                   <span className="text-white/30 hidden sm:inline">•</span>
-                  <span className="text-xs sm:text-sm text-white/70">
+                  <span className="text-[11px] sm:text-sm text-white/70">
                     ou <strong className="text-white font-semibold">R$ 195</strong> no Pix
                   </span>
                   <span className="text-white/30 hidden sm:inline">•</span>
-                  <span className="text-xs sm:text-sm text-white/80 font-medium">1 Ano de Acesso</span>
+                  <span className="text-[11px] sm:text-sm text-white/80 font-medium">1 Ano de Acesso</span>
                 </>
               )}
             </div>
 
             {/* Main CTAs */}
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 w-full sm:w-auto mb-4">
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4 w-full sm:w-auto mb-4">
               <a
                 href="#oferta"
                 onClick={() => trackProductClick('color-master-produto', 'Color Master Hero CTA', '#oferta', 'other')}
-                className="w-full sm:w-auto px-8 py-4 rounded-full bg-[#0071e3] hover:bg-[#0077ed] text-white font-semibold text-sm sm:text-base transition-all shadow-[0_4px_20px_rgba(0,113,227,0.5)] flex items-center justify-center active:scale-95"
+                className="w-full sm:w-auto min-h-[48px] px-6 sm:px-8 py-3.5 sm:py-4 rounded-full bg-[#0071e3] hover:bg-[#0077ed] text-white font-semibold text-sm sm:text-base transition-all shadow-[0_4px_20px_rgba(0,113,227,0.5)] flex items-center justify-center active:scale-95 cursor-pointer"
               >
                 {!isExpired ? `Garantir por R$ ${priceData.promoPrice}` : 'Garantir Acesso à Masterclass'}
               </a>
 
               <a
                 href="#aprendizado"
-                className="w-full sm:w-auto px-6 py-4 rounded-full bg-white/10 hover:bg-white/20 text-white font-medium text-sm transition-all border border-white/20 flex items-center justify-center active:scale-95"
+                className="w-full sm:w-auto min-h-[44px] px-5 sm:px-6 py-3 sm:py-4 rounded-full bg-white/10 hover:bg-white/20 text-white font-medium text-xs sm:text-sm transition-all border border-white/20 flex items-center justify-center active:scale-95 cursor-pointer"
               >
                 Ver Conteúdo Completo
               </a>
             </div>
 
             {/* Trust highlights */}
-            <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 mt-4 text-xs sm:text-sm text-white/80 font-normal">
+            <div className="flex flex-wrap items-center justify-center gap-x-4 sm:gap-x-6 gap-y-1.5 sm:gap-y-2 mt-3 sm:mt-4 text-xs sm:text-sm text-white/80 font-normal">
               <div className="flex items-center gap-1.5">
                 <span className="text-[#2997ff] font-bold">•</span>
                 <span>1 Ano de Acesso</span>
               </div>
               <div className="flex items-center gap-1.5">
                 <span className="text-[#2997ff] font-bold">•</span>
-                <span>Footages de projetos reais inclusos</span>
+                <span>Footages reais inclusos</span>
               </div>
               <div className="flex items-center gap-1.5">
                 <span className="text-[#2997ff] font-bold">•</span>
-                <span>Metodologia 100% prática</span>
+                <span>Metodologia prática</span>
               </div>
             </div>
           </div>
@@ -635,22 +661,22 @@ export const ColorMasterLanding: React.FC = () => {
       {/* ========================================================================= */}
       {/* 03. CONTEÚDO DO MASTERCLASS                                               */}
       {/* ========================================================================= */}
-      <section id="aprendizado" className="relative z-10 py-16 md:py-24 bg-[#000000] text-white px-4 sm:px-6 lg:px-8">
+      <section id="aprendizado" className="relative z-10 scroll-mt-14 sm:scroll-mt-20 py-12 sm:py-16 md:py-24 bg-[#000000] text-white px-4 sm:px-6 lg:px-8">
         <div className="max-w-5xl mx-auto">
-          <div className="text-center max-w-2xl mx-auto mb-14">
+          <div className="text-center max-w-2xl mx-auto mb-10 sm:mb-14">
             <span className="text-xs uppercase tracking-widest text-[#2997ff] font-bold mb-2 block">
               CONTEÚDO DO MASTERCLASS
             </span>
-            <h2 className="text-3xl sm:text-5xl font-semibold text-white">
+            <h2 className="text-2xl sm:text-4xl md:text-5xl font-semibold text-white">
               Conteúdo do Masterclass
             </h2>
-            <p className="text-base sm:text-lg text-white/60 mt-3 font-normal">
+            <p className="text-sm sm:text-base md:text-lg text-white/60 mt-3 font-normal max-w-xl mx-auto">
               Aulas organizadas rigorosamente pelas 5 etapas do processo real de pós-produção e color grading de produto.
             </p>
           </div>
 
           {/* Pipeline Overview Chips */}
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 mb-10">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2.5 sm:gap-3 mb-8 sm:mb-10">
             {[
               { step: '01. Preparação', desc: 'Gerenciamento & ACES' },
               { step: '02. Análise & Correção', desc: 'Primárias & Matching' },
@@ -658,36 +684,36 @@ export const ColorMasterLanding: React.FC = () => {
               { step: '04. Criação de Look', desc: 'DIY & Dehancer Pro' },
               { step: '05. Finalização', desc: 'Deliver & Exportação' },
             ].map((chip, idx) => (
-              <div key={idx} className="p-3.5 sm:p-4 rounded-2xl bg-[#161617] border border-white/10 shadow-xs text-center">
-                <span className="text-xs font-bold text-[#2997ff] block">{chip.step}</span>
-                <span className="text-xs text-white/60 mt-0.5 block">{chip.desc}</span>
+              <div key={idx} className="p-3 sm:p-4 rounded-xl sm:rounded-2xl bg-[#161617] border border-white/10 shadow-xs text-center">
+                <span className="text-[11px] sm:text-xs font-bold text-[#2997ff] block">{chip.step}</span>
+                <span className="text-[10px] sm:text-xs text-white/60 mt-0.5 block truncate sm:overflow-visible">{chip.desc}</span>
               </div>
             ))}
           </div>
 
           {/* Accordion List for Expandable Modules with Quadratic Easing */}
-          <div className="space-y-4">
+          <div className="space-y-3.5 sm:space-y-4">
             {learningModules.map((mod, idx) => {
               const isOpen = openModule === idx;
               return (
                 <div
                   key={idx}
-                  className="rounded-3xl bg-[#161617] border border-white/10 overflow-hidden shadow-sm transition-all duration-300 hover:border-[#2997ff]/40"
+                  className="rounded-2xl sm:rounded-3xl bg-[#161617] border border-white/10 overflow-hidden shadow-sm transition-all duration-300 hover:border-[#2997ff]/40"
                 >
                   <button
                     onClick={() => toggleModule(idx)}
-                    className="w-full p-6 sm:p-7 text-left flex items-center justify-between gap-4 transition-colors cursor-pointer"
+                    className="w-full p-4 sm:p-6 md:p-7 min-h-[56px] text-left flex items-center justify-between gap-3 sm:gap-4 transition-colors cursor-pointer"
                     aria-expanded={isOpen}
                   >
-                    <div className="flex items-start sm:items-center gap-4">
-                      <span className="w-10 h-10 rounded-2xl bg-[#2997ff]/15 text-[#2997ff] border border-[#2997ff]/30 font-bold text-sm flex items-center justify-center shrink-0">
+                    <div className="flex items-start sm:items-center gap-3 sm:gap-4 min-w-0">
+                      <span className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl sm:rounded-2xl bg-[#2997ff]/15 text-[#2997ff] border border-[#2997ff]/30 font-bold text-xs sm:text-sm flex items-center justify-center shrink-0">
                         {mod.num}
                       </span>
-                      <div>
-                        <h3 className="text-base sm:text-xl font-semibold text-white">
+                      <div className="min-w-0">
+                        <h3 className="text-sm sm:text-lg md:text-xl font-semibold text-white truncate sm:overflow-visible">
                           {mod.title}
                         </h3>
-                        <p className="text-xs sm:text-sm text-white/60 mt-1 font-normal">
+                        <p className="text-xs sm:text-sm text-white/60 mt-0.5 sm:mt-1 font-normal line-clamp-1 sm:line-clamp-none">
                           {mod.subtitle}
                         </p>
                       </div>
@@ -706,15 +732,15 @@ export const ColorMasterLanding: React.FC = () => {
                     }`}
                   >
                     <div className="overflow-hidden">
-                      <div className="px-6 pb-6 sm:px-7 sm:pb-7 pt-2 border-t border-white/10 bg-[#111113]">
-                        <span className="text-xs uppercase font-bold text-[#2997ff] tracking-wider mb-3 block">
+                      <div className="px-4 pb-4 sm:px-7 sm:pb-7 pt-2 border-t border-white/10 bg-[#111113]">
+                        <span className="text-xs uppercase font-bold text-[#2997ff] tracking-wider mb-2.5 sm:mb-3 block">
                           Aulas e Tópicos Deste Módulo:
                         </span>
-                        <div className="space-y-2.5">
+                        <div className="space-y-2 sm:space-y-2.5">
                           {mod.lessons.map((lesson, lIdx) => (
                             <div
                               key={lIdx}
-                              className="flex items-start gap-3 text-xs sm:text-sm text-white/90 bg-[#1c1c1e] p-3.5 rounded-2xl border border-white/10"
+                              className="flex items-start gap-2.5 sm:gap-3 text-xs sm:text-sm text-white/90 bg-[#1c1c1e] p-3 sm:p-3.5 rounded-xl sm:rounded-2xl border border-white/10"
                             >
                               <span className="text-xs font-mono font-bold text-[#2997ff] shrink-0 mt-0.5">
                                 {(lIdx + 1).toString().padStart(2, '0')}.
@@ -736,68 +762,65 @@ export const ColorMasterLanding: React.FC = () => {
       {/* ========================================================================= */}
       {/* 04. APLICAÇÃO PROFISSIONAL                                                */}
       {/* ========================================================================= */}
-      {/* ========================================================================= */}
-      {/* 04. APLICAÇÃO PROFISSIONAL                                                */}
-      {/* ========================================================================= */}
       <section className="relative z-10 min-h-[100dvh] flex flex-col justify-center py-12 md:py-16 bg-[#f5f5f7] px-4 sm:px-6 lg:px-8 overflow-hidden">
         <div className="max-w-5xl mx-auto w-full my-auto">
-          <div className="text-center max-w-2xl mx-auto mb-12">
+          <div className="text-center max-w-2xl mx-auto mb-10 sm:mb-12">
             <span className="text-xs uppercase tracking-widest text-[#0071e3] font-bold mb-2 block">
               MERCADO DE TRABALHO REAL
             </span>
-            <h2 className="text-3xl sm:text-5xl font-semibold text-[#1d1d1f]">
+            <h2 className="text-2xl sm:text-4xl md:text-5xl font-semibold text-[#1d1d1f]">
               Aplicação Profissional
             </h2>
-            <p className="text-base sm:text-lg text-[#6e6e73] mt-3 font-normal">
+            <p className="text-sm sm:text-base md:text-lg text-[#6e6e73] mt-2.5 sm:mt-3 font-normal max-w-xl mx-auto">
               Domine as competências mais cobradas em produtoras, agências e clientes de alta exigência.
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5 sm:gap-6 mb-8 sm:mb-10">
             {/* Card 1: Publicidade */}
-            <div className="p-8 sm:p-10 rounded-3xl bg-[#ffffff] border border-[#e5e5e7] shadow-sm flex flex-col justify-between hover:border-[#0071e3]/30 transition-all">
+            <div className="p-6 sm:p-8 md:p-10 rounded-2xl sm:rounded-3xl bg-[#ffffff] border border-[#e5e5e7] shadow-sm flex flex-col justify-between hover:border-[#0071e3]/30 transition-all">
               <div>
-                <span className="inline-block px-3.5 py-1 rounded-full bg-[#0071e3]/10 text-[#0071e3] text-xs uppercase tracking-wider font-bold mb-4 border border-[#0071e3]/20">
+                <span className="inline-block px-3 sm:px-3.5 py-1 rounded-full bg-[#0071e3]/10 text-[#0071e3] text-xs uppercase tracking-wider font-bold mb-3 sm:mb-4 border border-[#0071e3]/20">
                   PUBLICIDADE
                 </span>
-                <h3 className="text-2xl font-semibold text-[#1d1d1f] mb-3">
+                <h3 className="text-xl sm:text-2xl font-semibold text-[#1d1d1f] mb-2 sm:mb-3">
                   Comerciais & Campanhas de TV
                 </h3>
                 <p className="text-sm sm:text-base text-[#6e6e73] leading-relaxed">
                   Leve projetos de produto a um acabamento visual à altura da publicidade. Trabalhe cor, contraste, consistência entre planos e construção de look para valorizar o produto e dar ao projeto a qualidade visual esperada em uma entrega para televisão.
                 </p>
               </div>
-              <div className="mt-8 pt-4 border-t border-[#e5e5e7] text-xs font-semibold text-[#1d1d1f]">
+              <div className="mt-6 sm:mt-8 pt-4 border-t border-[#e5e5e7] text-xs font-semibold text-[#1d1d1f]">
                 Padrão Broadcast
               </div>
             </div>
 
             {/* Card 2: Conteúdo */}
-            <div className="p-8 sm:p-10 rounded-3xl bg-[#ffffff] border border-[#e5e5e7] shadow-sm flex flex-col justify-between hover:border-[#0071e3]/30 transition-all">
+            <div className="p-6 sm:p-8 md:p-10 rounded-2xl sm:rounded-3xl bg-[#ffffff] border border-[#e5e5e7] shadow-sm flex flex-col justify-between hover:border-[#0071e3]/30 transition-all">
               <div>
-                <span className="inline-block px-3.5 py-1 rounded-full bg-[#0071e3]/10 text-[#0071e3] text-xs uppercase tracking-wider font-bold mb-4 border border-[#0071e3]/20">
+                <span className="inline-block px-3 sm:px-3.5 py-1 rounded-full bg-[#0071e3]/10 text-[#0071e3] text-xs uppercase tracking-wider font-bold mb-3 sm:mb-4 border border-[#0071e3]/20">
                   CONTEÚDO
                 </span>
-                <h3 className="text-2xl font-semibold text-[#1d1d1f] mb-3">
+                <h3 className="text-xl sm:text-2xl font-semibold text-[#1d1d1f] mb-2 sm:mb-3">
                   Filmes Digitais & Social Media
                 </h3>
                 <p className="text-sm sm:text-base text-[#6e6e73] leading-relaxed">
                   Do conteúdo para YouTube aos vídeos de produto para redes sociais, o trabalho de cor ajuda a manter unidade, valorizar o que está em cena e dar mais qualidade visual a cada entrega.
                 </p>
               </div>
-              <div className="mt-8 pt-4 border-t border-[#e5e5e7] text-xs font-semibold text-[#1d1d1f]">
+              <div className="mt-6 sm:mt-8 pt-4 border-t border-[#e5e5e7] text-xs font-semibold text-[#1d1d1f]">
                 Alta Performance no Digital
               </div>
             </div>
           </div>
 
           {/* Practical Callout Banner */}
-          <div className="p-8 sm:p-10 rounded-3xl bg-[#ffffff] border border-[#0071e3]/30 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-6">
+          <div className="p-6 sm:p-8 md:p-10 rounded-2xl sm:rounded-3xl bg-[#ffffff] border border-[#0071e3]/30 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-6">
             <div className="max-w-2xl">
               <span className="text-xs font-bold text-[#0071e3] uppercase tracking-wider block mb-1">
                 Nada de Simulacro
               </span>
-              <h3 className="text-xl sm:text-2xl font-semibold text-[#1d1d1f] mb-2 leading-snug">
+              <h3 className="text-lg sm:text-2xl font-semibold text-[#1d1d1f] mb-2 leading-snug">
                 "Você não vai aprender usando imagens aleatórias, mas sim em projetos reais, com problemas reais e soluções reais."
               </h3>
               <p className="text-sm sm:text-base text-[#6e6e73] leading-relaxed">
@@ -806,7 +829,7 @@ export const ColorMasterLanding: React.FC = () => {
             </div>
             <a
               href="#oferta"
-              className="px-6 py-3.5 rounded-full bg-[#0071e3] hover:bg-[#0077ed] text-white font-semibold text-sm transition-all shrink-0 active:scale-95 shadow-md"
+              className="w-full sm:w-auto min-h-[48px] px-6 py-3.5 rounded-full bg-[#0071e3] hover:bg-[#0077ed] text-white font-semibold text-sm transition-all shrink-0 active:scale-95 shadow-md flex items-center justify-center cursor-pointer"
             >
               Garantir Minha Vaga
             </a>
@@ -830,29 +853,29 @@ export const ColorMasterLanding: React.FC = () => {
           ref={instructorCardRef}
           className="max-w-5xl mx-auto relative z-10 w-full my-auto will-change-[opacity]"
         >
-          <div className="rounded-3xl bg-[#ffffff]/90 backdrop-blur-md border border-[#e5e5e7] p-8 sm:p-12 shadow-sm">
-            <div className="grid grid-cols-1 md:grid-cols-12 gap-8 items-center">
+          <div className="rounded-2xl sm:rounded-3xl bg-[#ffffff]/90 backdrop-blur-md border border-[#e5e5e7] p-6 sm:p-10 md:p-12 shadow-sm">
+            <div className="grid grid-cols-1 md:grid-cols-12 gap-6 sm:gap-8 items-center">
               {/* Teacher Photo */}
               <div className="md:col-span-4 flex justify-center items-center">
-                <div className="relative w-full max-w-[260px] sm:max-w-[280px] rounded-3xl overflow-hidden border border-[#d2d2d7] bg-[#f5f5f7] shadow-md group">
+                <div className="relative w-full max-w-[200px] sm:max-w-[260px] md:max-w-[280px] rounded-2xl sm:rounded-3xl overflow-hidden border border-[#d2d2d7] bg-[#f5f5f7] shadow-md group">
                   <img
                     src={authorPhotos.profileSrc}
                     alt={SITE_CONFIG.author.name}
-                    className="w-full h-auto object-contain block rounded-3xl transition-transform duration-500 ease-quadratic hover:scale-[1.02]"
+                    className="w-full h-auto object-contain block rounded-2xl sm:rounded-3xl transition-transform duration-500 ease-quadratic hover:scale-[1.02]"
                   />
                 </div>
               </div>
 
               {/* Teacher Bio */}
               <div className="md:col-span-8 flex flex-col items-start">
-                <span className="text-xs uppercase tracking-widest text-[#0071e3] font-bold mb-2 block">
+                <span className="text-xs uppercase tracking-widest text-[#0071e3] font-bold mb-1.5 sm:mb-2 block">
                   INSTRUTOR DA MASTERCLASS
                 </span>
-                <h2 className="text-2xl sm:text-4xl font-semibold tracking-tight text-[#1d1d1f] mb-4">
+                <h2 className="text-2xl sm:text-3xl md:text-4xl font-semibold tracking-tight text-[#1d1d1f] mb-3 sm:mb-4">
                   Michael Oliveira
                 </h2>
 
-                <div className="space-y-4 text-base sm:text-lg text-[#6e6e73] leading-relaxed font-normal">
+                <div className="space-y-3 sm:space-y-4 text-sm sm:text-base md:text-lg text-[#6e6e73] leading-relaxed font-normal">
                   <p>
                     <span className="font-semibold text-[#1d1d1f]">Diretor, diretor de fotografia, colorista e finalizador</span> com <span className="font-medium text-[#3a3a3c]">mais de 20 anos de experiência prática no mercado audiovisual</span>.
                   </p>
@@ -865,13 +888,13 @@ export const ColorMasterLanding: React.FC = () => {
                 </div>
 
                 {/* Highlights pills */}
-                <div className="grid grid-cols-2 gap-4 mt-8 w-full max-w-lg">
-                  <div className="p-4 rounded-2xl bg-[#ffffff] border border-[#e5e5e7] text-sm text-[#6e6e73] shadow-xs">
-                    <span className="font-bold text-[#0071e3] block">+20 ANOS</span>
-                    <span>Experiência no Audiovisual</span>
+                <div className="grid grid-cols-2 gap-2.5 sm:gap-4 mt-6 sm:mt-8 w-full max-w-lg">
+                  <div className="p-3 sm:p-4 rounded-xl sm:rounded-2xl bg-[#ffffff] border border-[#e5e5e7] text-xs sm:text-sm text-[#6e6e73] shadow-xs">
+                    <span className="font-bold text-[#0071e3] block text-sm sm:text-base">+20 ANOS</span>
+                    <span>Experiência Audiovisual</span>
                   </div>
-                  <div className="p-4 rounded-2xl bg-[#ffffff] border border-[#e5e5e7] text-sm text-[#6e6e73] shadow-xs">
-                    <span className="font-bold text-[#0071e3] block">EX-PROFESSOR</span>
+                  <div className="p-3 sm:p-4 rounded-xl sm:rounded-2xl bg-[#ffffff] border border-[#e5e5e7] text-xs sm:text-sm text-[#6e6e73] shadow-xs">
+                    <span className="font-bold text-[#0071e3] block text-sm sm:text-base">EX-PROFESSOR</span>
                     <span>EBAC Color Grading</span>
                   </div>
                 </div>
@@ -879,8 +902,8 @@ export const ColorMasterLanding: React.FC = () => {
             </div>
 
             {/* Produtoras Atendidas Carousel */}
-            <div className="mt-10 pt-8 border-t border-[#e5e5e7]/80 w-full">
-              <span className="text-xs uppercase tracking-widest text-[#86868b] font-semibold mb-4 block text-center sm:text-left">
+            <div className="mt-8 pt-6 sm:mt-10 sm:pt-8 border-t border-[#e5e5e7]/80 w-full">
+              <span className="text-xs uppercase tracking-widest text-[#86868b] font-semibold mb-3 sm:mb-4 block text-center sm:text-left">
                 Produtoras Atendidas e Projetos Relevantes
               </span>
               <div
@@ -894,12 +917,12 @@ export const ColorMasterLanding: React.FC = () => {
                   {(logos.length > 0 && logos.length < 12 ? [...logos, ...logos] : logos).map((logo, lIdx) => (
                     <div
                       key={`t1-${lIdx}`}
-                      className="shrink-0 rounded-2xl overflow-hidden border border-[#e5e5e7] shadow-xs flex items-center justify-center bg-white"
+                      className="shrink-0 rounded-xl sm:rounded-2xl overflow-hidden border border-[#e5e5e7] shadow-xs flex items-center justify-center bg-white"
                     >
                       <img
                         src={logo.src}
                         alt={logo.name}
-                        className="h-14 sm:h-18 w-auto max-w-[170px] object-cover block"
+                        className="h-10 sm:h-14 md:h-18 w-auto max-w-[130px] sm:max-w-[170px] object-cover block"
                       />
                     </div>
                   ))}
@@ -909,12 +932,12 @@ export const ColorMasterLanding: React.FC = () => {
                   {(logos.length > 0 && logos.length < 12 ? [...logos, ...logos] : logos).map((logo, lIdx) => (
                     <div
                       key={`t2-${lIdx}`}
-                      className="shrink-0 rounded-2xl overflow-hidden border border-[#e5e5e7] shadow-xs flex items-center justify-center bg-white"
+                      className="shrink-0 rounded-xl sm:rounded-2xl overflow-hidden border border-[#e5e5e7] shadow-xs flex items-center justify-center bg-white"
                     >
                       <img
                         src={logo.src}
                         alt=""
-                        className="h-14 sm:h-18 w-auto max-w-[170px] object-cover block"
+                        className="h-10 sm:h-14 md:h-18 w-auto max-w-[130px] sm:max-w-[170px] object-cover block"
                       />
                     </div>
                   ))}
@@ -941,7 +964,7 @@ export const ColorMasterLanding: React.FC = () => {
             onMouseMove={handleBonusMouseMove}
             onMouseEnter={handleBonusMouseEnter}
             onMouseLeave={handleBonusMouseLeave}
-            className="p-8 sm:p-12 md:p-14 rounded-3xl bg-gradient-to-b from-[#1c1c1e] to-[#0d0d0f] border border-[#0071e3]/30 shadow-2xl relative overflow-hidden group cursor-default"
+            className="p-6 sm:p-10 md:p-14 rounded-2xl sm:rounded-3xl bg-gradient-to-b from-[#1c1c1e] to-[#0d0d0f] border border-[#0071e3]/30 shadow-2xl relative overflow-hidden group cursor-default"
           >
             {/* Mouse-tracking dynamic background glow */}
             <div
@@ -955,37 +978,37 @@ export const ColorMasterLanding: React.FC = () => {
             />
             
             <div className="relative z-10">
-              <div className="inline-flex items-center px-3.5 py-1.5 rounded-full bg-[#0071e3]/15 border border-[#0071e3]/30 text-[#2997ff] text-xs font-semibold uppercase tracking-wider mb-6">
+              <div className="inline-flex items-center px-3 sm:px-3.5 py-1 sm:py-1.5 rounded-full bg-[#0071e3]/15 border border-[#0071e3]/30 text-[#2997ff] text-[11px] sm:text-xs font-semibold uppercase tracking-wider mb-4 sm:mb-6">
                 BÔNUS EXCLUSIVO
               </div>
 
-              <h2 className="text-2xl sm:text-4xl md:text-5xl font-semibold tracking-tight text-white mb-4 leading-tight">
+              <h2 className="text-2xl sm:text-3xl md:text-5xl font-semibold tracking-tight text-white mb-3 sm:mb-4 leading-tight">
                 Mentoria em Grupo ao Vivo com Análise dos Seus Trabalhos
               </h2>
 
-              <p className="text-base sm:text-xl text-white/80 font-normal leading-relaxed mb-8 max-w-3xl">
+              <p className="text-sm sm:text-lg md:text-xl text-white/80 font-normal leading-relaxed mb-6 sm:mb-8 max-w-3xl">
                 Bônus especial de aceleração garantido para os <strong className="text-[#2997ff] font-semibold">10 primeiros inscritos</strong> na Masterclass Color Master | Produto.
               </p>
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-                <div className="p-5 rounded-2xl bg-white/5 border border-white/10">
-                  <span className="text-xs uppercase tracking-wider text-[#2997ff] font-semibold block mb-1">Duração</span>
-                  <span className="text-xl font-bold text-white block">4 Semanas</span>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 mb-6 sm:mb-8">
+                <div className="p-4 sm:p-5 rounded-xl sm:rounded-2xl bg-white/5 border border-white/10">
+                  <span className="text-[11px] sm:text-xs uppercase tracking-wider text-[#2997ff] font-semibold block mb-1">Duração</span>
+                  <span className="text-lg sm:text-xl font-bold text-white block">4 Semanas</span>
                   <span className="text-xs text-white/60 mt-1 block">Acompanhamento estruturado</span>
                 </div>
-                <div className="p-5 rounded-2xl bg-white/5 border border-white/10">
-                  <span className="text-xs uppercase tracking-wider text-[#2997ff] font-semibold block mb-1">Frequência</span>
-                  <span className="text-xl font-bold text-white block">1x por Semana</span>
+                <div className="p-4 sm:p-5 rounded-xl sm:rounded-2xl bg-white/5 border border-white/10">
+                  <span className="text-[11px] sm:text-xs uppercase tracking-wider text-[#2997ff] font-semibold block mb-1">Frequência</span>
+                  <span className="text-lg sm:text-xl font-bold text-white block">1x por Semana</span>
                   <span className="text-xs text-white/60 mt-1 block">Encontros ao vivo com Michael</span>
                 </div>
-                <div className="p-5 rounded-2xl bg-white/5 border border-white/10">
-                  <span className="text-xs uppercase tracking-wider text-[#2997ff] font-semibold block mb-1">Foco Central</span>
-                  <span className="text-xl font-bold text-white block">Análise Prática</span>
+                <div className="p-4 sm:p-5 rounded-xl sm:rounded-2xl bg-white/5 border border-white/10">
+                  <span className="text-[11px] sm:text-xs uppercase tracking-wider text-[#2997ff] font-semibold block mb-1">Foco Central</span>
+                  <span className="text-lg sm:text-xl font-bold text-white block">Análise Prática</span>
                   <span className="text-xs text-white/60 mt-1 block">Soluções reais para seus projetos</span>
                 </div>
               </div>
 
-              <div className="p-6 rounded-2xl bg-white/[0.04] border border-white/10 text-white/90 text-sm sm:text-base leading-relaxed">
+              <div className="p-4 sm:p-6 rounded-xl sm:rounded-2xl bg-white/[0.04] border border-white/10 text-white/90 text-xs sm:text-sm md:text-base leading-relaxed">
                 <p>
                   Durante 4 semanas consecutivas, você participará de encontros ao vivo em grupo com Michael Oliveira. Uma oportunidade fechada para analisar os projetos e grades de cada participante, identificando falhas, refinando o tratamento e encontrando soluções técnicas para atingir o padrão comercial exigido pelas grandes produtoras e agências.
                 </p>
@@ -998,7 +1021,7 @@ export const ColorMasterLanding: React.FC = () => {
       {/* ========================================================================= */}
       {/* 07. OFERTA E COMPRA                                                       */}
       {/* ========================================================================= */}
-      <section id="oferta" className="relative z-10 py-16 md:py-24 bg-[#f5f5f7] px-4 sm:px-6 lg:px-8 overflow-hidden min-h-[90dvh] flex flex-col justify-center">
+      <section id="oferta" className="relative z-10 scroll-mt-14 sm:scroll-mt-20 py-12 sm:py-16 md:py-24 bg-[#f5f5f7] px-4 sm:px-6 lg:px-8 overflow-hidden min-h-[90dvh] flex flex-col justify-center">
         {/* Background Images Showcase Layer */}
         <div className="absolute inset-0 pointer-events-none z-0 overflow-hidden">
           {OFFER_IMAGES.map((img, idx) => (
@@ -1023,21 +1046,21 @@ export const ColorMasterLanding: React.FC = () => {
         </div>
 
         <div className="max-w-3xl mx-auto text-center relative z-10 w-full">
-          <div className="p-8 sm:p-14 rounded-3xl bg-[#ffffff]/95 backdrop-blur-xl border border-[#0071e3]/30 shadow-2xl relative overflow-hidden">
+          <div className="p-6 sm:p-10 md:p-14 rounded-2xl sm:rounded-3xl bg-[#ffffff]/95 backdrop-blur-xl border border-[#0071e3]/30 shadow-2xl relative overflow-hidden">
             {/* Offer Header Tag */}
-            <span className="px-4 py-1.5 rounded-full bg-[#0071e3]/10 text-[#0071e3] text-xs font-semibold uppercase tracking-wider mb-6 inline-block border border-[#0071e3]/20">
+            <span className="px-3.5 sm:px-4 py-1 sm:py-1.5 rounded-full bg-[#0071e3]/10 text-[#0071e3] text-[11px] sm:text-xs font-semibold uppercase tracking-wider mb-4 sm:mb-6 inline-block border border-[#0071e3]/20">
               OFERTA ESPECIAL DE ACESSO
             </span>
 
-            <h2 className="text-3xl sm:text-5xl font-semibold text-[#1d1d1f] mb-3">
+            <h2 className="text-2xl sm:text-4xl md:text-5xl font-semibold text-[#1d1d1f] mb-2 sm:mb-3">
               Color Master | Produto
             </h2>
-            <p className="text-base sm:text-lg text-[#6e6e73] mb-8 font-normal">
+            <p className="text-sm sm:text-base md:text-lg text-[#6e6e73] mb-6 sm:mb-8 font-normal">
               Masterclass completa de Color Grading para comerciais e imagens de produto no DaVinci Resolve.
             </p>
 
             {/* Checklist of What's Included */}
-            <div className="text-left space-y-3.5 max-w-lg mx-auto mb-8 text-sm sm:text-base text-[#1d1d1f] border-y border-[#e5e5e7] py-6">
+            <div className="text-left space-y-3 sm:space-y-3.5 max-w-lg mx-auto mb-6 sm:mb-8 text-xs sm:text-sm md:text-base text-[#1d1d1f] border-y border-[#e5e5e7] py-5 sm:py-6">
               <div className="py-1 border-b border-[#e5e5e7]/50 flex items-center justify-between font-bold text-[#1d1d1f]">
                 <span>• Mentoria de 4 Semanas para os 10 primeiros</span>
                 <span className="text-[10px] uppercase font-bold tracking-wider bg-[#0071e3] text-white px-2.5 py-0.5 rounded-full shrink-0">
@@ -1049,7 +1072,7 @@ export const ColorMasterLanding: React.FC = () => {
                 <div className="relative group inline-flex items-center">
                   <button
                     type="button"
-                    className="inline-flex items-center justify-center w-4 h-4 rounded-full border border-[#0071e3]/60 text-[#0071e3] hover:bg-[#0071e3] hover:text-white text-[10px] font-bold transition-colors cursor-help focus:outline-hidden"
+                    className="inline-flex items-center justify-center w-5 h-5 rounded-full border border-[#0071e3]/60 text-[#0071e3] hover:bg-[#0071e3] hover:text-white text-xs font-bold transition-colors cursor-help focus:outline-hidden"
                     aria-label="Informações sobre o Masterclass Completo"
                   >
                     i
@@ -1077,19 +1100,19 @@ export const ColorMasterLanding: React.FC = () => {
             </div>
 
             {/* Dynamic Price Box with 15-min countdown condition */}
-            <div className="mb-8">
+            <div className="mb-6 sm:mb-8">
               {!isExpired ? (
                 <>
                   <div className="inline-block px-3 py-1 rounded-full bg-[#0071e3]/10 text-[#0071e3] text-xs font-bold uppercase tracking-wider mb-2 border border-[#0071e3]/20">
-                    Tempo Restante da Oferta: {formatTime(timeLeft)}
+                    Tempo Restante: {formatTime(timeLeft)}
                   </div>
                   <span className="text-xs sm:text-sm text-[#86868b] block line-through">
                     De R$ 195 por apenas:
                   </span>
-                  <div className="text-4xl sm:text-6xl font-extrabold text-[#1d1d1f] tracking-tight mt-1">
+                  <div className="text-3xl sm:text-5xl md:text-6xl font-extrabold text-[#1d1d1f] tracking-tight mt-1">
                     R$ {priceData.promoPrice} <span className="text-base sm:text-xl font-normal text-[#6e6e73]">no Pix</span>
                   </div>
-                  <div className="text-base sm:text-lg font-bold text-[#0071e3] mt-2">
+                  <div className="text-sm sm:text-lg font-bold text-[#0071e3] mt-1.5 sm:mt-2">
                     ou em {formatInstallment(priceData.promoPrice)} no cartão
                   </div>
                   <span className="text-xs sm:text-sm font-medium text-[#86868b] mt-1.5 block">
@@ -1104,10 +1127,10 @@ export const ColorMasterLanding: React.FC = () => {
                   <span className="text-xs text-[#86868b] uppercase font-semibold block mb-1">
                     Preço Regular Oficial
                   </span>
-                  <div className="text-4xl sm:text-6xl font-extrabold text-[#1d1d1f] tracking-tight">
+                  <div className="text-3xl sm:text-5xl md:text-6xl font-extrabold text-[#1d1d1f] tracking-tight">
                     R$ 195 <span className="text-base sm:text-xl font-normal text-[#6e6e73]">no Pix</span>
                   </div>
-                  <div className="text-base sm:text-lg font-bold text-[#0071e3] mt-2">
+                  <div className="text-sm sm:text-lg font-bold text-[#0071e3] mt-1.5 sm:mt-2">
                     ou em 12x de R$ 16,25 no cartão
                   </div>
                 </>
@@ -1120,31 +1143,35 @@ export const ColorMasterLanding: React.FC = () => {
               target="_blank"
               rel="noopener noreferrer"
               onClick={() => trackProductClick('color-master-buy', 'Color Master Buy Checkout', getAsaasCheckoutUrl(), 'other')}
-              className="w-full sm:w-auto px-10 py-4 rounded-full bg-[#0071e3] hover:bg-[#0077ed] text-white font-semibold text-base transition-all shadow-[0_4px_24px_rgba(0,113,227,0.4)] inline-flex items-center justify-center active:scale-95"
+              className="w-full sm:w-auto min-h-[50px] px-6 sm:px-10 py-3.5 sm:py-4 rounded-full bg-[#0071e3] hover:bg-[#0077ed] text-white font-semibold text-sm sm:text-base transition-all shadow-[0_4px_24px_rgba(0,113,227,0.4)] inline-flex items-center justify-center active:scale-95 cursor-pointer"
             >
               GARANTIR MINHA VAGA AGORA
             </a>
 
             {/* Guarantee and Security */}
-            <div className="mt-6 text-xs sm:text-sm text-[#6e6e73] font-medium">
+            <div className="mt-5 sm:mt-6 text-xs sm:text-sm text-[#6e6e73] font-medium">
               Garantia incondicional de 7 dias • Risco zero
             </div>
           </div>
 
-          {/* Background Footage Indicator Pills */}
-          <div className="mt-6 flex items-center justify-center gap-2">
+          {/* Background Footage Indicator Pills (with >=44px touch area) */}
+          <div className="mt-6 flex items-center justify-center gap-1 sm:gap-2">
             {OFFER_IMAGES.map((img, idx) => (
               <button
                 key={idx}
                 type="button"
                 onClick={() => setActiveOfferBg(idx)}
-                className={`h-1.5 rounded-full transition-all cursor-pointer ${
-                  activeOfferBg === idx
-                    ? 'w-6 bg-[#0071e3]'
-                    : 'w-1.5 bg-[#1d1d1f]/20 hover:bg-[#1d1d1f]/40'
-                }`}
+                className="p-3 -m-1.5 inline-flex items-center justify-center cursor-pointer min-w-[36px] min-h-[36px]"
                 aria-label={`Ver frame de fundo ${idx + 1}`}
-              />
+              >
+                <span
+                  className={`h-1.5 rounded-full transition-all block ${
+                    activeOfferBg === idx
+                      ? 'w-6 bg-[#0071e3]'
+                      : 'w-1.5 bg-[#1d1d1f]/20 hover:bg-[#1d1d1f]/40'
+                  }`}
+                />
+              </button>
             ))}
           </div>
         </div>
@@ -1153,21 +1180,21 @@ export const ColorMasterLanding: React.FC = () => {
       {/* ========================================================================= */}
       {/* 07. PERGUNTAS FREQUENTES (FAQ ACCORDION)                                  */}
       {/* ========================================================================= */}
-      <section className="relative z-10 min-h-[100dvh] flex flex-col justify-center py-16 md:py-24 bg-[#f5f5f7] border-t border-[#d2d2d7]/60 px-4 sm:px-6 lg:px-8 overflow-hidden">
+      <section id="faq" className="relative z-10 scroll-mt-14 sm:scroll-mt-20 min-h-[100dvh] flex flex-col justify-center py-12 sm:py-16 md:py-24 bg-[#f5f5f7] border-t border-[#d2d2d7]/60 px-4 sm:px-6 lg:px-8 overflow-hidden">
         <div className="max-w-4xl mx-auto w-full my-auto">
-          <div className="text-center max-w-2xl mx-auto mb-12">
+          <div className="text-center max-w-2xl mx-auto mb-10 sm:mb-12">
             <span className="text-xs uppercase tracking-widest text-[#0071e3] font-bold mb-2 block">
               DÚVIDAS FREQUENTES
             </span>
-            <h2 className="text-3xl sm:text-5xl font-semibold text-[#1d1d1f]">
+            <h2 className="text-2xl sm:text-4xl md:text-5xl font-semibold text-[#1d1d1f]">
               Perguntas Frequentes
             </h2>
-            <p className="text-base text-[#6e6e73] mt-2">
+            <p className="text-sm sm:text-base text-[#6e6e73] mt-2 max-w-xl mx-auto">
               Tudo o que você precisa saber sobre a masterclass, acesso e metodologia.
             </p>
           </div>
 
-          <div className="space-y-4">
+          <div className="space-y-3.5 sm:space-y-4">
             {faqList.map((faq, idx) => {
               const isOpen = openFaq === idx;
               return (
@@ -1177,10 +1204,10 @@ export const ColorMasterLanding: React.FC = () => {
                 >
                   <button
                     onClick={() => toggleFaq(idx)}
-                    className="w-full p-6 text-left flex items-center justify-between text-base sm:text-lg font-semibold text-[#1d1d1f] hover:text-[#0071e3] transition-colors cursor-pointer"
+                    className="w-full p-4 sm:p-6 min-h-[52px] text-left flex items-center justify-between text-sm sm:text-base md:text-lg font-semibold text-[#1d1d1f] hover:text-[#0071e3] transition-colors cursor-pointer"
                     aria-expanded={isOpen}
                   >
-                    <span className="pr-4">{faq.q}</span>
+                    <span className="pr-3 sm:pr-4">{faq.q}</span>
                     <div className="shrink-0 w-8 h-8 rounded-full bg-[#f5f5f7] flex items-center justify-center text-sm font-semibold text-[#86868b] transition-transform duration-500 [transition-timing-function:cubic-bezier(0.45,0,0.55,1)]">
                       <span className={`inline-block transition-transform duration-500 [transition-timing-function:cubic-bezier(0.45,0,0.55,1)] ${isOpen ? 'rotate-45 text-[#0071e3]' : 'rotate-0'}`}>
                         +
@@ -1194,7 +1221,7 @@ export const ColorMasterLanding: React.FC = () => {
                     }`}
                   >
                     <div className="overflow-hidden">
-                      <div className="px-6 pb-6 text-sm sm:text-base text-[#6e6e73] leading-relaxed border-t border-[#e5e5e7] pt-4 bg-[#fafafc]">
+                      <div className="px-4 pb-4 sm:px-6 sm:pb-6 text-xs sm:text-sm md:text-base text-[#6e6e73] leading-relaxed border-t border-[#e5e5e7] pt-3.5 sm:pt-4 bg-[#fafafc]">
                         {faq.a}
                       </div>
                     </div>
@@ -1209,31 +1236,59 @@ export const ColorMasterLanding: React.FC = () => {
       {/* ========================================================================= */}
       {/* 08. ENCERRAMENTO                                                          */}
       {/* ========================================================================= */}
-      <section className="relative z-10 py-20 md:py-28 px-4 sm:px-6 lg:px-8 bg-[#000000] text-white">
+      <section className="relative z-10 py-16 sm:py-20 md:py-28 px-4 sm:px-6 lg:px-8 bg-[#000000] text-white">
         <div className="max-w-4xl mx-auto text-center">
-          <div className="p-10 sm:p-16 rounded-3xl bg-gradient-to-b from-[#1c1c1e] to-[#0d0d0f] border border-white/10 shadow-2xl relative overflow-hidden">
-            <h2 className="text-3xl sm:text-5xl font-semibold text-white mb-4 leading-tight">
+          <div className="p-6 sm:p-12 md:p-16 rounded-2xl sm:rounded-3xl bg-gradient-to-b from-[#1c1c1e] to-[#0d0d0f] border border-white/10 shadow-2xl relative overflow-hidden">
+            <h2 className="text-2xl sm:text-4xl md:text-5xl font-semibold text-white mb-3 sm:mb-4 leading-tight">
               Domine a construção visual de produtos e eleve seus comerciais.
             </h2>
-            <p className="text-base sm:text-lg text-white/70 max-w-xl mx-auto mb-8">
+            <p className="text-sm sm:text-base md:text-lg text-white/70 max-w-xl mx-auto mb-6 sm:mb-8">
               Aprenda o método definitivo para analisar, equilibrar e finalizar imagens de alto impacto no DaVinci Resolve.
             </p>
 
             <a
               href="#oferta"
-              className="px-10 py-4 rounded-full bg-[#0071e3] hover:bg-[#0077ed] text-white font-semibold text-base transition-all shadow-[0_4px_24px_rgba(0,113,227,0.4)] inline-flex items-center justify-center active:scale-95"
+              className="w-full sm:w-auto min-h-[48px] px-8 sm:px-10 py-3.5 sm:py-4 rounded-full bg-[#0071e3] hover:bg-[#0077ed] text-white font-semibold text-sm sm:text-base transition-all shadow-[0_4px_24px_rgba(0,113,227,0.4)] inline-flex items-center justify-center active:scale-95 cursor-pointer"
             >
               ENTRAR NO COLOR MASTER | PRODUTO
             </a>
           </div>
         </div>
       </section>
+
+      {/* Mobile Floating Bottom Bar (App-like UX for mobile conversion) */}
+      <div
+        className={`fixed bottom-0 inset-x-0 z-40 p-3 sm:hidden transition-all duration-300 ${
+          showStickyTimer
+            ? 'translate-y-0 opacity-100 pointer-events-auto'
+            : 'translate-y-full opacity-0 pointer-events-none'
+        }`}
+        style={{
+          paddingBottom: 'max(0.75rem, env(safe-area-inset-bottom))',
+        }}
+      >
+        <div className="flex items-center justify-between gap-3 bg-[#1c1c1e]/95 backdrop-blur-xl border border-white/20 p-2.5 px-4 rounded-full shadow-[0_8px_32px_rgba(0,0,0,0.6)]">
+          <div className="flex flex-col pl-1 min-w-0">
+            <span className="text-[10px] text-white/60 uppercase font-bold tracking-wider leading-none">Acesso Completo</span>
+            <span className="text-sm font-extrabold text-white mt-0.5 leading-none truncate">
+              {!isExpired ? `R$ ${priceData.promoPrice}` : 'R$ 195'}
+              <span className="text-[10px] font-normal text-white/60 ml-1">no Pix</span>
+            </span>
+          </div>
+          <a
+            href="#oferta"
+            className="px-5 py-2.5 rounded-full bg-[#0071e3] text-white text-xs font-bold shadow-md active:scale-95 shrink-0 min-h-[38px] flex items-center justify-center cursor-pointer"
+          >
+            Garantir Vaga
+          </a>
+        </div>
+      </div>
       </main>
 
       {/* ========================================================================= */}
       {/* FOOTER & LINKS LEGAIS / SUPORTE                                           */}
       {/* ========================================================================= */}
-      <footer className="relative z-10 py-12 bg-[#ffffff] border-t border-[#d2d2d7]/60 text-[#6e6e73] text-xs px-4 sm:px-6 lg:px-8">
+      <footer className="relative z-10 py-10 pb-[max(2.5rem,calc(env(safe-area-inset-bottom)+2rem))] bg-[#ffffff] border-t border-[#d2d2d7]/60 text-[#6e6e73] text-xs px-4 sm:px-6 lg:px-8">
         <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
           <div className="flex flex-col items-center md:items-start text-center md:text-left">
             <span className="font-semibold text-[#1d1d1f] text-sm block mb-1">
@@ -1248,15 +1303,15 @@ export const ColorMasterLanding: React.FC = () => {
           </div>
 
           <div className="flex flex-wrap items-center justify-center gap-4 text-xs font-medium text-[#6e6e73]">
-            <a href="mailto:contato@flmmkr.com.br" className="hover:text-[#1d1d1f] transition-colors">
+            <a href="mailto:contato@flmmkr.com.br" className="hover:text-[#1d1d1f] transition-colors py-1.5 px-1 min-h-[44px] flex items-center">
               Suporte ao Aluno
             </a>
             <span>•</span>
-            <a href="/termos" className="hover:text-[#1d1d1f] transition-colors">
+            <a href="/termos" className="hover:text-[#1d1d1f] transition-colors py-1.5 px-1 min-h-[44px] flex items-center">
               Termos de Uso
             </a>
             <span>•</span>
-            <a href="/privacidade" className="hover:text-[#1d1d1f] transition-colors">
+            <a href="/privacidade" className="hover:text-[#1d1d1f] transition-colors py-1.5 px-1 min-h-[44px] flex items-center">
               Política de Privacidade
             </a>
           </div>
@@ -1269,7 +1324,7 @@ export const ColorMasterLanding: React.FC = () => {
                 target="_blank"
                 rel="noopener noreferrer"
                 onClick={() => trackSocialClick(soc.name, 'other')}
-                className="w-9 h-9 rounded-full bg-[#f5f5f7] hover:bg-[#e8e8ed] text-[#6e6e73] hover:text-[#1d1d1f] border border-[#d2d2d7] transition-all flex items-center justify-center active:scale-95"
+                className="w-11 h-11 sm:w-9 sm:h-9 rounded-full bg-[#f5f5f7] hover:bg-[#e8e8ed] text-[#6e6e73] hover:text-[#1d1d1f] border border-[#d2d2d7] transition-all flex items-center justify-center active:scale-95 cursor-pointer"
                 aria-label={soc.name}
                 title={soc.name}
               >
