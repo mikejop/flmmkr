@@ -835,8 +835,8 @@ export const ColorMasterLanding: React.FC = () => {
       {/* ========================================================================= */}
       {/* 06. BÔNUS EXCLUSIVO: MENTORIA EM GRUPO AO VIVO                            */}
       {/* ========================================================================= */}
-      <section className="relative z-10 py-16 md:py-24 bg-[#000000] text-white px-4 sm:px-6 lg:px-8 border-t border-white/10">
-        <div className="max-w-4xl mx-auto">
+      <section className="relative z-10 min-h-[100dvh] flex flex-col justify-center py-12 md:py-16 bg-[#000000] text-white px-4 sm:px-6 lg:px-8 border-t border-white/10 overflow-hidden">
+        <div className="max-w-4xl mx-auto w-full my-auto">
           <div className="p-8 sm:p-12 md:p-14 rounded-3xl bg-gradient-to-b from-[#1c1c1e] to-[#0d0d0f] border border-[#0071e3]/30 shadow-2xl relative overflow-hidden">
             {/* Subtle background glow */}
             <div className="absolute top-0 right-0 w-96 h-96 bg-[#0071e3]/10 rounded-full blur-3xl pointer-events-none -mr-20 -mt-20" />
