@@ -702,10 +702,6 @@ export const ColorMasterLanding: React.FC = () => {
                 <span className="text-[#2997ff] font-bold">•</span>
                 <span>Footages inclusos</span>
               </div>
-              <div className="flex items-center gap-1.5">
-                <span className="text-[#2997ff] font-bold">•</span>
-                <span>Metodologia prática</span>
-              </div>
             </div>
           </div>
         </div>
