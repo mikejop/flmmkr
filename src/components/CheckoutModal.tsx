@@ -561,7 +561,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                 </span>
               )}
               <span className="text-[12px] text-[#2997ff] font-medium ml-1">
-                Acesso Vitalício + Atualizações
+                12 Meses de acesso + atualizações
               </span>
             </div>
           </div>
