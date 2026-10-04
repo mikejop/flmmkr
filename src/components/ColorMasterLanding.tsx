@@ -773,9 +773,9 @@ export const ColorMasterLanding: React.FC = () => {
       <section className="relative z-10 min-h-[100dvh] flex flex-col justify-center py-12 md:py-16 bg-[#f5f5f7] px-4 sm:px-6 lg:px-8 overflow-hidden">
         <ReticulaBackground
           bgImageSrc={authorPhotos.bgSrc}
-          alwaysVisible
-          topFadeColor="#f5f5f7"
-          bottomFadeColor="#000000"
+          crossfadeScroll={true}
+          fadeFromColor="#f5f5f7"
+          fadeToColor="#000000"
         />
 
         <div className="max-w-5xl mx-auto relative z-10 w-full my-auto">
