@@ -35,6 +35,18 @@ export const ReticulaBackground: React.FC<ReticulaBackgroundProps> = ({
 
     const updateScrollFade = () => {
       if (!containerRef.current) return;
+
+      const isTablet = typeof window !== 'undefined' && window.innerWidth >= 768 && window.innerWidth <= 1180;
+      const prefersReduced = typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+      // No modo tablet (768px a 1180px) ou com movimento reduzido, desativa animações de scroll
+      if (isTablet || prefersReduced) {
+        if (whiteLayerRef.current) whiteLayerRef.current.style.opacity = '0';
+        if (blackLayerRef.current) blackLayerRef.current.style.opacity = '0';
+        if (targetBlockRef?.current) targetBlockRef.current.style.opacity = '1';
+        return;
+      }
+
       const parentEl = containerRef.current.parentElement || containerRef.current;
       const rect = parentEl.getBoundingClientRect();
       const windowHeight = window.innerHeight || 800;

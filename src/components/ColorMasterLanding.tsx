@@ -128,8 +128,11 @@ export const ColorMasterLanding: React.FC = () => {
     const updateBonusParallax = () => {
       if (!bonusSectionRef.current || !bonusWrapperRef.current) return;
 
-      // Respeitar preferência de movimento reduzido (acessibilidade e performance)
-      if (typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      const isTablet = typeof window !== 'undefined' && window.innerWidth >= 768 && window.innerWidth <= 1180;
+      const prefersReduced = typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+      // No modo tablet (768px a 1180px) ou com movimento reduzido, desativa animações de scroll
+      if (isTablet || prefersReduced) {
         bonusWrapperRef.current.style.transform = 'none';
         bonusWrapperRef.current.style.opacity = '1';
         return;

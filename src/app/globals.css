@@ -98,3 +98,30 @@ body {
   animation: marquee-track 32s linear infinite;
   will-change: transform;
 }
+
+/* Desativa animações de scroll no modo tablet (768px a 1180px) */
+@media (min-width: 768px) and (max-width: 1180px) {
+  .scroll-content {
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
+  }
+  .animate-scroll-bounce {
+    animation: none !important;
+  }
+}
+
+/* Acessibilidade: respeita preferência do sistema por redução de movimento */
+@media (prefers-reduced-motion: reduce) {
+  .scroll-content {
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
+  }
+  .animate-scroll-bounce {
+    animation: none !important;
+  }
+  .marquee-track {
+    animation-play-state: paused !important;
+  }
+}
