@@ -417,16 +417,12 @@ export const ColorMasterLanding: React.FC = () => {
                   <span className="font-bold text-amber-300 text-sm sm:text-base">R$ {priceData.promoPrice} à vista</span>
                   <span className="text-white/40">•</span>
                   <span>1 Ano de Acesso</span>
-                  <span className="text-white/40">•</span>
-                  <span className="text-emerald-400 font-semibold">+25% OFF nos outros cursos</span>
                 </>
               ) : (
                 <>
                   <span className="font-bold text-white text-sm sm:text-base">R$ 195 à vista</span>
                   <span className="text-white/40">•</span>
                   <span>1 Ano de Acesso</span>
-                  <span className="text-white/40">•</span>
-                  <span className="text-emerald-400 font-semibold">+25% OFF nos outros cursos</span>
                 </>
               )}
             </div>
@@ -462,10 +458,6 @@ export const ColorMasterLanding: React.FC = () => {
               <div className="flex items-center gap-1.5">
                 <span className="text-[#2997ff] font-bold">•</span>
                 <span>Metodologia 100% prática</span>
-              </div>
-              <div className="flex items-center gap-1.5">
-                <span className="text-[#2997ff] font-bold">•</span>
-                <span>25% OFF em outros cursos</span>
               </div>
             </div>
           </div>
@@ -853,11 +845,8 @@ export const ColorMasterLanding: React.FC = () => {
               <div className="py-1 border-b border-[#e5e5e7]/50">
                 • Footages reais de produto em LOG como material de apoio
               </div>
-              <div className="py-1 font-semibold text-[#1d1d1f] border-b border-[#e5e5e7]/50">
+              <div className="py-1 font-semibold text-[#1d1d1f]">
                 • 1 Ano de Acesso Completo e Ilimitado à Plataforma
-              </div>
-              <div className="font-semibold text-[#0071e3] bg-[#0071e3]/10 p-3 rounded-xl border border-[#0071e3]/20">
-                • Bônus: 25% de Desconto em Qualquer Outro Treinamento FLMMKR
               </div>
             </div>
 
