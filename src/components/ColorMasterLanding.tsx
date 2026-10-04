@@ -926,7 +926,7 @@ export const ColorMasterLanding: React.FC = () => {
 
                 <div className="space-y-3 sm:space-y-4 text-[16px] sm:text-base md:text-lg text-[#6e6e73] leading-[1.55] font-normal">
                   <p>
-                    <span className="font-semibold text-[#1d1d1f]">Diretor, diretor de fotografia, colorista e finalizador</span> com <span className="font-medium text-[#3a3a3c]">mais de 20 anos de experiência prática no mercado audiovisual</span>.
+                    <span className="font-semibold text-[#1d1d1f]">Diretor, diretor de fotografia, colorista e finalizador</span> com <span className="font-medium text-[#3a3a3c]">mais de 20 anos de experiência no mercado audiovisual</span>.
                   </p>
                   <p>
                     Atuou em centenas de campanhas publicitárias, videoclipes, institucionais e conteúdos comerciais para grandes marcas e produtoras em todo o Brasil. É ex-professor de Color Grading da <strong className="font-semibold text-[#1d1d1f]">EBAC</strong> (Escola Britânica de Artes Criativas e Tecnologia).
