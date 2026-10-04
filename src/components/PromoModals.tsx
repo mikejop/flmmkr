@@ -224,7 +224,7 @@ export const PromoModals: React.FC<PromoModalsProps> = ({
                   ou em 12x de R$ 16,25 no cartão
                 </div>
                 <span className="text-[12px] text-white/50 mt-2 block">
-                  1 Ano de Acesso Completo • Footages Reais Inclusos
+                  1 Ano de Acesso Completo • Footages Inclusos
                 </span>
               </div>
 
