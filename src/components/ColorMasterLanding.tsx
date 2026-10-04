@@ -1084,8 +1084,8 @@ export const ColorMasterLanding: React.FC = () => {
       {/* ========================================================================= */}
       {/* 07. PERGUNTAS FREQUENTES (FAQ ACCORDION)                                  */}
       {/* ========================================================================= */}
-      <section className="relative z-10 py-16 md:py-24 bg-[#f5f5f7] border-t border-[#d2d2d7]/60 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-4xl mx-auto">
+      <section className="relative z-10 min-h-[100dvh] flex flex-col justify-center py-16 md:py-24 bg-[#f5f5f7] border-t border-[#d2d2d7]/60 px-4 sm:px-6 lg:px-8 overflow-hidden">
+        <div className="max-w-4xl mx-auto w-full my-auto">
           <div className="text-center max-w-2xl mx-auto mb-12">
             <span className="text-xs uppercase tracking-widest text-[#0071e3] font-bold mb-2 block">
               DÚVIDAS FREQUENTES
