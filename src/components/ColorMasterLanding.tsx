@@ -693,8 +693,8 @@ export const ColorMasterLanding: React.FC = () => {
       {/* ========================================================================= */}
       {/* 04. APLICAÇÃO PROFISSIONAL                                                */}
       {/* ========================================================================= */}
-      <section className="relative z-10 min-h-[100dvh] flex flex-col justify-center py-16 md:py-24 bg-[#f5f5f7] px-4 sm:px-6 lg:px-8 overflow-hidden">
-        <div className="max-w-5xl mx-auto w-full my-auto">
+      <section className="relative z-10 py-16 md:py-20 bg-[#f5f5f7] px-4 sm:px-6 lg:px-8 overflow-hidden">
+        <div className="max-w-5xl mx-auto w-full">
           <div className="text-center max-w-2xl mx-auto mb-12">
             <span className="text-xs uppercase tracking-widest text-[#0071e3] font-bold mb-2 block">
               MERCADO DE TRABALHO REAL

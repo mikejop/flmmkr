@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef } from 'react';
 
 interface ReticulaBackgroundProps {
   bgImageSrc: string;
@@ -44,26 +44,17 @@ export const ReticulaBackground: React.FC<ReticulaBackgroundProps> = ({
       const viewportCenter = windowHeight / 2;
       const centerOffset = elementCenter - viewportCenter;
 
-      // Zona de transição (alcance dinâmico para fade orgânico)
+      // Zona de transição para saída suave ao scrollar para a próxima seção
       const transitionZone = Math.max(windowHeight * 0.5, rect.height * 0.45);
-      const deadZone = transitionZone * 0.15; // Janela confortável com 100% de leitura no centro
+      const deadZone = transitionZone * 0.15; // Janela estável de leitura no centro
 
       let whiteVal = 0;
       let blackVal = 0;
       let blockVal = 1;
 
-      if (centerOffset > deadZone) {
-        // 1. CHEGADA (Entrando a partir da seção branca anterior):
-        // Conforme a seção sobe até o centro, a camada branca desvanece de 1 -> 0,
-        // e o bloco surge suavemente junto com a imagem.
-        const rawProgress = Math.min(1, Math.max(0, (centerOffset - deadZone) / (transitionZone - deadZone)));
-        const eased = rawProgress < 0.5 ? 2 * rawProgress * rawProgress : 1 - Math.pow(-2 * rawProgress + 2, 2) / 2;
-        whiteVal = eased;
-        blackVal = 0;
-        blockVal = Math.max(0, Math.min(1, 1 - eased));
-      } else if (centerOffset < -deadZone) {
-        // 2. SAÍDA (Rolando em direção à seção escura seguinte):
-        // Conforme a seção passa do centro em direção ao topo, a camada preta surge de 0 -> 1,
+      if (centerOffset < -deadZone) {
+        // SAÍDA (Rolando em direção à seção escura seguinte):
+        // Conforme a seção sobe para sair da tela, o preto surge de 0 -> 1,
         // e o bloco do instrutor apaga/some junto com o resto dissolvendo no preto.
         const rawProgress = Math.min(1, Math.max(0, (-centerOffset - deadZone) / (transitionZone - deadZone)));
         const eased = rawProgress < 0.5 ? 2 * rawProgress * rawProgress : 1 - Math.pow(-2 * rawProgress + 2, 2) / 2;
@@ -71,7 +62,8 @@ export const ReticulaBackground: React.FC<ReticulaBackgroundProps> = ({
         blackVal = eased;
         blockVal = Math.max(0, Math.min(1, 1 - eased));
       } else {
-        // 3. CENTRO: Leitura nítida e 100% visível
+        // ENTRADA E CENTRO:
+        // A seção e o bloco do INSTRUTOR DA MASTERCLASS aparecem imediatamente com 100% de visibilidade.
         whiteVal = 0;
         blackVal = 0;
         blockVal = 1;
