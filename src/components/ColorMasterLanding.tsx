@@ -22,7 +22,7 @@ export const ColorMasterLanding: React.FC = () => {
   });
   const [logos, setLogos] = useState<{ name: string; src: string }[]>(PRODUTORAS_LOGOS);
   const [openFaq, setOpenFaq] = useState<number | null>(null);
-  const [openModule, setOpenModule] = useState<number | null>(0);
+  const [openModule, setOpenModule] = useState<number | null>(null);
   const [loginModalOpen, setLoginModalOpen] = useState<boolean>(false);
 
   // 15-Minute Countdown & Batch Price State
@@ -475,91 +475,101 @@ export const ColorMasterLanding: React.FC = () => {
       {/* ========================================================================= */}
       {/* 03. CONTEÚDO DO MASTERCLASS                                               */}
       {/* ========================================================================= */}
-      <section id="aprendizado" className="relative z-10 py-16 md:py-24 px-4 sm:px-6 lg:px-8 max-w-5xl mx-auto">
-        <div className="text-center max-w-2xl mx-auto mb-14">
-          <span className="text-xs uppercase tracking-widest text-[#0071e3] font-bold mb-2 block">
-            CONTEÚDO DO MASTERCLASS
-          </span>
-          <h2 className="text-3xl sm:text-5xl font-semibold text-[#1d1d1f]">
-            Conteúdo do Masterclass
-          </h2>
-          <p className="text-base sm:text-lg text-[#6e6e73] mt-3 font-normal">
-            Aulas organizadas rigorosamente pelas 5 etapas do processo real de pós-produção e color grading de produto.
-          </p>
-        </div>
+      <section id="aprendizado" className="relative z-10 py-16 md:py-24 bg-[#000000] text-white border-t border-white/10 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-5xl mx-auto">
+          <div className="text-center max-w-2xl mx-auto mb-14">
+            <span className="text-xs uppercase tracking-widest text-[#2997ff] font-bold mb-2 block">
+              CONTEÚDO DO MASTERCLASS
+            </span>
+            <h2 className="text-3xl sm:text-5xl font-semibold text-white">
+              Conteúdo do Masterclass
+            </h2>
+            <p className="text-base sm:text-lg text-white/60 mt-3 font-normal">
+              Aulas organizadas rigorosamente pelas 5 etapas do processo real de pós-produção e color grading de produto.
+            </p>
+          </div>
 
-        {/* Pipeline Overview Chips */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 mb-10">
-          {[
-            { step: '01. Preparação', desc: 'Gerenciamento & ACES' },
-            { step: '02. Análise & Correção', desc: 'Primárias & Matching' },
-            { step: '03. Refinamento', desc: 'Secundárias & Detalhes' },
-            { step: '04. Criação de Look', desc: 'DIY & Dehancer Pro' },
-            { step: '05. Finalização', desc: 'Deliver & Exportação' },
-          ].map((chip, idx) => (
-            <div key={idx} className="p-3.5 sm:p-4 rounded-2xl bg-[#ffffff] border border-[#e5e5e7] shadow-xs text-center">
-              <span className="text-xs font-bold text-[#0071e3] block">{chip.step}</span>
-              <span className="text-xs text-[#86868b] mt-0.5 block">{chip.desc}</span>
-            </div>
-          ))}
-        </div>
-
-        {/* Accordion List for Expandable Modules */}
-        <div className="space-y-4">
-          {learningModules.map((mod, idx) => {
-            const isOpen = openModule === idx;
-            return (
-              <div
-                key={idx}
-                className="rounded-3xl bg-[#ffffff] border border-[#e5e5e7] overflow-hidden shadow-xs transition-all hover:border-[#0071e3]/30"
-              >
-                <button
-                  onClick={() => toggleModule(idx)}
-                  className="w-full p-6 sm:p-7 text-left flex items-center justify-between gap-4 transition-colors"
-                  aria-expanded={isOpen}
-                >
-                  <div className="flex items-start sm:items-center gap-4">
-                    <span className="w-10 h-10 rounded-2xl bg-[#0071e3]/10 text-[#0071e3] border border-[#0071e3]/20 font-bold text-sm flex items-center justify-center shrink-0">
-                      {mod.num}
-                    </span>
-                    <div>
-                      <h3 className="text-base sm:text-xl font-semibold text-[#1d1d1f]">
-                        {mod.title}
-                      </h3>
-                      <p className="text-xs sm:text-sm text-[#6e6e73] mt-1 font-normal">
-                        {mod.subtitle}
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="shrink-0 w-8 h-8 rounded-full bg-[#f5f5f7] flex items-center justify-center text-sm font-semibold text-[#86868b]">
-                    {isOpen ? '−' : '+'}
-                  </div>
-                </button>
-
-                {isOpen && (
-                  <div className="px-6 pb-6 sm:px-7 sm:pb-7 pt-2 border-t border-[#e5e5e7]/80 bg-[#fafafc]">
-                    <span className="text-xs uppercase font-bold text-[#0071e3] tracking-wider mb-3 block">
-                      Aulas e Tópicos Deste Módulo:
-                    </span>
-                    <div className="space-y-2.5">
-                      {mod.lessons.map((lesson, lIdx) => (
-                        <div
-                          key={lIdx}
-                          className="flex items-start gap-3 text-xs sm:text-sm text-[#1d1d1f] bg-[#ffffff] p-3.5 rounded-2xl border border-[#e5e5e7]"
-                        >
-                          <span className="text-xs font-mono font-bold text-[#0071e3] shrink-0 mt-0.5">
-                            {(lIdx + 1).toString().padStart(2, '0')}.
-                          </span>
-                          <span>{lesson}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
+          {/* Pipeline Overview Chips */}
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 mb-10">
+            {[
+              { step: '01. Preparação', desc: 'Gerenciamento & ACES' },
+              { step: '02. Análise & Correção', desc: 'Primárias & Matching' },
+              { step: '03. Refinamento', desc: 'Secundárias & Detalhes' },
+              { step: '04. Criação de Look', desc: 'DIY & Dehancer Pro' },
+              { step: '05. Finalização', desc: 'Deliver & Exportação' },
+            ].map((chip, idx) => (
+              <div key={idx} className="p-3.5 sm:p-4 rounded-2xl bg-[#161617] border border-white/10 shadow-xs text-center">
+                <span className="text-xs font-bold text-[#2997ff] block">{chip.step}</span>
+                <span className="text-xs text-white/60 mt-0.5 block">{chip.desc}</span>
               </div>
-            );
-          })}
+            ))}
+          </div>
+
+          {/* Accordion List for Expandable Modules with Quadratic Easing */}
+          <div className="space-y-4">
+            {learningModules.map((mod, idx) => {
+              const isOpen = openModule === idx;
+              return (
+                <div
+                  key={idx}
+                  className="rounded-3xl bg-[#161617] border border-white/10 overflow-hidden shadow-sm transition-all duration-300 hover:border-[#2997ff]/40"
+                >
+                  <button
+                    onClick={() => toggleModule(idx)}
+                    className="w-full p-6 sm:p-7 text-left flex items-center justify-between gap-4 transition-colors cursor-pointer"
+                    aria-expanded={isOpen}
+                  >
+                    <div className="flex items-start sm:items-center gap-4">
+                      <span className="w-10 h-10 rounded-2xl bg-[#2997ff]/15 text-[#2997ff] border border-[#2997ff]/30 font-bold text-sm flex items-center justify-center shrink-0">
+                        {mod.num}
+                      </span>
+                      <div>
+                        <h3 className="text-base sm:text-xl font-semibold text-white">
+                          {mod.title}
+                        </h3>
+                        <p className="text-xs sm:text-sm text-white/60 mt-1 font-normal">
+                          {mod.subtitle}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="shrink-0 w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-sm font-semibold text-white/80 transition-transform duration-500 [transition-timing-function:cubic-bezier(0.45,0,0.55,1)]">
+                      <span className={`inline-block transition-transform duration-500 [transition-timing-function:cubic-bezier(0.45,0,0.55,1)] ${isOpen ? 'rotate-45 text-[#2997ff]' : 'rotate-0'}`}>
+                        +
+                      </span>
+                    </div>
+                  </button>
+
+                  <div
+                    className={`grid transition-[grid-template-rows,opacity] duration-500 [transition-timing-function:cubic-bezier(0.45,0,0.55,1)] ${
+                      isOpen ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0 pointer-events-none'
+                    }`}
+                  >
+                    <div className="overflow-hidden">
+                      <div className="px-6 pb-6 sm:px-7 sm:pb-7 pt-2 border-t border-white/10 bg-[#111113]">
+                        <span className="text-xs uppercase font-bold text-[#2997ff] tracking-wider mb-3 block">
+                          Aulas e Tópicos Deste Módulo:
+                        </span>
+                        <div className="space-y-2.5">
+                          {mod.lessons.map((lesson, lIdx) => (
+                            <div
+                              key={lIdx}
+                              className="flex items-start gap-3 text-xs sm:text-sm text-white/90 bg-[#1c1c1e] p-3.5 rounded-2xl border border-white/10"
+                            >
+                              <span className="text-xs font-mono font-bold text-[#2997ff] shrink-0 mt-0.5">
+                                {(lIdx + 1).toString().padStart(2, '0')}.
+                              </span>
+                              <span>{lesson}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
         </div>
       </section>
 
