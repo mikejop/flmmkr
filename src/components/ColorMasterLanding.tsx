@@ -869,9 +869,9 @@ export const ColorMasterLanding: React.FC = () => {
 
             {/* Checklist of What's Included */}
             <div className="text-left space-y-3.5 max-w-lg mx-auto mb-8 text-sm sm:text-base text-[#1d1d1f] border-y border-[#e5e5e7] py-6">
-              <div className="font-semibold text-[#1d1d1f] bg-[#0071e3]/10 p-3.5 rounded-2xl border border-[#0071e3]/20 flex items-center justify-between">
+              <div className="py-1 border-b border-[#e5e5e7]/50 flex items-center justify-between font-bold text-[#1d1d1f]">
                 <span>• Mentoria de 4 Semanas para os 10 primeiros</span>
-                <span className="text-[10px] uppercase font-bold tracking-wider bg-[#0071e3] text-white px-2.5 py-0.5 rounded-full">
+                <span className="text-[10px] uppercase font-bold tracking-wider bg-[#0071e3] text-white px-2.5 py-0.5 rounded-full shrink-0">
                   Bônus
                 </span>
               </div>
