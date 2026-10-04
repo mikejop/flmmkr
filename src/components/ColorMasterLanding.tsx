@@ -24,6 +24,7 @@ export const ColorMasterLanding: React.FC = () => {
   const [openFaq, setOpenFaq] = useState<number | null>(null);
   const [openModule, setOpenModule] = useState<number | null>(null);
   const [loginModalOpen, setLoginModalOpen] = useState<boolean>(false);
+  const [showStickyTimer, setShowStickyTimer] = useState<boolean>(false);
 
   // 15-Minute Countdown & Batch Price State
   const [timeLeft, setTimeLeft] = useState<number>(900); // 15 minutos em segundos
@@ -41,6 +42,22 @@ export const ColorMasterLanding: React.FC = () => {
     batchName: 'Lote Especial de Abertura',
     nextPriceDate: '06/10/2026'
   });
+
+  useEffect(() => {
+    const handleScroll = () => {
+      const heroSection = document.getElementById('hero-section');
+      if (heroSection) {
+        const rect = heroSection.getBoundingClientRect();
+        setShowStickyTimer(rect.bottom <= 120);
+      } else {
+        setShowStickyTimer(window.scrollY > window.innerHeight * 0.7);
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    handleScroll();
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   useEffect(() => {
     setAuthorPhotos(getRandomAuthorPhotos());
@@ -276,12 +293,18 @@ export const ColorMasterLanding: React.FC = () => {
       {/* Login Modal */}
       <LoginModal isOpen={loginModalOpen} onClose={() => setLoginModalOpen(false)} />
 
-      {/* TOP FIXED COUNTDOWN BANNER (15 MIN TIMER & BATCH PRICING) */}
-      <div className={`sticky top-0 z-60 w-full transition-colors duration-300 ${
-        isExpired 
-          ? 'bg-[#1c1c1e] text-white border-b border-red-500/30' 
-          : 'bg-gradient-to-r from-[#0071e3] via-[#0051a8] to-[#0071e3] text-white border-b border-white/20'
-      } shadow-md`}>
+      {/* TOP FIXED COUNTDOWN BANNER (SÓ APARECE APÓS SAIR DA HERO) */}
+      <div
+        className={`fixed top-0 inset-x-0 z-50 w-full transition-all duration-400 [transition-timing-function:cubic-bezier(0.45,0,0.55,1)] ${
+          showStickyTimer
+            ? 'translate-y-0 opacity-100 pointer-events-auto'
+            : '-translate-y-full opacity-0 pointer-events-none'
+        } ${
+          isExpired
+            ? 'bg-[#1c1c1e]/95 text-white border-b border-red-500/30'
+            : 'bg-gradient-to-r from-[#0071e3] via-[#0051a8] to-[#0071e3] text-white border-b border-white/20'
+        } backdrop-blur-md shadow-md`}
+      >
         <div className="max-w-6xl mx-auto px-4 py-2 sm:py-2.5 flex flex-wrap items-center justify-between gap-2 text-xs sm:text-sm font-medium">
           <div className="flex items-center gap-2">
             {!isExpired ? (
@@ -335,7 +358,9 @@ export const ColorMasterLanding: React.FC = () => {
 
       {/* Glassmorphism Header Navigation */}
       <header
-        className="sticky top-9 sm:top-10 z-50 w-full border-b border-white/10 shadow-[0_8px_32px_-4px_rgba(0,0,0,0.5)] transition-all duration-300"
+        className={`sticky z-40 w-full border-b border-white/10 shadow-[0_8px_32px_-4px_rgba(0,0,0,0.5)] transition-all duration-300 ${
+          showStickyTimer ? 'top-[41px] sm:top-[42px]' : 'top-0'
+        }`}
         style={{ background: 'rgba(14,14,18,0.85)', backdropFilter: 'blur(28px) saturate(180%)', WebkitBackdropFilter: 'blur(28px) saturate(180%)' }}
       >
         <div className="absolute inset-x-0 top-0 h-[1px] bg-gradient-to-r from-transparent via-white/20 to-transparent pointer-events-none z-20" />
@@ -370,7 +395,7 @@ export const ColorMasterLanding: React.FC = () => {
       {/* ========================================================================= */}
       {/* 01. HERO: APRESENTAÇÃO DO PRODUTO (PRIORIDADE MÁXIMA)                     */}
       {/* ========================================================================= */}
-      <section className="relative z-10 overflow-hidden min-h-[100dvh] flex flex-col justify-center pt-16 pb-20 md:pt-24 md:pb-24 px-4 sm:px-6 lg:px-8 bg-black">
+      <section id="hero-section" className="relative z-10 overflow-hidden min-h-[100dvh] flex flex-col justify-center pt-16 pb-20 md:pt-24 md:pb-24 px-4 sm:px-6 lg:px-8 bg-black">
         {/* Background Video Layer with Retícula Overlay */}
         <div className="absolute inset-0 w-full h-full overflow-hidden pointer-events-none select-none z-0">
           <iframe
