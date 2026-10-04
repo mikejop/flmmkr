@@ -22,6 +22,7 @@ export async function POST(req: NextRequest) {
       installments = 1,
       creditCard,
       creditCardHolderInfo,
+      billingInfo,
       isExpired = false
     } = requestData;
 
@@ -43,17 +44,24 @@ export async function POST(req: NextRequest) {
       productDescription = 'Color Master Completo - FLMMKR';
     }
 
-    // 3. Buscar ou criar cliente no Asaas
+    // Determinar dados de cobrança (se foram informados dados diferentes do cadastro)
+    const payerName = billingInfo?.name || name;
+    const payerEmail = billingInfo?.email || email;
+    const payerCpf = billingInfo?.cpfCnpj || cpfCnpj;
+    const payerPhone = billingInfo?.phone || phone;
+    const payerAddress = billingInfo?.address || address;
+
+    // 3. Buscar ou criar cliente no Asaas com dados do pagador
     const customer = await asaasService.findOrCreateCustomer({
-      name,
-      email,
-      cpfCnpj,
-      phone,
-      postalCode: address?.postalCode,
-      address: address?.street,
-      addressNumber: address?.number,
-      complement: address?.complement,
-      province: address?.neighborhood
+      name: payerName,
+      email: payerEmail,
+      cpfCnpj: payerCpf,
+      phone: payerPhone,
+      postalCode: payerAddress?.postalCode,
+      address: payerAddress?.street,
+      addressNumber: payerAddress?.number,
+      complement: payerAddress?.complement,
+      province: payerAddress?.neighborhood
     });
 
     // 4. Data de vencimento
@@ -74,12 +82,12 @@ export async function POST(req: NextRequest) {
           installmentCount: Number(installments) > 1 ? Number(installments) : undefined,
           creditCard,
           creditCardHolderInfo: creditCardHolderInfo || {
-            name,
-            email,
-            cpfCnpj: cpfCnpj.replace(/\D/g, ''),
-            postalCode: address?.postalCode?.replace(/\D/g, '') || '',
-            addressNumber: address?.number || 'S/N',
-            phone: phone?.replace(/\D/g, '') || ''
+            name: payerName,
+            email: payerEmail,
+            cpfCnpj: payerCpf.replace(/\D/g, ''),
+            postalCode: payerAddress?.postalCode?.replace(/\D/g, '') || '',
+            addressNumber: payerAddress?.number || 'S/N',
+            phone: payerPhone?.replace(/\D/g, '') || ''
           }
         });
 

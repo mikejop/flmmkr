@@ -4,8 +4,17 @@
  * Secret keys are never exposed to browser clients.
  */
 
-const ASAAS_API_URL = process.env.ASAAS_API_URL || 'https://api.asaas.com/v3';
-const ASAAS_API_KEY = process.env.ASAAS_API_KEY || '';
+function getAsaasApiUrl(): string {
+  return process.env.ASAAS_API_URL || 'https://api.asaas.com/v3';
+}
+
+function getAsaasApiKey(): string {
+  return (
+    process.env.ASAAS_API_KEY ||
+    process.env.ASAAS_ACCESS_TOKEN ||
+    ''
+  ).trim();
+}
 
 interface AsaasCustomerInput {
   name: string;
@@ -46,16 +55,18 @@ interface AsaasPaymentInput {
 }
 
 async function asaasFetch<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
-  if (!ASAAS_API_KEY) {
+  const apiKey = getAsaasApiKey();
+  if (!apiKey) {
     throw new Error('ASAAS_API_KEY is not configured on the server.');
   }
 
-  const url = `${ASAAS_API_URL}${endpoint.startsWith('/') ? endpoint : `/${endpoint}`}`;
+  const baseUrl = getAsaasApiUrl();
+  const url = `${baseUrl}${endpoint.startsWith('/') ? endpoint : `/${endpoint}`}`;
   const response = await fetch(url, {
     ...options,
     headers: {
       'Content-Type': 'application/json',
-      'access_token': ASAAS_API_KEY,
+      'access_token': apiKey,
       ...(options.headers || {})
     }
   });
