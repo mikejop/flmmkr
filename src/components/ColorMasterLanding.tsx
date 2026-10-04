@@ -894,22 +894,19 @@ export const ColorMasterLanding: React.FC = () => {
               className="absolute inset-0 bg-cover bg-center transition-opacity duration-1000 ease-in-out transform scale-105"
               style={{
                 backgroundImage: `url('${img.src}')`,
-                opacity: activeOfferBg === idx ? 0.35 : 0,
+                opacity: activeOfferBg === idx ? 1 : 0,
               }}
             />
           ))}
 
-          {/* Retícula Overlay */}
+          {/* Pure Retícula Overlay (Black dots grid filter only) */}
           <div
             className="absolute inset-0 z-1 pointer-events-none"
             style={{
-              backgroundImage: `radial-gradient(circle, rgba(0, 0, 0, 0.45) 1.2px, transparent 1.2px)`,
+              backgroundImage: `radial-gradient(circle, rgba(0, 0, 0, 0.8) 1.2px, transparent 1.2px)`,
               backgroundSize: '5px 5px',
             }}
           />
-
-          {/* Vignette / Gradient overlays for contrast */}
-          <div className="absolute inset-0 z-2 bg-gradient-to-b from-[#f5f5f7] via-[#f5f5f7]/50 to-[#f5f5f7]" />
         </div>
 
         <div className="max-w-3xl mx-auto text-center relative z-10 w-full">
