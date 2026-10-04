@@ -664,10 +664,10 @@ export const ColorMasterLanding: React.FC = () => {
       {/* ========================================================================= */}
       {/* 05. QUEM ENSINA: MICHAEL OLIVEIRA                                         */}
       {/* ========================================================================= */}
-      <section className="relative z-10 py-16 md:py-24 bg-[#f5f5f7] px-4 sm:px-6 lg:px-8 overflow-hidden">
+      <section className="relative z-10 min-h-[100dvh] flex flex-col justify-center py-12 md:py-16 bg-[#f5f5f7] px-4 sm:px-6 lg:px-8 overflow-hidden">
         <ReticulaBackground bgImageSrc={authorPhotos.bgSrc} />
 
-        <div className="max-w-5xl mx-auto relative z-10 w-full">
+        <div className="max-w-5xl mx-auto relative z-10 w-full my-auto">
           <div className="rounded-3xl bg-[#ffffff]/90 backdrop-blur-md border border-[#e5e5e7] p-8 sm:p-12 shadow-sm">
             <div className="grid grid-cols-1 md:grid-cols-12 gap-8 items-center">
               {/* Teacher Photo */}
