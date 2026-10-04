@@ -572,19 +572,19 @@ export const ColorMasterLanding: React.FC = () => {
         <div className="relative z-10 max-w-5xl mx-auto w-full">
           <div className="flex flex-col items-center text-center max-w-3xl mx-auto mb-6 sm:mb-10">
             {/* Masterclass Identification Badge */}
-            <div className="inline-flex items-center px-3 sm:px-4 py-1 sm:py-1.5 rounded-full bg-black/60 backdrop-blur-md text-white/90 text-[11px] sm:text-xs font-semibold mb-3.5 sm:mb-5 border border-white/20 shadow-sm">
+            <div className="inline-flex items-center px-3.5 sm:px-4 py-1 sm:py-1.5 rounded-full bg-black/60 backdrop-blur-md text-white/90 text-[12px] sm:text-xs font-semibold tracking-[0.04em] mb-4 sm:mb-5 border border-white/20 shadow-sm">
               <span className="tracking-wide uppercase font-semibold text-[#2997ff]">MASTERCLASS</span>
               <span className="mx-1.5 sm:mx-2 text-white/30">•</span>
               <span className="tracking-wide uppercase">COLOR MASTER | PRODUTO</span>
             </div>
 
-            {/* Headline H1 with Fluid Clamp */}
-            <h1 className="text-[clamp(1.85rem,5.5vw,4.5rem)] font-semibold tracking-tight text-white leading-[1.08] mb-3.5 sm:mb-6 drop-shadow-xl max-w-4xl mx-auto">
+            {/* Headline H1 with Apple Mobile Typographic Scale (34px mobile / 72px desktop) */}
+            <h1 className="text-[34px] leading-[1.08] sm:text-6xl lg:text-7xl font-semibold tracking-[-0.015em] text-white mb-3.5 sm:mb-6 drop-shadow-xl max-w-4xl mx-auto">
               Potencialize seu trabalho com color grading.
             </h1>
 
-            {/* Subtitle */}
-            <p className="text-sm sm:text-lg md:text-xl text-white/90 font-normal leading-relaxed mb-5 sm:mb-8 max-w-2xl drop-shadow-md">
+            {/* Subtitle (Apple mobile subhead: 19px, leading 1.32) */}
+            <p className="text-[19px] sm:text-xl text-white/80 font-normal leading-[1.32] mb-6 sm:mb-8 max-w-2xl drop-shadow-md">
               Trabalhe a cor com mais precisão, do material recebido ao look final, usando o DaVinci Resolve em projetos de produto para publicidade e conteúdos.
             </p>
 
@@ -593,59 +593,59 @@ export const ColorMasterLanding: React.FC = () => {
               {!isExpired ? (
                 <>
                   <div className="flex items-baseline gap-1 sm:gap-1.5">
-                    <span className="text-[11px] sm:text-sm text-white/70 font-medium">12x de</span>
-                    <span className="text-xl sm:text-3xl font-extrabold text-white tracking-tight">
+                    <span className="text-[12px] sm:text-sm text-white/70 font-medium">12x de</span>
+                    <span className="text-[22px] sm:text-3xl font-extrabold text-white tracking-tight">
                       R$ {(priceData.promoPrice / 12).toFixed(2).replace('.', ',')}
                     </span>
                   </div>
                   <span className="text-white/30 hidden sm:inline">•</span>
-                  <div className="flex items-center gap-1.5 text-[11px] sm:text-sm text-white/70">
+                  <div className="flex items-center gap-1.5 text-[13px] sm:text-sm text-white/70">
                     <span className="line-through text-white/40">R$ 195</span>
                     <span>ou <strong className="text-white font-bold text-[130%] sm:text-inherit">R$ {priceData.promoPrice}</strong> no Pix</span>
                   </div>
                   <span className="text-white/30 hidden sm:inline">•</span>
-                  <span className="text-[11px] sm:text-sm text-white/80 font-medium">1 Ano de Acesso</span>
+                  <span className="text-[12px] sm:text-sm text-white/80 font-medium">1 Ano de Acesso</span>
                 </>
               ) : (
                 <>
                   <div className="flex items-baseline gap-1 sm:gap-1.5">
-                    <span className="text-[11px] sm:text-sm text-white/70 font-medium">12x de</span>
-                    <span className="text-xl sm:text-3xl font-extrabold text-white tracking-tight">
+                    <span className="text-[12px] sm:text-sm text-white/70 font-medium">12x de</span>
+                    <span className="text-[22px] sm:text-3xl font-extrabold text-white tracking-tight">
                       R$ 16,25
                     </span>
                   </div>
                   <span className="text-white/30 hidden sm:inline">•</span>
-                  <div className="flex items-center gap-1.5 text-[11px] sm:text-sm text-white/70">
+                  <div className="flex items-center gap-1.5 text-[13px] sm:text-sm text-white/70">
                     <span>
                       ou <strong className="text-white font-bold text-[130%] sm:text-inherit">R$ 195</strong> no Pix
                     </span>
                   </div>
                   <span className="text-white/30 hidden sm:inline">•</span>
-                  <span className="text-[11px] sm:text-sm text-white/80 font-medium">1 Ano de Acesso</span>
+                  <span className="text-[12px] sm:text-sm text-white/80 font-medium">1 Ano de Acesso</span>
                 </>
               )}
             </div>
 
-            {/* Main CTAs */}
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-4 w-full sm:w-auto mb-4">
+            {/* Main CTAs (Apple button typography: 14px / text-sm, compact pill) */}
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-2.5 sm:gap-4 w-full sm:w-auto mb-4">
               <a
                 href="#oferta"
                 onClick={() => trackProductClick('color-master-produto', 'Color Master Hero CTA', '#oferta', 'other')}
-                className="w-full max-w-[260px] sm:max-w-none sm:w-auto px-5 sm:px-8 py-2.5 sm:py-4 rounded-full bg-[#0071e3] hover:bg-[#0077ed] text-white font-semibold text-xs sm:text-base transition-all shadow-[0_3px_14px_rgba(0,113,227,0.4)] flex items-center justify-center active:scale-95 cursor-pointer"
+                className="w-full max-w-[260px] sm:max-w-none sm:w-auto px-5 sm:px-8 py-2.5 sm:py-4 rounded-full bg-[#0071e3] hover:bg-[#0077ed] text-white font-semibold text-[14px] sm:text-base transition-all shadow-[0_3px_14px_rgba(0,113,227,0.4)] flex items-center justify-center active:scale-95 cursor-pointer"
               >
                 {!isExpired ? `Garantir por R$ ${priceData.promoPrice}` : 'Garantir Acesso à Masterclass'}
               </a>
 
               <a
                 href="#aprendizado"
-                className="w-full max-w-[260px] sm:max-w-none sm:w-auto px-4 sm:px-6 py-2 sm:py-4 rounded-full bg-white/10 hover:bg-white/20 text-white font-medium text-[11px] sm:text-sm transition-all border border-white/20 flex items-center justify-center active:scale-95 cursor-pointer"
+                className="w-full max-w-[260px] sm:max-w-none sm:w-auto px-4 sm:px-6 py-2.5 sm:py-4 rounded-full bg-white/10 hover:bg-white/20 text-white font-normal text-[14px] sm:text-sm transition-all border border-white/20 flex items-center justify-center active:scale-95 cursor-pointer"
               >
                 Ver Conteúdo Completo
               </a>
             </div>
 
             {/* Trust highlights */}
-            <div className="flex flex-wrap items-center justify-center gap-x-4 sm:gap-x-6 gap-y-1.5 sm:gap-y-2 mt-3 sm:mt-4 text-xs sm:text-sm text-white/80 font-normal">
+            <div className="flex flex-wrap items-center justify-center gap-x-4 sm:gap-x-6 gap-y-1.5 sm:gap-y-2 mt-3 sm:mt-4 text-[12px] sm:text-sm text-white/70 font-normal">
               <div className="flex items-center gap-1.5">
                 <span className="text-[#2997ff] font-bold">•</span>
                 <span>1 Ano de Acesso</span>
@@ -669,13 +669,13 @@ export const ColorMasterLanding: React.FC = () => {
       <section id="aprendizado" className="relative z-10 scroll-mt-14 sm:scroll-mt-20 py-12 sm:py-16 md:py-24 bg-[#000000] text-white px-4 sm:px-6 lg:px-8">
         <div className="max-w-5xl mx-auto">
           <div className="text-center max-w-2xl mx-auto mb-10 sm:mb-14">
-            <span className="text-xs uppercase tracking-widest text-[#2997ff] font-bold mb-2 block">
+            <span className="text-[12px] uppercase tracking-[0.04em] text-[#2997ff] font-semibold mb-2 block">
               CONTEÚDO DO MASTERCLASS
             </span>
-            <h2 className="text-2xl sm:text-4xl md:text-5xl font-semibold text-white">
+            <h2 className="text-[28px] leading-[1.14] sm:text-4xl md:text-5xl font-semibold tracking-[-0.015em] text-white">
               Conteúdo do Masterclass
             </h2>
-            <p className="text-sm sm:text-base md:text-lg text-white/60 mt-3 font-normal max-w-xl mx-auto">
+            <p className="text-[17px] leading-[1.47] sm:text-base md:text-lg text-white/70 mt-2.5 sm:mt-3 font-normal max-w-xl mx-auto">
               Aulas organizadas rigorosamente pelas 5 etapas do processo real de pós-produção e color grading de produto.
             </p>
           </div>
@@ -690,8 +690,8 @@ export const ColorMasterLanding: React.FC = () => {
               { step: '05. Finalização', desc: 'Deliver & Exportação' },
             ].map((chip, idx) => (
               <div key={idx} className="p-3 sm:p-4 rounded-xl sm:rounded-2xl bg-[#161617] border border-white/10 shadow-xs text-center">
-                <span className="text-[11px] sm:text-xs font-bold text-[#2997ff] block">{chip.step}</span>
-                <span className="text-[10px] sm:text-xs text-white/60 mt-0.5 block truncate sm:overflow-visible">{chip.desc}</span>
+                <span className="text-[12px] sm:text-xs font-semibold text-[#2997ff] block">{chip.step}</span>
+                <span className="text-[11px] sm:text-xs text-white/70 mt-0.5 block truncate sm:overflow-visible">{chip.desc}</span>
               </div>
             ))}
           </div>
@@ -715,10 +715,10 @@ export const ColorMasterLanding: React.FC = () => {
                         {mod.num}
                       </span>
                       <div className="min-w-0">
-                        <h3 className="text-sm sm:text-lg md:text-xl font-semibold text-white truncate sm:overflow-visible">
+                        <h3 className="text-[17px] sm:text-lg md:text-xl font-semibold text-white leading-snug truncate sm:overflow-visible">
                           {mod.title}
                         </h3>
-                        <p className="text-xs sm:text-sm text-white/60 mt-0.5 sm:mt-1 font-normal line-clamp-1 sm:line-clamp-none">
+                        <p className="text-[13px] sm:text-sm text-white/70 mt-0.5 sm:mt-1 font-normal line-clamp-1 sm:line-clamp-none">
                           {mod.subtitle}
                         </p>
                       </div>
@@ -738,14 +738,14 @@ export const ColorMasterLanding: React.FC = () => {
                   >
                     <div className="overflow-hidden">
                       <div className="px-4 pb-4 sm:px-7 sm:pb-7 pt-2 border-t border-white/10 bg-[#111113]">
-                        <span className="text-xs uppercase font-bold text-[#2997ff] tracking-wider mb-2.5 sm:mb-3 block">
+                        <span className="text-[12px] uppercase font-semibold text-[#2997ff] tracking-[0.04em] mb-2.5 sm:mb-3 block">
                           Aulas e Tópicos Deste Módulo:
                         </span>
                         <div className="space-y-2 sm:space-y-2.5">
                           {mod.lessons.map((lesson, lIdx) => (
                             <div
                               key={lIdx}
-                              className="flex items-start gap-2.5 sm:gap-3 text-xs sm:text-sm text-white/90 bg-[#1c1c1e] p-3 sm:p-3.5 rounded-xl sm:rounded-2xl border border-white/10"
+                              className="flex items-start gap-2.5 sm:gap-3 text-[14px] sm:text-sm leading-normal text-white/90 bg-[#1c1c1e] p-3 sm:p-3.5 rounded-xl sm:rounded-2xl border border-white/10"
                             >
                               <span className="text-xs font-mono font-bold text-[#2997ff] shrink-0 mt-0.5">
                                 {(lIdx + 1).toString().padStart(2, '0')}.
@@ -770,13 +770,13 @@ export const ColorMasterLanding: React.FC = () => {
       <section className="relative z-10 min-h-[100dvh] flex flex-col justify-center py-12 md:py-16 bg-[#f5f5f7] px-4 sm:px-6 lg:px-8 overflow-hidden">
         <div className="max-w-5xl mx-auto w-full my-auto">
           <div className="text-center max-w-2xl mx-auto mb-10 sm:mb-12">
-            <span className="text-xs uppercase tracking-widest text-[#0071e3] font-bold mb-2 block">
+            <span className="text-[12px] uppercase tracking-[0.04em] text-[#0071e3] font-semibold mb-2 block">
               MERCADO DE TRABALHO REAL
             </span>
-            <h2 className="text-2xl sm:text-4xl md:text-5xl font-semibold text-[#1d1d1f]">
+            <h2 className="text-[28px] leading-[1.14] sm:text-4xl md:text-5xl font-semibold tracking-[-0.015em] text-[#1d1d1f]">
               Aplicação Profissional
             </h2>
-            <p className="text-sm sm:text-base md:text-lg text-[#6e6e73] mt-2.5 sm:mt-3 font-normal max-w-xl mx-auto">
+            <p className="text-[17px] leading-[1.47] sm:text-base md:text-lg text-[#6e6e73] mt-2.5 sm:mt-3 font-normal max-w-xl mx-auto">
               Domine as competências mais cobradas em produtoras, agências e clientes de alta exigência.
             </p>
           </div>
@@ -785,17 +785,17 @@ export const ColorMasterLanding: React.FC = () => {
             {/* Card 1: Publicidade */}
             <div className="p-6 sm:p-8 md:p-10 rounded-2xl sm:rounded-3xl bg-[#ffffff] border border-[#e5e5e7] shadow-sm flex flex-col justify-between hover:border-[#0071e3]/30 transition-all">
               <div>
-                <span className="inline-block px-3 sm:px-3.5 py-1 rounded-full bg-[#0071e3]/10 text-[#0071e3] text-xs uppercase tracking-wider font-bold mb-3 sm:mb-4 border border-[#0071e3]/20">
+                <span className="inline-block px-3 sm:px-3.5 py-1 rounded-full bg-[#0071e3]/10 text-[#0071e3] text-[11px] sm:text-xs uppercase tracking-[0.04em] font-semibold mb-3 sm:mb-4 border border-[#0071e3]/20">
                   PUBLICIDADE
                 </span>
-                <h3 className="text-xl sm:text-2xl font-semibold text-[#1d1d1f] mb-2 sm:mb-3">
+                <h3 className="text-[21px] leading-[1.24] sm:text-2xl font-semibold text-[#1d1d1f] mb-2 sm:mb-3">
                   Comerciais & Campanhas de TV
                 </h3>
-                <p className="text-sm sm:text-base text-[#6e6e73] leading-relaxed">
+                <p className="text-[15px] sm:text-base text-[#6e6e73] leading-[1.5]">
                   Leve projetos de produto a um acabamento visual à altura da publicidade. Trabalhe cor, contraste, consistência entre planos e construção de look para valorizar o produto e dar ao projeto a qualidade visual esperada em uma entrega para televisão.
                 </p>
               </div>
-              <div className="mt-6 sm:mt-8 pt-4 border-t border-[#e5e5e7] text-xs font-semibold text-[#1d1d1f]">
+              <div className="mt-6 sm:mt-8 pt-4 border-t border-[#e5e5e7] text-[12px] font-semibold text-[#1d1d1f]">
                 Padrão Broadcast
               </div>
             </div>
@@ -803,17 +803,17 @@ export const ColorMasterLanding: React.FC = () => {
             {/* Card 2: Conteúdo */}
             <div className="p-6 sm:p-8 md:p-10 rounded-2xl sm:rounded-3xl bg-[#ffffff] border border-[#e5e5e7] shadow-sm flex flex-col justify-between hover:border-[#0071e3]/30 transition-all">
               <div>
-                <span className="inline-block px-3 sm:px-3.5 py-1 rounded-full bg-[#0071e3]/10 text-[#0071e3] text-xs uppercase tracking-wider font-bold mb-3 sm:mb-4 border border-[#0071e3]/20">
+                <span className="inline-block px-3 sm:px-3.5 py-1 rounded-full bg-[#0071e3]/10 text-[#0071e3] text-[11px] sm:text-xs uppercase tracking-[0.04em] font-semibold mb-3 sm:mb-4 border border-[#0071e3]/20">
                   CONTEÚDO
                 </span>
-                <h3 className="text-xl sm:text-2xl font-semibold text-[#1d1d1f] mb-2 sm:mb-3">
+                <h3 className="text-[21px] leading-[1.24] sm:text-2xl font-semibold text-[#1d1d1f] mb-2 sm:mb-3">
                   Filmes Digitais & Social Media
                 </h3>
-                <p className="text-sm sm:text-base text-[#6e6e73] leading-relaxed">
+                <p className="text-[15px] sm:text-base text-[#6e6e73] leading-[1.5]">
                   Do conteúdo para YouTube aos vídeos de produto para redes sociais, o trabalho de cor ajuda a manter unidade, valorizar o que está em cena e dar mais qualidade visual a cada entrega.
                 </p>
               </div>
-              <div className="mt-6 sm:mt-8 pt-4 border-t border-[#e5e5e7] text-xs font-semibold text-[#1d1d1f]">
+              <div className="mt-6 sm:mt-8 pt-4 border-t border-[#e5e5e7] text-[12px] font-semibold text-[#1d1d1f]">
                 Alta Performance no Digital
               </div>
             </div>
@@ -822,19 +822,19 @@ export const ColorMasterLanding: React.FC = () => {
           {/* Practical Callout Banner */}
           <div className="p-6 sm:p-8 md:p-10 rounded-2xl sm:rounded-3xl bg-[#ffffff] border border-[#0071e3]/30 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-6">
             <div className="max-w-2xl">
-              <span className="text-xs font-bold text-[#0071e3] uppercase tracking-wider block mb-1">
+              <span className="text-[12px] font-semibold text-[#0071e3] uppercase tracking-[0.04em] block mb-1">
                 Nada de Simulacro
               </span>
-              <h3 className="text-lg sm:text-2xl font-semibold text-[#1d1d1f] mb-2 leading-snug">
+              <h3 className="text-[19px] sm:text-2xl font-semibold text-[#1d1d1f] mb-2 leading-[1.3] tracking-[-0.01em]">
                 "Você não vai aprender usando imagens aleatórias, mas sim em projetos reais, com problemas reais e soluções reais."
               </h3>
-              <p className="text-sm sm:text-base text-[#6e6e73] leading-relaxed">
+              <p className="text-[15px] sm:text-base text-[#6e6e73] leading-[1.5]">
                 Nada na nossa metodologia simula projetos de clientes que nunca existiram. Tudo é feito baseado em projetos reais, que fizemos para nossos clientes. Você vai aprender o workflow que funciona no mundo real e as soluções usadas dentro de um projeto que passou pelo crivo do cliente.
               </p>
             </div>
             <a
               href="#oferta"
-              className="w-full max-w-[260px] sm:max-w-none sm:w-auto px-5 sm:px-6 py-2.5 sm:py-3.5 rounded-full bg-[#0071e3] hover:bg-[#0077ed] text-white font-semibold text-xs sm:text-sm transition-all shrink-0 active:scale-95 shadow-md flex items-center justify-center cursor-pointer"
+              className="w-full max-w-[260px] sm:max-w-none sm:w-auto px-5 sm:px-6 py-2.5 sm:py-3.5 rounded-full bg-[#0071e3] hover:bg-[#0077ed] text-white font-semibold text-[14px] sm:text-sm transition-all shrink-0 active:scale-95 shadow-md flex items-center justify-center cursor-pointer"
             >
               Garantir Minha Vaga
             </a>
@@ -873,14 +873,14 @@ export const ColorMasterLanding: React.FC = () => {
 
               {/* Teacher Bio */}
               <div className="md:col-span-8 flex flex-col items-start">
-                <span className="text-xs uppercase tracking-widest text-[#0071e3] font-bold mb-1.5 sm:mb-2 block">
+                <span className="text-[12px] uppercase tracking-[0.04em] text-[#0071e3] font-semibold mb-1.5 sm:mb-2 block">
                   INSTRUTOR DA MASTERCLASS
                 </span>
-                <h2 className="text-2xl sm:text-3xl md:text-4xl font-semibold tracking-tight text-[#1d1d1f] mb-3 sm:mb-4">
+                <h2 className="text-[28px] leading-[1.14] sm:text-3xl md:text-4xl font-semibold tracking-[-0.015em] text-[#1d1d1f] mb-3 sm:mb-4">
                   Michael Oliveira
                 </h2>
 
-                <div className="space-y-3 sm:space-y-4 text-sm sm:text-base md:text-lg text-[#6e6e73] leading-relaxed font-normal">
+                <div className="space-y-3 sm:space-y-4 text-[16px] sm:text-base md:text-lg text-[#6e6e73] leading-[1.55] font-normal">
                   <p>
                     <span className="font-semibold text-[#1d1d1f]">Diretor, diretor de fotografia, colorista e finalizador</span> com <span className="font-medium text-[#3a3a3c]">mais de 20 anos de experiência prática no mercado audiovisual</span>.
                   </p>
@@ -894,12 +894,12 @@ export const ColorMasterLanding: React.FC = () => {
 
                 {/* Highlights pills */}
                 <div className="grid grid-cols-2 gap-2.5 sm:gap-4 mt-6 sm:mt-8 w-full max-w-lg">
-                  <div className="p-3 sm:p-4 rounded-xl sm:rounded-2xl bg-[#ffffff] border border-[#e5e5e7] text-xs sm:text-sm text-[#6e6e73] shadow-xs">
-                    <span className="font-bold text-[#0071e3] block text-sm sm:text-base">+20 ANOS</span>
+                  <div className="p-3 sm:p-4 rounded-xl sm:rounded-2xl bg-[#ffffff] border border-[#e5e5e7] text-[12px] sm:text-sm text-[#6e6e73] shadow-xs">
+                    <span className="font-bold text-[#0071e3] block text-[16px] sm:text-base">+20 ANOS</span>
                     <span>Experiência Audiovisual</span>
                   </div>
-                  <div className="p-3 sm:p-4 rounded-xl sm:rounded-2xl bg-[#ffffff] border border-[#e5e5e7] text-xs sm:text-sm text-[#6e6e73] shadow-xs">
-                    <span className="font-bold text-[#0071e3] block text-sm sm:text-base">EX-PROFESSOR</span>
+                  <div className="p-3 sm:p-4 rounded-xl sm:rounded-2xl bg-[#ffffff] border border-[#e5e5e7] text-[12px] sm:text-sm text-[#6e6e73] shadow-xs">
+                    <span className="font-bold text-[#0071e3] block text-[16px] sm:text-base">EX-PROFESSOR</span>
                     <span>EBAC Color Grading</span>
                   </div>
                 </div>
@@ -908,7 +908,7 @@ export const ColorMasterLanding: React.FC = () => {
 
             {/* Produtoras Atendidas Carousel */}
             <div className="mt-8 pt-6 sm:mt-10 sm:pt-8 border-t border-[#e5e5e7]/80 w-full">
-              <span className="text-xs uppercase tracking-widest text-[#86868b] font-semibold mb-3 sm:mb-4 block text-center sm:text-left">
+              <span className="text-[12px] uppercase tracking-[0.04em] text-[#86868b] font-semibold mb-3 sm:mb-4 block text-center sm:text-left">
                 Produtoras Atendidas e Projetos Relevantes
               </span>
               <div
@@ -983,37 +983,37 @@ export const ColorMasterLanding: React.FC = () => {
             />
             
             <div className="relative z-10">
-              <div className="inline-flex items-center px-3 sm:px-3.5 py-1 sm:py-1.5 rounded-full bg-[#0071e3]/15 border border-[#0071e3]/30 text-[#2997ff] text-[11px] sm:text-xs font-semibold uppercase tracking-wider mb-4 sm:mb-6">
+              <div className="inline-flex items-center px-3 sm:px-3.5 py-1 sm:py-1.5 rounded-full bg-[#0071e3]/15 border border-[#0071e3]/30 text-[#2997ff] text-[12px] sm:text-xs font-semibold uppercase tracking-[0.04em] mb-4 sm:mb-6">
                 BÔNUS EXCLUSIVO
               </div>
 
-              <h2 className="text-2xl sm:text-3xl md:text-5xl font-semibold tracking-tight text-white mb-3 sm:mb-4 leading-tight">
+              <h2 className="text-[26px] leading-[1.18] sm:text-3xl md:text-5xl font-semibold tracking-[-0.015em] text-white mb-3 sm:mb-4">
                 Mentoria em Grupo ao Vivo com Análise dos Seus Trabalhos
               </h2>
 
-              <p className="text-sm sm:text-lg md:text-xl text-white/80 font-normal leading-relaxed mb-6 sm:mb-8 max-w-3xl">
+              <p className="text-[17px] leading-[1.47] sm:text-lg md:text-xl text-white/80 font-normal mb-6 sm:mb-8 max-w-3xl">
                 Bônus especial de aceleração garantido para os <strong className="text-[#2997ff] font-semibold">10 primeiros inscritos</strong> na Masterclass Color Master | Produto.
               </p>
 
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 mb-6 sm:mb-8">
                 <div className="p-4 sm:p-5 rounded-xl sm:rounded-2xl bg-white/5 border border-white/10">
-                  <span className="text-[11px] sm:text-xs uppercase tracking-wider text-[#2997ff] font-semibold block mb-1">Duração</span>
-                  <span className="text-lg sm:text-xl font-bold text-white block">4 Semanas</span>
-                  <span className="text-xs text-white/60 mt-1 block">Acompanhamento estruturado</span>
+                  <span className="text-[12px] sm:text-xs uppercase tracking-[0.04em] text-[#2997ff] font-semibold block mb-1">Duração</span>
+                  <span className="text-[19px] sm:text-xl font-bold text-white block">4 Semanas</span>
+                  <span className="text-[13px] text-white/70 mt-1 block">Acompanhamento estruturado</span>
                 </div>
                 <div className="p-4 sm:p-5 rounded-xl sm:rounded-2xl bg-white/5 border border-white/10">
-                  <span className="text-[11px] sm:text-xs uppercase tracking-wider text-[#2997ff] font-semibold block mb-1">Frequência</span>
-                  <span className="text-lg sm:text-xl font-bold text-white block">1x por Semana</span>
-                  <span className="text-xs text-white/60 mt-1 block">Encontros ao vivo com Michael</span>
+                  <span className="text-[12px] sm:text-xs uppercase tracking-[0.04em] text-[#2997ff] font-semibold block mb-1">Frequência</span>
+                  <span className="text-[19px] sm:text-xl font-bold text-white block">1x por Semana</span>
+                  <span className="text-[13px] text-white/70 mt-1 block">Encontros ao vivo com Michael</span>
                 </div>
                 <div className="p-4 sm:p-5 rounded-xl sm:rounded-2xl bg-white/5 border border-white/10">
-                  <span className="text-[11px] sm:text-xs uppercase tracking-wider text-[#2997ff] font-semibold block mb-1">Foco Central</span>
-                  <span className="text-lg sm:text-xl font-bold text-white block">Análise Prática</span>
-                  <span className="text-xs text-white/60 mt-1 block">Soluções reais para seus projetos</span>
+                  <span className="text-[12px] sm:text-xs uppercase tracking-[0.04em] text-[#2997ff] font-semibold block mb-1">Foco Central</span>
+                  <span className="text-[19px] sm:text-xl font-bold text-white block">Análise Prática</span>
+                  <span className="text-[13px] text-white/70 mt-1 block">Soluções reais para seus projetos</span>
                 </div>
               </div>
 
-              <div className="p-4 sm:p-6 rounded-xl sm:rounded-2xl bg-white/[0.04] border border-white/10 text-white/90 text-xs sm:text-sm md:text-base leading-relaxed">
+              <div className="p-4 sm:p-6 rounded-xl sm:rounded-2xl bg-white/[0.04] border border-white/10 text-white/90 text-[15px] sm:text-sm md:text-base leading-[1.55]">
                 <p>
                   Durante 4 semanas consecutivas, você participará de encontros ao vivo em grupo com Michael Oliveira. Uma oportunidade fechada para analisar os projetos e grades de cada participante, identificando falhas, refinando o tratamento e encontrando soluções técnicas para atingir o padrão comercial exigido pelas grandes produtoras e agências.
                 </p>
@@ -1053,19 +1053,19 @@ export const ColorMasterLanding: React.FC = () => {
         <div className="max-w-3xl mx-auto text-center relative z-10 w-full">
           <div className="p-6 sm:p-10 md:p-14 rounded-2xl sm:rounded-3xl bg-[#ffffff]/95 backdrop-blur-xl border border-[#0071e3]/30 shadow-2xl relative overflow-hidden">
             {/* Offer Header Tag */}
-            <span className="px-3.5 sm:px-4 py-1 sm:py-1.5 rounded-full bg-[#0071e3]/10 text-[#0071e3] text-[11px] sm:text-xs font-semibold uppercase tracking-wider mb-4 sm:mb-6 inline-block border border-[#0071e3]/20">
+            <span className="px-3.5 sm:px-4 py-1 sm:py-1.5 rounded-full bg-[#0071e3]/10 text-[#0071e3] text-[12px] sm:text-xs font-semibold uppercase tracking-[0.04em] mb-4 sm:mb-6 inline-block border border-[#0071e3]/20">
               OFERTA ESPECIAL DE ACESSO
             </span>
 
-            <h2 className="text-2xl sm:text-4xl md:text-5xl font-semibold text-[#1d1d1f] mb-2 sm:mb-3">
+            <h2 className="text-[28px] leading-[1.14] sm:text-4xl md:text-5xl font-semibold tracking-[-0.015em] text-[#1d1d1f] mb-2 sm:mb-3">
               Color Master | Produto
             </h2>
-            <p className="text-sm sm:text-base md:text-lg text-[#6e6e73] mb-6 sm:mb-8 font-normal">
+            <p className="text-[17px] leading-[1.47] sm:text-base md:text-lg text-[#6e6e73] mb-6 sm:mb-8 font-normal">
               Masterclass completa de Color Grading para comerciais e imagens de produto no DaVinci Resolve.
             </p>
 
             {/* Checklist of What's Included */}
-            <div className="text-left space-y-3 sm:space-y-3.5 max-w-lg mx-auto mb-6 sm:mb-8 text-xs sm:text-sm md:text-base text-[#1d1d1f] border-y border-[#e5e5e7] py-5 sm:py-6">
+            <div className="text-left space-y-3 sm:space-y-3.5 max-w-lg mx-auto mb-6 sm:mb-8 text-[14px] sm:text-sm md:text-base leading-[1.5] text-[#1d1d1f] border-y border-[#e5e5e7] py-5 sm:py-6">
               <div className="py-1 border-b border-[#e5e5e7]/50 flex items-center justify-between font-bold text-[#1d1d1f]">
                 <span>• Mentoria de 4 Semanas para os 10 primeiros</span>
                 <span className="text-[10px] uppercase font-bold tracking-wider bg-[#0071e3] text-white px-2.5 py-0.5 rounded-full shrink-0">
@@ -1108,34 +1108,34 @@ export const ColorMasterLanding: React.FC = () => {
             <div className="mb-6 sm:mb-8">
               {!isExpired ? (
                 <>
-                  <div className="inline-block px-3 py-1 rounded-full bg-[#0071e3]/10 text-[#0071e3] text-xs font-bold uppercase tracking-wider mb-2 border border-[#0071e3]/20">
+                  <div className="inline-block px-3 py-1 rounded-full bg-[#0071e3]/10 text-[#0071e3] text-[12px] font-semibold uppercase tracking-[0.04em] mb-2 border border-[#0071e3]/20">
                     Tempo Restante: {formatTime(timeLeft)}
                   </div>
-                  <span className="text-xs sm:text-sm text-[#86868b] block line-through">
+                  <span className="text-[13px] sm:text-sm text-[#86868b] block line-through">
                     De R$ 195 por apenas:
                   </span>
                   <div className="text-[39px] leading-tight sm:text-5xl md:text-6xl font-extrabold text-[#1d1d1f] tracking-tight mt-1">
                     R$ {priceData.promoPrice} <span className="text-base sm:text-xl font-normal text-[#6e6e73]">no Pix</span>
                   </div>
-                  <div className="text-sm sm:text-lg font-bold text-[#0071e3] mt-1.5 sm:mt-2">
+                  <div className="text-[15px] sm:text-lg font-bold text-[#0071e3] mt-1.5 sm:mt-2">
                     ou em {formatInstallment(priceData.promoPrice)} no cartão
                   </div>
-                  <span className="text-xs sm:text-sm font-medium text-[#86868b] mt-1.5 block">
+                  <span className="text-[12px] sm:text-sm font-medium text-[#86868b] mt-1.5 block">
                     {priceData.batchName} {priceData.nextPriceDate ? `(Válido até ${priceData.nextPriceDate})` : ''}
                   </span>
                 </>
               ) : (
                 <>
-                  <div className="inline-block px-3 py-1 rounded-full bg-red-500/10 text-red-600 text-xs font-bold uppercase tracking-wider mb-2 border border-red-500/30">
+                  <div className="inline-block px-3 py-1 rounded-full bg-red-500/10 text-red-600 text-[12px] font-semibold uppercase tracking-[0.04em] mb-2 border border-red-500/30">
                     Tempo de 15 Minutos Expirado
                   </div>
-                  <span className="text-xs text-[#86868b] uppercase font-semibold block mb-1">
+                  <span className="text-[12px] text-[#86868b] uppercase font-semibold tracking-[0.04em] block mb-1">
                     Preço Regular Oficial
                   </span>
                   <div className="text-[39px] leading-tight sm:text-5xl md:text-6xl font-extrabold text-[#1d1d1f] tracking-tight">
                     R$ 195 <span className="text-base sm:text-xl font-normal text-[#6e6e73]">no Pix</span>
                   </div>
-                  <div className="text-sm sm:text-lg font-bold text-[#0071e3] mt-1.5 sm:mt-2">
+                  <div className="text-[15px] sm:text-lg font-bold text-[#0071e3] mt-1.5 sm:mt-2">
                     ou em 12x de R$ 16,25 no cartão
                   </div>
                 </>
@@ -1148,13 +1148,13 @@ export const ColorMasterLanding: React.FC = () => {
               target="_blank"
               rel="noopener noreferrer"
               onClick={() => trackProductClick('color-master-buy', 'Color Master Buy Checkout', getAsaasCheckoutUrl(), 'other')}
-              className="w-full max-w-[280px] sm:max-w-none sm:w-auto px-6 sm:px-10 py-3 sm:py-4 rounded-full bg-[#0071e3] hover:bg-[#0077ed] text-white font-semibold text-xs sm:text-base transition-all shadow-[0_4px_24px_rgba(0,113,227,0.4)] inline-flex items-center justify-center active:scale-95 cursor-pointer"
+              className="w-full max-w-[280px] sm:max-w-none sm:w-auto px-6 sm:px-10 py-3 sm:py-4 rounded-full bg-[#0071e3] hover:bg-[#0077ed] text-white font-semibold text-[14px] sm:text-base transition-all shadow-[0_4px_24px_rgba(0,113,227,0.4)] inline-flex items-center justify-center active:scale-95 cursor-pointer"
             >
               GARANTIR MINHA VAGA AGORA
             </a>
 
             {/* Guarantee and Security */}
-            <div className="mt-5 sm:mt-6 text-xs sm:text-sm text-[#6e6e73] font-medium">
+            <div className="mt-5 sm:mt-6 text-[12px] sm:text-sm text-[#6e6e73] font-medium">
               Garantia incondicional de 7 dias • Risco zero
             </div>
           </div>
@@ -1188,13 +1188,13 @@ export const ColorMasterLanding: React.FC = () => {
       <section id="faq" className="relative z-10 scroll-mt-14 sm:scroll-mt-20 min-h-[100dvh] flex flex-col justify-center py-12 sm:py-16 md:py-24 bg-[#f5f5f7] border-t border-[#d2d2d7]/60 px-4 sm:px-6 lg:px-8 overflow-hidden">
         <div className="max-w-4xl mx-auto w-full my-auto">
           <div className="text-center max-w-2xl mx-auto mb-10 sm:mb-12">
-            <span className="text-xs uppercase tracking-widest text-[#0071e3] font-bold mb-2 block">
+            <span className="text-[12px] uppercase tracking-[0.04em] text-[#0071e3] font-semibold mb-2 block">
               DÚVIDAS FREQUENTES
             </span>
-            <h2 className="text-2xl sm:text-4xl md:text-5xl font-semibold text-[#1d1d1f]">
+            <h2 className="text-[28px] leading-[1.14] sm:text-4xl md:text-5xl font-semibold tracking-[-0.015em] text-[#1d1d1f]">
               Perguntas Frequentes
             </h2>
-            <p className="text-sm sm:text-base text-[#6e6e73] mt-2 max-w-xl mx-auto">
+            <p className="text-[17px] leading-[1.47] sm:text-base text-[#6e6e73] mt-2.5 max-w-xl mx-auto font-normal">
               Tudo o que você precisa saber sobre a masterclass, acesso e metodologia.
             </p>
           </div>
@@ -1209,7 +1209,7 @@ export const ColorMasterLanding: React.FC = () => {
                 >
                   <button
                     onClick={() => toggleFaq(idx)}
-                    className="w-full p-4 sm:p-6 min-h-[52px] text-left flex items-center justify-between text-sm sm:text-base md:text-lg font-semibold text-[#1d1d1f] hover:text-[#0071e3] transition-colors cursor-pointer"
+                    className="w-full p-4 sm:p-6 min-h-[52px] text-left flex items-center justify-between text-[16px] sm:text-base md:text-lg font-semibold text-[#1d1d1f] hover:text-[#0071e3] transition-colors cursor-pointer leading-snug"
                     aria-expanded={isOpen}
                   >
                     <span className="pr-3 sm:pr-4">{faq.q}</span>
@@ -1226,7 +1226,7 @@ export const ColorMasterLanding: React.FC = () => {
                     }`}
                   >
                     <div className="overflow-hidden">
-                      <div className="px-4 pb-4 sm:px-6 sm:pb-6 text-xs sm:text-sm md:text-base text-[#6e6e73] leading-relaxed border-t border-[#e5e5e7] pt-3.5 sm:pt-4 bg-[#fafafc]">
+                      <div className="px-4 pb-4 sm:px-6 sm:pb-6 text-[15px] sm:text-sm md:text-base text-[#6e6e73] leading-[1.55] border-t border-[#e5e5e7] pt-3.5 sm:pt-4 bg-[#fafafc]">
                         {faq.a}
                       </div>
                     </div>
@@ -1244,16 +1244,16 @@ export const ColorMasterLanding: React.FC = () => {
       <section className="relative z-10 py-16 sm:py-20 md:py-28 px-4 sm:px-6 lg:px-8 bg-[#000000] text-white">
         <div className="max-w-4xl mx-auto text-center">
           <div className="p-6 sm:p-12 md:p-16 rounded-2xl sm:rounded-3xl bg-gradient-to-b from-[#1c1c1e] to-[#0d0d0f] border border-white/10 shadow-2xl relative overflow-hidden">
-            <h2 className="text-2xl sm:text-4xl md:text-5xl font-semibold text-white mb-3 sm:mb-4 leading-tight">
+            <h2 className="text-[26px] leading-[1.18] sm:text-4xl md:text-5xl font-semibold tracking-[-0.015em] text-white mb-3 sm:mb-4">
               Domine a construção visual de produtos e eleve seus comerciais.
             </h2>
-            <p className="text-sm sm:text-base md:text-lg text-white/70 max-w-xl mx-auto mb-6 sm:mb-8">
+            <p className="text-[17px] leading-[1.47] sm:text-base md:text-lg text-white/70 max-w-xl mx-auto mb-6 sm:mb-8 font-normal">
               Aprenda o método definitivo para analisar, equilibrar e finalizar imagens de alto impacto no DaVinci Resolve.
             </p>
 
             <a
               href="#oferta"
-              className="w-full max-w-[280px] sm:max-w-none sm:w-auto px-6 sm:px-10 py-3 sm:py-4 rounded-full bg-[#0071e3] hover:bg-[#0077ed] text-white font-semibold text-xs sm:text-base transition-all shadow-[0_4px_24px_rgba(0,113,227,0.4)] inline-flex items-center justify-center active:scale-95 cursor-pointer"
+              className="w-full max-w-[280px] sm:max-w-none sm:w-auto px-6 sm:px-10 py-3 sm:py-4 rounded-full bg-[#0071e3] hover:bg-[#0077ed] text-white font-semibold text-[14px] sm:text-base transition-all shadow-[0_4px_24px_rgba(0,113,227,0.4)] inline-flex items-center justify-center active:scale-95 cursor-pointer"
             >
               ENTRAR NO COLOR MASTER | PRODUTO
             </a>
