@@ -7,6 +7,7 @@ import { trackProductClick, trackSocialClick } from '@/utils/analytics';
 import { ReticulaBackground } from '@/components/ReticulaBackground';
 import { getRandomAuthorPhotos, AuthorPhotoPair } from '@/utils/authorPhotos';
 import { LoginModal } from '@/components/LoginModal';
+import { PromoModals } from '@/components/PromoModals';
 import { InstagramIcon, YouTubeIcon, TikTokIcon } from '@/components/SocialIcons';
 import { BrandPreloader } from '@/components/BrandPreloader';
 
@@ -72,6 +73,15 @@ export const ColorMasterLanding: React.FC = () => {
     batchName: 'Lote Especial de Abertura',
     nextPriceDate: '06/10/2026'
   });
+
+  // Modais de Alerta (1:30) e Expiração (tempo esgotado)
+  const [warningModalOpen, setWarningModalOpen] = useState<boolean>(false);
+  const [expiredModalOpen, setExpiredModalOpen] = useState<boolean>(false);
+  const [warningDismissed, setWarningDismissed] = useState<boolean>(false);
+  const [expiredDismissed, setExpiredDismissed] = useState<boolean>(false);
+  const hasWarnedRef = useRef<boolean>(false);
+  const hasExpiredRef = useRef<boolean>(false);
+  const prevTimeLeftRef = useRef<number>(900);
 
   // Mouse tracking spotlight for bonus card
   const handleBonusMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
@@ -238,6 +248,25 @@ export const ColorMasterLanding: React.FC = () => {
 
     return () => clearInterval(timer);
   }, [timeLeft]);
+
+  // Monitoramento do cronômetro para os Modais de Aviso (01:30) e Expiração (tempo esgotado)
+  useEffect(() => {
+    const prev = prevTimeLeftRef.current;
+    prevTimeLeftRef.current = timeLeft;
+
+    // 1. Faltando 1 minuto e 30 segundos (<= 90 segundos e > 0)
+    if (timeLeft <= 90 && timeLeft > 0 && !hasWarnedRef.current && !warningDismissed) {
+      hasWarnedRef.current = true;
+      setWarningModalOpen(true);
+    }
+
+    // 2. Quando o tempo acabar (zerar o cronômetro)
+    if (timeLeft <= 0 && prev > 0 && !hasExpiredRef.current && !expiredDismissed) {
+      hasExpiredRef.current = true;
+      setWarningModalOpen(false); // Fecha o modal de aviso se ainda estivesse aberto
+      setExpiredModalOpen(true); // Abre o modal de expiração com o valor real
+    }
+  }, [timeLeft, warningDismissed, expiredDismissed]);
 
   useEffect(() => {
     // YouTube IFrame API para controle de qualidade adaptativa (4K Desktop / HD Mobile)
@@ -425,6 +454,25 @@ export const ColorMasterLanding: React.FC = () => {
 
       {/* Login Modal */}
       <LoginModal isOpen={loginModalOpen} onClose={() => setLoginModalOpen(false)} />
+
+      {/* Modais de Alerta (1:30) e Expiração (Preço Real) */}
+      <PromoModals
+        warningOpen={warningModalOpen}
+        onCloseWarning={() => {
+          setWarningModalOpen(false);
+          setWarningDismissed(true);
+        }}
+        expiredOpen={expiredModalOpen}
+        onCloseExpired={() => {
+          setExpiredModalOpen(false);
+          setExpiredDismissed(true);
+        }}
+        timeLeft={timeLeft}
+        promoPrice={priceData.promoPrice}
+        regularPrice={priceData.regularPrice}
+        checkoutUrl={isExpired ? 'https://www.asaas.com/000/c/iv2p2s5tkbt1qi79' : getAsaasCheckoutUrl()}
+        formatTime={formatTime}
+      />
 
       {/* TOP FIXED COUNTDOWN BANNER (SÓ APARECE APÓS SAIR DA HERO) */}
       <div
