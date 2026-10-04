@@ -1,11 +1,21 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { SITE_CONFIG } from '@/config/siteConfig';
 import { trackProductClick, trackSocialClick } from '@/utils/analytics';
 import { ReticulaBackground } from '@/components/ReticulaBackground';
 import { getRandomAuthorPhotos, AuthorPhotoPair } from '@/utils/authorPhotos';
 import { LoginModal } from '@/components/LoginModal';
+
+const OFFER_IMAGES = [
+  { src: '/assets/produtos/color-master/offer/offer-1.webp', alt: 'Material do Masterclass - Visual 1' },
+  { src: '/assets/produtos/color-master/offer/offer-2.webp', alt: 'Material do Masterclass - Visual 2' },
+  { src: '/assets/produtos/color-master/offer/offer-3.webp', alt: 'Material do Masterclass - Visual 3' },
+  { src: '/assets/produtos/color-master/offer/offer-4.webp', alt: 'Material do Masterclass - Visual 4' },
+  { src: '/assets/produtos/color-master/offer/offer-5.webp', alt: 'Material do Masterclass - Visual 5' },
+];
+
 const PRODUTORAS_LOGOS = [
   { name: 'Astronautas Filmes', src: '/assets/empresas/astronautas-filmes.jpg' },
   { name: 'At Work', src: '/assets/empresas/at-work.jpg' },
@@ -25,6 +35,7 @@ export const ColorMasterLanding: React.FC = () => {
   const [openModule, setOpenModule] = useState<number | null>(null);
   const [loginModalOpen, setLoginModalOpen] = useState<boolean>(false);
   const [showStickyTimer, setShowStickyTimer] = useState<boolean>(false);
+  const [selectedOfferImage, setSelectedOfferImage] = useState<number>(0);
 
   // 15-Minute Countdown & Batch Price State
   const [timeLeft, setTimeLeft] = useState<number>(900); // 15 minutos em segundos
@@ -880,6 +891,62 @@ export const ColorMasterLanding: React.FC = () => {
             <p className="text-base sm:text-lg text-[#6e6e73] mb-8 font-normal">
               Masterclass completa de Color Grading para comerciais e imagens de produto no DaVinci Resolve.
             </p>
+
+            {/* Gallery Showcase of Course Assets */}
+            <div className="mb-10 max-w-xl mx-auto">
+              <div className="relative aspect-video rounded-2xl overflow-hidden bg-black/5 border border-black/10 shadow-lg group">
+                <img
+                  src={OFFER_IMAGES[selectedOfferImage].src}
+                  alt={OFFER_IMAGES[selectedOfferImage].alt}
+                  className="w-full h-full object-cover transition-all duration-300"
+                />
+
+                {/* Left/Right Navigation Controls */}
+                <button
+                  type="button"
+                  onClick={() => setSelectedOfferImage((prev) => (prev === 0 ? OFFER_IMAGES.length - 1 : prev - 1))}
+                  className="absolute left-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-black/40 hover:bg-black/70 text-white backdrop-blur-md flex items-center justify-center transition-all opacity-80 hover:opacity-100 hover:scale-105"
+                  aria-label="Imagem anterior"
+                >
+                  <ChevronLeft className="w-5 h-5" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setSelectedOfferImage((prev) => (prev === OFFER_IMAGES.length - 1 ? 0 : prev + 1))}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-black/40 hover:bg-black/70 text-white backdrop-blur-md flex items-center justify-center transition-all opacity-80 hover:opacity-100 hover:scale-105"
+                  aria-label="Próxima imagem"
+                >
+                  <ChevronRight className="w-5 h-5" />
+                </button>
+
+                {/* Counter indicator badge */}
+                <div className="absolute bottom-3 right-3 px-2.5 py-1 rounded-full bg-black/50 backdrop-blur-md text-white text-[11px] font-medium tracking-wide">
+                  {selectedOfferImage + 1} / {OFFER_IMAGES.length}
+                </div>
+              </div>
+
+              {/* Thumbnails Row */}
+              <div className="grid grid-cols-5 gap-2 mt-3">
+                {OFFER_IMAGES.map((img, idx) => (
+                  <button
+                    key={idx}
+                    type="button"
+                    onClick={() => setSelectedOfferImage(idx)}
+                    className={`relative aspect-video rounded-lg overflow-hidden border-2 transition-all cursor-pointer ${
+                      selectedOfferImage === idx
+                        ? 'border-[#0071e3] shadow-md ring-2 ring-[#0071e3]/30 scale-[1.02]'
+                        : 'border-transparent opacity-60 hover:opacity-100 hover:border-black/20'
+                    }`}
+                  >
+                    <img
+                      src={img.src}
+                      alt={img.alt}
+                      className="w-full h-full object-cover"
+                    />
+                  </button>
+                ))}
+              </div>
+            </div>
 
             {/* Checklist of What's Included */}
             <div className="text-left space-y-3.5 max-w-lg mx-auto mb-8 text-sm sm:text-base text-[#1d1d1f] border-y border-[#e5e5e7] py-6">
