@@ -713,7 +713,7 @@ export const ColorMasterLanding: React.FC = () => {
                   Filmes Digitais & Social Media
                 </h3>
                 <p className="text-sm sm:text-base text-[#6e6e73] leading-relaxed">
-                  Agilidade, consistência e acabamento estético refinado para reels de produto, social media e produções de marca com alto volume de entrega e ritmo dinâmico.
+                  Do conteúdo para YouTube aos vídeos de produto para redes sociais, o trabalho de cor ajuda a manter unidade, valorizar o que está em cena e dar mais qualidade visual a cada entrega.
                 </p>
               </div>
               <div className="mt-8 pt-4 border-t border-[#e5e5e7] text-xs font-semibold text-[#1d1d1f]">
