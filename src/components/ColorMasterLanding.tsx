@@ -685,39 +685,39 @@ export const ColorMasterLanding: React.FC = () => {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
-            {/* Pilar 1: Publicidade */}
+            {/* Card 1: Publicidade */}
             <div className="p-8 sm:p-10 rounded-3xl bg-[#ffffff] border border-[#e5e5e7] shadow-sm flex flex-col justify-between hover:border-[#0071e3]/30 transition-all">
               <div>
-                <span className="inline-block px-3 py-1 rounded-full bg-[#0071e3]/10 text-[#0071e3] text-xs uppercase tracking-wider font-bold mb-4 border border-[#0071e3]/20">
-                  PILAR 01
+                <span className="inline-block px-3.5 py-1 rounded-full bg-[#0071e3]/10 text-[#0071e3] text-xs uppercase tracking-wider font-bold mb-4 border border-[#0071e3]/20">
+                  PUBLICIDADE
                 </span>
                 <h3 className="text-2xl font-semibold text-[#1d1d1f] mb-3">
-                  Publicidade
+                  Comerciais & Campanhas de TV
                 </h3>
                 <p className="text-sm sm:text-base text-[#6e6e73] leading-relaxed">
-                  Tratamento de cor de alto impacto, controle rigoroso de densidade, matching impecável de produto e look development exigido pelas grandes marcas, comerciais de TV e campanhas publicitárias.
+                  Tratamento de cor de alto impacto, controle rigoroso de densidade, matching impecável de produto e look development autoral exigido por grandes agências e produtoras.
                 </p>
               </div>
               <div className="mt-8 pt-4 border-t border-[#e5e5e7] text-xs font-semibold text-[#1d1d1f]">
-                Comerciais & Campanhas de Alto Impacto
+                Padrão Broadcast & Marcas Globais
               </div>
             </div>
 
-            {/* Pilar 2: Conteúdo */}
+            {/* Card 2: Conteúdo */}
             <div className="p-8 sm:p-10 rounded-3xl bg-[#ffffff] border border-[#e5e5e7] shadow-sm flex flex-col justify-between hover:border-[#0071e3]/30 transition-all">
               <div>
-                <span className="inline-block px-3 py-1 rounded-full bg-[#0071e3]/10 text-[#0071e3] text-xs uppercase tracking-wider font-bold mb-4 border border-[#0071e3]/20">
-                  PILAR 02
+                <span className="inline-block px-3.5 py-1 rounded-full bg-[#0071e3]/10 text-[#0071e3] text-xs uppercase tracking-wider font-bold mb-4 border border-[#0071e3]/20">
+                  CONTEÚDO
                 </span>
                 <h3 className="text-2xl font-semibold text-[#1d1d1f] mb-3">
-                  Conteúdo
+                  Filmes Digitais & Social Media
                 </h3>
                 <p className="text-sm sm:text-base text-[#6e6e73] leading-relaxed">
-                  Agilidade, consistência e acabamento estético refinado para filmes digitais, reels de produto, social media e produções de marca com alto volume de entrega e ritmo dinâmico.
+                  Agilidade, consistência e acabamento estético refinado para reels de produto, social media e produções de marca com alto volume de entrega e ritmo dinâmico.
                 </p>
               </div>
               <div className="mt-8 pt-4 border-t border-[#e5e5e7] text-xs font-semibold text-[#1d1d1f]">
-                Filmes Digitais & Redes Sociais
+                Alta Performance no Digital
               </div>
             </div>
           </div>
