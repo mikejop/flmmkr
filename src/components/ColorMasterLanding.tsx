@@ -504,7 +504,7 @@ export const ColorMasterLanding: React.FC = () => {
 
             {/* Headline H1 */}
             <h1 className="text-4xl sm:text-6xl lg:text-7xl font-semibold tracking-tight text-white leading-[1.08] mb-6 drop-shadow-xl">
-              Eleve seu trabalho com color grading.
+              Potencialize seu trabalho com color grading.
             </h1>
 
             {/* Subtitle */}
