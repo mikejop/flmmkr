@@ -370,7 +370,7 @@ export const ColorMasterLanding: React.FC = () => {
       {/* ========================================================================= */}
       {/* 01. HERO: APRESENTAÇÃO DO PRODUTO (PRIORIDADE MÁXIMA)                     */}
       {/* ========================================================================= */}
-      <section className="relative z-10 overflow-hidden pt-16 pb-20 md:pt-24 md:pb-32 px-4 sm:px-6 lg:px-8 bg-black">
+      <section className="relative z-10 overflow-hidden min-h-[100dvh] flex flex-col justify-center pt-16 pb-20 md:pt-24 md:pb-24 px-4 sm:px-6 lg:px-8 bg-black">
         {/* Background Video Layer with Retícula Overlay */}
         <div className="absolute inset-0 w-full h-full overflow-hidden pointer-events-none select-none z-0">
           <iframe
