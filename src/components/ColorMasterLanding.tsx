@@ -311,14 +311,14 @@ export const ColorMasterLanding: React.FC = () => {
             {!isExpired ? (
               <>
                 <span className="flex h-2 w-2 relative">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-400"></span>
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#2997ff] opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-[#2997ff]"></span>
                 </span>
-                <span className="font-bold text-amber-300 uppercase tracking-wider text-[11px] sm:text-xs">
+                <span className="font-bold text-white uppercase tracking-wider text-[11px] sm:text-xs">
                   Oferta de Abertura (15 Minutos)
                 </span>
                 <span className="hidden md:inline text-white/90">
-                  • Garanta por apenas <strong className="text-white underline decoration-amber-400 font-bold">R$ {priceData.promoPrice}</strong> + Mentoria em Grupo para os 10 primeiros!
+                  • Garanta por apenas <strong className="text-white underline decoration-white/60 font-bold">R$ {priceData.promoPrice}</strong> + Mentoria em Grupo para os 10 primeiros!
                 </span>
               </>
             ) : (
@@ -335,9 +335,9 @@ export const ColorMasterLanding: React.FC = () => {
 
           <div className="flex items-center gap-3 ml-auto">
             {!isExpired ? (
-              <div className="flex items-center gap-1.5 bg-black/30 backdrop-blur-md px-3 py-1 rounded-full border border-white/20">
-                <span className="text-[10px] uppercase font-bold text-amber-300/80">Tempo:</span>
-                <span className="text-xs font-mono font-bold tracking-wider text-amber-300">
+              <div className="flex items-center gap-1.5 bg-black/40 backdrop-blur-md px-3 py-1 rounded-full border border-white/20">
+                <span className="text-[10px] uppercase font-bold text-white/70">Tempo:</span>
+                <span className="text-xs font-mono font-bold tracking-wider text-[#2997ff]">
                   {formatTime(timeLeft)}
                 </span>
               </div>
@@ -440,9 +440,9 @@ export const ColorMasterLanding: React.FC = () => {
               {!isExpired ? (
                 <>
                   <span className="line-through text-white/50">R$ 195</span>
-                  <span className="font-bold text-amber-300 text-sm sm:text-base">R$ {priceData.promoPrice} à vista</span>
+                  <span className="font-bold text-white text-sm sm:text-base">R$ {priceData.promoPrice} à vista</span>
                   <span className="text-white/40">•</span>
-                  <span className="font-bold text-white">ou {formatInstallment(priceData.promoPrice)}</span>
+                  <span className="font-semibold text-white/90">ou {formatInstallment(priceData.promoPrice)}</span>
                   <span className="text-white/40">•</span>
                   <span>1 Ano de Acesso</span>
                 </>
@@ -450,7 +450,7 @@ export const ColorMasterLanding: React.FC = () => {
                 <>
                   <span className="font-bold text-white text-sm sm:text-base">R$ 195 à vista</span>
                   <span className="text-white/40">•</span>
-                  <span className="font-bold text-white">ou 12x de R$ 16,25</span>
+                  <span className="font-semibold text-white/90">ou 12x de R$ 16,25</span>
                   <span className="text-white/40">•</span>
                   <span>1 Ano de Acesso</span>
                 </>
@@ -798,12 +798,12 @@ export const ColorMasterLanding: React.FC = () => {
       {/* ========================================================================= */}
       <section className="relative z-10 py-16 md:py-24 bg-[#000000] text-white px-4 sm:px-6 lg:px-8 border-t border-white/10">
         <div className="max-w-4xl mx-auto">
-          <div className="p-8 sm:p-12 md:p-14 rounded-3xl bg-gradient-to-b from-[#1c1c1e] to-[#0d0d0f] border border-amber-500/30 shadow-2xl relative overflow-hidden">
+          <div className="p-8 sm:p-12 md:p-14 rounded-3xl bg-gradient-to-b from-[#1c1c1e] to-[#0d0d0f] border border-[#0071e3]/30 shadow-2xl relative overflow-hidden">
             {/* Subtle background glow */}
-            <div className="absolute top-0 right-0 w-96 h-96 bg-amber-500/10 rounded-full blur-3xl pointer-events-none -mr-20 -mt-20" />
+            <div className="absolute top-0 right-0 w-96 h-96 bg-[#0071e3]/10 rounded-full blur-3xl pointer-events-none -mr-20 -mt-20" />
             
             <div className="relative z-10">
-              <div className="inline-flex items-center px-3.5 py-1.5 rounded-full bg-amber-500/15 border border-amber-500/30 text-amber-400 text-xs font-semibold uppercase tracking-wider mb-6">
+              <div className="inline-flex items-center px-3.5 py-1.5 rounded-full bg-[#0071e3]/15 border border-[#0071e3]/30 text-[#2997ff] text-xs font-semibold uppercase tracking-wider mb-6">
                 BÔNUS EXCLUSIVO
               </div>
 
@@ -812,22 +812,22 @@ export const ColorMasterLanding: React.FC = () => {
               </h2>
 
               <p className="text-base sm:text-xl text-white/80 font-normal leading-relaxed mb-8 max-w-3xl">
-                Bônus especial de aceleração garantido para os <strong className="text-amber-300 font-semibold">10 primeiros inscritos</strong> na Masterclass Color Master | Produto.
+                Bônus especial de aceleração garantido para os <strong className="text-[#2997ff] font-semibold">10 primeiros inscritos</strong> na Masterclass Color Master | Produto.
               </p>
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
                 <div className="p-5 rounded-2xl bg-white/5 border border-white/10">
-                  <span className="text-xs uppercase tracking-wider text-amber-400 font-semibold block mb-1">Duração</span>
+                  <span className="text-xs uppercase tracking-wider text-[#2997ff] font-semibold block mb-1">Duração</span>
                   <span className="text-xl font-bold text-white block">4 Semanas</span>
                   <span className="text-xs text-white/60 mt-1 block">Acompanhamento estruturado</span>
                 </div>
                 <div className="p-5 rounded-2xl bg-white/5 border border-white/10">
-                  <span className="text-xs uppercase tracking-wider text-amber-400 font-semibold block mb-1">Frequência</span>
+                  <span className="text-xs uppercase tracking-wider text-[#2997ff] font-semibold block mb-1">Frequência</span>
                   <span className="text-xl font-bold text-white block">1x por Semana</span>
                   <span className="text-xs text-white/60 mt-1 block">Encontros ao vivo com Michael</span>
                 </div>
                 <div className="p-5 rounded-2xl bg-white/5 border border-white/10">
-                  <span className="text-xs uppercase tracking-wider text-amber-400 font-semibold block mb-1">Foco Central</span>
+                  <span className="text-xs uppercase tracking-wider text-[#2997ff] font-semibold block mb-1">Foco Central</span>
                   <span className="text-xl font-bold text-white block">Análise Prática</span>
                   <span className="text-xs text-white/60 mt-1 block">Soluções reais para seus projetos</span>
                 </div>
@@ -863,8 +863,11 @@ export const ColorMasterLanding: React.FC = () => {
 
             {/* Checklist of What's Included */}
             <div className="text-left space-y-3.5 max-w-lg mx-auto mb-8 text-sm sm:text-base text-[#1d1d1f] border-y border-[#e5e5e7] py-6">
-              <div className="font-semibold text-amber-950 bg-amber-500/10 p-3 rounded-xl border border-amber-400/40">
-                • Mentoria de 4 Semanas para os 10 primeiros
+              <div className="font-semibold text-[#1d1d1f] bg-[#0071e3]/10 p-3.5 rounded-2xl border border-[#0071e3]/20 flex items-center justify-between">
+                <span>• Mentoria de 4 Semanas para os 10 primeiros</span>
+                <span className="text-[10px] uppercase font-bold tracking-wider bg-[#0071e3] text-white px-2.5 py-0.5 rounded-full">
+                  Bônus
+                </span>
               </div>
               <div className="py-1 border-b border-[#e5e5e7]/50 flex items-center gap-2">
                 <span>• Masterclass Completo</span>
@@ -878,10 +881,10 @@ export const ColorMasterLanding: React.FC = () => {
                   </button>
                   <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover:block group-focus-within:block w-72 p-3 bg-[#1d1d1f] text-white text-xs rounded-2xl shadow-2xl border border-white/15 z-30 pointer-events-none text-left animate-in fade-in zoom-in-95 duration-200">
                     <span className="font-semibold text-[#2997ff] block mb-1">
-                      Acesso Antecipado &amp; <span className="text-amber-300 font-bold">BETA</span>
+                      Acesso Antecipado &amp; <span className="text-[#2997ff] font-bold">BETA</span>
                     </span>
                     <span className="text-white/80 leading-relaxed block">
-                      Até o dia 13 de outubro de 2026 o masterclass estará em <strong className="text-amber-300 font-bold">beta</strong> e por isso conta com este valor promocional exclusivo. No dia 13 de outubro estará tudo 100% completo e disponível.
+                      Até o dia 13 de outubro de 2026 o masterclass estará em <strong className="text-[#2997ff] font-bold">beta</strong> e por isso conta com este valor promocional exclusivo. No dia 13 de outubro estará tudo 100% completo e disponível.
                     </span>
                     <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-[#1d1d1f]" />
                   </div>
@@ -902,7 +905,7 @@ export const ColorMasterLanding: React.FC = () => {
             <div className="mb-8">
               {!isExpired ? (
                 <>
-                  <div className="inline-block px-3 py-1 rounded-full bg-amber-500/10 text-amber-700 text-xs font-bold uppercase tracking-wider mb-2 border border-amber-500/30">
+                  <div className="inline-block px-3 py-1 rounded-full bg-[#0071e3]/10 text-[#0071e3] text-xs font-bold uppercase tracking-wider mb-2 border border-[#0071e3]/20">
                     Tempo Restante da Oferta: {formatTime(timeLeft)}
                   </div>
                   <span className="text-xs sm:text-sm text-[#86868b] block line-through">
