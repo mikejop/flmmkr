@@ -169,7 +169,7 @@ export default function CtrSimulator() {
                   {/* Channel and Stats */}
                   <div className="text-[10px] text-neutral-400 font-mono" id="feed-card-stats">
                     <p className="font-semibold flex items-center gap-0.5 text-neutral-300">
-                      YouTuber Pro 
+                      ContentsPlace 
                       <span className="text-blue-500 text-[10px]" title="Canal Verificado">✓</span>
                     </p>
                     <p>150 mil visualizações • há 2 horas</p>

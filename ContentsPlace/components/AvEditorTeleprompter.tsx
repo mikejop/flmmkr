@@ -378,7 +378,7 @@ export default function AvEditorTeleprompter() {
 
               {/* Rodapé do PDF */}
               <div className="pt-4 border-t border-neutral-200 flex justify-between items-center text-[10px] text-neutral-400 font-mono">
-                <span>Gerado pelo PDFMaker YouTuber Pro</span>
+                <span>Gerado pelo PDFMaker ContentsPlace</span>
                 <span>Página 1 de 1</span>
               </div>
 

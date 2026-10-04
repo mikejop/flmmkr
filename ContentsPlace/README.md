@@ -1,6 +1,6 @@
-# YouTuber Pro — Conteúdo Interno da Área de Membros
+# ContentsPlace — Conteúdo Interno da Área de Membros
 
-Este diretório contém **exclusivamente a parte de conteúdo interno** do treinamento **YouTuber Pro**, ou seja, exatamente o que o usuário/aluno acessa e visualiza **após realizar o login com sua conta**.
+Este diretório contém **exclusivamente a parte de conteúdo interno** do **ContentsPlace**, ou seja, exatamente o que o usuário/aluno acessa e visualiza **após realizar o login com sua conta**.
 
 Foram excluídas todas as páginas públicas de vendas/marketing (Landing Page, cabeçalhos de vendas, seções de FAQ de compra, tabelas de preço de conversão e modais de checkout externos).
 
@@ -9,7 +9,7 @@ Foram excluídas todas as páginas públicas de vendas/marketing (Landing Page, 
 ## 📁 Estrutura de Arquivos
 
 ```
-youtuber-pro-content/
+ContentsPlace/
 ├── docs/                          # Ementa e guias de conteúdo em Markdown
 │   ├── EMENTA_DO_CURSO.md         # Ementa completa detalhada de todos os módulos
 │   └── EQUIPAMENTOS.md            # Guia aprofundado de equipamentos, câmeras e iluminação

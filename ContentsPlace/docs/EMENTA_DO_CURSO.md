@@ -1,4 +1,4 @@
-# Ementa do Curso YouTuber Pro
+# Ementa — ContentsPlace
 
 ## Módulo 0: O Que Importa
 - Equipamentos

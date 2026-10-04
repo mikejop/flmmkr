@@ -153,7 +153,7 @@ const FAQ_ITEMS = [
   { q: "Preciso de câmera cara para começar?", a: "Absolutamente não! No Módulo 04, mostramos como extrair imagem de cinema usando celulares intermediários através de exposição e iluminação estratégica de 3 pontos." },
   { q: "As ferramentas recomendadas são gratuitas?", a: "Sim, todos os assets do Kit de Aceleração são 100% gratuitos, livres de direitos autorais e prontos para uso comercial no YouTube." },
   { q: "Como funciona a garantia de 7 dias?", a: "Se você achar que o guia não serve para seu canal, envie um e-mail em até 7 dias e devolveremos seu valor integralmente, sem questionamentos." },
-  { q: "Terei acesso vitalício?", a: "Sim, adquirindo o YouTuber Pro hoje você garante acesso a todas as atualizações futuras e novas ferramentas de simulação." }
+  { q: "Terei acesso vitalício?", a: "Sim, adquirindo o ContentsPlace hoje você garante acesso a todas as atualizações futuras e novas ferramentas de simulação." }
 ];
 
 // DEPOIMENTOS
@@ -819,7 +819,7 @@ export default function App() {
     if (isLockedLesson) {
       setCheckoutModalInfo({
         title: 'Desbloquear todo o conteúdo',
-        description: 'Esta aula é exclusiva para assinantes. Ative sua inscrição do YouTuber Pro para liberar!'
+        description: 'Esta aula é exclusiva para assinantes. Ative sua inscrição do ContentsPlace para liberar!'
       });
       setIsCheckoutModalOpen(true);
       return;
@@ -1072,7 +1072,7 @@ export default function App() {
                     if (!currentIsFree && !isPaidUser) {
                       setCheckoutModalInfo({
                         title: 'Visão Geral Reservada para Alunos',
-                        description: 'A visão geral e ferramentas dos módulos avançados são exclusivas para inscritos no YouTuber Pro. Desbloqueie sua vaga com o Stripe para acessar!'
+                        description: 'A visão geral e ferramentas dos módulos avançados são exclusivas para inscritos no ContentsPlace. Desbloqueie sua vaga com o Stripe para acessar!'
                       });
                       setIsCheckoutModalOpen(true);
                       return;
@@ -1148,7 +1148,7 @@ export default function App() {
                             if (isLockedModule) {
                               setCheckoutModalInfo({
                                 title: 'Desbloquear todo o conteúdo',
-                                description: 'Este módulo técnico é exclusivo para assinantes. Ative sua inscrição do YouTuber Pro para liberar!'
+                                description: 'Este módulo técnico é exclusivo para assinantes. Ative sua inscrição do ContentsPlace para liberar!'
                               });
                               setIsCheckoutModalOpen(true);
                               return;
@@ -1236,7 +1236,7 @@ export default function App() {
                                       if (isLockedLesson) {
                                         setCheckoutModalInfo({
                                           title: 'Desbloquear todo o conteúdo',
-                                          description: 'Esta aula prática e seus simuladores são exclusivos para assinantes. Ative sua inscrição do YouTuber Pro para liberar!'
+                                          description: 'Esta aula prática e seus simuladores são exclusivos para assinantes. Ative sua inscrição do ContentsPlace para liberar!'
                                         });
                                         setIsCheckoutModalOpen(true);
                                         return;
@@ -1320,7 +1320,7 @@ export default function App() {
                               if (isLockedLesson) {
                                 setCheckoutModalInfo({
                                   title: 'Desbloquear todo o conteúdo',
-                                  description: 'Esta aula é exclusiva para assinantes. Ative sua inscrição do YouTuber Pro para liberar!'
+                                  description: 'Esta aula é exclusiva para assinantes. Ative sua inscrição do ContentsPlace para liberar!'
                                 });
                                 setIsCheckoutModalOpen(true);
                                 return;
@@ -1552,7 +1552,7 @@ export default function App() {
                     <div className="space-y-1">
                       <h1 className="text-4xl md:text-5xl font-black tracking-tight leading-tight">
                         <span className="block bg-clip-text text-transparent bg-gradient-to-b from-[#1d1d1f] via-[#2c2c2e] to-[#636366]">Seja bem-vindo ao</span>
-                        <span className="bg-clip-text text-transparent bg-gradient-to-r from-[#0071e3] via-[#00c7fc] to-[#30d158] font-extrabold block">YouTuber Pro</span>
+                        <span className="bg-clip-text text-transparent bg-gradient-to-r from-[#0071e3] via-[#00c7fc] to-[#30d158] font-extrabold block">ContentsPlace</span>
                       </h1>
                     </div>
 
@@ -1723,7 +1723,7 @@ export default function App() {
             setIsExclusiveModalOpen(false);
             setIsLoggedIn(true);
           }}
-          noticeMessage="Você precisa fazer login na sua conta para poder acessar e usufruir de todos os conteúdos do YouTuber Pro."
+          noticeMessage="Você precisa fazer login na sua conta para poder acessar e usufruir de todos os conteúdos do ContentsPlace."
         />
       )}
 
