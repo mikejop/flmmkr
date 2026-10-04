@@ -720,7 +720,7 @@ export const ColorMasterLanding: React.FC = () => {
               Conteúdo do Masterclass
             </h2>
             <p className="text-[17px] leading-[1.47] sm:text-base md:text-lg text-white/70 mt-2.5 sm:mt-3 font-normal max-w-xl mx-auto">
-              Aulas organizadas rigorosamente pelas 5 etapas do processo real de pós-produção e color grading de produto.
+              Aulas organizadas rigorosamente pelas 5 etapas do processo de pós-produção e color grading de produto.
             </p>
           </div>
 
