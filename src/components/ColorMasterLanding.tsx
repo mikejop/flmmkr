@@ -601,7 +601,7 @@ export const ColorMasterLanding: React.FC = () => {
                   <span className="text-white/30 hidden sm:inline">•</span>
                   <div className="flex items-center gap-1.5 text-[11px] sm:text-sm text-white/70">
                     <span className="line-through text-white/40">R$ 195</span>
-                    <span>ou <strong className="text-white font-semibold">R$ {priceData.promoPrice}</strong> no Pix</span>
+                    <span>ou <strong className="text-white font-bold text-[130%] sm:text-inherit">R$ {priceData.promoPrice}</strong> no Pix</span>
                   </div>
                   <span className="text-white/30 hidden sm:inline">•</span>
                   <span className="text-[11px] sm:text-sm text-white/80 font-medium">1 Ano de Acesso</span>
@@ -615,9 +615,11 @@ export const ColorMasterLanding: React.FC = () => {
                     </span>
                   </div>
                   <span className="text-white/30 hidden sm:inline">•</span>
-                  <span className="text-[11px] sm:text-sm text-white/70">
-                    ou <strong className="text-white font-semibold">R$ 195</strong> no Pix
-                  </span>
+                  <div className="flex items-center gap-1.5 text-[11px] sm:text-sm text-white/70">
+                    <span>
+                      ou <strong className="text-white font-bold text-[130%] sm:text-inherit">R$ 195</strong> no Pix
+                    </span>
+                  </div>
                   <span className="text-white/30 hidden sm:inline">•</span>
                   <span className="text-[11px] sm:text-sm text-white/80 font-medium">1 Ano de Acesso</span>
                 </>
@@ -1112,7 +1114,7 @@ export const ColorMasterLanding: React.FC = () => {
                   <span className="text-xs sm:text-sm text-[#86868b] block line-through">
                     De R$ 195 por apenas:
                   </span>
-                  <div className="text-3xl sm:text-5xl md:text-6xl font-extrabold text-[#1d1d1f] tracking-tight mt-1">
+                  <div className="text-[39px] leading-tight sm:text-5xl md:text-6xl font-extrabold text-[#1d1d1f] tracking-tight mt-1">
                     R$ {priceData.promoPrice} <span className="text-base sm:text-xl font-normal text-[#6e6e73]">no Pix</span>
                   </div>
                   <div className="text-sm sm:text-lg font-bold text-[#0071e3] mt-1.5 sm:mt-2">
@@ -1130,7 +1132,7 @@ export const ColorMasterLanding: React.FC = () => {
                   <span className="text-xs text-[#86868b] uppercase font-semibold block mb-1">
                     Preço Regular Oficial
                   </span>
-                  <div className="text-3xl sm:text-5xl md:text-6xl font-extrabold text-[#1d1d1f] tracking-tight">
+                  <div className="text-[39px] leading-tight sm:text-5xl md:text-6xl font-extrabold text-[#1d1d1f] tracking-tight">
                     R$ 195 <span className="text-base sm:text-xl font-normal text-[#6e6e73]">no Pix</span>
                   </div>
                   <div className="text-sm sm:text-lg font-bold text-[#0071e3] mt-1.5 sm:mt-2">
@@ -1274,7 +1276,7 @@ export const ColorMasterLanding: React.FC = () => {
           <div className="flex flex-col pl-1 min-w-0">
             <span className="text-[10px] text-white/60 uppercase font-bold tracking-wider leading-none">Acesso Completo</span>
             <span className="text-sm font-extrabold text-white mt-0.5 leading-none truncate">
-              {!isExpired ? `R$ ${priceData.promoPrice}` : 'R$ 195'}
+              {!isExpired ? <span className="text-[130%] inline-block font-black">R$ {priceData.promoPrice}</span> : 'R$ 195'}
               <span className="text-[10px] font-normal text-white/60 ml-1">no Pix</span>
             </span>
           </div>
