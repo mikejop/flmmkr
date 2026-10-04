@@ -50,7 +50,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
   const [email, setEmail] = useState('');
   const [cpf, setCpf] = useState('');
   const [phone, setPhone] = useState('');
-  const [age, setAge] = useState('');
+  const [birthDate, setBirthDate] = useState('');
   const [profession, setProfession] = useState(''); // Começa em vazio ("Escolher")
 
   // Address Fields (Aluno)
@@ -211,6 +211,37 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
   };
 
   // Input masks
+  const handleBirthDateChange = (val: string) => {
+    const raw = val.replace(/\D/g, '').slice(0, 8);
+    let formatted = raw;
+    if (raw.length > 4) {
+      formatted = `${raw.slice(0, 2)}/${raw.slice(2, 4)}/${raw.slice(4)}`;
+    } else if (raw.length > 2) {
+      formatted = `${raw.slice(0, 2)}/${raw.slice(2)}`;
+    }
+    setBirthDate(formatted);
+  };
+
+  const calculateAge = (dateStr: string): number | null => {
+    const parts = dateStr.split('/');
+    if (parts.length === 3 && parts[2].length === 4) {
+      const day = parseInt(parts[0], 10);
+      const month = parseInt(parts[1], 10) - 1;
+      const year = parseInt(parts[2], 10);
+      const birth = new Date(year, month, day);
+      if (!isNaN(birth.getTime())) {
+        const today = new Date();
+        let calculated = today.getFullYear() - birth.getFullYear();
+        const m = today.getMonth() - birth.getMonth();
+        if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) {
+          calculated--;
+        }
+        return calculated >= 0 && calculated < 120 ? calculated : null;
+      }
+    }
+    return null;
+  };
+
   const handleCepChange = (val: string) => {
     const raw = val.replace(/\D/g, '').slice(0, 8);
     const formatted = raw.length > 5 ? `${raw.slice(0, 5)}-${raw.slice(5)}` : raw;
@@ -322,6 +353,15 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
       setErrorMessage('Por favor, informe um telefone com DDD.');
       return;
     }
+    if (!birthDate || birthDate.length !== 10) {
+      setErrorMessage('Por favor, informe sua data de nascimento (DD/MM/AAAA).');
+      return;
+    }
+    const calculatedAge = calculateAge(birthDate);
+    if (calculatedAge === null || calculatedAge < 12) {
+      setErrorMessage('Por favor, informe uma data de nascimento válida.');
+      return;
+    }
     if (!profession) {
       setErrorMessage('Por favor, selecione sua profissão ou área de atuação em Escolher.');
       return;
@@ -378,7 +418,8 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
             email: email.trim(),
             cpfCnpj: cpf.replace(/\D/g, ''),
             phone: phone.replace(/\D/g, ''),
-            age: age ? Number(age) : null,
+            birthDate: birthDate.trim(),
+            age: calculatedAge,
             profession,
             address: studentAddress,
             billingType: 'PIX',
@@ -418,7 +459,8 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
             email: email.trim(),
             cpfCnpj: cpf.replace(/\D/g, ''),
             phone: phone.replace(/\D/g, ''),
-            age: age ? Number(age) : null,
+            birthDate: birthDate.trim(),
+            age: calculatedAge,
             profession,
             address: studentAddress,
             billingType: 'CREDIT_CARD',
@@ -603,16 +645,16 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
 
                 <div>
                   <label className="block text-[12px] font-medium text-white/70 mb-1 ml-0.5 tracking-[-0.01em]">
-                    Idade
+                    Data de Nascimento *
                   </label>
                   <input
-                    type="number"
-                    min="14"
-                    max="100"
-                    value={age}
-                    onChange={(e) => setAge(e.target.value)}
-                    placeholder="Sua idade"
-                    className="w-full h-[44px] px-3.5 rounded-xl bg-white/[0.06] border border-white/12 text-white placeholder-white/25 text-[14px] focus:outline-none focus:border-[#0071e3] transition-all"
+                    type="text"
+                    required
+                    inputMode="numeric"
+                    value={birthDate}
+                    onChange={(e) => handleBirthDateChange(e.target.value)}
+                    placeholder="DD/MM/AAAA"
+                    className="w-full h-[44px] px-3.5 rounded-xl bg-white/[0.06] border border-white/12 text-white placeholder-white/25 text-[14px] focus:outline-none focus:border-[#0071e3] transition-all font-mono"
                   />
                 </div>
 

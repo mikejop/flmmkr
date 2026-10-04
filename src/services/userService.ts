@@ -4,6 +4,7 @@ export interface ProvisionUserInput {
   email: string;
   name: string;
   phone?: string;
+  birthDate?: string;
   age?: number | null;
   profession?: string;
   address?: any;
@@ -19,6 +20,7 @@ export async function provisionSupabaseUserAndProfile({
   email,
   name,
   phone,
+  birthDate,
   age,
   profession,
   address,
@@ -60,6 +62,7 @@ export async function provisionSupabaseUserAndProfile({
         email: normalizedEmail,
         full_name: name,
         phone: phone || null,
+        birth_date: birthDate || null,
         age: age || null,
         profession: profession || null,
         address: address || null,

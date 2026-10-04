@@ -30,6 +30,7 @@ export async function GET(req: NextRequest) {
           email: pending.email,
           name: pending.full_name,
           phone: pending.phone,
+          birthDate: pending.birth_date,
           age: pending.age,
           profession: pending.profession,
           address: pending.address,
