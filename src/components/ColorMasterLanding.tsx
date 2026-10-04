@@ -244,7 +244,7 @@ export const ColorMasterLanding: React.FC = () => {
   const faqList = [
     {
       q: 'Para quem é o masterclass Color Master | Produto?',
-      a: 'É indicado para coloristas, videomakers, diretores de fotografia e editores que trabalham ou desejam atuar no mercado de comerciais, publicidade e vídeos de produto. Seja você um profissional buscando refinar suas tomadas de decisão ou alguém querendo elevar o padrão visual de seus projetos, a metodologia ensina o fluxo completo de ponta a ponta.'
+      a: 'É indicado para videomakers, diretores de fotografia, editores e criadores de conteúdo que trabalham ou desejam atuar no mercado de comerciais, publicidade e vídeos de produto. Seja você um profissional buscando refinar suas tomadas de decisão ou alguém querendo elevar o padrão visual de seus projetos, a metodologia ensina o fluxo completo de ponta a ponta.'
     },
     {
       q: 'Quais conhecimentos prévios são necessários?',
@@ -261,10 +261,6 @@ export const ColorMasterLanding: React.FC = () => {
     {
       q: 'Como funciona a mentoria em grupo para os 10 primeiros inscritos?',
       a: 'Os 10 primeiros inscritos ganham a Mentoria em Grupo ao vivo com Michael Oliveira. A mentoria tem duração de 4 semanas, sendo um encontro ao vivo por semana, onde vamos analisar os trabalhos de cada um e buscar soluções práticas para melhorar e elevar o nível das produções.'
-    },
-    {
-      q: 'Como funciona o desconto de 25% nos outros treinamentos?',
-      a: 'Quem adquire o Color Master | Produto recebe automaticamente um cupom exclusivo de 25% de desconto para aplicar em qualquer outro curso ou masterclass da FLMMKR dentro da área de membros.'
     },
     {
       q: 'Como funciona o pagamento e quais são as formas disponíveis?',
