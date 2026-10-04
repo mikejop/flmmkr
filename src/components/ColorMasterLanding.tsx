@@ -731,8 +731,8 @@ export const ColorMasterLanding: React.FC = () => {
               <h3 className="text-xl sm:text-2xl font-semibold text-[#1d1d1f] mb-2 leading-snug">
                 "Você não vai aprender usando imagens aleatórias, mas sim em projetos reais, com problemas reais e soluções reais."
               </h3>
-              <p className="text-sm sm:text-base text-[#6e6e73]">
-                Cada nó, qualifier e curva são ensinados com a justificativa técnica e criativa por trás do comercial.
+              <p className="text-sm sm:text-base text-[#6e6e73] leading-relaxed">
+                Nada na nossa metodologia simula projetos de clientes que nunca existiram. Tudo é feito baseado em projetos reais, que fizemos para nossos clientes. Você vai aprender o workflow que funciona no mundo real e as soluções usadas dentro de um projeto que passou pelo crivo do cliente.
               </p>
             </div>
             <a
