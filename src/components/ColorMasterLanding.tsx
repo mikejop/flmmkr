@@ -20,6 +20,7 @@ const OFFER_IMAGES = [
 const PRODUTORAS_LOGOS = [
   { name: 'Astronautas Filmes', src: '/assets/empresas/astronautas-filmes.jpg' },
   { name: 'At Work', src: '/assets/empresas/at-work.jpg' },
+  { name: 'Embratur', src: '/assets/empresas/embratur.png' },
   { name: 'Malala Filmes', src: '/assets/empresas/malala-filmes.jpg' },
   { name: 'Mariposa Filmes', src: '/assets/empresas/mariposa-filmes.jpg' },
   { name: 'Pantanal Filmes', src: '/assets/empresas/pantanal-filmes.jpg' },
