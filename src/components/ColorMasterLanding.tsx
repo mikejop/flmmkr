@@ -635,7 +635,7 @@ export const ColorMasterLanding: React.FC = () => {
       {/* ========================================================================= */}
       {/* 03. CONTEÚDO DO MASTERCLASS                                               */}
       {/* ========================================================================= */}
-      <section id="aprendizado" className="relative z-10 py-16 md:py-24 bg-[#000000] text-white border-t border-white/10 px-4 sm:px-6 lg:px-8">
+      <section id="aprendizado" className="relative z-10 py-16 md:py-24 bg-[#000000] text-white px-4 sm:px-6 lg:px-8">
         <div className="max-w-5xl mx-auto">
           <div className="text-center max-w-2xl mx-auto mb-14">
             <span className="text-xs uppercase tracking-widest text-[#2997ff] font-bold mb-2 block">
