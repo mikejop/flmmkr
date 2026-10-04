@@ -65,9 +65,33 @@ export const ColorMasterLanding: React.FC = () => {
     nextPriceDate: '06/10/2026'
   });
 
-  useEffect(() => {
-    let animFrameId: number;
+  // Mouse tracking spotlight for bonus card
+  const handleBonusMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!bonusCardRef.current || !bonusGlowRef.current) return;
+    const rect = bonusCardRef.current.getBoundingClientRect();
+    const x = e.clientX - rect.left - 200;
+    const y = e.clientY - rect.top - 200;
 
+    bonusGlowRef.current.style.transform = `translate3d(${x}px, ${y}px, 0)`;
+    bonusGlowRef.current.style.opacity = '0.35';
+  };
+
+  const handleBonusMouseLeave = () => {
+    if (!bonusGlowRef.current) return;
+    bonusGlowRef.current.style.opacity = '0.08';
+    bonusGlowRef.current.style.transform = 'translate3d(120px, -60px, 0)';
+  };
+
+  const handleBonusMouseEnter = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!bonusCardRef.current || !bonusGlowRef.current) return;
+    const rect = bonusCardRef.current.getBoundingClientRect();
+    const x = e.clientX - rect.left - 200;
+    const y = e.clientY - rect.top - 200;
+    bonusGlowRef.current.style.transform = `translate3d(${x}px, ${y}px, 0)`;
+    bonusGlowRef.current.style.opacity = '0.35';
+  };
+
+  useEffect(() => {
     const handleScroll = () => {
       const heroSection = document.getElementById('hero-section');
       const ofertaSection = document.getElementById('oferta');
@@ -82,40 +106,11 @@ export const ColorMasterLanding: React.FC = () => {
 
       // Mostra a barra após sair da Hero e oculta ao chegar na seção de Oferta
       setShowStickyTimer(isPastHero && !isReachedOferta);
-
-      // Movimento fluido do brilho azul no bônus exclusivo com base no scroll
-      if (bonusCardRef.current && bonusGlowRef.current) {
-        const rect = bonusCardRef.current.getBoundingClientRect();
-        const windowHeight = window.innerHeight || 800;
-        const totalDistance = windowHeight + rect.height;
-        const currentPos = windowHeight - rect.top;
-        const progress = Math.max(0, Math.min(1, currentPos / totalDistance));
-
-        // Translação do brilho em arco suave de cima à direita para centro/esquerda
-        const translateX = 100 - progress * 360;
-        const translateY = -100 + progress * 320;
-        const scale = 0.9 + Math.sin(progress * Math.PI) * 0.45;
-        const opacity = 0.12 + Math.sin(progress * Math.PI) * 0.22;
-
-        bonusGlowRef.current.style.transform = `translate3d(${translateX}px, ${translateY}px, 0) scale(${scale})`;
-        bonusGlowRef.current.style.opacity = `${opacity}`;
-      }
     };
 
-    const onScroll = () => {
-      cancelAnimationFrame(animFrameId);
-      animFrameId = requestAnimationFrame(handleScroll);
-    };
-
-    window.addEventListener('scroll', onScroll, { passive: true });
-    window.addEventListener('resize', onScroll, { passive: true });
+    window.addEventListener('scroll', handleScroll, { passive: true });
     handleScroll();
-
-    return () => {
-      cancelAnimationFrame(animFrameId);
-      window.removeEventListener('scroll', onScroll);
-      window.removeEventListener('resize', onScroll);
-    };
+    return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
   useEffect(() => {
@@ -873,16 +868,19 @@ export const ColorMasterLanding: React.FC = () => {
         <div className="max-w-4xl mx-auto w-full my-auto">
           <div
             ref={bonusCardRef}
-            className="p-8 sm:p-12 md:p-14 rounded-3xl bg-gradient-to-b from-[#1c1c1e] to-[#0d0d0f] border border-[#0071e3]/30 shadow-2xl relative overflow-hidden"
+            onMouseMove={handleBonusMouseMove}
+            onMouseEnter={handleBonusMouseEnter}
+            onMouseLeave={handleBonusMouseLeave}
+            className="p-8 sm:p-12 md:p-14 rounded-3xl bg-gradient-to-b from-[#1c1c1e] to-[#0d0d0f] border border-[#0071e3]/30 shadow-2xl relative overflow-hidden group cursor-default"
           >
-            {/* Scroll-driven dynamic background glow */}
+            {/* Mouse-tracking dynamic background glow */}
             <div
               ref={bonusGlowRef}
-              className="absolute top-0 right-0 w-[460px] h-[460px] bg-[#0071e3] rounded-full blur-[100px] pointer-events-none will-change-transform"
+              className="absolute top-0 left-0 w-[420px] h-[420px] bg-[#0071e3] rounded-full blur-[100px] pointer-events-none will-change-transform"
               style={{
-                opacity: 0.2,
-                transform: 'translate3d(0px, 0px, 0)',
-                transition: 'opacity 0.2s ease-out',
+                opacity: 0.15,
+                transform: 'translate3d(120px, -60px, 0)',
+                transition: 'opacity 0.35s cubic-bezier(0.45, 0, 0.55, 1)',
               }}
             />
             
