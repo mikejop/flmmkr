@@ -105,6 +105,56 @@ export const ColorMasterLanding: React.FC = () => {
     return () => clearInterval(timer);
   }, [timeLeft]);
 
+  useEffect(() => {
+    // YouTube IFrame API para controle de qualidade adaptativa (4K Desktop / HD Mobile)
+    const tag = document.createElement('script');
+    tag.src = 'https://www.youtube.com/iframe_api';
+    const firstScriptTag = document.getElementsByTagName('script')[0];
+    if (firstScriptTag && firstScriptTag.parentNode) {
+      firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+    } else {
+      document.head.appendChild(tag);
+    }
+
+    const initPlayer = () => {
+      if (typeof window !== 'undefined' && (window as any).YT && (window as any).YT.Player) {
+        new (window as any).YT.Player('hero-yt-player', {
+          events: {
+            onReady: (event: any) => {
+              event.target.mute();
+              event.target.playVideo();
+              const isMobile = window.innerWidth < 768;
+              if (isMobile) {
+                // Mobile: HD (720p) para economizar dados e garantir fluidez
+                if (event.target.setPlaybackQuality) {
+                  event.target.setPlaybackQuality('hd720');
+                }
+              } else {
+                // Desktop: Preferência 4K (2160p/highres), adaptando para FHD/HD caso a conexão exija
+                if (event.target.setPlaybackQuality) {
+                  event.target.setPlaybackQuality('hd2160');
+                }
+              }
+            },
+            onStateChange: (event: any) => {
+              // Loop suave ao terminar
+              if (event.data === 0) {
+                event.target.seekTo(0);
+                event.target.playVideo();
+              }
+            }
+          }
+        });
+      }
+    };
+
+    if ((window as any).YT && (window as any).YT.Player) {
+      initPlayer();
+    } else {
+      (window as any).onYouTubeIframeAPIReady = initPlayer;
+    }
+  }, []);
+
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
@@ -324,7 +374,8 @@ export const ColorMasterLanding: React.FC = () => {
         {/* Background Video Layer with Retícula Overlay */}
         <div className="absolute inset-0 w-full h-full overflow-hidden pointer-events-none select-none z-0">
           <iframe
-            src="https://www.youtube-nocookie.com/embed/h1uEnr4ss54?autoplay=1&mute=1&controls=0&loop=1&playlist=h1uEnr4ss54&playsinline=1&rel=0&modestbranding=1&enablejsapi=1"
+            id="hero-yt-player"
+            src="https://www.youtube-nocookie.com/embed/gp75L5H0kIU?autoplay=1&mute=1&controls=0&loop=1&playlist=gp75L5H0kIU&playsinline=1&rel=0&modestbranding=1&enablejsapi=1"
             title="Color Master Background Showcase"
             className="absolute top-1/2 left-1/2 w-[250%] h-[250%] min-w-full min-h-full -translate-x-1/2 -translate-y-1/2 object-cover pointer-events-none opacity-90"
             allow="autoplay; encrypted-media"
