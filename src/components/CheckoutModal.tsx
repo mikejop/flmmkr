@@ -1038,11 +1038,16 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                       onChange={(e) => setInstallments(Number(e.target.value))}
                       className="w-full h-[44px] px-3.5 rounded-xl bg-[#1d1d24] border border-white/12 text-white text-[14px] focus:outline-none focus:border-[#0071e3] transition-all cursor-pointer"
                     >
-                      <option value={1}>1x de R$ {currentPrice.toFixed(2)} à vista</option>
-                      <option value={2}>2x de R$ {(currentPrice / 2).toFixed(2)}</option>
-                      <option value={3}>3x de R$ {(currentPrice / 3).toFixed(2)}</option>
-                      <option value={6}>6x de R$ {(currentPrice / 6).toFixed(2)}</option>
-                      <option value={12}>12x de R$ {(currentPrice / 12).toFixed(2)}</option>
+                      {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map((num) => {
+                        const installmentValue = (currentPrice / num).toFixed(2).replace('.', ',');
+                        return (
+                          <option key={num} value={num}>
+                            {num === 1
+                              ? `1x de R$ ${installmentValue} à vista`
+                              : `${num}x de R$ ${installmentValue}`}
+                          </option>
+                        );
+                      })}
                     </select>
                   </div>
                 </div>
