@@ -4,16 +4,42 @@
  * Secret keys are never exposed to browser clients.
  */
 
+import fs from 'fs';
+import path from 'path';
+
 function getAsaasApiUrl(): string {
   return process.env.ASAAS_API_URL || 'https://api.asaas.com/v3';
 }
 
 function getAsaasApiKey(): string {
-  return (
+  let key = (
     process.env.ASAAS_API_KEY ||
     process.env.ASAAS_ACCESS_TOKEN ||
     ''
   ).trim();
+
+  // Se a chave veio com escape de barra invertida (\$aact...) do dotenv, desescapar:
+  if (key.startsWith('\\$')) {
+    key = key.slice(1);
+  }
+
+  // Fallback: se por qualquer razão o Next.js dotenv-expand suprimiu a chave, ler diretamente do .env.local
+  if (!key) {
+    try {
+      const envPath = path.resolve(process.cwd(), '.env.local');
+      if (fs.existsSync(envPath)) {
+        const content = fs.readFileSync(envPath, 'utf8');
+        const match = content.match(/ASAAS_API_KEY\s*=\s*["']?([^"'\r\n]+)["']?/);
+        if (match && match[1]) {
+          key = match[1].replace(/\\([$])/g, '$1').trim();
+        }
+      }
+    } catch (e) {
+      console.error('Erro ao ler fallback ASAAS_API_KEY:', e);
+    }
+  }
+
+  return key;
 }
 
 interface AsaasCustomerInput {
@@ -66,15 +92,19 @@ async function asaasFetch<T>(endpoint: string, options: RequestInit = {}): Promi
     ...options,
     headers: {
       'Content-Type': 'application/json',
+      'User-Agent': 'flmmkr-site/1.0',
       'access_token': apiKey,
       ...(options.headers || {})
     }
   });
 
-  const data = await response.json();
+  const data = await response.json().catch(() => null);
 
   if (!response.ok) {
-    const errorMessage = data?.errors?.[0]?.description || 'Erro ao processar requisição no Asaas';
+    const errorMessage =
+      data?.errors?.[0]?.description ||
+      data?.message ||
+      (typeof data === 'string' ? data : 'Erro ao processar requisição no Asaas');
     throw new Error(errorMessage);
   }
 
