@@ -836,8 +836,26 @@ export const ColorMasterLanding: React.FC = () => {
               <div className="font-semibold text-amber-950 bg-amber-500/10 p-3 rounded-xl border border-amber-400/40">
                 • Mentoria de 4 Semanas para os 10 primeiros
               </div>
-              <div className="py-1 border-b border-[#e5e5e7]/50">
-                • Masterclass Completo*
+              <div className="py-1 border-b border-[#e5e5e7]/50 flex items-center justify-between">
+                <span>• Masterclass Completo</span>
+                <div className="relative group inline-flex items-center">
+                  <button
+                    type="button"
+                    className="inline-flex items-center justify-center w-4 h-4 rounded-full border border-[#0071e3]/60 text-[#0071e3] hover:bg-[#0071e3] hover:text-white text-[10px] font-bold transition-colors cursor-help focus:outline-hidden"
+                    aria-label="Informações sobre o Masterclass Completo"
+                  >
+                    i
+                  </button>
+                  <div className="absolute bottom-full right-0 mb-2 hidden group-hover:block group-focus-within:block w-72 p-3 bg-[#1d1d1f] text-white text-xs rounded-2xl shadow-2xl border border-white/15 z-30 pointer-events-none text-left animate-in fade-in zoom-in-95 duration-200">
+                    <span className="font-semibold text-[#2997ff] block mb-1">
+                      Acesso Antecipado & Beta
+                    </span>
+                    <span className="text-white/80 leading-relaxed block">
+                      Até o dia 13 de outubro de 2026 o masterclass estará em beta e por isso conta com este valor promocional exclusivo. No dia 13 de outubro estará tudo 100% completo e disponível.
+                    </span>
+                    <div className="absolute top-full right-2 border-4 border-transparent border-t-[#1d1d1f]" />
+                  </div>
+                </div>
               </div>
               <div className="py-1 border-b border-[#e5e5e7]/50">
                 • Aulas práticas gravadas em alta resolução no DaVinci Resolve
