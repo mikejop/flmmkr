@@ -22,6 +22,8 @@ const PRODUTORAS_LOGOS = [
   { name: 'At Work', src: '/assets/empresas/at-work.jpg' },
   { name: 'Embratur', src: '/assets/empresas/embratur.png' },
   { name: 'Malala Filmes', src: '/assets/empresas/malala-filmes.jpg' },
+  { name: 'Mandrill', src: '/assets/empresas/mandrill.png' },
+  { name: 'Maria Quitéria', src: '/assets/empresas/maria-quiteria.jpg' },
   { name: 'Mariposa Filmes', src: '/assets/empresas/mariposa-filmes.jpg' },
   { name: 'Pantanal Filmes', src: '/assets/empresas/pantanal-filmes.jpg' },
   { name: 'Plano B', src: '/assets/empresas/plano-b.jpg' },
