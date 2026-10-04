@@ -71,10 +71,10 @@ export const ColorMasterLanding: React.FC = () => {
     // Gerar ou recuperar Client/Device ID no navegador
     let clientId = '';
     try {
-      clientId = localStorage.getItem('flmmkr_client_device_id') || '';
+      clientId = localStorage.getItem('flmmkr_client_device_id_v2') || '';
       if (!clientId) {
         clientId = 'dev_' + Math.random().toString(36).substring(2, 15) + '_' + Date.now().toString(36);
-        localStorage.setItem('flmmkr_client_device_id', clientId);
+        localStorage.setItem('flmmkr_client_device_id_v2', clientId);
       }
     } catch {
       clientId = 'client_' + Date.now();

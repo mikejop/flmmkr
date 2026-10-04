@@ -20,13 +20,18 @@ export async function GET(req: NextRequest) {
 
   const { searchParams } = new URL(req.url);
   const cookieClientId = req.cookies.get('flmmkr_offer_timer')?.value;
+  const isReset = searchParams.get('reset') === '1' || searchParams.get('reset') === 'true';
   const clientIdentifier = searchParams.get('clientId') || cookieClientId || `dev_${ip.replace(/[^a-zA-Z0-9]/g, '_')}`;
 
   const now = Date.now();
   const cacheKey = `sess_${clientIdentifier}_${ip}`;
 
+  if (isReset) {
+    memoryStore.delete(cacheKey);
+  }
+
   // 1. Verificar se já existe sessão no cache de memória ou Supabase
-  let session = memoryStore.get(cacheKey);
+  let session = isReset ? null : memoryStore.get(cacheKey);
 
   if (!session) {
     // Tenta buscar no Supabase
