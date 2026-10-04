@@ -329,6 +329,18 @@ export const ColorMasterLanding: React.FC = () => {
     {
       q: 'Como funciona o pagamento e quais são as formas disponíveis?',
       a: 'O pagamento é processado com total segurança pelo Asaas (instituição de pagamento autorizada pelo Banco Central). Você pode parcelar em até 12x no cartão de crédito, pagar à vista via Pix com liberação imediata ou via boleto bancário.'
+    },
+    {
+      q: 'Terei acesso aos arquivos e footage de comerciais reais para praticar?',
+      a: 'Sim. Você terá acesso aos arquivos de projeto e às mídias originais em formato profissional de comerciais reais produzidos para clientes e marcas do mercado, permitindo praticar exatamente no mesmo padrão de uma pós-produção comercial.'
+    },
+    {
+      q: 'Como funciona a garantia incondicional de 7 dias?',
+      a: 'Você tem 7 dias corridos a partir da compra para assistir às aulas e testar o conteúdo. Se por qualquer motivo sentir que o treinamento não atendeu às suas expectativas, basta enviar um e-mail para receber 100% do valor de volta, sem burocracia.'
+    },
+    {
+      q: 'O treinamento emite certificado de conclusão?',
+      a: 'Por se tratar de uma Masterclass de imersão prática de mercado (focada em tomada de decisão e workflow de comerciais), o foco primordial é a construção de repertório e portfólio real com footage comercial profissional.'
     }
   ];
 
@@ -454,6 +466,9 @@ export const ColorMasterLanding: React.FC = () => {
           </div>
         </div>
       </header>
+
+      {/* Main Content Landmark for Semantic SEO and Accessibility */}
+      <main id="main-content">
 
       {/* ========================================================================= */}
       {/* 01. HERO: APRESENTAÇÃO DO PRODUTO (PRIORIDADE MÁXIMA)                     */}
@@ -1151,6 +1166,7 @@ export const ColorMasterLanding: React.FC = () => {
           </div>
         </div>
       </section>
+      </main>
 
       {/* ========================================================================= */}
       {/* FOOTER & LINKS LEGAIS / SUPORTE                                           */}
