@@ -782,7 +782,7 @@ export const ColorMasterLanding: React.FC = () => {
                     <span className="font-semibold text-[#1d1d1f]">Diretor, diretor de fotografia, colorista e finalizador</span> com <span className="font-medium text-[#3a3a3c]">mais de 20 anos de experiência prática no mercado audiovisual</span>.
                   </p>
                   <p>
-                    Atuou em centenas de campanhas publicitárias, videoclipes, institucionais e conteúdos comerciais para grandes marcas e produtoras em todo o Brasil. É ex-professor titular de Color Grading da <strong className="font-semibold text-[#1d1d1f]">EBAC</strong> (Escola Britânica de Artes Criativas e Tecnologia).
+                    Atuou em centenas de campanhas publicitárias, videoclipes, institucionais e conteúdos comerciais para grandes marcas e produtoras em todo o Brasil. É ex-professor de Color Grading da <strong className="font-semibold text-[#1d1d1f]">EBAC</strong> (Escola Britânica de Artes Criativas e Tecnologia).
                   </p>
                   <p>
                     Sua abordagem pedagógica combina fundamentos técnicos sólidos da ciência de cores com os atalhos e decisões práticas exigidas no fluxo de trabalho de pós-produção do dia a dia.
