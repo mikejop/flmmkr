@@ -162,7 +162,7 @@ export const BrandPreloader: React.FC<BrandPreloaderProps> = ({
               return (
                 <span
                   key={idx}
-                  className="inline-block text-xs sm:text-sm text-[#2997ff] ml-1 self-start font-semibold transition-all duration-600 will-change-transform"
+                  className="inline-block text-xs sm:text-sm text-white ml-1 self-start font-semibold transition-all duration-600 will-change-transform"
                   style={{
                     transform: isMorphingOrBeyond ? 'translate3d(0, 0%, 0) scale(1)' : 'translate3d(0, 150%, 0) scale(0.6)',
                     opacity: isMorphingOrBeyond ? 1 : 0,
