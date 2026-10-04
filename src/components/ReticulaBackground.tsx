@@ -8,6 +8,7 @@ interface ReticulaBackgroundProps {
   crossfadeScroll?: boolean;
   fadeFromColor?: string; // Default: '#f5f5f7' (White)
   fadeToColor?: string;   // Default: '#000000' (Dark)
+  targetBlockRef?: React.RefObject<HTMLDivElement | null>;
 }
 
 export const ReticulaBackground: React.FC<ReticulaBackgroundProps> = ({
@@ -16,15 +17,17 @@ export const ReticulaBackground: React.FC<ReticulaBackgroundProps> = ({
   crossfadeScroll = true,
   fadeFromColor = '#f5f5f7',
   fadeToColor = '#000000',
+  targetBlockRef,
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
-  const [whiteOpacity, setWhiteOpacity] = useState<number>(0);
-  const [blackOpacity, setBlackOpacity] = useState<number>(0);
+  const whiteLayerRef = useRef<HTMLDivElement>(null);
+  const blackLayerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!crossfadeScroll) {
-      setWhiteOpacity(0);
-      setBlackOpacity(0);
+      if (whiteLayerRef.current) whiteLayerRef.current.style.opacity = '0';
+      if (blackLayerRef.current) blackLayerRef.current.style.opacity = '0';
+      if (targetBlockRef?.current) targetBlockRef.current.style.opacity = '1';
       return;
     }
 
@@ -43,23 +46,45 @@ export const ReticulaBackground: React.FC<ReticulaBackgroundProps> = ({
 
       // Zona de transição (alcance dinâmico para fade orgânico)
       const transitionZone = Math.max(windowHeight * 0.5, rect.height * 0.45);
+      const deadZone = transitionZone * 0.15; // Janela confortável com 100% de leitura no centro
 
-      if (centerOffset > 0) {
+      let whiteVal = 0;
+      let blackVal = 0;
+      let blockVal = 1;
+
+      if (centerOffset > deadZone) {
         // 1. CHEGADA (Entrando a partir da seção branca anterior):
-        // Conforme a seção sobe até o centro, a camada branca desvanece de 1 -> 0, revelando a imagem.
-        const rawWhite = Math.min(1, Math.max(0, centerOffset / transitionZone));
-        const easedWhite =
-          rawWhite < 0.5 ? 2 * rawWhite * rawWhite : 1 - Math.pow(-2 * rawWhite + 2, 2) / 2;
-        setWhiteOpacity(easedWhite);
-        setBlackOpacity(0);
-      } else {
+        // Conforme a seção sobe até o centro, a camada branca desvanece de 1 -> 0,
+        // e o bloco surge suavemente junto com a imagem.
+        const rawProgress = Math.min(1, Math.max(0, (centerOffset - deadZone) / (transitionZone - deadZone)));
+        const eased = rawProgress < 0.5 ? 2 * rawProgress * rawProgress : 1 - Math.pow(-2 * rawProgress + 2, 2) / 2;
+        whiteVal = eased;
+        blackVal = 0;
+        blockVal = Math.max(0, Math.min(1, 1 - eased));
+      } else if (centerOffset < -deadZone) {
         // 2. SAÍDA (Rolando em direção à seção escura seguinte):
-        // Conforme a seção passa do centro em direção ao topo, a camada preta surge de 0 -> 1, escurecendo a imagem.
-        const rawBlack = Math.min(1, Math.max(0, -centerOffset / transitionZone));
-        const easedBlack =
-          rawBlack < 0.5 ? 2 * rawBlack * rawBlack : 1 - Math.pow(-2 * rawBlack + 2, 2) / 2;
-        setWhiteOpacity(0);
-        setBlackOpacity(easedBlack);
+        // Conforme a seção passa do centro em direção ao topo, a camada preta surge de 0 -> 1,
+        // e o bloco do instrutor apaga/some junto com o resto dissolvendo no preto.
+        const rawProgress = Math.min(1, Math.max(0, (-centerOffset - deadZone) / (transitionZone - deadZone)));
+        const eased = rawProgress < 0.5 ? 2 * rawProgress * rawProgress : 1 - Math.pow(-2 * rawProgress + 2, 2) / 2;
+        whiteVal = 0;
+        blackVal = eased;
+        blockVal = Math.max(0, Math.min(1, 1 - eased));
+      } else {
+        // 3. CENTRO: Leitura nítida e 100% visível
+        whiteVal = 0;
+        blackVal = 0;
+        blockVal = 1;
+      }
+
+      if (whiteLayerRef.current) {
+        whiteLayerRef.current.style.opacity = whiteVal.toString();
+      }
+      if (blackLayerRef.current) {
+        blackLayerRef.current.style.opacity = blackVal.toString();
+      }
+      if (targetBlockRef?.current) {
+        targetBlockRef.current.style.opacity = blockVal.toString();
       }
     };
 
@@ -78,7 +103,7 @@ export const ReticulaBackground: React.FC<ReticulaBackgroundProps> = ({
       window.removeEventListener('scroll', onScroll);
       window.removeEventListener('resize', onScroll);
     };
-  }, [crossfadeScroll]);
+  }, [crossfadeScroll, targetBlockRef]);
 
   if (!bgImageSrc) return null;
 
@@ -106,19 +131,21 @@ export const ReticulaBackground: React.FC<ReticulaBackgroundProps> = ({
 
       {/* Camada de Animação de Fade: Branco -> Imagem */}
       <div
+        ref={whiteLayerRef}
         className="absolute inset-0 z-2 pointer-events-none will-change-[opacity]"
         style={{
           backgroundColor: fadeFromColor,
-          opacity: whiteOpacity,
+          opacity: 0,
         }}
       />
 
       {/* Camada de Animação de Fade: Imagem -> Escuro/Preto */}
       <div
+        ref={blackLayerRef}
         className="absolute inset-0 z-2 pointer-events-none will-change-[opacity]"
         style={{
           backgroundColor: fadeToColor,
-          opacity: blackOpacity,
+          opacity: 0,
         }}
       />
     </div>

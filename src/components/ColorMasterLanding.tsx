@@ -33,6 +33,7 @@ const PRODUTORAS_LOGOS = [
 export const ColorMasterLanding: React.FC = () => {
   const bonusCardRef = useRef<HTMLDivElement>(null);
   const bonusGlowRef = useRef<HTMLDivElement>(null);
+  const instructorCardRef = useRef<HTMLDivElement>(null);
 
   const [authorPhotos, setAuthorPhotos] = useState<AuthorPhotoPair>({
     profileSrc: '/assets/mike-photos/01.jpg',
@@ -770,15 +771,19 @@ export const ColorMasterLanding: React.FC = () => {
       {/* ========================================================================= */}
       {/* 05. QUEM ENSINA: MICHAEL OLIVEIRA                                         */}
       {/* ========================================================================= */}
-      <section className="relative z-10 min-h-[100dvh] flex flex-col justify-center py-12 md:py-16 bg-[#f5f5f7] px-4 sm:px-6 lg:px-8 overflow-hidden">
+      <section className="relative z-10 min-h-[100dvh] flex flex-col justify-center py-12 md:py-16 bg-[#000000] px-4 sm:px-6 lg:px-8 overflow-hidden">
         <ReticulaBackground
           bgImageSrc={authorPhotos.bgSrc}
           crossfadeScroll={true}
           fadeFromColor="#f5f5f7"
           fadeToColor="#000000"
+          targetBlockRef={instructorCardRef}
         />
 
-        <div className="max-w-5xl mx-auto relative z-10 w-full my-auto">
+        <div
+          ref={instructorCardRef}
+          className="max-w-5xl mx-auto relative z-10 w-full my-auto will-change-[opacity]"
+        >
           <div className="rounded-3xl bg-[#ffffff]/90 backdrop-blur-md border border-[#e5e5e7] p-8 sm:p-12 shadow-sm">
             <div className="grid grid-cols-1 md:grid-cols-12 gap-8 items-center">
               {/* Teacher Photo */}
