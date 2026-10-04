@@ -7,6 +7,7 @@ import { trackProductClick, trackSocialClick } from '@/utils/analytics';
 import { ReticulaBackground } from '@/components/ReticulaBackground';
 import { getRandomAuthorPhotos, AuthorPhotoPair } from '@/utils/authorPhotos';
 import { LoginModal } from '@/components/LoginModal';
+import { InstagramIcon, YouTubeIcon, TikTokIcon } from '@/components/SocialIcons';
 
 const OFFER_IMAGES = [
   { src: '/assets/produtos/color-master/offer/offer-1.webp', alt: 'Material do Masterclass - Visual 1' },
@@ -1190,7 +1191,7 @@ export const ColorMasterLanding: React.FC = () => {
             </a>
           </div>
 
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2.5">
             {SITE_CONFIG.social.map((soc) => (
               <a
                 key={soc.name}
@@ -1198,10 +1199,13 @@ export const ColorMasterLanding: React.FC = () => {
                 target="_blank"
                 rel="noopener noreferrer"
                 onClick={() => trackSocialClick(soc.name, 'other')}
-                className="px-3 py-1.5 rounded-full bg-[#f5f5f7] hover:bg-[#e8e8ed] text-[#6e6e73] hover:text-[#1d1d1f] border border-[#d2d2d7] transition-colors text-xs font-medium"
+                className="w-9 h-9 rounded-full bg-[#f5f5f7] hover:bg-[#e8e8ed] text-[#6e6e73] hover:text-[#1d1d1f] border border-[#d2d2d7] transition-all flex items-center justify-center active:scale-95"
                 aria-label={soc.name}
+                title={soc.name}
               >
-                {soc.name}
+                {soc.name === 'Instagram' && <InstagramIcon className="w-4 h-4" />}
+                {soc.name === 'YouTube' && <YouTubeIcon className="w-4 h-4" />}
+                {soc.name === 'TikTok' && <TikTokIcon className="w-4 h-4" />}
               </a>
             ))}
           </div>
