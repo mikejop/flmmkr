@@ -1139,21 +1139,23 @@ export const ColorMasterLanding: React.FC = () => {
       {/* ========================================================================= */}
       {/* 08. ENCERRAMENTO                                                          */}
       {/* ========================================================================= */}
-      <section className="relative z-10 py-20 md:py-28 px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto text-center">
-        <div className="p-10 sm:p-16 rounded-3xl bg-[#ffffff] border border-[#e5e5e7] shadow-xl relative overflow-hidden">
-          <h2 className="text-3xl sm:text-5xl font-semibold text-[#1d1d1f] mb-4 leading-tight">
-            Domine a construção visual de produtos e eleve seus comerciais.
-          </h2>
-          <p className="text-base sm:text-lg text-[#6e6e73] max-w-xl mx-auto mb-8">
-            Aprenda o método definitivo para analisar, equilibrar e finalizar imagens de alto impacto no DaVinci Resolve.
-          </p>
+      <section className="relative z-10 py-20 md:py-28 px-4 sm:px-6 lg:px-8 bg-[#000000] text-white">
+        <div className="max-w-4xl mx-auto text-center">
+          <div className="p-10 sm:p-16 rounded-3xl bg-gradient-to-b from-[#1c1c1e] to-[#0d0d0f] border border-white/10 shadow-2xl relative overflow-hidden">
+            <h2 className="text-3xl sm:text-5xl font-semibold text-white mb-4 leading-tight">
+              Domine a construção visual de produtos e eleve seus comerciais.
+            </h2>
+            <p className="text-base sm:text-lg text-white/70 max-w-xl mx-auto mb-8">
+              Aprenda o método definitivo para analisar, equilibrar e finalizar imagens de alto impacto no DaVinci Resolve.
+            </p>
 
-          <a
-            href="#oferta"
-            className="px-10 py-4 rounded-full bg-[#0071e3] hover:bg-[#0077ed] text-white font-semibold text-base transition-all shadow-[0_4px_20px_rgba(0,113,227,0.4)] inline-flex items-center justify-center active:scale-95"
-          >
-            ENTRAR NO COLOR MASTER | PRODUTO
-          </a>
+            <a
+              href="#oferta"
+              className="px-10 py-4 rounded-full bg-[#0071e3] hover:bg-[#0077ed] text-white font-semibold text-base transition-all shadow-[0_4px_24px_rgba(0,113,227,0.4)] inline-flex items-center justify-center active:scale-95"
+            >
+              ENTRAR NO COLOR MASTER | PRODUTO
+            </a>
+          </div>
         </div>
       </section>
 
