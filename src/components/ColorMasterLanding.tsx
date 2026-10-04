@@ -667,9 +667,12 @@ export const ColorMasterLanding: React.FC = () => {
       {/* ========================================================================= */}
       {/* 04. APLICAÇÃO PROFISSIONAL                                                */}
       {/* ========================================================================= */}
-      <section className="relative z-10 py-16 md:py-24 bg-[#f5f5f7] border-y border-[#d2d2d7]/60 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-6xl mx-auto">
-          <div className="text-center max-w-2xl mx-auto mb-14">
+      {/* ========================================================================= */}
+      {/* 04. APLICAÇÃO PROFISSIONAL                                                */}
+      {/* ========================================================================= */}
+      <section className="relative z-10 min-h-[100dvh] flex flex-col justify-center py-16 md:py-24 bg-[#f5f5f7] border-y border-[#d2d2d7]/60 px-4 sm:px-6 lg:px-8 overflow-hidden">
+        <div className="max-w-5xl mx-auto w-full my-auto">
+          <div className="text-center max-w-2xl mx-auto mb-12">
             <span className="text-xs uppercase tracking-widest text-[#0071e3] font-bold mb-2 block">
               MERCADO DE TRABALHO REAL
             </span>
@@ -677,62 +680,44 @@ export const ColorMasterLanding: React.FC = () => {
               Aplicação Profissional
             </h2>
             <p className="text-base sm:text-lg text-[#6e6e73] mt-3 font-normal">
-              Domine as 3 competências mais cobradas em produtoras, agências e clientes de alta exigência.
+              Domine as competências mais cobradas em produtoras, agências e clientes de alta exigência.
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
-            {/* Pilar 1: Tratamento de Cor e Densidade */}
-            <div className="p-8 rounded-3xl bg-[#ffffff] border border-[#e5e5e7] shadow-sm flex flex-col justify-between">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
+            {/* Pilar 1: Publicidade */}
+            <div className="p-8 sm:p-10 rounded-3xl bg-[#ffffff] border border-[#e5e5e7] shadow-sm flex flex-col justify-between hover:border-[#0071e3]/30 transition-all">
               <div>
                 <span className="inline-block px-3 py-1 rounded-full bg-[#0071e3]/10 text-[#0071e3] text-xs uppercase tracking-wider font-bold mb-4 border border-[#0071e3]/20">
                   PILAR 01
                 </span>
-                <h3 className="text-xl font-semibold text-[#1d1d1f] mb-3">
-                  Tratamento de Cor & Densidade
+                <h3 className="text-2xl font-semibold text-[#1d1d1f] mb-3">
+                  Publicidade
                 </h3>
-                <p className="text-sm text-[#6e6e73] leading-relaxed">
-                  Como calibrar luz, sombra e saturação com peso visual publicitário sem estourar canais nem introduzir artefatos na compressão de entrega.
+                <p className="text-sm sm:text-base text-[#6e6e73] leading-relaxed">
+                  Tratamento de cor de alto impacto, controle rigoroso de densidade, matching impecável de produto e look development exigido pelas grandes marcas, comerciais de TV e campanhas publicitárias.
                 </p>
               </div>
-              <div className="mt-6 pt-4 border-t border-[#e5e5e7] text-xs font-semibold text-[#1d1d1f]">
-                Padrão Broadcast & TV Comercial
+              <div className="mt-8 pt-4 border-t border-[#e5e5e7] text-xs font-semibold text-[#1d1d1f]">
+                Comerciais & Campanhas de Alto Impacto
               </div>
             </div>
 
-            {/* Pilar 2: Consistência entre Planos (Matching) */}
-            <div className="p-8 rounded-3xl bg-[#ffffff] border border-[#e5e5e7] shadow-sm flex flex-col justify-between">
+            {/* Pilar 2: Conteúdo */}
+            <div className="p-8 sm:p-10 rounded-3xl bg-[#ffffff] border border-[#e5e5e7] shadow-sm flex flex-col justify-between hover:border-[#0071e3]/30 transition-all">
               <div>
                 <span className="inline-block px-3 py-1 rounded-full bg-[#0071e3]/10 text-[#0071e3] text-xs uppercase tracking-wider font-bold mb-4 border border-[#0071e3]/20">
                   PILAR 02
                 </span>
-                <h3 className="text-xl font-semibold text-[#1d1d1f] mb-3">
-                  Consistência entre Planos (Matching)
+                <h3 className="text-2xl font-semibold text-[#1d1d1f] mb-3">
+                  Conteúdo
                 </h3>
-                <p className="text-sm text-[#6e6e73] leading-relaxed">
-                  Garantir que a embalagem, a cor do produto e o tom de pele mantenham absoluta coerência visual durante todos os cortes do vídeo.
+                <p className="text-sm sm:text-base text-[#6e6e73] leading-relaxed">
+                  Agilidade, consistência e acabamento estético refinado para filmes digitais, reels de produto, social media e produções de marca com alto volume de entrega e ritmo dinâmico.
                 </p>
               </div>
-              <div className="mt-6 pt-4 border-t border-[#e5e5e7] text-xs font-semibold text-[#1d1d1f]">
-                Continuidade Visual Perfeita
-              </div>
-            </div>
-
-            {/* Pilar 3: Criação de Looks Comerciais */}
-            <div className="p-8 rounded-3xl bg-[#ffffff] border border-[#e5e5e7] shadow-sm flex flex-col justify-between">
-              <div>
-                <span className="inline-block px-3 py-1 rounded-full bg-[#0071e3]/10 text-[#0071e3] text-xs uppercase tracking-wider font-bold mb-4 border border-[#0071e3]/20">
-                  PILAR 03
-                </span>
-                <h3 className="text-xl font-semibold text-[#1d1d1f] mb-3">
-                  Criação de Looks Comerciais
-                </h3>
-                <p className="text-sm text-[#6e6e73] leading-relaxed">
-                  Desenvolvimento de paletas de cor autorais sob medida para a proposta de cada marca, saindo da dependência de LUTs genéricos.
-                </p>
-              </div>
-              <div className="mt-6 pt-4 border-t border-[#e5e5e7] text-xs font-semibold text-[#1d1d1f]">
-                Look Development Autoral
+              <div className="mt-8 pt-4 border-t border-[#e5e5e7] text-xs font-semibold text-[#1d1d1f]">
+                Filmes Digitais & Redes Sociais
               </div>
             </div>
           </div>
