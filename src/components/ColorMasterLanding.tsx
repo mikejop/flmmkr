@@ -215,10 +215,10 @@ export const ColorMasterLanding: React.FC = () => {
     {
       num: '05',
       title: 'Finalização',
-      subtitle: 'Padrões de entrega comercial, codecs e exportação para TV e Web',
+      subtitle: 'Padrões de entrega comercial, codecs e exportação para Redes Sociais, YouTube, TV e Cinema',
       lessons: [
-        'Deliver',
-        'Preparação e exportação do material final'
+        'Deliver (Configurações avançadas na aba Deliver)',
+        'Exportação e masterização para Redes Sociais, YouTube, TV e Cinema'
       ]
     }
   ];
