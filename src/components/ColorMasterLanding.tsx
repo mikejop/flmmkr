@@ -726,10 +726,10 @@ export const ColorMasterLanding: React.FC = () => {
           <div className="p-8 sm:p-10 rounded-3xl bg-[#ffffff] border border-[#0071e3]/30 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-6">
             <div className="max-w-2xl">
               <span className="text-xs font-bold text-[#0071e3] uppercase tracking-wider block mb-1">
-                Foco no Trabalho Real
+                Nada de Simulacro
               </span>
-              <h3 className="text-xl sm:text-2xl font-semibold text-[#1d1d1f] mb-2">
-                "Você não vai decorar comandos. Vai aprender a tomar decisões de cor."
+              <h3 className="text-xl sm:text-2xl font-semibold text-[#1d1d1f] mb-2 leading-snug">
+                "Você não vai aprender usando imagens aleatórias, mas sim em projetos reais, com problemas reais e soluções reais."
               </h3>
               <p className="text-sm sm:text-base text-[#6e6e73]">
                 Cada nó, qualifier e curva são ensinados com a justificativa técnica e criativa por trás do comercial.
