@@ -438,7 +438,7 @@ export const ColorMasterLanding: React.FC = () => {
 
             {/* Subtitle */}
             <p className="text-base sm:text-xl text-white/90 font-normal leading-relaxed mb-8 max-w-2xl drop-shadow-md">
-              Aprenda, na prática, como analisar, equilibrar, igualar e construir o look de imagens de produto no DaVinci Resolve com padrão de publicidade de alto nível.
+              Trabalhe a cor com mais precisão, do material recebido ao look final, usando o DaVinci Resolve em projetos de produto para publicidade e conteúdos.
             </p>
 
             {/* Commercial Condition / Price Pill */}
