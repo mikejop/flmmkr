@@ -37,11 +37,11 @@ export const ColorMasterLanding: React.FC = () => {
   const [showStickyTimer, setShowStickyTimer] = useState<boolean>(false);
   const [activeOfferBg, setActiveOfferBg] = useState<number>(0);
 
-  // Auto cycle offer background footage stills
+  // Auto cycle offer background footage stills every 60 seconds
   useEffect(() => {
     const bgTimer = setInterval(() => {
       setActiveOfferBg((prev) => (prev + 1) % OFFER_IMAGES.length);
-    }, 4500);
+    }, 60000); // 60 segundos por imagem
     return () => clearInterval(bgTimer);
   }, []);
 
