@@ -762,7 +762,57 @@ export const ColorMasterLanding: React.FC = () => {
       </section>
 
       {/* ========================================================================= */}
-      {/* 06. OFERTA E COMPRA                                                       */}
+      {/* 06. BÔNUS EXCLUSIVO: MENTORIA EM GRUPO AO VIVO                            */}
+      {/* ========================================================================= */}
+      <section className="relative z-10 py-16 md:py-24 bg-[#000000] text-white px-4 sm:px-6 lg:px-8 border-t border-white/10">
+        <div className="max-w-4xl mx-auto">
+          <div className="p-8 sm:p-12 md:p-14 rounded-3xl bg-gradient-to-b from-[#1c1c1e] to-[#0d0d0f] border border-amber-500/30 shadow-2xl relative overflow-hidden">
+            {/* Subtle background glow */}
+            <div className="absolute top-0 right-0 w-96 h-96 bg-amber-500/10 rounded-full blur-3xl pointer-events-none -mr-20 -mt-20" />
+            
+            <div className="relative z-10">
+              <div className="inline-flex items-center px-3.5 py-1.5 rounded-full bg-amber-500/15 border border-amber-500/30 text-amber-400 text-xs font-semibold uppercase tracking-wider mb-6">
+                BÔNUS EXCLUSIVO
+              </div>
+
+              <h2 className="text-2xl sm:text-4xl md:text-5xl font-semibold tracking-tight text-white mb-4 leading-tight">
+                Mentoria em Grupo ao Vivo com Análise dos Seus Trabalhos
+              </h2>
+
+              <p className="text-base sm:text-xl text-white/80 font-normal leading-relaxed mb-8 max-w-3xl">
+                Bônus especial de aceleração garantido para os <strong className="text-amber-300 font-semibold">10 primeiros inscritos</strong> na Masterclass Color Master | Produto.
+              </p>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+                <div className="p-5 rounded-2xl bg-white/5 border border-white/10">
+                  <span className="text-xs uppercase tracking-wider text-amber-400 font-semibold block mb-1">Duração</span>
+                  <span className="text-xl font-bold text-white block">4 Semanas</span>
+                  <span className="text-xs text-white/60 mt-1 block">Acompanhamento estruturado</span>
+                </div>
+                <div className="p-5 rounded-2xl bg-white/5 border border-white/10">
+                  <span className="text-xs uppercase tracking-wider text-amber-400 font-semibold block mb-1">Frequência</span>
+                  <span className="text-xl font-bold text-white block">1x por Semana</span>
+                  <span className="text-xs text-white/60 mt-1 block">Encontros ao vivo com Michael</span>
+                </div>
+                <div className="p-5 rounded-2xl bg-white/5 border border-white/10">
+                  <span className="text-xs uppercase tracking-wider text-amber-400 font-semibold block mb-1">Foco Central</span>
+                  <span className="text-xl font-bold text-white block">Análise Prática</span>
+                  <span className="text-xs text-white/60 mt-1 block">Soluções reais para seus projetos</span>
+                </div>
+              </div>
+
+              <div className="p-6 rounded-2xl bg-white/[0.04] border border-white/10 text-white/90 text-sm sm:text-base leading-relaxed">
+                <p>
+                  Durante 4 semanas consecutivas, você participará de encontros ao vivo em grupo com Michael Oliveira. Uma oportunidade fechada para analisar os projetos e grades de cada participante, identificando falhas, refinando o tratamento e encontrando soluções técnicas para atingir o padrão comercial exigido pelas grandes produtoras e agências.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ========================================================================= */}
+      {/* 07. OFERTA E COMPRA                                                       */}
       {/* ========================================================================= */}
       <section id="oferta" className="relative z-10 py-16 md:py-24 bg-[#f5f5f7] border-t border-[#d2d2d7]/60 px-4 sm:px-6 lg:px-8">
         <div className="max-w-3xl mx-auto text-center">
@@ -778,19 +828,6 @@ export const ColorMasterLanding: React.FC = () => {
             <p className="text-base sm:text-lg text-[#6e6e73] mb-8 font-normal">
               Masterclass completa de Color Grading para comerciais e imagens de produto no DaVinci Resolve.
             </p>
-
-            {/* Special Mentorship Callout Card for First 10 */}
-            <div className="mb-6 p-5 sm:p-6 rounded-2xl bg-gradient-to-r from-amber-500/10 via-amber-400/15 to-amber-500/10 border border-amber-400/40 text-left max-w-lg mx-auto shadow-xs">
-              <span className="text-amber-800 font-bold text-xs uppercase tracking-wider mb-2 block">
-                BÔNUS EXCLUSIVO
-              </span>
-              <h3 className="text-base sm:text-lg font-bold text-[#1d1d1f] mb-2 leading-snug">
-                Os 10 primeiros inscritos ganham Mentoria em Grupo ao vivo com análise dos seus trabalhos!
-              </h3>
-              <p className="text-xs sm:text-sm text-[#48484a] leading-relaxed">
-                Mentoria de 4 semanas, sendo um encontro ao vivo por semana com Michael Oliveira. Uma oportunidade fechada para analisar os trabalhos de cada um e buscar soluções práticas para melhorar seus projetos e atingir o padrão de comercial.
-              </p>
-            </div>
 
             {/* Checklist of What's Included */}
             <div className="text-left space-y-3.5 max-w-lg mx-auto mb-8 text-sm sm:text-base text-[#1d1d1f] border-y border-[#e5e5e7] py-6">
