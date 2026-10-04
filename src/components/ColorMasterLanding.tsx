@@ -943,25 +943,40 @@ export const ColorMasterLanding: React.FC = () => {
           </div>
 
           <div className="space-y-4">
-            {faqList.map((faq, idx) => (
-              <div key={idx} className="rounded-2xl bg-[#ffffff] border border-[#e5e5e7] overflow-hidden shadow-xs">
-                <button
-                  onClick={() => toggleFaq(idx)}
-                  className="w-full p-6 text-left flex items-center justify-between text-base sm:text-lg font-semibold text-[#1d1d1f] hover:text-[#0071e3] transition-colors"
+            {faqList.map((faq, idx) => {
+              const isOpen = openFaq === idx;
+              return (
+                <div
+                  key={idx}
+                  className="rounded-2xl bg-[#ffffff] border border-[#e5e5e7] overflow-hidden shadow-xs transition-all duration-300 hover:border-[#0071e3]/30"
                 >
-                  <span className="pr-4">{faq.q}</span>
-                  <span className="text-lg font-semibold text-[#86868b] shrink-0">
-                    {openFaq === idx ? '−' : '+'}
-                  </span>
-                </button>
+                  <button
+                    onClick={() => toggleFaq(idx)}
+                    className="w-full p-6 text-left flex items-center justify-between text-base sm:text-lg font-semibold text-[#1d1d1f] hover:text-[#0071e3] transition-colors cursor-pointer"
+                    aria-expanded={isOpen}
+                  >
+                    <span className="pr-4">{faq.q}</span>
+                    <div className="shrink-0 w-8 h-8 rounded-full bg-[#f5f5f7] flex items-center justify-center text-sm font-semibold text-[#86868b] transition-transform duration-500 [transition-timing-function:cubic-bezier(0.45,0,0.55,1)]">
+                      <span className={`inline-block transition-transform duration-500 [transition-timing-function:cubic-bezier(0.45,0,0.55,1)] ${isOpen ? 'rotate-45 text-[#0071e3]' : 'rotate-0'}`}>
+                        +
+                      </span>
+                    </div>
+                  </button>
 
-                {openFaq === idx && (
-                  <div className="px-6 pb-6 text-sm sm:text-base text-[#6e6e73] leading-relaxed border-t border-[#e5e5e7] pt-4">
-                    {faq.a}
+                  <div
+                    className={`grid transition-[grid-template-rows,opacity] duration-500 [transition-timing-function:cubic-bezier(0.45,0,0.55,1)] ${
+                      isOpen ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0 pointer-events-none'
+                    }`}
+                  >
+                    <div className="overflow-hidden">
+                      <div className="px-6 pb-6 text-sm sm:text-base text-[#6e6e73] leading-relaxed border-t border-[#e5e5e7] pt-4 bg-[#fafafc]">
+                        {faq.a}
+                      </div>
+                    </div>
                   </div>
-                )}
-              </div>
-            ))}
+                </div>
+              );
+            })}
           </div>
         </div>
       </section>
