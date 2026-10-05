@@ -1,8 +1,10 @@
 import type { Metadata, Viewport } from 'next';
+import { Suspense } from 'react';
 import './globals.css';
 import { SITE_CONFIG } from '@/config/siteConfig';
 import { PRODUCTS } from '@/config/products';
 import { GENERAL_FAQ } from '@/config/faq';
+import { TrafficTelemetryTracker } from '@/components/TrafficTelemetryTracker';
 
 export const viewport: Viewport = {
   themeColor: '#ffffff',
@@ -177,6 +179,9 @@ export default function RootLayout({
         />
       </head>
       <body className="min-h-full bg-[#f5f5f7] text-[#1d1d1f] font-sans selection:bg-[#0071e3]/20 selection:text-[#0071e3]">
+        <Suspense fallback={null}>
+          <TrafficTelemetryTracker />
+        </Suspense>
         {children}
       </body>
     </html>

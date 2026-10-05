@@ -132,6 +132,12 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
   // Record cart abandonment if user leaves without paying
   const recordAbandonment = () => {
     if (hasInteractedRef.current && !paymentCompletedRef.current) {
+      let attr: any = null;
+      try {
+        const stored = localStorage.getItem('flmmkr_traffic_attribution');
+        if (stored) attr = JSON.parse(stored);
+      } catch {}
+
       const location = [city, state, neighborhood, street ? `${street}, ${number}` : ''].filter(Boolean).join(' - ');
       const payload = {
         name,
@@ -140,7 +146,11 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
         location,
         profession: profession || 'Não informada',
         paymentMethod: paymentMethod || 'nenhum',
-        reason: 'Modal fechado pelo usuário antes de concluir o pagamento'
+        reason: 'Modal fechado pelo usuário antes de concluir o pagamento',
+        trafficSource: attr?.sourceName || undefined,
+        deviceFingerprint: attr?.deviceFingerprint || macAddress || undefined,
+        utmSource: attr?.utmSource || undefined,
+        referrer: attr?.referrer || undefined
       };
 
       try {
@@ -412,6 +422,12 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
         }
       } : undefined;
 
+      let attr: any = null;
+      try {
+        const stored = localStorage.getItem('flmmkr_traffic_attribution');
+        if (stored) attr = JSON.parse(stored);
+      } catch {}
+
       if (paymentMethod === 'PIX') {
         const res = await fetch('/api/checkout/asaas', {
           method: 'POST',
@@ -428,7 +444,10 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
             billingType: 'PIX',
             billingInfo,
             macAddress,
-            isExpired
+            isExpired,
+            trafficSource: attr?.sourceName,
+            utmSource: attr?.utmSource,
+            referrer: attr?.referrer
           })
         });
 
@@ -478,7 +497,10 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
             },
             billingInfo,
             macAddress,
-            isExpired
+            isExpired,
+            trafficSource: attr?.sourceName,
+            utmSource: attr?.utmSource,
+            referrer: attr?.referrer
           })
         });
 

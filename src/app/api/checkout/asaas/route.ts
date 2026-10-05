@@ -10,6 +10,13 @@ export const dynamic = 'force-dynamic';
 
 export async function POST(req: NextRequest) {
   let requestData: any = {};
+  let telemetryMeta: {
+    trafficSource?: string;
+    deviceFingerprint?: string;
+    ip?: string;
+    utmSource?: string;
+    referrer?: string;
+  } = {};
   try {
     const rawJson = await req.json();
     const { safe, sanitized, reason } = validateAndSanitizeBody(rawJson);
@@ -51,6 +58,27 @@ export async function POST(req: NextRequest) {
     const ip = forwardedFor ? forwardedFor.split(',')[0].trim() : (realIp || '127.0.0.1');
     const cookieMac = req.cookies.get('flmmkr_device_mac')?.value;
     const finalMac = (macAddress || cookieMac || '').trim();
+
+    // Recuperar atribuição de tráfego (origem, UTM, device fingerprint)
+    const cookieAttrRaw = req.cookies.get('flmmkr_attribution')?.value;
+    let cookieAttr: any = null;
+    if (cookieAttrRaw) {
+      try {
+        cookieAttr = JSON.parse(decodeURIComponent(cookieAttrRaw));
+      } catch {}
+    }
+    const finalTrafficSource = requestData.trafficSource || cookieAttr?.sourceName || 'Direto';
+    const finalDeviceFp = finalMac || cookieAttr?.deviceFingerprint || null;
+    const finalUtmSource = requestData.utmSource || cookieAttr?.utmSource || null;
+    const finalReferrer = requestData.referrer || req.headers.get('referer') || null;
+
+    telemetryMeta = {
+      trafficSource: finalTrafficSource,
+      deviceFingerprint: finalDeviceFp || undefined,
+      ip,
+      utmSource: finalUtmSource || undefined,
+      referrer: finalReferrer || undefined
+    };
 
     let isRealExpired = isExpired;
     if (productId !== 'color-master-completo') {
@@ -166,7 +194,12 @@ export async function POST(req: NextRequest) {
           location: formatLocation(address),
           profession,
           paymentMethod: 'cartao_credito',
-          reason: declineReason
+          reason: declineReason,
+          trafficSource: finalTrafficSource,
+          deviceFingerprint: finalDeviceFp,
+          ip,
+          utmSource: finalUtmSource,
+          referrer: finalReferrer
         });
 
         return NextResponse.json(
@@ -184,7 +217,12 @@ export async function POST(req: NextRequest) {
           location: formatLocation(address),
           profession,
           paymentMethod: 'cartao_credito',
-          reason: declineReason
+          reason: declineReason,
+          trafficSource: finalTrafficSource,
+          deviceFingerprint: finalDeviceFp,
+          ip,
+          utmSource: finalUtmSource,
+          referrer: finalReferrer
         });
 
         return NextResponse.json(
@@ -219,6 +257,11 @@ export async function POST(req: NextRequest) {
           address: address || null,
           amount: productValue,
           status: 'PENDING',
+          traffic_source: finalTrafficSource,
+          device_fingerprint: finalDeviceFp,
+          ip,
+          utm_source: finalUtmSource,
+          referrer: finalReferrer,
           updated_at: new Date().toISOString()
         }, { onConflict: 'payment_id' });
       } catch (dbErr) {
@@ -249,7 +292,12 @@ export async function POST(req: NextRequest) {
         location: formatLocation(requestData.address),
         profession: requestData.profession,
         paymentMethod: requestData.billingType || 'desconhecido',
-        reason: error?.message || 'Erro inesperado no checkout'
+        reason: error?.message || 'Erro inesperado no checkout',
+        trafficSource: telemetryMeta.trafficSource,
+        deviceFingerprint: telemetryMeta.deviceFingerprint,
+        ip: telemetryMeta.ip,
+        utmSource: telemetryMeta.utmSource,
+        referrer: telemetryMeta.referrer
       });
     }
 
@@ -271,7 +319,12 @@ async function logRecusadoLead({
   location,
   profession,
   paymentMethod,
-  reason
+  reason,
+  trafficSource,
+  deviceFingerprint,
+  ip,
+  utmSource,
+  referrer
 }: {
   name: string;
   email?: string;
@@ -280,6 +333,11 @@ async function logRecusadoLead({
   profession?: string;
   paymentMethod?: string;
   reason?: string;
+  trafficSource?: string;
+  deviceFingerprint?: string;
+  ip?: string;
+  utmSource?: string;
+  referrer?: string;
 }) {
   try {
     await supabaseAdmin.from('checkout_abandonment_leads').insert({
@@ -291,6 +349,11 @@ async function logRecusadoLead({
       status: 'pagamento_recusado',
       payment_method: paymentMethod || null,
       failure_reason: reason || null,
+      traffic_source: trafficSource || null,
+      device_fingerprint: deviceFingerprint || null,
+      ip: ip || null,
+      utm_source: utmSource || null,
+      referrer: referrer || null,
       created_at: new Date().toISOString()
     });
   } catch (err) {
