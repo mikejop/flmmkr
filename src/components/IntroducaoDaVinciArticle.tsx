@@ -1,5 +1,5 @@
 import React from 'react';
-import { CheckCircle2 } from 'lucide-react';
+import { CheckCircle2, Command } from 'lucide-react';
 
 export default function IntroducaoDaVinciArticle() {
   return (
@@ -76,86 +76,54 @@ export default function IntroducaoDaVinciArticle() {
       </section>
 
       {/* ===================================================================
-          SEÇÃO 2 — ORGANIZA A CASA
+          SEÇÃO 2 — A ABA COLOR
           =================================================================== */}
       <section className="w-full bg-white p-6 sm:p-10 lg:p-12 border border-neutral-200/80 rounded-[28px] shadow-sm relative overflow-hidden transition-all duration-300">
         <div className="font-serif text-[12px] sm:text-[13px] tracking-[0.25em] uppercase text-neutral-500 font-medium mb-4 flex items-center justify-between border-b border-neutral-300/60 pb-3">
           <span>FUNDAMENTOS</span>
-          <span>PÁGINA MEDIA & ESTRUTURA</span>
+          <span>ESTRUTURA DA TELA</span>
         </div>
 
-        <h2 className="font-sans font-black text-[26px] sm:text-[36px] lg:text-[42px] tracking-tight uppercase leading-[1.0] text-[#0071e3] my-4">
-          ORGANIZA A CASA
+        <h2 className="font-sans font-black text-[26px] sm:text-[36px] lg:text-[42px] tracking-tight uppercase leading-[1.0] text-[#0071e3] my-2">
+          A ABA COLOR
         </h2>
+        <h3 className="font-sans font-bold text-neutral-900 text-lg uppercase tracking-tight mt-1 mb-4">
+          É AQUI QUE A IMAGEM COMEÇA A TOMAR FORMA
+        </h3>
 
         <div className="h-[2px] bg-[#0071e3] w-full my-6" />
 
         <div className="font-serif text-lg text-neutral-800 leading-[1.7] space-y-5">
           <p>
-            Na página Media, você vai trazer os arquivos do computador para dentro do projeto. E aqui tem um detalhe importante: mantenha a organização que você já fez no computador.
+            Quando você entra na página Color, a primeira coisa que precisa entender é como aquela tela está organizada.
           </p>
           <p>
-            Se você tem uma pasta com as brutas, outra com drone, outra com cada card, joga essa estrutura para os Bins. Assim o DaVinci mantém tudo organizado.
-          </p>
-        </div>
-
-        {/* Citação Editorial em Destaque */}
-        <blockquote className="bg-[#f5f5f7] p-6 sm:p-8 rounded-2xl border-l-4 border-[#0071e3] my-7 shadow-xs">
-          <p className="font-serif italic font-medium text-xl sm:text-2xl text-[#0071e3] leading-snug !mb-0">
-            “Se você deixar organizado no seu computador, você consegue arrastar do computador pro DaVinci Resolve e ele vai continuar com a mesma organização.”
-          </p>
-        </blockquote>
-
-        <p className="font-serif text-lg text-neutral-800 leading-[1.7]">
-          Não tem motivo pra jogar tudo solto no Media Pool e depois ficar procurando arquivo no meio daquela bagunça.
-        </p>
-      </section>
-
-      {/* ===================================================================
-          SEÇÃO 3 — E NA EDIT, O COLORISTA PRECISA SABER O BÁSICO
-          =================================================================== */}
-      <section className="w-full bg-white p-6 sm:p-10 lg:p-12 border border-neutral-200/80 rounded-[28px] shadow-sm relative overflow-hidden transition-all duration-300">
-        <div className="font-serif text-[12px] sm:text-[13px] tracking-[0.25em] uppercase text-neutral-500 font-medium mb-4 flex items-center justify-between border-b border-neutral-300/60 pb-3">
-          <span>FUNDAMENTOS</span>
-          <span>TIMELINE LIMPA</span>
-        </div>
-
-        <h2 className="font-sans font-black text-[26px] sm:text-[36px] lg:text-[42px] tracking-tight uppercase leading-[1.0] text-[#0071e3] my-4">
-          E NA EDIT, O COLORISTA PRECISA SABER O BÁSICO
-        </h2>
-
-        <div className="h-[2px] bg-[#0071e3] w-full my-6" />
-
-        <div className="font-serif text-lg text-neutral-800 leading-[1.7] space-y-5">
-          <p>
-            Você não precisa virar editor porque está fazendo color.
+            Você tem a imagem no centro, a timeline embaixo, os nodes, a Gallery e, na parte inferior, as ferramentas de correção.
           </p>
           <p>
-            Mas precisa saber navegar na timeline e, principalmente, identificar aquilo que realmente vai aparecer no filme.
+            A gente vai trabalhar praticamente aqui.
           </p>
-          <p>
-            Às vezes existem takes que estão na timeline, mas foram desativados ou simplesmente não aparecem no resultado final. Se eles continuarem ali, você pode acabar colorindo um clipe que ninguém vai ver.
-          </p>
-        </div>
 
-        <blockquote className="bg-[#f5f5f7] p-6 sm:p-8 rounded-2xl border-l-4 border-[#0071e3] my-7 shadow-xs">
-          <p className="font-serif italic font-medium text-xl sm:text-2xl text-[#0071e3] leading-snug !mb-0">
-            “Então, às vezes, você vai precisar fazer isso, vai precisar tirar ele.”
-          </p>
-        </blockquote>
+          <blockquote className="bg-[#f5f5f7] p-6 sm:p-8 rounded-2xl border-l-4 border-[#0071e3] my-7 shadow-xs">
+            <p className="font-serif italic font-medium text-xl sm:text-2xl text-[#0071e3] leading-snug !mb-0">
+              “O colorista, ele trabalha praticamente na aba Color.”
+            </p>
+          </blockquote>
 
-        <div className="font-serif text-lg text-neutral-800 leading-[1.7] space-y-5">
           <p>
-            É por isso que uma timeline limpa ajuda tanto. Você olha para ela e sabe exatamente o que precisa trabalhar.
+            E não precisa ficar assustado com a quantidade de coisa que aparece.
           </p>
           <p>
-            E isso também ajuda a calcular o tempo de color. Se você sabe que tem oito clipes para fazer, é uma coisa. Se aparecem quinze porque metade deles nem está sendo usada, já começa errado.
+            O Resolve tem um milhão de ferramentas. É impossível falar sobre todas elas.
+          </p>
+          <p className="font-sans font-bold text-neutral-900 text-xl pt-2">
+            Então vamos entender o que realmente importa.
           </p>
         </div>
       </section>
 
       {/* ===================================================================
-          SEÇÃO 4 — O NODE É O CAMINHO DA IMAGEM
+          SEÇÃO 3 — OS NODES
           =================================================================== */}
       <section className="w-full bg-white p-6 sm:p-10 lg:p-12 border border-neutral-200/80 rounded-[28px] shadow-sm relative overflow-hidden transition-all duration-300">
         <div className="font-serif text-[12px] sm:text-[13px] tracking-[0.25em] uppercase text-neutral-500 font-medium mb-4 flex items-center justify-between border-b border-neutral-300/60 pb-3">
@@ -163,38 +131,111 @@ export default function IntroducaoDaVinciArticle() {
           <span>ARQUITETURA DE NODES</span>
         </div>
 
-        <h2 className="font-sans font-black text-[26px] sm:text-[36px] lg:text-[42px] tracking-tight uppercase leading-[1.0] text-[#0071e3] my-4">
-          O NODE É O CAMINHO DA IMAGEM
+        <h2 className="font-sans font-black text-[26px] sm:text-[36px] lg:text-[42px] tracking-tight uppercase leading-[1.0] text-[#0071e3] my-2">
+          OS NODES
         </h2>
+        <h3 className="font-sans font-bold text-neutral-900 text-lg uppercase tracking-tight mt-1 mb-4">
+          A IMAGEM PASSA POR AQUI
+        </h3>
 
         <div className="h-[2px] bg-[#0071e3] w-full my-6" />
 
         <div className="font-serif text-lg text-neutral-800 leading-[1.7] space-y-5">
           <p>
-            Pensa no node de um jeito simples.
+            Aqui embaixo a gente tem os nodes.
           </p>
           <p>
-            A imagem entra, você faz um tratamento e manda esse tratamento para o próximo node. Depois outro tratamento. E outro. Até chegar no Output.
+            Pensa no node como uma etapa do tratamento.
           </p>
           <p>
-            É como se você fosse construindo a imagem por etapas.
+            Você faz uma correção em um node, depois pode fazer outra em outro node, depois outra. E vai construindo o tratamento da imagem aos poucos.
           </p>
-          <p>
-            Isso é muito melhor do que sair colocando tudo no mesmo lugar, porque você consegue entender o que cada parte do grade está fazendo. E, se alguma coisa der errado, fica muito mais fácil encontrar o problema.
+          <p className="font-sans font-bold text-neutral-900 text-lg">
+            Isso é importante porque você consegue separar as coisas.
           </p>
-          <div className="bg-[#f5f5f7] p-5 rounded-xl border border-neutral-200 text-neutral-900 font-sans text-base font-medium flex items-center gap-3">
-            <span className="w-8 h-8 rounded-full bg-[#0071e3] text-white flex items-center justify-center shrink-0 text-xs font-bold">
-              TIP
-            </span>
-            <span>
-              Também dá pra organizar o node graph. Botão direito, <strong>Cleanup Node Graph</strong>, e pronto. O próprio Resolve organiza aquilo que você deixou uma zona.
-            </span>
+
+          <div className="space-y-3 bg-[#f5f5f7] p-6 rounded-2xl border border-neutral-200 my-5 font-sans">
+            <div className="flex items-center gap-3">
+              <span className="w-2.5 h-2.5 rounded-full bg-[#0071e3]" />
+              <span className="text-base text-neutral-800">Uma correção de exposição pode ficar em um node.</span>
+            </div>
+            <div className="flex items-center gap-3">
+              <span className="w-2.5 h-2.5 rounded-full bg-[#0071e3]" />
+              <span className="text-base text-neutral-800">Uma correção de balanço pode ficar em outro.</span>
+            </div>
+            <div className="flex items-center gap-3">
+              <span className="w-2.5 h-2.5 rounded-full bg-[#0071e3]" />
+              <span className="text-base text-neutral-800">Um ajuste de uma cor específica pode ficar em outro.</span>
+            </div>
           </div>
+
+          <p>
+            E aí, quando alguma coisa não está legal, você sabe exatamente onde foi mexido.
+          </p>
+          <p>
+            Também dá para trabalhar com diferentes estruturas de nodes, dependendo do que você quer fazer.
+          </p>
+          <p className="font-sans font-semibold text-neutral-900 bg-white p-5 rounded-xl border border-neutral-200">
+            Não precisa decorar tudo agora. O importante é entender que o grade vai sendo construído dentro dessa estrutura.
+          </p>
         </div>
       </section>
 
       {/* ===================================================================
-          SEÇÃO 5 — ANTES DE MEXER NA COR, ENTENDA AS PRIMÁRIAS
+          SEÇÃO 4 — PRIMARIES
+          =================================================================== */}
+      <section className="w-full bg-white p-6 sm:p-10 lg:p-12 border border-neutral-200/80 rounded-[28px] shadow-sm relative overflow-hidden transition-all duration-300">
+        <div className="font-serif text-[12px] sm:text-[13px] tracking-[0.25em] uppercase text-neutral-500 font-medium mb-4 flex items-center justify-between border-b border-neutral-300/60 pb-3">
+          <span>FUNDAMENTOS</span>
+          <span>CORREÇÕES INICIAIS</span>
+        </div>
+
+        <h2 className="font-sans font-black text-[26px] sm:text-[36px] lg:text-[42px] tracking-tight uppercase leading-[1.0] text-[#0071e3] my-2">
+          PRIMARIES
+        </h2>
+        <h3 className="font-sans font-bold text-neutral-900 text-lg uppercase tracking-tight mt-1 mb-4">
+          ONDE A GENTE COMEÇA A CORRIGIR A IMAGEM
+        </h3>
+
+        <div className="h-[2px] bg-[#0071e3] w-full my-6" />
+
+        <div className="font-serif text-lg text-neutral-800 leading-[1.7] space-y-5">
+          <p>
+            Aqui estão as ferramentas que você provavelmente mais vai usar no começo.
+          </p>
+          <p>
+            Você vai encontrar <strong>Color Wheels</strong>, <strong>Color Bars</strong> e <strong>Log Wheels</strong>.
+          </p>
+          <p>
+            As Color Wheels trabalham a imagem de uma maneira mais geral.
+          </p>
+          <p>
+            Você tem controle sobre sombras, meios-tons e altas luzes e consegue fazer aquelas correções mais amplas de exposição, contraste e cor.
+          </p>
+          <p>
+            Já as Log Wheels permitem ser mais específico dentro da escala tonal.
+          </p>
+          <p>
+            Então, dependendo do que você quer corrigir, uma ferramenta vai funcionar melhor do que a outra.
+          </p>
+
+          <blockquote className="bg-[#f5f5f7] p-6 sm:p-8 rounded-2xl border-l-4 border-[#0071e3] my-7 shadow-xs">
+            <p className="font-serif italic font-medium text-xl sm:text-2xl text-[#0071e3] leading-snug !mb-0">
+              “Qual que é a diferença entre eles, tá?”
+            </p>
+          </blockquote>
+
+          <p>
+            É essa pergunta que você precisa fazer sempre no color.
+          </p>
+          <p className="font-sans font-bold text-neutral-900 text-xl">
+            O que eu quero mudar e qual ferramenta me dá mais controle sobre isso?
+          </p>
+        </div>
+      </section>
+
+      {/* ===================================================================
+          SEÇÃO 5 — COLOR WHEELS
           =================================================================== */}
       <section className="w-full bg-white p-6 sm:p-10 lg:p-12 border border-neutral-200/80 rounded-[28px] shadow-sm relative overflow-hidden transition-all duration-300">
         <div className="font-serif text-[12px] sm:text-[13px] tracking-[0.25em] uppercase text-neutral-500 font-medium mb-4 flex items-center justify-between border-b border-neutral-300/60 pb-3">
@@ -203,169 +244,629 @@ export default function IntroducaoDaVinciArticle() {
         </div>
 
         <h2 className="font-sans font-black text-[26px] sm:text-[36px] lg:text-[42px] tracking-tight uppercase leading-[1.0] text-[#0071e3] my-4">
-          ANTES DE MEXER NA COR, ENTENDA AS PRIMÁRIAS
+          COLOR WHEELS
         </h2>
 
         <div className="h-[2px] bg-[#0071e3] w-full my-6" />
 
         <div className="font-serif text-lg text-neutral-800 leading-[1.7] space-y-5">
           <p>
-            Aqui começa uma parte importante.
+            As Color Wheels são divididas em áreas diferentes da imagem.
           </p>
-          <p>
-            Você vai encontrar Color Wheels, Color Bars e Log Wheels. As três servem para trabalhar a imagem, mas não fazem exatamente a mesma coisa.
-          </p>
-          <p>
-            O Color Wheel trabalha de maneira mais ampla. Quando você mexe nele, uma parte grande da imagem acompanha a alteração.
-          </p>
-          <p>
-            Já os controles de Highlight, Midtone e Shadow permitem ser mais específico.
-          </p>
-          
-          <div className="bg-neutral-50 p-6 rounded-2xl border border-neutral-200 my-4 space-y-3 font-sans">
-            <p className="text-sm font-bold text-neutral-500 uppercase tracking-wider">
-              Então pensa assim:
-            </p>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="p-4 bg-white rounded-xl border border-neutral-200 shadow-xs">
-                <span className="font-bold text-neutral-900 block text-base mb-1">Quero mudar a imagem inteira?</span>
-                <span className="text-sm text-[#0071e3] font-semibold">Vai para um ajuste mais geral.</span>
-              </div>
-              <div className="p-4 bg-white rounded-xl border border-neutral-200 shadow-xs">
-                <span className="font-bold text-neutral-900 block text-base mb-1">Quero mexer só em uma parte?</span>
-                <span className="text-sm text-[#0071e3] font-semibold">Usa uma ferramenta mais específica.</span>
-              </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 font-sans my-4">
+            <div className="p-4 bg-[#f5f5f7] rounded-xl border border-neutral-200">
+              <strong className="block text-neutral-900 text-base mb-1">Lift</strong>
+              <span className="text-sm text-neutral-600">Trabalha principalmente as regiões mais escuras.</span>
+            </div>
+            <div className="p-4 bg-[#f5f5f7] rounded-xl border border-neutral-200">
+              <strong className="block text-neutral-900 text-base mb-1">Gamma</strong>
+              <span className="text-sm text-neutral-600">Atua nos meios-tons da imagem.</span>
+            </div>
+            <div className="p-4 bg-[#f5f5f7] rounded-xl border border-neutral-200">
+              <strong className="block text-neutral-900 text-base mb-1">Gain</strong>
+              <span className="text-sm text-neutral-600">Trabalha as regiões mais claras.</span>
             </div>
           </div>
 
           <p>
-            É isso. Você não precisa decorar uma regra complicada. É só entender o alcance de cada ferramenta.
+            E você ainda tem controles como <strong>Contrast</strong>, <strong>Pivot</strong>, <strong>Saturation</strong>, <strong>Hue</strong>, <strong>Temperature</strong> e <strong>Tint</strong>.
+          </p>
+          <p>
+            Aqui você consegue fazer aquela primeira organização da imagem:
+          </p>
+
+          <ul className="space-y-2 list-disc list-inside font-sans text-neutral-700 bg-neutral-50 p-5 rounded-xl border border-neutral-200">
+            <li>Corrigir uma exposição que veio errada.</li>
+            <li>Ajustar o balanço de branco.</li>
+            <li>Aumentar ou diminuir contraste.</li>
+            <li>Controlar saturação.</li>
+            <li>Mudar uma dominante de cor.</li>
+          </ul>
+
+          <p className="font-sans font-bold text-neutral-900 text-lg pt-2">
+            É aqui que normalmente começa o trabalho.
           </p>
         </div>
-
-        <blockquote className="bg-[#f5f5f7] p-6 sm:p-8 rounded-2xl border-l-4 border-[#0071e3] my-7 shadow-xs">
-          <p className="font-serif italic font-medium text-xl sm:text-2xl text-[#0071e3] leading-snug !mb-0">
-            “Um é mais específico e o outro é mais generalista, tá?”
-          </p>
-        </blockquote>
       </section>
 
       {/* ===================================================================
-          SEÇÃO 6 — QUANDO O PROBLEMA ESTÁ SÓ EM UMA PARTE
+          SEÇÃO 6 — LOG WHEELS
           =================================================================== */}
       <section className="w-full bg-white p-6 sm:p-10 lg:p-12 border border-neutral-200/80 rounded-[28px] shadow-sm relative overflow-hidden transition-all duration-300">
         <div className="font-serif text-[12px] sm:text-[13px] tracking-[0.25em] uppercase text-neutral-500 font-medium mb-4 flex items-center justify-between border-b border-neutral-300/60 pb-3">
           <span>FUNDAMENTOS</span>
-          <span>AJUSTES ESPECÍFICOS & CURVAS</span>
+          <span>AJUSTE TONAL DIRECIONADO</span>
         </div>
 
         <h2 className="font-sans font-black text-[26px] sm:text-[36px] lg:text-[42px] tracking-tight uppercase leading-[1.0] text-[#0071e3] my-4">
-          QUANDO O PROBLEMA ESTÁ SÓ EM UMA PARTE
+          LOG WHEELS
         </h2>
 
         <div className="h-[2px] bg-[#0071e3] w-full my-6" />
 
         <div className="font-serif text-lg text-neutral-800 leading-[1.7] space-y-5">
           <p>
-            É aqui que começam a aparecer ferramentas mais específicas.
+            As Log Wheels funcionam de forma mais direcionada.
           </p>
           <p>
-            O HDR permite trabalhar diferentes partes da escala tonal. Então, se existe um ponto muito claro que está chamando atenção, você consegue mexer naquele pedaço sem destruir o resto da imagem.
+            Em vez de tratar a imagem de uma maneira tão ampla, você consegue trabalhar faixas tonais mais específicas.
           </p>
           <p>
-            O RGB Mixer faz outra coisa. Ele permite trabalhar cada canal separadamente.
+            Isso é muito útil quando você quer fazer um ajuste pequeno sem sair mexendo no resto da imagem.
           </p>
           <p>
-            Está tudo meio amarelado e você precisa corrigir uma dominante? Em vez de ficar mexendo na imagem inteira, você pode trabalhar diretamente no canal que está causando o problema.
+            Por exemplo, você pode mexer em uma região mais clara sem afetar tanto os meios-tons.
           </p>
           <p>
-            E aí começam a aparecer as curvas.
+            Ou trabalhar uma determinada região escura sem alterar tanto o restante.
+          </p>
+          <p className="font-sans font-bold text-[#0071e3] text-xl">
+            É mais controle.
+          </p>
+        </div>
+      </section>
+
+      {/* ===================================================================
+          SEÇÃO 7 — HDR
+          =================================================================== */}
+      <section className="w-full bg-white p-6 sm:p-10 lg:p-12 border border-neutral-200/80 rounded-[28px] shadow-sm relative overflow-hidden transition-all duration-300">
+        <div className="font-serif text-[12px] sm:text-[13px] tracking-[0.25em] uppercase text-neutral-500 font-medium mb-4 flex items-center justify-between border-b border-neutral-300/60 pb-3">
+          <span>FUNDAMENTOS</span>
+          <span>CONTROLE DE ZONAS</span>
+        </div>
+
+        <h2 className="font-sans font-black text-[26px] sm:text-[36px] lg:text-[42px] tracking-tight uppercase leading-[1.0] text-[#0071e3] my-4">
+          HDR
+        </h2>
+
+        <div className="h-[2px] bg-[#0071e3] w-full my-6" />
+
+        <div className="font-serif text-lg text-neutral-800 leading-[1.7] space-y-5">
+          <p>
+            Aqui você tem uma outra forma de trabalhar a escala tonal.
           </p>
           <p>
-            Você pode selecionar uma determinada matiz e mudar a própria matiz. Pode pegar uma cor e mexer só na saturação dela. Pode mudar a luminosidade de uma cor específica.
+            No HDR, você consegue separar diferentes regiões da imagem e atuar de maneira bem mais precisa.
+          </p>
+          <p className="font-sans font-bold text-neutral-900 text-lg">
+            Quer mexer só naquele pedaço de luz?
+          </p>
+          <p>
+            Você consegue.
+          </p>
+
+          <blockquote className="bg-[#f5f5f7] p-6 sm:p-8 rounded-2xl border-l-4 border-[#0071e3] my-7 shadow-xs">
+            <p className="font-serif italic font-medium text-xl sm:text-2xl text-[#0071e3] leading-snug !mb-0">
+              “No HDR, onde a gente vai mexer em cada pontinho.”
+            </p>
+          </blockquote>
+
+          <p>
+            É uma ferramenta muito interessante quando você precisa fazer uma correção localizada sem bagunçar toda a imagem.
+          </p>
+        </div>
+      </section>
+
+      {/* ===================================================================
+          SEÇÃO 8 — RGB MIXER
+          =================================================================== */}
+      <section className="w-full bg-white p-6 sm:p-10 lg:p-12 border border-neutral-200/80 rounded-[28px] shadow-sm relative overflow-hidden transition-all duration-300">
+        <div className="font-serif text-[12px] sm:text-[13px] tracking-[0.25em] uppercase text-neutral-500 font-medium mb-4 flex items-center justify-between border-b border-neutral-300/60 pb-3">
+          <span>FUNDAMENTOS</span>
+          <span>CANAIS INDIVIDUAIS</span>
+        </div>
+
+        <h2 className="font-sans font-black text-[26px] sm:text-[36px] lg:text-[42px] tracking-tight uppercase leading-[1.0] text-[#0071e3] my-4">
+          RGB MIXER
+        </h2>
+
+        <div className="h-[2px] bg-[#0071e3] w-full my-6" />
+
+        <div className="font-serif text-lg text-neutral-800 leading-[1.7] space-y-5">
+          <p>
+            Aqui você consegue trabalhar cada canal individualmente:
+          </p>
+          <p className="font-sans font-semibold text-neutral-900">
+            Vermelho, verde e azul.
+          </p>
+
+          <blockquote className="bg-[#f5f5f7] p-6 sm:p-8 rounded-2xl border-l-4 border-[#0071e3] my-7 shadow-xs">
+            <p className="font-serif italic font-medium text-xl sm:text-2xl text-[#0071e3] leading-snug !mb-0">
+              “Aqui eu vou ter o RGB Mixer. Esse RGB Mixer, a gente consegue ajustar cada canal individualmente.”
+            </p>
+          </blockquote>
+
+          <p>
+            É uma ferramenta que permite fazer alterações bem específicas na relação entre os canais.
+          </p>
+          <p>
+            Não é aquela ferramenta que você precisa ficar usando em todo grade.
+          </p>
+          <p className="font-sans font-bold text-neutral-900">
+            Mas quando precisa, ela resolve.
+          </p>
+        </div>
+      </section>
+
+      {/* ===================================================================
+          SEÇÃO 9 — CURVES
+          =================================================================== */}
+      <section className="w-full bg-white p-6 sm:p-10 lg:p-12 border border-neutral-200/80 rounded-[28px] shadow-sm relative overflow-hidden transition-all duration-300">
+        <div className="font-serif text-[12px] sm:text-[13px] tracking-[0.25em] uppercase text-neutral-500 font-medium mb-4 flex items-center justify-between border-b border-neutral-300/60 pb-3">
+          <span>FUNDAMENTOS</span>
+          <span>CONTROLE DE CURVAS</span>
+        </div>
+
+        <h2 className="font-sans font-black text-[26px] sm:text-[36px] lg:text-[42px] tracking-tight uppercase leading-[1.0] text-[#0071e3] my-4">
+          CURVES
+        </h2>
+
+        <div className="h-[2px] bg-[#0071e3] w-full my-6" />
+
+        <div className="font-serif text-lg text-neutral-800 leading-[1.7] space-y-5">
+          <p>
+            As curvas são outra forma de controlar a imagem.
+          </p>
+          <p>
+            Você pode trabalhar contraste, luminância e cor e também fazer ajustes mais específicos.
+          </p>
+          <p>
+            Aqui entram ferramentas como:
+          </p>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 font-sans my-4">
+            <div className="p-3.5 bg-[#f5f5f7] rounded-xl border border-neutral-200 font-bold text-neutral-800">
+              Custom Curves
+            </div>
+            <div className="p-3.5 bg-[#f5f5f7] rounded-xl border border-neutral-200 font-bold text-neutral-800">
+              Hue vs Hue
+            </div>
+            <div className="p-3.5 bg-[#f5f5f7] rounded-xl border border-neutral-200 font-bold text-neutral-800">
+              Hue vs Saturation
+            </div>
+            <div className="p-3.5 bg-[#f5f5f7] rounded-xl border border-neutral-200 font-bold text-neutral-800">
+              Hue vs Luminance
+            </div>
+            <div className="p-3.5 bg-[#f5f5f7] rounded-xl border border-neutral-200 font-bold text-neutral-800 sm:col-span-2">
+              Luminance vs Saturation
+            </div>
+          </div>
+
+          <p>
+            É onde você começa a fazer aquelas correções mais cirúrgicas.
+          </p>
+
+          <div className="space-y-4 bg-neutral-50 p-6 rounded-2xl border border-neutral-200 my-4 font-sans">
+            <div>
+              <span className="text-neutral-500 text-sm block">Quer mudar o tom de uma cor sem mexer nas outras?</span>
+              <strong className="text-[#0071e3] text-base">Hue vs Hue.</strong>
+            </div>
+            <div>
+              <span className="text-neutral-500 text-sm block">Quer aumentar a saturação de uma determinada cor?</span>
+              <strong className="text-[#0071e3] text-base">Hue vs Saturation.</strong>
+            </div>
+            <div>
+              <span className="text-neutral-500 text-sm block">Quer alterar a luminosidade de uma determinada cor?</span>
+              <strong className="text-[#0071e3] text-base">Hue vs Luminance.</strong>
+            </div>
+          </div>
+
+          <p className="font-sans font-semibold text-neutral-900 text-lg">
+            É basicamente isso.
+          </p>
+        </div>
+      </section>
+
+      {/* ===================================================================
+          SEÇÃO 10 — QUALIFIER
+          =================================================================== */}
+      <section className="w-full bg-white p-6 sm:p-10 lg:p-12 border border-neutral-200/80 rounded-[28px] shadow-sm relative overflow-hidden transition-all duration-300">
+        <div className="font-serif text-[12px] sm:text-[13px] tracking-[0.25em] uppercase text-neutral-500 font-medium mb-4 flex items-center justify-between border-b border-neutral-300/60 pb-3">
+          <span>FUNDAMENTOS</span>
+          <span>ISOLAMENTO DE COR</span>
+        </div>
+
+        <h2 className="font-sans font-black text-[26px] sm:text-[36px] lg:text-[42px] tracking-tight uppercase leading-[1.0] text-[#0071e3] my-4">
+          QUALIFIER
+        </h2>
+
+        <div className="h-[2px] bg-[#0071e3] w-full my-6" />
+
+        <div className="font-serif text-lg text-neutral-800 leading-[1.7] space-y-5">
+          <p>
+            Agora a gente começa a selecionar.
+          </p>
+          <p>
+            O Qualifier permite pegar uma determinada cor da imagem e trabalhar só nela.
+          </p>
+          <p>
+            Você pode selecionar por <strong>Hue</strong>, <strong>Saturation</strong> e <strong>Luminance</strong>.
+          </p>
+          <p className="font-sans font-bold text-neutral-900 text-xl">
+            Selecionou?
+          </p>
+          <p>
+            Agora você consegue fazer a alteração sem precisar mexer na imagem inteira.
+          </p>
+          <p>
+            Isso é fundamental quando você começa a fazer correções secundárias.
+          </p>
+
+          <div className="space-y-4 bg-[#f5f5f7] p-6 rounded-2xl border border-neutral-200 my-4 font-sans">
+            <div className="flex items-center justify-between border-b border-neutral-200/80 pb-3">
+              <span className="text-neutral-800">Quer mudar só aquele produto?</span>
+              <span className="font-bold text-[#0071e3]">Seleciona.</span>
+            </div>
+            <div className="flex items-center justify-between border-b border-neutral-200/80 pb-3">
+              <span className="text-neutral-800">Quer reduzir a saturação de uma determinada área?</span>
+              <span className="font-bold text-[#0071e3]">Seleciona.</span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-neutral-800">Quer trocar a tonalidade de uma cor?</span>
+              <span className="font-bold text-[#0071e3]">Seleciona.</span>
+            </div>
+          </div>
+
+          <p className="font-sans font-bold text-neutral-900 text-lg">
+            Depois você faz o ajuste.
+          </p>
+        </div>
+      </section>
+
+      {/* ===================================================================
+          SEÇÃO 11 — POWER WINDOWS
+          =================================================================== */}
+      <section className="w-full bg-white p-6 sm:p-10 lg:p-12 border border-neutral-200/80 rounded-[28px] shadow-sm relative overflow-hidden transition-all duration-300">
+        <div className="font-serif text-[12px] sm:text-[13px] tracking-[0.25em] uppercase text-neutral-500 font-medium mb-4 flex items-center justify-between border-b border-neutral-300/60 pb-3">
+          <span>FUNDAMENTOS</span>
+          <span>MÁSCARAS VETORIAIS</span>
+        </div>
+
+        <h2 className="font-sans font-black text-[26px] sm:text-[36px] lg:text-[42px] tracking-tight uppercase leading-[1.0] text-[#0071e3] my-4">
+          POWER WINDOWS
+        </h2>
+
+        <div className="h-[2px] bg-[#0071e3] w-full my-6" />
+
+        <div className="font-serif text-lg text-neutral-800 leading-[1.7] space-y-5">
+          <p>
+            O Power Window funciona de outra maneira.
+          </p>
+          <p>
+            Aqui você cria uma área específica dentro da imagem.
+          </p>
+          <p>
+            Pode ser um círculo, um quadrado, uma forma desenhada à mão...
+          </p>
+          <p>
+            Você define a região e aplica a correção ali.
           </p>
           <p className="font-sans font-semibold text-neutral-900 bg-[#f5f5f7] p-5 rounded-xl border border-neutral-200">
-            É por isso que existem tantas ferramentas. Não é porque você precisa usar todas. É porque, dependendo do problema, um caminho vai ser melhor que o outro.
+            É muito usado para chamar atenção para uma determinada área, corrigir uma região da imagem ou controlar a luminosidade de uma parte específica.
           </p>
         </div>
       </section>
 
       {/* ===================================================================
-          SEÇÃO 7 — SELECIONA. AJUSTA. PRONTO.
+          SEÇÃO 12 — TRACKER
           =================================================================== */}
       <section className="w-full bg-white p-6 sm:p-10 lg:p-12 border border-neutral-200/80 rounded-[28px] shadow-sm relative overflow-hidden transition-all duration-300">
         <div className="font-serif text-[12px] sm:text-[13px] tracking-[0.25em] uppercase text-neutral-500 font-medium mb-4 flex items-center justify-between border-b border-neutral-300/60 pb-3">
           <span>FUNDAMENTOS</span>
-          <span>MÁSCARAS & QUALIFIERS</span>
+          <span>RASTREAMENTO DE MOVIMENTO</span>
         </div>
 
         <h2 className="font-sans font-black text-[26px] sm:text-[36px] lg:text-[42px] tracking-tight uppercase leading-[1.0] text-[#0071e3] my-4">
-          SELECIONA. AJUSTA. PRONTO.
+          TRACKER
+        </h2>
+
+        <div className="h-[2px] bg-[#0071e3] w-full my-6" />
+
+        <div className="font-serif text-lg text-neutral-800 leading-[1.7] space-y-5">
+          <p className="font-sans font-bold text-neutral-900 text-lg">
+            Criou uma Window e o objeto se mexe?
+          </p>
+          <p>
+            Aí você usa o Tracker.
+          </p>
+          <p>
+            Ele analisa o movimento da imagem e tenta acompanhar aquela região.
+          </p>
+          <p>
+            Então você não precisa ficar reposicionando a máscara quadro por quadro.
+          </p>
+          <p className="font-sans font-semibold text-[#0071e3] text-xl">
+            Faz o track e deixa o Resolve acompanhar.
+          </p>
+        </div>
+      </section>
+
+      {/* ===================================================================
+          SEÇÃO 13 — MAGIC MASK
+          =================================================================== */}
+      <section className="w-full bg-white p-6 sm:p-10 lg:p-12 border border-neutral-200/80 rounded-[28px] shadow-sm relative overflow-hidden transition-all duration-300">
+        <div className="font-serif text-[12px] sm:text-[13px] tracking-[0.25em] uppercase text-neutral-500 font-medium mb-4 flex items-center justify-between border-b border-neutral-300/60 pb-3">
+          <span>FUNDAMENTOS</span>
+          <span>MÁSCARA POR INTELIGÊNCIA ARTIFICIAL</span>
+        </div>
+
+        <h2 className="font-sans font-black text-[26px] sm:text-[36px] lg:text-[42px] tracking-tight uppercase leading-[1.0] text-[#0071e3] my-4">
+          MAGIC MASK
         </h2>
 
         <div className="h-[2px] bg-[#0071e3] w-full my-6" />
 
         <div className="font-serif text-lg text-neutral-800 leading-[1.7] space-y-5">
           <p>
-            O Qualifier é uma das ferramentas mais importantes quando você precisa isolar uma cor.
+            Quando você precisa isolar um objeto ou uma pessoa de maneira mais automática, entra o Magic Mask.
           </p>
+
+          <blockquote className="bg-[#f5f5f7] p-6 sm:p-8 rounded-2xl border-l-4 border-[#0071e3] my-7 shadow-xs">
+            <p className="font-serif italic font-medium text-xl sm:text-2xl text-[#0071e3] leading-snug !mb-0">
+              “Isso daqui é o Magic Mask.”
+            </p>
+          </blockquote>
+
           <p>
-            Quer mexer só na madeira? Seleciona a madeira. Quer mexer só em determinada cor? Seleciona aquela cor. Depois você faz a alteração só naquela região.
+            Ele identifica o elemento que você quer selecionar e cria a máscara.
           </p>
-          <p>
-            O Window funciona de outra forma. Em vez de selecionar pela cor, você cria uma máscara vetorial. É parecido com trabalhar com uma máscara em outros programas.
-          </p>
-          <p>
-            E aí vem o Tracker. Criou uma máscara e o objeto se mexe? Você faz o track e o Resolve acompanha aquele movimento.
-          </p>
-          <p>
-            Quando precisa de uma seleção mais automatizada, existe o Magic Mask, disponível na versão Studio. Ele usa inteligência artificial para identificar o objeto que você quer selecionar.
+          <p className="font-sans font-semibold text-neutral-900 bg-[#f5f5f7] p-5 rounded-xl border border-neutral-200">
+            É uma ferramenta muito útil para situações em que fazer a seleção manualmente daria muito trabalho.
           </p>
         </div>
-
-        <blockquote className="bg-[#0071e3] text-white p-6 sm:p-8 rounded-2xl my-7 shadow-md">
-          <p className="font-serif italic font-medium text-xl sm:text-2xl leading-snug text-center !mb-0">
-            “Sacou a lógica? Você não precisa fazer tudo à mão. Mas precisa saber qual ferramenta resolve cada problema.”
-          </p>
-        </blockquote>
       </section>
 
       {/* ===================================================================
-          SEÇÃO 8 — REFERÊNCIA É REFERÊNCIA
+          SEÇÃO 14 — BLUR E SHARPEN
           =================================================================== */}
       <section className="w-full bg-white p-6 sm:p-10 lg:p-12 border border-neutral-200/80 rounded-[28px] shadow-sm relative overflow-hidden transition-all duration-300">
         <div className="font-serif text-[12px] sm:text-[13px] tracking-[0.25em] uppercase text-neutral-500 font-medium mb-4 flex items-center justify-between border-b border-neutral-300/60 pb-3">
           <span>FUNDAMENTOS</span>
-          <span>A GALERIA DE STILLS</span>
+          <span>NITIDEZ E DESFOQUE</span>
         </div>
 
         <h2 className="font-sans font-black text-[26px] sm:text-[36px] lg:text-[42px] tracking-tight uppercase leading-[1.0] text-[#0071e3] my-4">
-          REFERÊNCIA É REFERÊNCIA
+          BLUR E SHARPEN
         </h2>
 
         <div className="h-[2px] bg-[#0071e3] w-full my-6" />
 
         <div className="font-serif text-lg text-neutral-800 leading-[1.7] space-y-5">
           <p>
-            A Gallery não serve só para guardar still. Ela também pode ser usada como referência.
+            Aqui você controla a nitidez e o desfoque da imagem.
           </p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 font-sans my-4">
+            <div className="p-4 bg-[#f5f5f7] rounded-xl border border-neutral-200">
+              <strong className="block text-neutral-900 text-base mb-1">Blur</strong>
+              <span className="text-sm text-neutral-600">Suaviza a imagem e suas texturas.</span>
+            </div>
+            <div className="p-4 bg-[#f5f5f7] rounded-xl border border-neutral-200">
+              <strong className="block text-neutral-900 text-base mb-1">Sharpen</strong>
+              <span className="text-sm text-neutral-600">Aumenta a percepção de nitidez nos contornos.</span>
+            </div>
+          </div>
           <p>
-            Você pode pegar uma imagem de referência, colocar dentro da Gallery e trabalhar comparando as duas imagens.
+            São ferramentas simples, mas precisam ser usadas com cuidado.
           </p>
-          <p>
-            Quer chegar perto de uma determinada estética? Coloca a referência ali e compara.
-          </p>
-          <p>
-            O olho sozinho pode enganar. Quando você consegue olhar a referência e a sua imagem ao mesmo tempo, fica muito mais fácil perceber onde está diferente.
-          </p>
-          <p>
-            E isso também ajuda quando você precisa levar um grade de uma imagem para outra. Você salva o still, copia o tratamento e aplica onde precisar.
+          <p className="font-sans font-semibold text-amber-800 bg-amber-500/10 p-5 rounded-xl border border-amber-500/20">
+            É muito fácil exagerar no sharpen e começar a criar uma imagem artificial.
           </p>
         </div>
       </section>
 
       {/* ===================================================================
-          SEÇÃO 9 — COLOR MATCH: PRIMEIRO DEIXA TODO MUNDO NO MESMO LUGAR
+          SEÇÃO 15 — KEY
+          =================================================================== */}
+      <section className="w-full bg-white p-6 sm:p-10 lg:p-12 border border-neutral-200/80 rounded-[28px] shadow-sm relative overflow-hidden transition-all duration-300">
+        <div className="font-serif text-[12px] sm:text-[13px] tracking-[0.25em] uppercase text-neutral-500 font-medium mb-4 flex items-center justify-between border-b border-neutral-300/60 pb-3">
+          <span>FUNDAMENTOS</span>
+          <span>OPACIDADE & INTENSIDADE DO NODE</span>
+        </div>
+
+        <h2 className="font-sans font-black text-[26px] sm:text-[36px] lg:text-[42px] tracking-tight uppercase leading-[1.0] text-[#0071e3] my-4">
+          KEY
+        </h2>
+
+        <div className="h-[2px] bg-[#0071e3] w-full my-6" />
+
+        <div className="font-serif text-lg text-neutral-800 leading-[1.7] space-y-5">
+          <p>
+            O Key mostra a informação de transparência e o quanto aquele node está afetando a imagem.
+          </p>
+          <p>
+            Então você consegue controlar a intensidade daquele tratamento.
+          </p>
+          <p className="font-sans font-bold text-neutral-900 text-lg">
+            Fez uma correção e ficou forte demais?
+          </p>
+          <p>
+            Você não precisa necessariamente refazer tudo.
+          </p>
+          <p className="font-sans font-semibold text-[#0071e3] text-lg">
+            Pode simplesmente reduzir a intensidade do node.
+          </p>
+        </div>
+      </section>
+
+      {/* ===================================================================
+          SEÇÃO 16 — SIZING
+          =================================================================== */}
+      <section className="w-full bg-white p-6 sm:p-10 lg:p-12 border border-neutral-200/80 rounded-[28px] shadow-sm relative overflow-hidden transition-all duration-300">
+        <div className="font-serif text-[12px] sm:text-[13px] tracking-[0.25em] uppercase text-neutral-500 font-medium mb-4 flex items-center justify-between border-b border-neutral-300/60 pb-3">
+          <span>FUNDAMENTOS</span>
+          <span>TRANSFORMAÇÃO E ENQUADRAMENTO</span>
+        </div>
+
+        <h2 className="font-sans font-black text-[26px] sm:text-[36px] lg:text-[42px] tracking-tight uppercase leading-[1.0] text-[#0071e3] my-4">
+          SIZING
+        </h2>
+
+        <div className="h-[2px] bg-[#0071e3] w-full my-6" />
+
+        <div className="font-serif text-lg text-neutral-800 leading-[1.7] space-y-5">
+          <p>
+            No Sizing, você consegue fazer ajustes relacionados ao enquadramento e à transformação da imagem.
+          </p>
+          <p>
+            Zoom, posição, rotação e outros controles desse tipo.
+          </p>
+          <p className="font-sans font-semibold text-neutral-700 bg-[#f5f5f7] p-5 rounded-xl border border-neutral-200">
+            É uma parte mais operacional da página Color, mas também pode ser útil dependendo do trabalho.
+          </p>
+        </div>
+      </section>
+
+      {/* ===================================================================
+          SEÇÃO 17 — SCOPES
+          =================================================================== */}
+      <section className="w-full bg-white p-6 sm:p-10 lg:p-12 border border-neutral-200/80 rounded-[28px] shadow-sm relative overflow-hidden transition-all duration-300">
+        <div className="font-serif text-[12px] sm:text-[13px] tracking-[0.25em] uppercase text-neutral-500 font-medium mb-4 flex items-center justify-between border-b border-neutral-300/60 pb-3">
+          <span>FUNDAMENTOS</span>
+          <span>MONITORAMENTO DE SINAL</span>
+        </div>
+
+        <h2 className="font-sans font-black text-[26px] sm:text-[36px] lg:text-[42px] tracking-tight uppercase leading-[1.0] text-[#0071e3] my-4">
+          SCOPES
+        </h2>
+
+        <div className="h-[2px] bg-[#0071e3] w-full my-6" />
+
+        <div className="font-serif text-lg text-neutral-800 leading-[1.7] space-y-5">
+          <p>
+            E aqui tem uma coisa que eu recomendo você começar a usar desde cedo.
+          </p>
+          <p className="font-sans font-bold text-neutral-900 text-2xl">
+            Os Scopes.
+          </p>
+          <p>
+            Porque color não é só ficar olhando para a imagem.
+          </p>
+          <p>
+            A gente também precisa entender o que está acontecendo com o sinal.
+          </p>
+
+          <div className="space-y-3 bg-[#f5f5f7] p-6 rounded-2xl border border-neutral-200 my-4 font-sans">
+            <div>
+              <strong className="text-neutral-900 block">Na Waveform:</strong>
+              <span className="text-neutral-600 text-sm">Você acompanha a luminosidade geral da cena.</span>
+            </div>
+            <div>
+              <strong className="text-neutral-900 block">No Parade:</strong>
+              <span className="text-neutral-600 text-sm">Você consegue olhar a intensidade separada de cada canal.</span>
+            </div>
+            <div>
+              <strong className="text-neutral-900 block">No Vector Scope:</strong>
+              <span className="text-neutral-600 text-sm">Você vê a distribuição das cores dentro do espectro visível.</span>
+            </div>
+          </div>
+
+          <blockquote className="bg-[#f5f5f7] p-6 sm:p-8 rounded-2xl border-l-4 border-[#0071e3] my-7 shadow-xs">
+            <p className="font-serif italic font-medium text-xl sm:text-2xl text-[#0071e3] leading-snug !mb-0">
+              “Aqui eu tenho o Vector Scope, onde eu consigo ver a distribuição de cores através do espectro visível.”
+            </p>
+          </blockquote>
+
+          <p>
+            Não precisa ficar olhando scope o tempo inteiro.
+          </p>
+          <p className="font-sans font-bold text-neutral-900 text-lg">
+            Mas é bom saber o que ele está te mostrando.
+          </p>
+        </div>
+      </section>
+
+      {/* ===================================================================
+          SEÇÃO 18 — SPLIT SCREEN
+          =================================================================== */}
+      <section className="w-full bg-white p-6 sm:p-10 lg:p-12 border border-neutral-200/80 rounded-[28px] shadow-sm relative overflow-hidden transition-all duration-300">
+        <div className="font-serif text-[12px] sm:text-[13px] tracking-[0.25em] uppercase text-neutral-500 font-medium mb-4 flex items-center justify-between border-b border-neutral-300/60 pb-3">
+          <span>FUNDAMENTOS</span>
+          <span>COMPARAÇÃO VISUAL</span>
+        </div>
+
+        <h2 className="font-sans font-black text-[26px] sm:text-[36px] lg:text-[42px] tracking-tight uppercase leading-[1.0] text-[#0071e3] my-4">
+          SPLIT SCREEN
+        </h2>
+
+        <div className="h-[2px] bg-[#0071e3] w-full my-6" />
+
+        <div className="font-serif text-lg text-neutral-800 leading-[1.7] space-y-5">
+          <p>
+            Quando você começa a fazer color, uma hora vai precisar comparar imagens.
+          </p>
+          <p className="font-sans font-bold text-neutral-900 text-lg">
+            Aí entra o Split Screen.
+          </p>
+          <p>
+            Ele divide a tela para você conseguir comparar diferentes imagens ou referências.
+          </p>
+          <p className="font-sans font-semibold text-[#0071e3] bg-[#f5f5f7] p-5 rounded-xl border border-neutral-200">
+            É especialmente útil quando você está tentando manter consistência entre planos.
+          </p>
+        </div>
+      </section>
+
+      {/* ===================================================================
+          SEÇÃO 19 — GALLERY
+          =================================================================== */}
+      <section className="w-full bg-white p-6 sm:p-10 lg:p-12 border border-neutral-200/80 rounded-[28px] shadow-sm relative overflow-hidden transition-all duration-300">
+        <div className="font-serif text-[12px] sm:text-[13px] tracking-[0.25em] uppercase text-neutral-500 font-medium mb-4 flex items-center justify-between border-b border-neutral-300/60 pb-3">
+          <span>FUNDAMENTOS</span>
+          <span>STILLS & REFERÊNCIAS</span>
+        </div>
+
+        <h2 className="font-sans font-black text-[26px] sm:text-[36px] lg:text-[42px] tracking-tight uppercase leading-[1.0] text-[#0071e3] my-4">
+          GALLERY
+        </h2>
+
+        <div className="h-[2px] bg-[#0071e3] w-full my-6" />
+
+        <div className="font-serif text-lg text-neutral-800 leading-[1.7] space-y-5">
+          <p>
+            A Gallery serve para guardar referências e stills.
+          </p>
+          <p>
+            Você pode fazer uma correção, pegar aquele frame e salvar como still.
+          </p>
+
+          <blockquote className="bg-[#f5f5f7] p-6 sm:p-8 rounded-2xl border-l-4 border-[#0071e3] my-7 shadow-xs">
+            <p className="font-serif italic font-medium text-xl sm:text-2xl text-[#0071e3] leading-snug !mb-0">
+              “Qualquer color e botão direito, Grab Still.”
+            </p>
+          </blockquote>
+
+          <p>
+            Depois você pode usar esse still como referência ou aplicar o mesmo tratamento em outro plano.
+          </p>
+          <p className="font-sans font-semibold text-neutral-900">
+            Quando você começa a trabalhar com vários planos, isso ajuda bastante.
+          </p>
+        </div>
+      </section>
+
+      {/* ===================================================================
+          SEÇÃO 20 — COLOR MATCH
           =================================================================== */}
       <section className="w-full bg-white p-6 sm:p-10 lg:p-12 border border-neutral-200/80 rounded-[28px] shadow-sm relative overflow-hidden transition-all duration-300">
         <div className="font-serif text-[12px] sm:text-[13px] tracking-[0.25em] uppercase text-neutral-500 font-medium mb-4 flex items-center justify-between border-b border-neutral-300/60 pb-3">
@@ -374,129 +875,208 @@ export default function IntroducaoDaVinciArticle() {
         </div>
 
         <h2 className="font-sans font-black text-[26px] sm:text-[36px] lg:text-[42px] tracking-tight uppercase leading-[1.0] text-[#0071e3] my-4">
-          COLOR MATCH: PRIMEIRO DEIXA TODO MUNDO NO MESMO LUGAR
+          COLOR MATCH
         </h2>
 
         <div className="h-[2px] bg-[#0071e3] w-full my-6" />
 
         <div className="font-serif text-lg text-neutral-800 leading-[1.7] space-y-5">
           <p>
-            Quando você trabalha com mais de uma câmera, é comum precisar equalizar as imagens.
+            Quando você tem imagens de câmeras diferentes, precisa colocar tudo para conversar:
           </p>
-          <p>
-            Uma câmera pode vir um pouco mais quente. Outra, mais fria. Uma pode ter mais contraste. Outra, menos.
-          </p>
-          <p>
-            Nesse caso, você precisa primeiro colocar todas elas no mesmo caminho. É aí que entra o Color Match.
-          </p>
-          <p>
-            O professor resume de um jeito bem direto:
-          </p>
-        </div>
 
-        <blockquote className="bg-[#f5f5f7] p-6 sm:p-8 rounded-2xl border-l-4 border-[#0071e3] my-7 shadow-xs">
-          <p className="font-serif italic font-medium text-xl sm:text-2xl text-[#0071e3] leading-snug !mb-0">
-            “Normalmente, quando você trabalha com mais de uma câmera e aí você tem que equalizar todas elas, a gente usa o color match.”
-          </p>
-        </blockquote>
+          <div className="grid grid-cols-2 gap-3 font-sans text-sm text-neutral-700 my-3">
+            <div className="p-3 bg-[#f5f5f7] rounded-xl border border-neutral-200">Uma câmera pode estar mais quente.</div>
+            <div className="p-3 bg-[#f5f5f7] rounded-xl border border-neutral-200">Outra pode estar mais fria.</div>
+            <div className="p-3 bg-[#f5f5f7] rounded-xl border border-neutral-200">Uma pode ter mais contraste.</div>
+            <div className="p-3 bg-[#f5f5f7] rounded-xl border border-neutral-200">Outra menos.</div>
+          </div>
 
-        <p className="font-serif text-lg text-neutral-800 leading-[1.7]">
-          Depois que as câmeras estão conversando entre si, aí sim começa a parte mais criativa do grade.
-        </p>
-      </section>
-
-      {/* ===================================================================
-          SEÇÃO 10 — O OLHO VÊ. O SCOPE CONFIRMA.
-          =================================================================== */}
-      <section className="w-full bg-white p-6 sm:p-10 lg:p-12 border border-neutral-200/80 rounded-[28px] shadow-sm relative overflow-hidden transition-all duration-300">
-        <div className="font-serif text-[12px] sm:text-[13px] tracking-[0.25em] uppercase text-neutral-500 font-medium mb-4 flex items-center justify-between border-b border-neutral-300/60 pb-3">
-          <span>FUNDAMENTOS</span>
-          <span>LEITURA OBJETIVA DO SINAL</span>
-        </div>
-
-        <h2 className="font-sans font-black text-[26px] sm:text-[36px] lg:text-[42px] tracking-tight uppercase leading-[1.0] text-[#0071e3] my-4">
-          O OLHO VÊ. O SCOPE CONFIRMA.
-        </h2>
-
-        <div className="h-[2px] bg-[#0071e3] w-full my-6" />
-
-        <div className="font-serif text-lg text-neutral-800 leading-[1.7] space-y-5">
           <p>
-            Você pode fazer color olhando para a imagem. Mas não precisa confiar só no olho.
+            O Color Match ajuda a fazer essa equalização inicial.
           </p>
-          <p>
-            Os Scopes existem justamente para te dar uma leitura mais objetiva do sinal.
-          </p>
-          <p>
-            Na Waveform, você acompanha a luminosidade. No Parade, consegue enxergar separadamente a intensidade de cada canal. E no Vector Scope, você vê como as cores estão distribuídas dentro do espectro.
-          </p>
-        </div>
 
-        <blockquote className="bg-[#f5f5f7] p-6 sm:p-8 rounded-2xl border-l-4 border-[#0071e3] my-7 shadow-xs">
-          <p className="font-serif italic font-medium text-xl sm:text-2xl text-[#0071e3] leading-snug !mb-0">
-            “Aqui eu tenho o vector scope, onde eu consigo ver a distribuição de cores através do espectro visível.”
-          </p>
-        </blockquote>
+          <blockquote className="bg-[#f5f5f7] p-6 sm:p-8 rounded-2xl border-l-4 border-[#0071e3] my-7 shadow-xs">
+            <p className="font-serif italic font-medium text-xl sm:text-2xl text-[#0071e3] leading-snug !mb-0">
+              “Normalmente, quando você trabalha com mais de uma câmera e aí você tem que equalizar todas elas, a gente usa o Color Match.”
+            </p>
+          </blockquote>
 
-        <div className="font-serif text-lg text-neutral-800 leading-[1.7] space-y-5">
-          <p>
-            O Vector Scope também ajuda a entender saturação. Se a informação está mais concentrada no centro, a imagem está menos saturada. Se ela está se afastando bastante do centro, a saturação está aumentando.
-          </p>
-          <p>
-            Passou daquele limite? Aí começa a dar problema.
-          </p>
-          <p className="font-sans font-semibold text-[#0071e3] text-lg">
-            Por isso, não adianta simplesmente pensar: “quero mais cor”. Você precisa olhar quanto de cor está colocando.
+          <p className="font-sans font-semibold text-neutral-900 text-lg">
+            Depois disso você parte para o tratamento criativo.
           </p>
         </div>
       </section>
 
       {/* ===================================================================
-          SEÇÃO 11 — UMA ÚLTIMA COISA ANTES DE COMEÇAR O COLOR
+          SEÇÃO 21 — ATALHOS QUE VOCÊ PRECISA COMEÇAR A USAR
           =================================================================== */}
       <section className="w-full bg-white p-6 sm:p-10 lg:p-12 border border-neutral-200/80 rounded-[28px] shadow-sm relative overflow-hidden transition-all duration-300">
         <div className="font-serif text-[12px] sm:text-[13px] tracking-[0.25em] uppercase text-neutral-500 font-medium mb-4 flex items-center justify-between border-b border-neutral-300/60 pb-3">
           <span>FUNDAMENTOS</span>
-          <span>REGRA DE OURO</span>
+          <span>PRODUTIVIDADE & TECLADO</span>
         </div>
 
         <h2 className="font-sans font-black text-[26px] sm:text-[36px] lg:text-[42px] tracking-tight uppercase leading-[1.0] text-[#0071e3] my-4">
-          UMA ÚLTIMA COISA ANTES DE COMEÇAR O COLOR
+          ATALHOS QUE VOCÊ PRECISA COMEÇAR A USAR
         </h2>
 
         <div className="h-[2px] bg-[#0071e3] w-full my-6" />
 
         <div className="font-serif text-lg text-neutral-800 leading-[1.7] space-y-5">
-          <p className="font-sans font-bold text-xl text-red-600">
-            Desliga o proxy.
-          </p>
           <p>
-            Se o editor trabalhou em proxy, ou se você deixou o proxy ligado, você pode acabar fazendo o grade em cima de uma versão que não é o material original.
+            Não precisa decorar vinte atalhos agora.
           </p>
+          <p className="font-sans font-bold text-neutral-900 text-xl">
+            Começa pelos que realmente aceleram o trabalho:
+          </p>
+
+          <div className="space-y-3 font-sans pt-2">
+            {/* Shift + H */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between p-4 rounded-xl bg-neutral-50 border border-neutral-200/80 hover:bg-neutral-100/80 transition-colors gap-2">
+              <div className="flex items-center gap-2">
+                <kbd className="px-3 py-1.5 rounded-lg bg-white border border-neutral-300 font-mono text-xs font-bold text-neutral-800 shadow-xs">
+                  Shift + H
+                </kbd>
+              </div>
+              <span className="text-sm text-neutral-700">Liga e desliga o Highlight para visualizar a seleção de uma ferramenta.</span>
+            </div>
+
+            {/* Alt + S */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between p-4 rounded-xl bg-neutral-50 border border-neutral-200/80 hover:bg-neutral-100/80 transition-colors gap-2">
+              <div className="flex items-center gap-2">
+                <kbd className="px-3 py-1.5 rounded-lg bg-white border border-neutral-300 font-mono text-xs font-bold text-neutral-800 shadow-xs">
+                  Alt + S
+                </kbd>
+              </div>
+              <span className="text-sm text-neutral-700">Cria um novo Serial Node.</span>
+            </div>
+
+            {/* Shift + D */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between p-4 rounded-xl bg-neutral-50 border border-neutral-200/80 hover:bg-neutral-100/80 transition-colors gap-2">
+              <div className="flex items-center gap-2">
+                <kbd className="px-3 py-1.5 rounded-lg bg-white border border-neutral-300 font-mono text-xs font-bold text-neutral-800 shadow-xs">
+                  Shift + D
+                </kbd>
+              </div>
+              <span className="text-sm text-neutral-700">Liga e desliga o bypass do grade para comparar a imagem antes e depois.</span>
+            </div>
+
+            {/* Ctrl/Cmd + D */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between p-4 rounded-xl bg-neutral-50 border border-neutral-200/80 hover:bg-neutral-100/80 transition-colors gap-2">
+              <div className="flex items-center gap-2">
+                <kbd className="px-3 py-1.5 rounded-lg bg-white border border-neutral-300 font-mono text-xs font-bold text-neutral-800 shadow-xs">
+                  Ctrl / Cmd + D
+                </kbd>
+              </div>
+              <span className="text-sm text-neutral-700">Desativa ou ativa o node selecionado.</span>
+            </div>
+
+            {/* S */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between p-4 rounded-xl bg-neutral-50 border border-neutral-200/80 hover:bg-neutral-100/80 transition-colors gap-2">
+              <div className="flex items-center gap-2">
+                <kbd className="px-3 py-1.5 rounded-lg bg-white border border-neutral-300 font-mono text-xs font-bold text-neutral-800 shadow-xs">
+                  S
+                </kbd>
+              </div>
+              <span className="text-sm text-neutral-700">Seleciona o node atual como referência para fluxos de comparação e navegação.</span>
+            </div>
+
+            {/* Ctrl/Cmd + C / Ctrl/Cmd + V */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between p-4 rounded-xl bg-neutral-50 border border-neutral-200/80 hover:bg-neutral-100/80 transition-colors gap-2">
+              <div className="flex items-center gap-2">
+                <kbd className="px-3 py-1.5 rounded-lg bg-white border border-neutral-300 font-mono text-xs font-bold text-neutral-800 shadow-xs">
+                  Cmd / Ctrl + C
+                </kbd>
+                <span className="text-neutral-400">/</span>
+                <kbd className="px-3 py-1.5 rounded-lg bg-white border border-neutral-300 font-mono text-xs font-bold text-neutral-800 shadow-xs">
+                  Cmd / Ctrl + V
+                </kbd>
+              </div>
+              <span className="text-sm text-neutral-700">Copia e cola informações do tratamento.</span>
+            </div>
+
+            {/* Space */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between p-4 rounded-xl bg-neutral-50 border border-neutral-200/80 hover:bg-neutral-100/80 transition-colors gap-2">
+              <div className="flex items-center gap-2">
+                <kbd className="px-3 py-1.5 rounded-lg bg-white border border-neutral-300 font-mono text-xs font-bold text-neutral-800 shadow-xs">
+                  Space
+                </kbd>
+              </div>
+              <span className="text-sm text-neutral-700">Reproduz e pausa a timeline.</span>
+            </div>
+
+            {/* ← / → */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between p-4 rounded-xl bg-neutral-50 border border-neutral-200/80 hover:bg-neutral-100/80 transition-colors gap-2">
+              <div className="flex items-center gap-2">
+                <kbd className="px-3 py-1.5 rounded-lg bg-white border border-neutral-300 font-mono text-xs font-bold text-neutral-800 shadow-xs">
+                  ←
+                </kbd>
+                <span className="text-neutral-400">/</span>
+                <kbd className="px-3 py-1.5 rounded-lg bg-white border border-neutral-300 font-mono text-xs font-bold text-neutral-800 shadow-xs">
+                  →
+                </kbd>
+              </div>
+              <span className="text-sm text-neutral-700">Avança ou volta um frame.</span>
+            </div>
+
+            {/* Shift + ← / Shift + → */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between p-4 rounded-xl bg-neutral-50 border border-neutral-200/80 hover:bg-neutral-100/80 transition-colors gap-2">
+              <div className="flex items-center gap-2">
+                <kbd className="px-3 py-1.5 rounded-lg bg-white border border-neutral-300 font-mono text-xs font-bold text-neutral-800 shadow-xs">
+                  Shift + ←
+                </kbd>
+                <span className="text-neutral-400">/</span>
+                <kbd className="px-3 py-1.5 rounded-lg bg-white border border-neutral-300 font-mono text-xs font-bold text-neutral-800 shadow-xs">
+                  Shift + →
+                </kbd>
+              </div>
+              <span className="text-sm text-neutral-700">Avança ou volta vários frames de maneira mais rápida.</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ===================================================================
+          SEÇÃO 22 — O QUE VOCÊ PRECISA GUARDAR
+          =================================================================== */}
+      <section className="w-full bg-white p-6 sm:p-10 lg:p-12 border border-neutral-200/80 rounded-[28px] shadow-sm relative overflow-hidden transition-all duration-300">
+        <div className="font-serif text-[12px] sm:text-[13px] tracking-[0.25em] uppercase text-neutral-500 font-medium mb-4 flex items-center justify-between border-b border-neutral-300/60 pb-3">
+          <span>FUNDAMENTOS</span>
+          <span>SÍNTESE DA AULA</span>
         </div>
 
-        <blockquote className="bg-[#f5f5f7] p-6 sm:p-8 rounded-2xl border-l-4 border-red-500 my-7 shadow-xs">
-          <p className="font-serif italic font-medium text-xl sm:text-2xl text-red-600 leading-snug !mb-0">
-            “Sempre que você for fazer color grading, tira do proxy.”
-          </p>
-        </blockquote>
+        <h2 className="font-sans font-black text-[26px] sm:text-[36px] lg:text-[42px] tracking-tight uppercase leading-[1.0] text-[#0071e3] my-4">
+          O QUE VOCÊ PRECISA GUARDAR
+        </h2>
+
+        <div className="h-[2px] bg-[#0071e3] w-full my-6" />
 
         <div className="font-serif text-lg text-neutral-800 leading-[1.7] space-y-5">
           <p>
-            É uma coisa simples. Mas é o tipo de coisa que você quer descobrir antes de passar horas colorindo.
-          </p>
-          <p className="font-sans font-bold text-neutral-900 text-xl pt-2">
-            E pronto.
+            Você não precisa sair dessa aula sabendo cada botão do DaVinci Resolve.
           </p>
           <p>
-            Você não precisa saber o DaVinci inteiro para começar. Precisa entender onde estão as coisas, o que cada ferramenta faz e, principalmente, qual ferramenta usar para cada problema.
+            O que você precisa é bater o olho na página Color e saber:
           </p>
+          <div className="p-5 bg-neutral-50 rounded-2xl border border-neutral-200 font-sans text-neutral-900 font-bold text-lg text-center">
+            Onde eu estou, onde está a ferramenta que preciso e o que ela faz.
+          </div>
+          <p>
+            Depois, conforme você for trabalhando, essas ferramentas vão ficando naturais.
+          </p>
+
+          <blockquote className="bg-[#0071e3] text-white p-6 sm:p-8 rounded-2xl my-7 shadow-md">
+            <p className="font-serif italic font-medium text-2xl sm:text-3xl leading-snug text-center !mb-0">
+              “É isso. Simples assim.”
+            </p>
+          </blockquote>
         </div>
 
         <div className="mt-8 pt-6 border-t border-neutral-200/80 flex items-center justify-between text-xs font-sans text-neutral-500">
           <span>COLOR MASTER® · DA VINCI RESOLVE</span>
           <span className="flex items-center gap-1.5 text-emerald-600 font-semibold">
-            <CheckCircle2 size={14} /> Leitura Obrigatória
+            <CheckCircle2 size={14} /> Aula 01 Concluível
           </span>
         </div>
       </section>
