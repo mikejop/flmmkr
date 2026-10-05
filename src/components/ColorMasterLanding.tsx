@@ -108,6 +108,7 @@ export const ColorMasterLanding: React.FC = () => {
   const [warningDismissed, setWarningDismissed] = useState<boolean>(false);
   const [expiredDismissed, setExpiredDismissed] = useState<boolean>(false);
   const [deviceMac, setDeviceMac] = useState<string>('');
+  const [isPastHero, setIsPastHero] = useState<boolean>(false);
   const hasWarnedRef = useRef<boolean>(false);
   const hasExpiredRef = useRef<boolean>(false);
   const prevTimeLeftRef = useRef<number>(900);
@@ -117,16 +118,17 @@ export const ColorMasterLanding: React.FC = () => {
       const heroSection = document.getElementById('hero-section');
       const ofertaSection = document.getElementById('oferta');
 
-      const isPastHero = heroSection
-        ? heroSection.getBoundingClientRect().bottom <= 100
+      const pastHero = heroSection
+        ? heroSection.getBoundingClientRect().bottom <= 80
         : window.scrollY > 400;
 
       const isReachedOferta = ofertaSection
         ? ofertaSection.getBoundingClientRect().top <= 120
         : false;
 
+      setIsPastHero(pastHero);
       // Mostra a barra após sair da Hero e oculta ao chegar na seção de Oferta
-      setShowStickyTimer(isPastHero && !isReachedOferta);
+      setShowStickyTimer(pastHero && !isReachedOferta);
     };
 
     window.addEventListener('scroll', handleScroll, { passive: true });
@@ -491,8 +493,14 @@ export const ColorMasterLanding: React.FC = () => {
             FLMMKR
           </a>
 
-          <span className="hidden sm:inline-block text-xs text-white/80 font-semibold tracking-wide bg-white/10 px-3.5 py-1 rounded-full border border-white/15">
-            COLOR MASTER | PRODUTO
+          <span
+            className={`hidden sm:inline-block text-xs text-white/80 font-semibold tracking-wide bg-white/10 px-3.5 py-1 rounded-full border border-white/15 transition-all duration-300 ${
+              isPastHero
+                ? 'opacity-100 scale-100 translate-y-0 pointer-events-auto'
+                : 'opacity-0 scale-95 -translate-y-1 pointer-events-none'
+            }`}
+          >
+            COLOR MASTER® | PRODUTOS
           </span>
 
           <div className="flex items-center gap-2 sm:gap-3">
@@ -564,7 +572,7 @@ export const ColorMasterLanding: React.FC = () => {
             <div className="inline-flex items-center px-3.5 sm:px-4 py-1 sm:py-1.5 rounded-full bg-black/60 backdrop-blur-md text-white/90 text-[12px] sm:text-xs font-semibold tracking-[0.04em] mb-4 sm:mb-5 border border-white/20 shadow-sm">
               <span className="tracking-wide uppercase font-semibold text-[#2997ff]">MASTERCLASS</span>
               <span className="mx-1.5 sm:mx-2 text-white/30">•</span>
-              <span className="tracking-wide uppercase">COLOR MASTER | PRODUTO</span>
+              <span className="tracking-wide uppercase">COLOR MASTER® | PRODUTOS</span>
             </div>
 
             {/* Headline H1 with Apple Mobile Typographic Scale (34px mobile / 72px desktop) */}
@@ -1168,7 +1176,7 @@ export const ColorMasterLanding: React.FC = () => {
               href="#oferta"
               className="w-full max-w-[280px] sm:max-w-none sm:w-auto px-6 sm:px-10 py-3 sm:py-4 rounded-full bg-[#0071e3] hover:bg-[#0077ed] text-white font-semibold text-[14px] sm:text-base transition-all shadow-[0_4px_24px_rgba(0,113,227,0.4)] inline-flex items-center justify-center active:scale-95 cursor-pointer"
             >
-              ENTRAR NO COLOR MASTER | PRODUTO
+              ENTRAR NO COLOR MASTER® | PRODUTOS
             </a>
           </div>
         </div>
