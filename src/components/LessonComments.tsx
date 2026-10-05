@@ -12,8 +12,7 @@ import {
   ChevronUp,
   Send,
   Loader2,
-  Users,
-  AlertCircle
+  Users
 } from 'lucide-react';
 
 interface CommentItem {
@@ -159,7 +158,7 @@ export default function LessonComments({
           moduleId,
           userId,
           content: replyText.trim(),
-          isPublic: parentIsPublic, // segue a mesma visibilidade do comentário pai
+          isPublic: parentIsPublic,
           parentId
         })
       });
@@ -214,7 +213,6 @@ export default function LessonComments({
         body: JSON.stringify({ commentId, userId })
       });
       if (!res.ok) {
-        // reverter se falhar
         await loadComments();
       }
     } catch (err) {
@@ -260,26 +258,26 @@ export default function LessonComments({
   };
 
   return (
-    <div className="w-full my-6 bg-zinc-950/60 backdrop-blur-xl border border-white/10 rounded-2xl overflow-hidden shadow-2xl transition-all duration-300">
-      {/* 1. BARRA MINIMIZADA (HEADER CLICÁVEL) */}
+    <div className="w-full my-6 bg-white border border-neutral-300 shadow-md rounded-[24px] overflow-hidden select-text transition-all duration-300">
+      {/* 1. BARRA MINIMIZADA (HEADER CLICÁVEL COM ALTO CONTRASTE) */}
       <div
         onClick={() => setIsExpanded(!isExpanded)}
-        className="flex items-center justify-between px-6 py-4 cursor-pointer hover:bg-white/[0.03] transition-colors select-none group"
+        className="flex items-center justify-between px-5 sm:px-8 py-5 cursor-pointer hover:bg-neutral-50 transition-colors select-none group"
       >
-        <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-xl bg-orange-500/10 border border-orange-500/30 flex items-center justify-center text-orange-400 group-hover:scale-105 transition-transform">
-            <MessageSquare className="w-4 h-4" />
+        <div className="flex items-center gap-4">
+          <div className="w-10 h-10 rounded-xl bg-[#0071e3]/10 border border-[#0071e3]/20 flex items-center justify-center text-[#0071e3] group-hover:scale-105 group-hover:bg-[#0071e3] group-hover:text-white transition-all shadow-xs">
+            <MessageSquare className="w-5 h-5" />
           </div>
           <div>
-            <div className="flex items-center gap-2">
-              <h3 className="text-sm font-semibold tracking-wide text-zinc-100 group-hover:text-white transition-colors">
+            <div className="flex items-center gap-2.5">
+              <h3 className="text-sm sm:text-base font-bold tracking-tight text-neutral-900 group-hover:text-[#0071e3] transition-colors">
                 Comentários e Dúvidas da Aula
               </h3>
-              <span className="text-[11px] font-mono px-2 py-0.5 rounded-full bg-white/10 text-zinc-300 border border-white/10">
+              <span className="text-xs font-mono font-bold px-2.5 py-0.5 rounded-full bg-neutral-100 text-neutral-800 border border-neutral-300">
                 {totalCount}
               </span>
             </div>
-            <p className="text-xs text-zinc-400">
+            <p className="text-xs sm:text-sm text-neutral-600 font-medium mt-0.5">
               {isExpanded
                 ? 'Clique para recolher o campo de comentários'
                 : 'Clique para deixar um comentário ou tirar dúvidas com o professor'}
@@ -295,27 +293,27 @@ export default function LessonComments({
               setIsExpanded(true);
               setShowPublicList(true);
             }}
-            className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-orange-400 hover:text-orange-300 bg-orange-500/10 hover:bg-orange-500/20 border border-orange-500/30 rounded-lg transition-all"
+            className="hidden sm:flex items-center gap-2 px-4 py-2 text-xs font-bold text-[#0071e3] hover:text-white bg-[#0071e3]/10 hover:bg-[#0071e3] border border-[#0071e3]/30 rounded-xl transition-all shadow-xs"
           >
-            <Users className="w-3.5 h-3.5" />
+            <Users className="w-4 h-4" />
             <span>Ver comentários da turma ({totalCount})</span>
           </button>
 
-          <div className="w-8 h-8 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center text-zinc-400 group-hover:text-white group-hover:bg-white/10 transition-all">
-            {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+          <div className="w-9 h-9 rounded-xl bg-neutral-100 border border-neutral-300 flex items-center justify-center text-neutral-700 group-hover:text-neutral-900 group-hover:bg-neutral-200 transition-all">
+            {isExpanded ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
           </div>
         </div>
       </div>
 
       {/* 2. ÁREA EXPANDIDA */}
       {isExpanded && (
-        <div className="px-6 pb-6 pt-2 border-t border-white/5 space-y-6 animate-fadeIn">
+        <div className="px-5 sm:px-8 pb-8 pt-4 border-t border-neutral-200 space-y-6 animate-fadeIn bg-neutral-50/50">
           {/* BOTÃO MOBILE PARA VER COMENTÁRIOS */}
           <div className="sm:hidden flex justify-end">
             <button
               type="button"
               onClick={() => setShowPublicList(!showPublicList)}
-              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-orange-400 bg-orange-500/10 border border-orange-500/30 rounded-lg"
+              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-[#0071e3] bg-[#0071e3]/10 border border-[#0071e3]/30 rounded-lg"
             >
               <Users className="w-3.5 h-3.5" />
               <span>Ver comentários da turma ({totalCount})</span>
@@ -325,60 +323,61 @@ export default function LessonComments({
           {/* FORMULÁRIO DE NOVO COMENTÁRIO */}
           <form
             onSubmit={handleCreateComment}
-            className="p-4 rounded-xl bg-white/[0.02] border border-white/10 space-y-3"
+            className="p-5 sm:p-6 rounded-2xl bg-white border border-neutral-300 shadow-sm space-y-4"
           >
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-medium uppercase tracking-wider text-zinc-400 flex items-center gap-1.5">
-                <MessageSquare className="w-3.5 h-3.5 text-orange-400" />
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <span className="text-xs font-bold uppercase tracking-wider text-neutral-800 flex items-center gap-2">
+                <MessageSquare className="w-4 h-4 text-[#0071e3]" />
                 Deixar sua dúvida ou comentário
               </span>
 
-              {/* SELETOR: PÚBLICO OU NÃO PÚBLICO (PRIVADO) */}
-              <div className="flex items-center gap-1 bg-black/60 p-1 rounded-lg border border-white/10">
+              {/* SELETOR: PÚBLICO OU NÃO PÚBLICO (AZUL / CINZA DE ALTO CONTRASTE) */}
+              <div className="flex items-center gap-1 bg-neutral-100 p-1 rounded-xl border border-neutral-300">
                 <button
                   type="button"
                   onClick={() => setIsPublic(true)}
-                  className={`flex items-center gap-1.5 px-2.5 py-1 text-xs rounded-md transition-all ${
+                  className={`flex items-center gap-1.5 px-3 py-1.5 text-xs rounded-lg transition-all ${
                     isPublic
-                      ? 'bg-orange-500 text-black font-semibold shadow-sm'
-                      : 'text-zinc-400 hover:text-white'
+                      ? 'bg-[#0071e3] text-white font-bold shadow-xs'
+                      : 'text-neutral-700 hover:text-neutral-900 font-medium'
                   }`}
                   title="Visível para todos os alunos e o professor"
                 >
-                  <Globe className="w-3 h-3" />
+                  <Globe className="w-3.5 h-3.5" />
                   <span>Público</span>
                 </button>
                 <button
                   type="button"
                   onClick={() => setIsPublic(false)}
-                  className={`flex items-center gap-1.5 px-2.5 py-1 text-xs rounded-md transition-all ${
+                  className={`flex items-center gap-1.5 px-3 py-1.5 text-xs rounded-lg transition-all ${
                     !isPublic
-                      ? 'bg-amber-400 text-black font-semibold shadow-sm'
-                      : 'text-zinc-400 hover:text-white'
+                      ? 'bg-neutral-900 text-white font-bold shadow-xs'
+                      : 'text-neutral-700 hover:text-neutral-900 font-medium'
                   }`}
                   title="Apenas o professor verá seu comentário no dashboard dele"
                 >
-                  <Lock className="w-3 h-3" />
+                  <Lock className="w-3.5 h-3.5" />
                   <span>Apenas Professor</span>
                 </button>
               </div>
             </div>
 
             {/* AVISO DO TIPO DE PRIVACIDADE */}
-            <div className="text-[11px] flex items-center gap-1.5 text-zinc-400">
+            <div className="text-xs flex items-center gap-2 text-neutral-700 font-medium">
               {isPublic ? (
                 <>
-                  <Globe className="w-3 h-3 text-emerald-400" />
+                  <Globe className="w-4 h-4 text-[#0071e3]" />
                   <span>
-                    <strong>Público:</strong> visível para todos os colegas da turma e o professor.
+                    <strong className="text-neutral-900">Público:</strong> visível para todos os
+                    colegas da turma e para o professor.
                   </span>
                 </>
               ) : (
                 <>
-                  <Lock className="w-3 h-3 text-amber-400" />
+                  <Lock className="w-4 h-4 text-neutral-900" />
                   <span>
-                    <strong>Não público:</strong> apenas você e o professor podem visualizar esta
-                    mensagem.
+                    <strong className="text-neutral-900">Não público (Privado):</strong> apenas você
+                    e o professor podem visualizar esta mensagem.
                   </span>
                 </>
               )}
@@ -390,26 +389,26 @@ export default function LessonComments({
               onChange={(e) => setNewCommentText(e.target.value)}
               placeholder="Escreva sua dúvida, reflexão ou comentário sobre a aula..."
               rows={3}
-              className="w-full px-3.5 py-2.5 text-sm bg-black/50 border border-white/10 rounded-xl text-white placeholder-zinc-500 focus:outline-none focus:border-orange-500/60 focus:ring-1 focus:ring-orange-500/40 transition-all resize-none"
+              className="w-full px-4 py-3 text-sm bg-white border border-neutral-300 rounded-xl text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:border-[#0071e3] focus:ring-2 focus:ring-[#0071e3]/20 transition-all resize-none shadow-xs font-sans leading-relaxed"
             />
 
-            <div className="flex items-center justify-between pt-1">
-              <span className="text-[11px] text-zinc-500">
-                Seja respeitoso e compartilhe aprendizados cinematográficos.
+            <div className="flex flex-wrap items-center justify-between gap-3 pt-1">
+              <span className="text-xs text-neutral-500 font-medium">
+                Compartilhe aprendizados e dúvidas sobre as técnicas cinematográficas.
               </span>
               <button
                 type="submit"
                 disabled={submitting || !newCommentText.trim()}
-                className="flex items-center gap-2 px-4 py-2 text-xs font-semibold rounded-xl bg-orange-500 hover:bg-orange-400 text-black disabled:opacity-40 disabled:hover:bg-orange-500 transition-all shadow-lg shadow-orange-500/10 cursor-pointer"
+                className="flex items-center gap-2 px-5 py-2.5 text-xs font-bold rounded-xl bg-[#0071e3] hover:bg-[#0077ed] text-white disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-md shadow-blue-500/20 cursor-pointer"
               >
                 {submitting ? (
                   <>
-                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                    <Loader2 className="w-4 h-4 animate-spin" />
                     <span>Publicando...</span>
                   </>
                 ) : (
                   <>
-                    <Send className="w-3.5 h-3.5" />
+                    <Send className="w-4 h-4" />
                     <span>Enviar comentário</span>
                   </>
                 )}
@@ -420,21 +419,21 @@ export default function LessonComments({
           {/* LISTA DE COMENTÁRIOS */}
           {showPublicList && (
             <div className="space-y-4 pt-2">
-              <div className="flex items-center justify-between border-b border-white/5 pb-2">
-                <span className="text-xs font-semibold uppercase tracking-wider text-zinc-400">
+              <div className="flex items-center justify-between border-b border-neutral-200 pb-3">
+                <span className="text-xs font-bold uppercase tracking-wider text-neutral-700">
                   Discussão da Aula ({comments.length})
                 </span>
                 {loading && (
-                  <div className="flex items-center gap-1.5 text-xs text-zinc-400">
-                    <Loader2 className="w-3 h-3 animate-spin text-orange-400" />
+                  <div className="flex items-center gap-1.5 text-xs text-[#0071e3] font-semibold">
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
                     <span>Atualizando...</span>
                   </div>
                 )}
               </div>
 
               {comments.length === 0 && !loading && (
-                <div className="py-8 text-center text-zinc-500 text-xs">
-                  <MessageSquare className="w-6 h-6 mx-auto mb-2 opacity-30 text-zinc-400" />
+                <div className="py-10 text-center text-neutral-500 text-sm font-medium">
+                  <MessageSquare className="w-8 h-8 mx-auto mb-2 text-neutral-400" />
                   Nenhum comentário deixado nesta aula ainda. Seja o primeiro a perguntar!
                 </div>
               )}
@@ -449,7 +448,7 @@ export default function LessonComments({
                   return (
                     <div
                       key={comment.id}
-                      className="p-4 rounded-xl bg-white/[0.015] border border-white/5 space-y-3"
+                      className="p-5 rounded-2xl bg-white border border-neutral-300 shadow-sm space-y-3"
                     >
                       {/* HEADER DO COMENTÁRIO */}
                       <div className="flex items-start justify-between">
@@ -459,32 +458,32 @@ export default function LessonComments({
                             <img
                               src={comment.user_avatar}
                               alt={comment.user_name}
-                              className="w-8 h-8 rounded-full object-cover border border-white/10"
+                              className="w-9 h-9 rounded-full object-cover border border-neutral-300 shadow-xs"
                             />
                           ) : (
-                            <div className="w-8 h-8 rounded-full bg-zinc-800 border border-white/10 flex items-center justify-center text-xs font-bold text-zinc-300">
+                            <div className="w-9 h-9 rounded-full bg-[#0071e3]/10 border border-[#0071e3]/20 flex items-center justify-center text-xs font-bold text-[#0071e3]">
                               {comment.user_name?.charAt(0)?.toUpperCase() || 'A'}
                             </div>
                           )}
 
                           <div>
                             <div className="flex items-center gap-2">
-                              <span className="text-xs font-medium text-zinc-200">
+                              <span className="text-xs sm:text-sm font-bold text-neutral-900">
                                 {comment.user_name}
                               </span>
                               {isAuthor && (
-                                <span className="text-[10px] px-1.5 py-0.5 rounded bg-orange-500/10 text-orange-400 border border-orange-500/20">
+                                <span className="text-[10px] px-2 py-0.5 rounded-full bg-[#0071e3]/10 text-[#0071e3] border border-[#0071e3]/20 font-bold">
                                   Você
                                 </span>
                               )}
                               {!comment.is_public && (
-                                <span className="text-[10px] px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-400 border border-amber-500/20 flex items-center gap-1">
+                                <span className="text-[10px] px-2 py-0.5 rounded-full bg-neutral-900 text-white font-bold flex items-center gap-1">
                                   <Lock className="w-2.5 h-2.5" />
                                   Privado (Professor)
                                 </span>
                               )}
                             </div>
-                            <span className="text-[10px] text-zinc-500">
+                            <span className="text-xs text-neutral-500 font-medium">
                               {formatDate(comment.created_at)}
                             </span>
                           </div>
@@ -495,34 +494,34 @@ export default function LessonComments({
                           <button
                             type="button"
                             onClick={() => handleDeleteComment(comment.id)}
-                            className="text-zinc-500 hover:text-red-400 p-1 rounded transition-colors"
+                            className="text-neutral-400 hover:text-red-600 p-1.5 rounded-lg hover:bg-red-50 transition-colors"
                             title="Excluir este comentário"
                           >
-                            <Trash2 className="w-3.5 h-3.5" />
+                            <Trash2 className="w-4 h-4" />
                           </button>
                         )}
                       </div>
 
                       {/* CONTEÚDO */}
-                      <p className="text-xs leading-relaxed text-zinc-300 whitespace-pre-wrap pl-11">
+                      <p className="text-sm leading-relaxed text-neutral-800 whitespace-pre-wrap pl-12 font-sans">
                         {comment.content}
                       </p>
 
                       {/* AÇÕES (CURTIR, RESPONDER) */}
-                      <div className="flex items-center gap-4 pl-11 pt-1 text-xs">
+                      <div className="flex items-center gap-4 pl-12 pt-1 text-xs">
                         <button
                           type="button"
                           onClick={() => handleToggleLike(comment.id)}
-                          className={`flex items-center gap-1.5 px-2 py-1 rounded-md transition-colors ${
+                          className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg transition-all ${
                             hasLiked
-                              ? 'text-red-400 bg-red-500/10'
-                              : 'text-zinc-400 hover:text-white hover:bg-white/5'
+                              ? 'text-red-600 bg-red-50 border border-red-200 font-bold'
+                              : 'text-neutral-600 hover:text-[#0071e3] hover:bg-neutral-100 border border-transparent font-medium'
                           }`}
                         >
                           <Heart
-                            className={`w-3.5 h-3.5 ${hasLiked ? 'fill-red-400 text-red-400' : ''}`}
+                            className={`w-3.5 h-3.5 ${hasLiked ? 'fill-red-600 text-red-600' : ''}`}
                           />
-                          <span className="text-[11px] font-mono">{comment.likes_count || 0}</span>
+                          <span className="text-xs font-mono">{comment.likes_count || 0}</span>
                         </button>
 
                         <button
@@ -535,29 +534,29 @@ export default function LessonComments({
                               setReplyText('');
                             }
                           }}
-                          className="flex items-center gap-1.5 px-2 py-1 rounded-md text-zinc-400 hover:text-orange-400 hover:bg-white/5 transition-colors"
+                          className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-neutral-600 hover:text-[#0071e3] hover:bg-neutral-100 transition-colors font-medium"
                         >
                           <CornerDownRight className="w-3.5 h-3.5" />
-                          <span className="text-[11px]">Responder</span>
+                          <span>Responder</span>
                         </button>
                       </div>
 
                       {/* FORMULÁRIO DE RESPOSTA INLINE */}
                       {replyingToId === comment.id && (
-                        <div className="pl-11 pt-2">
-                          <div className="p-3 rounded-lg bg-black/60 border border-white/10 space-y-2">
+                        <div className="pl-12 pt-2">
+                          <div className="p-4 rounded-xl bg-neutral-100 border border-neutral-300 space-y-2.5">
                             <textarea
                               value={replyText}
                               onChange={(e) => setReplyText(e.target.value)}
                               placeholder={`Responder para ${comment.user_name}...`}
                               rows={2}
-                              className="w-full px-3 py-2 text-xs bg-black/50 border border-white/10 rounded-lg text-white placeholder-zinc-500 focus:outline-none focus:border-orange-500/60"
+                              className="w-full px-3.5 py-2 text-xs sm:text-sm bg-white border border-neutral-300 rounded-lg text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:border-[#0071e3]"
                             />
                             <div className="flex items-center justify-end gap-2">
                               <button
                                 type="button"
                                 onClick={() => setReplyingToId(null)}
-                                className="px-2.5 py-1 text-xs text-zinc-400 hover:text-white rounded"
+                                className="px-3 py-1.5 text-xs text-neutral-600 hover:text-neutral-900 font-medium"
                               >
                                 Cancelar
                               </button>
@@ -565,7 +564,7 @@ export default function LessonComments({
                                 type="button"
                                 disabled={replySubmitting || !replyText.trim()}
                                 onClick={() => handleReplySubmit(comment.id, comment.is_public)}
-                                className="px-3 py-1 text-xs font-medium rounded-lg bg-orange-500 hover:bg-orange-400 text-black disabled:opacity-40"
+                                className="px-4 py-1.5 text-xs font-bold rounded-lg bg-[#0071e3] hover:bg-[#0077ed] text-white disabled:opacity-50"
                               >
                                 {replySubmitting ? 'Respondendo...' : 'Responder'}
                               </button>
@@ -576,7 +575,7 @@ export default function LessonComments({
 
                       {/* RESPOSTAS ANINHADAS (REPLIES) */}
                       {comment.replies && comment.replies.length > 0 && (
-                        <div className="pl-11 pt-2 space-y-2.5 border-l-2 border-white/5 ml-4">
+                        <div className="pl-12 pt-2 space-y-3 border-l-2 border-neutral-200 ml-4">
                           {comment.replies.map((reply) => {
                             const isReplyAuthor = userId && reply.user_id === userId;
                             const canDeleteReply = isReplyAuthor || isAdmin;
@@ -586,7 +585,7 @@ export default function LessonComments({
                             return (
                               <div
                                 key={reply.id}
-                                className="p-3 rounded-lg bg-white/[0.02] border border-white/5 space-y-2"
+                                className="p-4 rounded-xl bg-neutral-50 border border-neutral-200 space-y-2"
                               >
                                 <div className="flex items-start justify-between">
                                   <div className="flex items-center gap-2.5">
@@ -594,25 +593,25 @@ export default function LessonComments({
                                       <img
                                         src={reply.user_avatar}
                                         alt={reply.user_name}
-                                        className="w-6 h-6 rounded-full object-cover border border-white/10"
+                                        className="w-7 h-7 rounded-full object-cover border border-neutral-300"
                                       />
                                     ) : (
-                                      <div className="w-6 h-6 rounded-full bg-zinc-800 border border-white/10 flex items-center justify-center text-[10px] font-bold text-zinc-300">
+                                      <div className="w-7 h-7 rounded-full bg-[#0071e3]/10 border border-[#0071e3]/20 flex items-center justify-center text-[10px] font-bold text-[#0071e3]">
                                         {reply.user_name?.charAt(0)?.toUpperCase() || 'A'}
                                       </div>
                                     )}
                                     <div>
                                       <div className="flex items-center gap-1.5">
-                                        <span className="text-xs font-medium text-zinc-200">
+                                        <span className="text-xs font-bold text-neutral-900">
                                           {reply.user_name}
                                         </span>
                                         {isReplyAuthor && (
-                                          <span className="text-[9px] px-1 py-0.2 rounded bg-orange-500/10 text-orange-400 border border-orange-500/20">
+                                          <span className="text-[9px] px-1.5 py-0.2 rounded-full bg-[#0071e3]/10 text-[#0071e3] border border-[#0071e3]/20 font-bold">
                                             Você
                                           </span>
                                         )}
                                       </div>
-                                      <span className="text-[9px] text-zinc-500">
+                                      <span className="text-[10px] text-neutral-500 font-medium">
                                         {formatDate(reply.created_at)}
                                       </span>
                                     </div>
@@ -622,34 +621,34 @@ export default function LessonComments({
                                     <button
                                       type="button"
                                       onClick={() => handleDeleteComment(reply.id)}
-                                      className="text-zinc-500 hover:text-red-400 p-1 rounded transition-colors"
+                                      className="text-neutral-400 hover:text-red-600 p-1 rounded transition-colors"
                                       title="Excluir resposta"
                                     >
-                                      <Trash2 className="w-3 h-3" />
+                                      <Trash2 className="w-3.5 h-3.5" />
                                     </button>
                                   )}
                                 </div>
 
-                                <p className="text-xs text-zinc-300 leading-relaxed whitespace-pre-wrap pl-8">
+                                <p className="text-xs sm:text-sm text-neutral-800 leading-relaxed whitespace-pre-wrap pl-9 font-sans">
                                   {reply.content}
                                 </p>
 
-                                <div className="flex items-center gap-3 pl-8 text-xs">
+                                <div className="flex items-center gap-3 pl-9 text-xs">
                                   <button
                                     type="button"
                                     onClick={() => handleToggleLike(reply.id)}
                                     className={`flex items-center gap-1 px-2 py-0.5 rounded transition-colors ${
                                       replyHasLiked
-                                        ? 'text-red-400 bg-red-500/10'
-                                        : 'text-zinc-400 hover:text-white hover:bg-white/5'
+                                        ? 'text-red-600 bg-red-50 border border-red-200 font-bold'
+                                        : 'text-neutral-600 hover:text-[#0071e3] hover:bg-neutral-100 font-medium'
                                     }`}
                                   >
                                     <Heart
                                       className={`w-3 h-3 ${
-                                        replyHasLiked ? 'fill-red-400 text-red-400' : ''
+                                        replyHasLiked ? 'fill-red-600 text-red-600' : ''
                                       }`}
                                     />
-                                    <span className="text-[10px] font-mono">
+                                    <span className="text-xs font-mono">
                                       {reply.likes_count || 0}
                                     </span>
                                   </button>
