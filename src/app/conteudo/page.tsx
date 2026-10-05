@@ -105,6 +105,42 @@ export default function ConteudoPage() {
 
     loadAuth();
 
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
+      const currentUser = session?.user || null;
+      setUser(currentUser);
+      if (currentUser) {
+        try {
+          const { data: prof } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', currentUser.id)
+            .maybeSingle();
+          setProfile(prof);
+        } catch (_) {}
+      } else {
+        setProfile(null);
+      }
+    });
+
+    return () => {
+      subscription?.unsubscribe();
+    };
+  }, []);
+
+  // Check Master Admin (michaeljop35@gmail.com) and full access permissions
+  const isMasterAdmin =
+    user?.email?.toLowerCase() === 'michaeljop35@gmail.com' ||
+    user?.user_metadata?.role === 'admin' ||
+    user?.user_metadata?.has_full_access === true;
+
+  const isStudent =
+    Boolean(profile?.has_access) ||
+    user?.user_metadata?.role === 'student' ||
+    Boolean(user?.user_metadata?.has_access);
+
+  const hasAccess = Boolean(user && (isMasterAdmin || isStudent));
+
+  useEffect(() => {
     // Load progress from localStorage
     try {
       const saved = localStorage.getItem('flmmkr_completed_lessons');
@@ -171,6 +207,156 @@ export default function ConteudoPage() {
   const displayName = profile?.full_name || user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'Aluno';
   const displayEmail = profile?.email || user?.email || '';
 
+  // 1. Loading state
+  if (authLoading) {
+    return (
+      <div className="min-h-screen bg-[#0E0E12] text-zinc-100 flex flex-col items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-12 h-12 rounded-2xl bg-white/10 border border-white/20 flex items-center justify-center animate-pulse">
+            <span className="font-bold text-sm tracking-wider text-white">FL</span>
+          </div>
+          <p className="text-xs uppercase tracking-widest text-white/50 font-mono">
+            Carregando ContentsPlace...
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  // 2. Não autenticado -> Tela elegante de bloqueio
+  if (!user) {
+    return (
+      <div className="min-h-screen bg-[#0E0E12] text-zinc-100 flex flex-col justify-between selection:bg-[#0071e3] selection:text-white">
+        <LoginModal
+          isOpen={loginModalOpen}
+          onClose={() => setLoginModalOpen(false)}
+          redirectUrl="/conteudo"
+        />
+
+        {/* Top Navbar */}
+        <header
+          className="w-full border-b border-white/10 px-6 sm:px-10 py-4 flex items-center justify-between"
+          style={{
+            background: 'rgba(14,14,18,0.85)',
+            backdropFilter: 'blur(28px) saturate(180%)',
+            WebkitBackdropFilter: 'blur(28px) saturate(180%)'
+          }}
+        >
+          <a href="/" className="font-semibold text-sm tracking-tight text-white hover:opacity-80 transition-opacity">
+            FLMMKR
+          </a>
+          <span className="text-[11px] uppercase tracking-widest px-2.5 py-0.5 rounded-full bg-white/10 border border-white/15 text-[#2997ff] font-semibold">
+            ContentsPlace
+          </span>
+        </header>
+
+        {/* Central Lock Screen */}
+        <main className="w-full max-w-lg mx-auto px-6 py-12 text-center my-auto">
+          <div className="w-16 h-16 mx-auto mb-6 rounded-3xl bg-white/5 border border-white/15 flex items-center justify-center shadow-[0_8px_32px_rgba(0,113,227,0.2)]">
+            <Lock className="w-8 h-8 text-[#2997ff]" />
+          </div>
+
+          <span className="text-xs font-mono uppercase tracking-widest text-[#2997ff] font-semibold block mb-2">
+            Acesso Restrito
+          </span>
+
+          <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold tracking-tight text-white mb-4">
+            Área Exclusiva de Conteúdo
+          </h1>
+
+          <p className="text-sm sm:text-base text-white/60 leading-relaxed max-w-md mx-auto mb-8">
+            Faça login com seu e-mail cadastrado ou realize o primeiro acesso para liberar todos os módulos, aulas e recursos práticos.
+          </p>
+
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+            <button
+              onClick={() => setLoginModalOpen(true)}
+              className="w-full sm:w-auto px-6 py-3.5 rounded-full bg-[#0071e3] hover:bg-[#0077ed] text-white text-sm font-semibold transition-all shadow-[0_4px_16px_rgba(0,113,227,0.4)] active:scale-95 cursor-pointer"
+            >
+              Acessar com E-mail e Senha
+            </button>
+            <a
+              href="/definir-senha"
+              className="w-full sm:w-auto px-6 py-3.5 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 text-white/80 hover:text-white text-sm font-medium transition-all active:scale-95"
+            >
+              Primeiro Acesso? Criar Senha
+            </a>
+          </div>
+
+          <div className="mt-8">
+            <a href="/" className="text-xs text-white/40 hover:text-white/80 transition-colors">
+              ← Voltar para a página principal
+            </a>
+          </div>
+        </main>
+
+        {/* Footer */}
+        <footer className="w-full border-t border-white/10 px-6 py-4 text-center text-xs text-white/40">
+          FLMMKR • ContentsPlace • Todos os direitos reservados
+        </footer>
+      </div>
+    );
+  }
+
+  // 3. Usuário autenticado, mas sem acesso liberado
+  if (!hasAccess) {
+    return (
+      <div className="min-h-screen bg-[#0E0E12] text-zinc-100 flex flex-col justify-between selection:bg-[#0071e3] selection:text-white">
+        <header
+          className="w-full border-b border-white/10 px-6 sm:px-10 py-4 flex items-center justify-between"
+          style={{
+            background: 'rgba(14,14,18,0.85)',
+            backdropFilter: 'blur(28px) saturate(180%)',
+            WebkitBackdropFilter: 'blur(28px) saturate(180%)'
+          }}
+        >
+          <a href="/" className="font-semibold text-sm tracking-tight text-white hover:opacity-80 transition-opacity">
+            FLMMKR
+          </a>
+          <button
+            onClick={handleSignOut}
+            className="text-xs text-white/60 hover:text-white transition-colors cursor-pointer"
+          >
+            Sair
+          </button>
+        </header>
+
+        <main className="w-full max-w-md mx-auto px-6 py-12 text-center my-auto">
+          <div className="w-16 h-16 mx-auto mb-6 rounded-3xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center">
+            <Shield className="w-8 h-8 text-amber-400" />
+          </div>
+
+          <h2 className="text-xl font-bold tracking-tight text-white mb-2">
+            Acesso Não Liberado
+          </h2>
+
+          <p className="text-sm text-white/60 mb-6">
+            A conta <strong className="text-white">{displayEmail}</strong> está conectada, mas não possui permissão ativa para este treinamento.
+          </p>
+
+          <div className="space-y-3">
+            <button
+              onClick={handleSignOut}
+              className="w-full py-3 rounded-full bg-white/10 hover:bg-white/15 text-white text-xs font-semibold transition-all cursor-pointer"
+            >
+              Fazer Login com Outra Conta
+            </button>
+            <a
+              href="/"
+              className="block w-full py-3 rounded-full bg-[#0071e3] hover:bg-[#0077ed] text-white text-xs font-semibold transition-all"
+            >
+              Conhecer os Cursos Disponíveis
+            </a>
+          </div>
+        </main>
+
+        <footer className="w-full border-t border-white/10 px-6 py-4 text-center text-xs text-white/40">
+          FLMMKR • ContentsPlace
+        </footer>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-[#0E0E12] text-zinc-100 flex flex-col selection:bg-[#0071e3] selection:text-white">
       <LoginModal
@@ -208,8 +394,14 @@ export default function ConteudoPage() {
 
         {/* User profile / status */}
         <div className="flex items-center gap-3">
-          {user ? (
+          {user && (
             <div className="flex items-center gap-3">
+              {isMasterAdmin && (
+                <span className="hidden md:inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-[11px] font-semibold tracking-wider uppercase">
+                  <Shield className="w-3.5 h-3.5 text-emerald-400" /> Acesso Total
+                </span>
+              )}
+
               <div className="hidden sm:flex flex-col text-right">
                 <span className="text-xs font-semibold text-white">{displayName}</span>
                 <span className="text-[11px] text-white/40">{displayEmail}</span>
@@ -226,15 +418,6 @@ export default function ConteudoPage() {
                 aria-label="Sair"
               >
                 <LogOut className="w-4 h-4" />
-              </button>
-            </div>
-          ) : (
-            <div className="flex items-center gap-2">
-              <button
-                onClick={() => setLoginModalOpen(true)}
-                className="px-4 py-2 rounded-full bg-[#0071e3] hover:bg-[#0077ed] text-white text-xs font-semibold transition-all active:scale-95 shadow-[0_2px_12px_rgba(0,113,227,0.4)] cursor-pointer"
-              >
-                Acessar Conta
               </button>
             </div>
           )}
