@@ -5,27 +5,92 @@ export default function IntroducaoDaVinciArticle() {
   return (
     <article className="w-full text-[#111111] font-serif select-text leading-relaxed relative space-y-8">
       {/* ===================================================================
-          SEÇÃO 1 — PRIMEIRO, ORGANIZA A CASA
+          SEÇÃO 1 — PRIMEIRO, VAMOS ENTENDER O DAVINCI RESOLVE
           =================================================================== */}
       <section className="w-full bg-white p-6 sm:p-10 lg:p-12 border border-neutral-200/80 rounded-[28px] shadow-sm relative overflow-hidden transition-all duration-300">
         <div className="font-serif text-[12px] sm:text-[13px] tracking-[0.25em] uppercase text-neutral-500 font-medium mb-4 flex items-center justify-between border-b border-neutral-300/60 pb-3">
           <span>FUNDAMENTOS</span>
-          <span>ORGANIZAÇÃO INICIAL</span>
+          <span>INTRODUÇÃO AO DAVINCI RESOLVE</span>
         </div>
 
         <h2 className="font-sans font-black text-[26px] sm:text-[36px] lg:text-[42px] tracking-tight uppercase leading-[1.0] text-[#0071e3] my-4">
-          PRIMEIRO, ORGANIZA A CASA
+          PRIMEIRO, VAMOS ENTENDER O DAVINCI RESOLVE
         </h2>
 
         <div className="h-[2px] bg-[#0071e3] w-full my-6" />
 
         <div className="font-serif text-lg text-neutral-800 leading-[1.7] space-y-5">
           <p>
-            O DaVinci Resolve tem ferramenta pra caramba. Você abre o programa e tem painel, botão, menu, node, scope... então não precisa tentar aprender tudo de uma vez.
+            Antes de começar a mexer na imagem, vamos entender um pouco como o DaVinci Resolve funciona.
           </p>
           <p>
-            Pra começar, entende uma coisa: o colorista vai trabalhar principalmente na página Color. Mas precisa saber o mínimo das outras páginas, principalmente Media e Edit, porque é ali que o projeto começa a se organizar.
+            Principalmente se você ainda não está muito familiarizado com o programa, porque a interface pode parecer meio confusa no começo. Tem bastante coisa na tela e, principalmente, tem ferramenta pra caramba.
           </p>
+          <p className="font-sans font-bold text-neutral-900 text-xl">
+            E não precisa querer aprender tudo agora.
+          </p>
+          <p>
+            O DaVinci Resolve tem um milhão de ferramentas. É impossível falar sobre todas elas em um curso.
+          </p>
+          <p>
+            Então a ideia aqui é outra. Você vai entender como o DaVinci Resolve está organizado e onde ficam as ferramentas que a gente vai usar no nosso trabalho de color grading.
+          </p>
+          <p>
+            O Resolve é dividido em diferentes páginas, e cada uma delas tem uma função dentro do processo de pós-produção. A Media, por exemplo, é onde você vai trabalhar com os arquivos do projeto, trazendo para dentro do programa os arquivos que estão no computador.
+          </p>
+          <p>
+            Depois você tem as outras áreas do programa, cada uma voltada para uma etapa do trabalho.
+          </p>
+
+          <blockquote className="bg-[#f5f5f7] p-6 sm:p-8 rounded-2xl border-l-4 border-[#0071e3] my-7 shadow-xs">
+            <p className="font-serif italic font-medium text-xl sm:text-2xl text-[#0071e3] leading-snug !mb-0">
+              “Mas, para o que a gente vai fazer aqui, a página que mais interessa é a Color. É nela que você vai passar a maior parte do tempo.”
+            </p>
+          </blockquote>
+
+          <p>
+            E é justamente por isso que eu quero que você se familiarize primeiro com essa página.
+          </p>
+          <p>
+            Quando você abre a Color, vai encontrar a imagem, a timeline, a Gallery, os nodes, os scopes e todas aquelas ferramentas de correção na parte inferior.
+          </p>
+          <p>
+            No começo pode parecer muita coisa.
+          </p>
+          <p>
+            Mas, conforme a gente for usando, você vai perceber que cada ferramenta tem uma função bem específica. Você não precisa decorar onde está cada botão. Precisa entender o que cada coisa faz e saber onde encontrar quando precisar.
+          </p>
+          <p>
+            Por exemplo, os nodes são onde a gente vai construindo o tratamento da imagem. A Gallery serve para guardar referências e stills. O Split Screen ajuda a comparar imagens. Os scopes mostram informações sobre o sinal da imagem. E, nas ferramentas de correção, você vai encontrar diferentes maneiras de trabalhar exposição, contraste, cor e seleções específicas.
+          </p>
+          <p>
+            A gente vai passar por tudo isso.
+          </p>
+          <p>
+            Sem ficar enrolando e sem tentar transformar essa introdução num manual do programa inteiro.
+          </p>
+          <p className="font-sans font-semibold text-neutral-900 bg-[#f5f5f7] p-5 rounded-xl border border-neutral-200">
+            A ideia é você terminar essa parte olhando para a página Color e já sabendo onde está cada coisa e para que ela serve. Aí sim a gente começa a trabalhar a imagem.
+          </p>
+        </div>
+      </section>
+
+      {/* ===================================================================
+          SEÇÃO 2 — ORGANIZA A CASA
+          =================================================================== */}
+      <section className="w-full bg-white p-6 sm:p-10 lg:p-12 border border-neutral-200/80 rounded-[28px] shadow-sm relative overflow-hidden transition-all duration-300">
+        <div className="font-serif text-[12px] sm:text-[13px] tracking-[0.25em] uppercase text-neutral-500 font-medium mb-4 flex items-center justify-between border-b border-neutral-300/60 pb-3">
+          <span>FUNDAMENTOS</span>
+          <span>PÁGINA MEDIA & ESTRUTURA</span>
+        </div>
+
+        <h2 className="font-sans font-black text-[26px] sm:text-[36px] lg:text-[42px] tracking-tight uppercase leading-[1.0] text-[#0071e3] my-4">
+          ORGANIZA A CASA
+        </h2>
+
+        <div className="h-[2px] bg-[#0071e3] w-full my-6" />
+
+        <div className="font-serif text-lg text-neutral-800 leading-[1.7] space-y-5">
           <p>
             Na página Media, você vai trazer os arquivos do computador para dentro do projeto. E aqui tem um detalhe importante: mantenha a organização que você já fez no computador.
           </p>
@@ -47,7 +112,7 @@ export default function IntroducaoDaVinciArticle() {
       </section>
 
       {/* ===================================================================
-          SEÇÃO 2 — E NA EDIT, O COLORISTA PRECISA SABER O BÁSICO
+          SEÇÃO 3 — E NA EDIT, O COLORISTA PRECISA SABER O BÁSICO
           =================================================================== */}
       <section className="w-full bg-white p-6 sm:p-10 lg:p-12 border border-neutral-200/80 rounded-[28px] shadow-sm relative overflow-hidden transition-all duration-300">
         <div className="font-serif text-[12px] sm:text-[13px] tracking-[0.25em] uppercase text-neutral-500 font-medium mb-4 flex items-center justify-between border-b border-neutral-300/60 pb-3">
@@ -90,7 +155,7 @@ export default function IntroducaoDaVinciArticle() {
       </section>
 
       {/* ===================================================================
-          SEÇÃO 3 — O NODE É O CAMINHO DA IMAGEM
+          SEÇÃO 4 — O NODE É O CAMINHO DA IMAGEM
           =================================================================== */}
       <section className="w-full bg-white p-6 sm:p-10 lg:p-12 border border-neutral-200/80 rounded-[28px] shadow-sm relative overflow-hidden transition-all duration-300">
         <div className="font-serif text-[12px] sm:text-[13px] tracking-[0.25em] uppercase text-neutral-500 font-medium mb-4 flex items-center justify-between border-b border-neutral-300/60 pb-3">
@@ -129,7 +194,7 @@ export default function IntroducaoDaVinciArticle() {
       </section>
 
       {/* ===================================================================
-          SEÇÃO 4 — ANTES DE MEXER NA COR, ENTENDA AS PRIMÁRIAS
+          SEÇÃO 5 — ANTES DE MEXER NA COR, ENTENDA AS PRIMÁRIAS
           =================================================================== */}
       <section className="w-full bg-white p-6 sm:p-10 lg:p-12 border border-neutral-200/80 rounded-[28px] shadow-sm relative overflow-hidden transition-all duration-300">
         <div className="font-serif text-[12px] sm:text-[13px] tracking-[0.25em] uppercase text-neutral-500 font-medium mb-4 flex items-center justify-between border-b border-neutral-300/60 pb-3">
@@ -186,7 +251,7 @@ export default function IntroducaoDaVinciArticle() {
       </section>
 
       {/* ===================================================================
-          SEÇÃO 5 — QUANDO O PROBLEMA ESTÁ SÓ EM UMA PARTE
+          SEÇÃO 6 — QUANDO O PROBLEMA ESTÁ SÓ EM UMA PARTE
           =================================================================== */}
       <section className="w-full bg-white p-6 sm:p-10 lg:p-12 border border-neutral-200/80 rounded-[28px] shadow-sm relative overflow-hidden transition-all duration-300">
         <div className="font-serif text-[12px] sm:text-[13px] tracking-[0.25em] uppercase text-neutral-500 font-medium mb-4 flex items-center justify-between border-b border-neutral-300/60 pb-3">
@@ -226,7 +291,7 @@ export default function IntroducaoDaVinciArticle() {
       </section>
 
       {/* ===================================================================
-          SEÇÃO 6 — SELECIONA. AJUSTA. PRONTO.
+          SEÇÃO 7 — SELECIONA. AJUSTA. PRONTO.
           =================================================================== */}
       <section className="w-full bg-white p-6 sm:p-10 lg:p-12 border border-neutral-200/80 rounded-[28px] shadow-sm relative overflow-hidden transition-all duration-300">
         <div className="font-serif text-[12px] sm:text-[13px] tracking-[0.25em] uppercase text-neutral-500 font-medium mb-4 flex items-center justify-between border-b border-neutral-300/60 pb-3">
@@ -266,7 +331,7 @@ export default function IntroducaoDaVinciArticle() {
       </section>
 
       {/* ===================================================================
-          SEÇÃO 7 — REFERÊNCIA É REFERÊNCIA
+          SEÇÃO 8 — REFERÊNCIA É REFERÊNCIA
           =================================================================== */}
       <section className="w-full bg-white p-6 sm:p-10 lg:p-12 border border-neutral-200/80 rounded-[28px] shadow-sm relative overflow-hidden transition-all duration-300">
         <div className="font-serif text-[12px] sm:text-[13px] tracking-[0.25em] uppercase text-neutral-500 font-medium mb-4 flex items-center justify-between border-b border-neutral-300/60 pb-3">
@@ -300,7 +365,7 @@ export default function IntroducaoDaVinciArticle() {
       </section>
 
       {/* ===================================================================
-          SEÇÃO 8 — COLOR MATCH: PRIMEIRO DEIXA TODO MUNDO NO MESMO LUGAR
+          SEÇÃO 9 — COLOR MATCH: PRIMEIRO DEIXA TODO MUNDO NO MESMO LUGAR
           =================================================================== */}
       <section className="w-full bg-white p-6 sm:p-10 lg:p-12 border border-neutral-200/80 rounded-[28px] shadow-sm relative overflow-hidden transition-all duration-300">
         <div className="font-serif text-[12px] sm:text-[13px] tracking-[0.25em] uppercase text-neutral-500 font-medium mb-4 flex items-center justify-between border-b border-neutral-300/60 pb-3">
@@ -341,7 +406,7 @@ export default function IntroducaoDaVinciArticle() {
       </section>
 
       {/* ===================================================================
-          SEÇÃO 9 — O OLHO VÊ. O SCOPE CONFIRMA.
+          SEÇÃO 10 — O OLHO VÊ. O SCOPE CONFIRMA.
           =================================================================== */}
       <section className="w-full bg-white p-6 sm:p-10 lg:p-12 border border-neutral-200/80 rounded-[28px] shadow-sm relative overflow-hidden transition-all duration-300">
         <div className="font-serif text-[12px] sm:text-[13px] tracking-[0.25em] uppercase text-neutral-500 font-medium mb-4 flex items-center justify-between border-b border-neutral-300/60 pb-3">
@@ -387,7 +452,7 @@ export default function IntroducaoDaVinciArticle() {
       </section>
 
       {/* ===================================================================
-          SEÇÃO 10 — UMA ÚLTIMA COISA ANTES DE COMEÇAR O COLOR
+          SEÇÃO 11 — UMA ÚLTIMA COISA ANTES DE COMEÇAR O COLOR
           =================================================================== */}
       <section className="w-full bg-white p-6 sm:p-10 lg:p-12 border border-neutral-200/80 rounded-[28px] shadow-sm relative overflow-hidden transition-all duration-300">
         <div className="font-serif text-[12px] sm:text-[13px] tracking-[0.25em] uppercase text-neutral-500 font-medium mb-4 flex items-center justify-between border-b border-neutral-300/60 pb-3">
