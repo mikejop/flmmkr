@@ -142,6 +142,21 @@ export function MemberAreaApp() {
     return activeModule.subtopics.find(s => s.id === activeLessonId) || activeModule.subtopics[0];
   }, [activeModule, activeLessonId]);
 
+  const [activeSubtabId, setActiveSubtabId] = useState<string>('');
+
+  useEffect(() => {
+    if (activeLesson?.subtabs && activeLesson.subtabs.length > 0) {
+      setActiveSubtabId(activeLesson.subtabs[0].id);
+    } else {
+      setActiveSubtabId('');
+    }
+  }, [activeLessonId, activeLesson]);
+
+  const currentSubtab = useMemo(() => {
+    if (!activeLesson?.subtabs || activeLesson.subtabs.length === 0) return null;
+    return activeLesson.subtabs.find(t => t.id === activeSubtabId) || activeLesson.subtabs[0];
+  }, [activeLesson, activeSubtabId]);
+
   // Overall course progress percentage
   const totalLessonsCount = useMemo(() => {
     return modulesData.reduce((acc, curr) => acc + curr.subtopics.length, 0);
@@ -1018,37 +1033,61 @@ export function MemberAreaApp() {
                 {/* Tab Content Rendering */}
                 {activeTab === 'teoria' && (
                   <div className="space-y-6">
+                    {/* Internal Subtabs Selector (e.g. CST / ACES ou Métodos de Look) */}
+                    {activeLesson.subtabs && activeLesson.subtabs.length > 0 && (
+                      <div className="flex flex-wrap items-center gap-2 p-1.5 bg-neutral-100/90 rounded-2xl w-fit border border-neutral-200/80 shadow-xs">
+                        {activeLesson.subtabs.map(tab => {
+                          const isSelected = (currentSubtab?.id || activeLesson.subtabs![0].id) === tab.id;
+                          return (
+                            <button
+                              key={tab.id}
+                              onClick={() => setActiveSubtabId(tab.id)}
+                              className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                                isSelected
+                                  ? 'bg-[#0071e3] text-white shadow-xs'
+                                  : 'text-neutral-600 hover:text-neutral-900 hover:bg-white/60'
+                              }`}
+                            >
+                              {tab.label}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    )}
+
                     <Suspense fallback={<ToolFallback />}>
                       <div className="bg-white rounded-[20px] border border-neutral-200/80 p-6 md:p-8 shadow-xs space-y-5">
-                          <p className="text-neutral-800 text-[15px] leading-relaxed whitespace-pre-line font-normal">
-                            {activeLesson.concept}
-                          </p>
+                        <p className="text-neutral-800 text-[15px] leading-relaxed whitespace-pre-line font-normal">
+                          {currentSubtab ? currentSubtab.concept : activeLesson.concept}
+                        </p>
 
-                          {activeLesson.steps && activeLesson.steps.length > 0 && (
-                            <div className="space-y-2.5 pt-4 border-t border-neutral-100">
-                              <h4 className="text-[11px] font-bold text-neutral-400 uppercase tracking-wider">Passos Recomendados</h4>
-                              <div className="space-y-2">
-                                {activeLesson.steps.map((step, idx) => (
-                                  <div key={idx} className="flex items-start gap-2.5 text-xs text-neutral-700 leading-normal">
-                                    <span className="w-4 h-4 rounded-full bg-[#0071e3]/10 text-[#0071e3] font-bold text-[10px] flex items-center justify-center shrink-0 mt-0.5">
-                                      {idx + 1}
-                                    </span>
-                                    <span>{step}</span>
-                                  </div>
-                                ))}
-                              </div>
+                        {((currentSubtab?.steps && currentSubtab.steps.length > 0) ||
+                          (!currentSubtab && activeLesson.steps && activeLesson.steps.length > 0)) && (
+                          <div className="space-y-2.5 pt-4 border-t border-neutral-100">
+                            <h4 className="text-[11px] font-bold text-neutral-400 uppercase tracking-wider">Passos Recomendados</h4>
+                            <div className="space-y-2">
+                              {(currentSubtab?.steps || activeLesson.steps).map((step, idx) => (
+                                <div key={idx} className="flex items-start gap-2.5 text-xs text-neutral-700 leading-normal">
+                                  <span className="w-4 h-4 rounded-full bg-[#0071e3]/10 text-[#0071e3] font-bold text-[10px] flex items-center justify-center shrink-0 mt-0.5">
+                                    {idx + 1}
+                                  </span>
+                                  <span>{step}</span>
+                                </div>
+                              ))}
                             </div>
-                          )}
+                          </div>
+                        )}
 
-                          {activeLesson.tips && activeLesson.tips.length > 0 && (
-                            <div className="p-3.5 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-900 text-xs font-medium space-y-1">
-                              <span className="font-bold flex items-center gap-1.5 text-amber-800 text-[11px]">
-                                <Star size={13} className="text-amber-500 fill-amber-500" /> Dica de Ouro
-                              </span>
-                              <p>{activeLesson.tips.join(' ')}</p>
-                            </div>
-                          )}
-                        </div>
+                        {((currentSubtab?.tips && currentSubtab.tips.length > 0) ||
+                          (!currentSubtab && activeLesson.tips && activeLesson.tips.length > 0)) && (
+                          <div className="p-3.5 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-900 text-xs font-medium space-y-1">
+                            <span className="font-bold flex items-center gap-1.5 text-amber-800 text-[11px]">
+                              <Star size={13} className="text-amber-500 fill-amber-500" /> Dica de Ouro
+                            </span>
+                            <p>{(currentSubtab?.tips || activeLesson.tips || []).join(' ')}</p>
+                          </div>
+                        )}
+                      </div>
                     </Suspense>
                   </div>
                 )}

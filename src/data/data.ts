@@ -13,84 +13,96 @@ export const modulesData: CourseModule[] = [
         id: 'mod1-1',
         title: 'Introdução ao DaVinci Resolve',
         isFree: true,
-        concept: `O DaVinci Resolve é o padrão global da indústria cinematográfica e publicitária para pós-produção e tratamento de cor. Compreender a arquitetura das abas, a lógica baseada em nós (nodes) e a interface é a base sólida para trabalhar com velocidade e consistência.`,
+        concept: `O DaVinci Resolve é o padrão global da indústria cinematográfica e publicitária para pós-produção e tratamento de cor. Compreender a interface da página Color, a navegação ágil e a lógica de nós (nodes) cria o alicerce indispensável para trabalhar com velocidade e consistência técnica.`,
         steps: [
-          'Configure a página Color e familiarize-se com a área de Scopes, Node Graph e Primaries.',
-          'Entenda a diferença estrutural entre nós seriais, nós paralelos e nós de camada (layer mixer).',
-          'Organize seu projeto para máxima performance de reprodução em tempo real.',
-          'Domine as teclas de atalho essenciais da página Color para acelerar seu fluxo diário.'
+          'Conheça a interface da página Color (Node Graph, Scopes, Paletas Primárias e Galeria).',
+          'Domine a lógica de nós seriais, nós paralelos e nós de camada (layer mixer).',
+          'Configure preferências de reprodução para performance fluida em tempo real.',
+          'Memorize os atalhos de navegação essenciais da página Color para acelerar seu fluxo diário.'
         ],
-        tips: ['Estruture sua árvore de nós com uma convenção de nomes consistente desde a primeira aula.']
+        tips: ['Mantenha sempre os Scopes visíveis em uma janela flutuante para monitorar os níveis com precisão matemática.']
       },
       {
         id: 'mod1-2',
         title: 'Gerenciamento de Cores',
         isFree: true,
-        concept: `Gerenciar cor com rigor técnico garante que as informações capturadas pelo sensor da câmera sejam mapeadas com precisão matemática para o espaço de cor de exibição correto, evitando perdas de alcance dinâmico e distorções cromáticas.`,
+        concept: `O gerenciamento de cor correto no DaVinci Resolve garante que as informações capturadas pelo sensor da câmera em perfil Log sejam mapeadas com fidelidade matemática e máximo alcance dinâmico para o espaço de cor de exibição correto (Rec.709). Escolha entre a abordagem nodal com CST ou a padronização unificada da Academia com ACES nas abas abaixo.`,
+        subtabs: [
+          {
+            id: 'cst',
+            label: 'CST',
+            concept: `O nó CST (Color Space Transform) é o método nodal mais transparente e versátil do DaVinci Resolve. Ele permite aplicar uma conversão matemática precisa do Input Color Space e Input Gamma específicos da sua câmera diretamente na árvore de nós, mantendo controle manual absoluto sobre cada etapa do processamento.`,
+            steps: [
+              'Insira o nó CST no ponto de conversão da sua cadeia de nós (metodologia sanduíche).',
+              'Defina o Input Color Space e o Input Gamma conforme a câmera gravada (ex: Sony S-Gamut3.Cine / S-Log3, Canon Cinema Gamut / Canon Log 3, Blackmagic Gen 5).',
+              'Configure o Output Color Space como Rec.709 e Output Gamma como Gamma 2.4 (ou Rec.709).',
+              'Habilite Tone Mapping (DaVinci) e Gamut Mapping para comprimir altas luzes e saturações extremas sem clipping severo.'
+            ],
+            tips: ['O Tone Mapping do CST preserva gradientes suaves nos reflexos estourados de produtos brilhantes.']
+          },
+          {
+            id: 'aces',
+            label: 'ACES',
+            concept: `A Academy Color Encoding System (ACES) é o padrão de gerenciamento de cores desenvolvido pela Academia de Cinema dos EUA. Ele transforma materiais de diferentes marcas e modelos de câmeras em um espaço de cor gigantesco e linear (ACEScg / ACEScc / ACEScct), garantindo consistência fotométrica perfeita em produções multicâmera.`,
+            steps: [
+              'Ative o Color Science como ACEScc ou ACEScct nas configurações do projeto.',
+              'Defina a versão ACES mais recente e selecione o IDT (Input Device Transform) correspondente a cada câmera da cena.',
+              'Configure o ODT (Output Device Transform) correto para sua tela de entrega comercial (ex: Rec.709).',
+              'Utilize ACEScct para uma resposta mais orgânica e suave nos controles de sombras e Lift.'
+            ],
+            tips: ['ACEScct é a escolha recomendada para comerciais, pois evita que ajustes de sombra quebrem bruscamente a curva tonal.']
+          }
+        ],
         steps: [
-          'Defina o espaço de trabalho entre DaVinci YRGB e DaVinci YRGB Color Managed.',
-          'Compreenda a relação entre Gamut da câmera e Gamma de gravação (Log vs. Linear vs. Rec.709).',
-          'Evite quebras de gradientes ajustando o processamento em ponto flutuante de 32 bits.',
-          'Mantenha consistência de saturação em altas luzes e sombras profundas.'
+          'Selecione a abordagem de gerenciamento de cor mais adequada para a produção (CST ou ACES).',
+          'Padronize a conversão de entrada (Input) e saída (Output).',
+          'Valide a integridade do histograma e dos níveis de saturação após a conversão.'
         ],
         tips: ['Nunca aplique ajustes criativos antes de normalizar o espaço de cor da sua gravação.']
       },
       {
         id: 'mod1-3',
-        title: 'ACES e Ciência de Cor',
+        title: 'Como fazer a análise artística do vídeo',
         isFree: true,
-        concept: `A Academy Color Encoding System (ACES) é o padrão da Academia de Cinema que unifica câmeras de diferentes fabricantes em um espaço de cor gigantesco, garantindo preservação máxima de dados e consistência entre sensores variados.`,
+        concept: `Antes de mexer em qualquer controle de cor, é indispensável realizar a análise analítica e estética do material. Isso envolve entender o gênero do produto, o contraste desejado, a iluminação da cena e cruzar o olhar artístico com a leitura dos Scopes (Waveform, RGB Parade, Vectorscope e Histograma).`,
         steps: [
-          'Selecione a versão ACES adequada para o seu projeto comercial.',
-          'Configure o IDT (Input Device Transform) correspondente a cada câmera da cena.',
-          'Estabeleça o ODT (Output Device Transform) correto para sua tela de entrega (ex: Rec.709 / sRGB).',
-          'Compare o comportamento de realce (highlight roll-off) entre ACEScc e ACEScct.'
+          'Analise a distribuição de iluminação pelo Waveform e identifique sombras esmagadas ou altas estouradas.',
+          'Use o RGB Parade para detectar contaminações indesejadas (color casts) em pretos e brancos.',
+          'Verifique no Vectorscope a fidelidade e saturação das cores do produto e o alinhamento da linha de Skin Tone.',
+          'Determine a intenção estética (clean comercial, dramático, quente/frio, vintage) antes de iniciar o grading.'
         ],
-        tips: ['ACEScct oferece resposta mais suave nos controles de sombra (Lift), ideal para comerciais.']
+        tips: ['O monitor pode enganar por calibragem ou iluminação ambiente; os scopes fornecem a verdade numérica absoluta.']
       },
       {
         id: 'mod1-4',
-        title: 'CST (Color Space Transform)',
+        title: 'Fluxo de Trabalho',
         isFree: true,
-        concept: `O nó CST (Color Space Transform) é o método nodal mais flexível e transparente do DaVinci Resolve para converter perfeitamente qualquer perfil Log de qualquer câmera para o espaço de trabalho e saída desejados.`,
+        concept: `Um fluxo de trabalho profissional e organizado define a velocidade de entrega, evita retrabalho e garante a integridade dos arquivos durante todas as etapas do projeto comercial.`,
         steps: [
-          'Insira o nó CST no início (ou final) da sua cadeia de nós conforme a metodologia sanduíche.',
-          'Selecione o Input Color Space e Input Gamma exatos da sua câmera.',
-          'Ative os algoritmos de Tone Mapping e Gamut Mapping para evitar clipping severo.',
-          'Crie um nó composto reutilizável para padronizar todos os planos do projeto.'
+          'Estruture uma árvore de nós fixa e padronizada em PowerGrade para aplicar em novos projetos com um clique.',
+          'Agrupe planos semelhantes em Clip Groups (Pre-Clip, Clip, Post-Clip) para ajustes em lote.',
+          'Utilize mídias otimizadas ou proxies em timelines 4K para garantir reprodução em 24/30fps cravados.',
+          'Ative os backups automáticos com versionamento de timeline.'
         ],
-        tips: ['O Tone Mapping DaVinci preserva detalhes sutis em reflexos estourados de produtos.']
-      },
-      {
-        id: 'mod1-5',
-        title: 'Fluxo de Trabalho e Setup do Projeto',
-        isFree: true,
-        concept: `A estruturação profissional do projeto, gerenciamento de mídias otimizadas, proxy, timeline correta e hierarquia de nodes determinam a produtividade e a segurança em entregas comerciais de alto nível.`,
-        steps: [
-          'Configure as preferências de projeto, taxa de quadros e monitoramento com precisão.',
-          'Crie uma estrutura de nós padronizada em PowerGrade para aplicar em novos projetos com um clique.',
-          'Utilize Grupos de Planos (Clip Groups) para aplicar ajustes globais e individuais com agilidade.',
-          'Habilite backups automáticos de linha do tempo e salvamento em tempo real.'
-        ],
-        tips: ['Um template de PowerGrade bem planejado reduz seu tempo de grading inicial pela metade.']
+        tips: ['Nomear cada nó com sua função (Ex: CST_In, Exp, WB, Contrast, Look, CST_Out) economiza horas nas revisões com clientes.']
       }
     ],
     challenges: [
       {
         id: 'challenge-mod1',
         title: 'Setup e Normalização de Projeto',
-        description: 'Configure o gerenciamento de cor via CST para planos gravados em perfil Log e valide a precisão técnica nos Scopes.',
-        placeholder: 'Descreva a câmera usada e os parâmetros de CST configurados...',
+        description: 'Configure o gerenciamento de cor via CST ou ACES para planos gravados em perfil Log e valide a precisão técnica nos Scopes.',
+        placeholder: 'Descreva a câmera usada e os parâmetros de gerenciamento configurados...',
         fields: [
           { label: 'Câmera e Perfil de Cor Gravado', fieldId: 'mod1_cam', type: 'text' },
-          { label: 'Input Color Space / Input Gamma', fieldId: 'mod1_cst', type: 'text' },
+          { label: 'Método Escolhido (CST ou ACES)', fieldId: 'mod1_cst', type: 'text' },
           { label: 'Espaço de Cor de Saída (Output)', fieldId: 'mod1_output', type: 'text' }
         ]
       }
     ],
     checklistItems: [
       { id: 'mod1-chk-1', task: 'Configurar a página Color e verificar scopes ativos', category: 'Interface' },
-      { id: 'mod1-chk-2', task: 'Normalizar o material via Color Space Transform (CST)', category: 'Ciência de Cor' },
+      { id: 'mod1-chk-2', task: 'Normalizar o material via Color Space Transform (CST) ou ACES', category: 'Ciência de Cor' },
       { id: 'mod1-chk-3', task: 'Salvar árvore de nós padrão na galeria de PowerGrades', category: 'Workflow' }
     ]
   },
@@ -104,55 +116,42 @@ export const modulesData: CourseModule[] = [
     subtopics: [
       {
         id: 'mod2-1',
-        title: 'Análise Artística do Vídeo',
+        title: 'Primárias',
         isFree: false,
-        concept: `A leitura de uma imagem vai muito além do gosto pessoal: envolve entender a intenção narrativa, a identidade do produto, a iluminação da cena e a leitura precisa dos Scopes (Waveform, Vectorscope, Histograma e Parade).`,
+        concept: `As correções primárias atuam sobre a totalidade da imagem. O objetivo é equilibrar a exposição, o contraste global e o balanço de branco, restaurando a neutralidade e o peso tonal natural que preparam a imagem para o look criativo.`,
         steps: [
-          'Analise a distribuição de luminância pelo Waveform e identifique clipping de sombras e altas.',
-          'Verifique a predominância de matiz (color cast) no RGB Parade.',
-          'Identifique os tons de pele e do produto no Vectorscope com a linha de Skin Tone ativada.',
-          'Estabeleça as prioridades de correção antes de iniciar os ajustes.'
+          'Ajuste o ponto de preto com o controle Lift até assentar a base das sombras no Waveform.',
+          'Ajuste o ponto de branco com o controle Gain para conferir brilho aos destaques sem queimar dados.',
+          'Modele os tons médios e a sensação de luminosidade geral através do controle Gamma.',
+          'Corrija dominantes de cor indesejadas utilizando as Color Wheels ou os controles de Temp/Tint.'
         ],
-        tips: ['Os scopes nunca mentem: mesmo em monitores não calibrados, eles guiam sua precisão técnica.']
+        tips: ['Uma correção primária perfeita é invisível: a imagem parece naturalmente bem capturada e balanceada.']
       },
       {
         id: 'mod2-2',
-        title: 'Correções Primárias e Balanço de Branco',
+        title: 'Shot Matching',
         isFree: false,
-        concept: `A correção primária balanceia a imagem como um todo. O equilíbrio correto de pretos, brancos e tons médios (Lift, Gamma, Gain e Offset) restaura o contraste natural e a fidelidade cromática indispensáveis para comerciais.`,
+        concept: `Em comerciais de produto com múltiplos ângulos, câmeras e takes, cortes entre planos diferentes não podem apresentar saltos de brilho, saturação ou temperatura de cor. O Shot Matching garante continuidade visual imperceptível entre todas as cenas.`,
         steps: [
-          'Ajuste o ponto de preto com o Lift até assentar na base do Waveform sem esmagar sombras.',
-          'Ajuste o ponto de branco com o Gain para dar brilho e vida sem estourar highlights.',
-          'Equilibre os tons médios com o Gamma e neutralize qualquer tom indesejado.',
-          'Utilize o Offset para correções rápidas de balanço de temperatura global.'
+          'Defina o plano Hero Shot (o plano de referência principal que ditará o padrão estético da cena).',
+          'Utilize a ferramenta de Split Screen e Image Wipe para comparar a referência com o plano a ser corrigido lado a lado.',
+          'Equalize primeiro a exposição e o contraste observando o Waveform.',
+          'Alinhe o equilíbrio cromático pelo RGB Parade até que ambos os planos casem com exatidão visual.'
         ],
-        tips: ['Sempre neutralize o branco e o preto antes de decidir quanto contraste o plano merece.']
+        tips: ['Concentre o matching na luminância do produto e nos tons de pele antes de ajustar o fundo.']
       },
       {
         id: 'mod2-3',
-        title: 'Shot Matching e Continuidade',
+        title: 'Secundárias',
         isFree: false,
-        concept: `Em comerciais de produtos, cortes entre diferentes ângulos, lentes e iluminações precisam parecer rigorosamente do mesmo momento. O Shot Matching garante continuidade visual imperceptível para o espectador.`,
+        concept: `As correções secundárias isolam partes específicas da imagem (o produto, rótulos, elementos de cena, pele ou fundo) utilizando Power Windows, Qualifiers HSL/3D e Magic Mask para refinamento cirúrgico de cor, nitidez e realce.`,
         steps: [
-          'Selecione o plano de referência (Hero Shot) que define o visual da cena.',
-          'Utilize a visualização Split Screen e Wipe para comparar lado a lado.',
-          'Equalize primeiro a luminância (exposição e contraste) antes de mexer na cor.',
-          'Ajuste os canais de cor individualmente pelo RGB Parade até os gráficos casarem perfeitamente.'
+          'Isole o produto com o 3D Qualifier ou Magic Mask.',
+          'Suavize as bordas da seleção usando Softness e Blur Radius para mesclagem limpa e imperceptível.',
+          'Aplique Power Windows com tracking inteligente para seguir o movimento do produto na cena.',
+          'Realce a saturação, contraste local e microcontraste do produto para destacá-lo do cenário.'
         ],
-        tips: ['Case sempre os tons médios e os destaques do produto antes de comparar o fundo.']
-      },
-      {
-        id: 'mod2-4',
-        title: 'Correções Secundárias e Ajustes Localizados',
-        isFree: false,
-        concept: `Ajustes secundários isolam regiões específicas com Power Windows, Qualifiers e Magic Mask para realçar o produto, valorizar texturas, aperfeiçoar o tom de pele e guiar o foco do olhar do consumidor.`,
-        steps: [
-          'Isole o produto ou a pele utilizando o 3D Qualifier ou Magic Mask.',
-          'Refine as bordas da máscara com Clean Black/White e Blur Radius para mesclagem invisível.',
-          'Aplique Power Windows com tracking preciso em objetos em movimento.',
-          'Subtraia seleções com nós combinados para evitar que ajustes vazem para áreas indesejadas.'
-        ],
-        tips: ['Suavize sempre as bordas de qualquer seleção: máscaras duras denunciam o corte amador.']
+        tips: ['Seleções secundárias com bordas duras denunciam corte amador; suavize sempre as máscaras.']
       }
     ],
     challenges: [
@@ -184,68 +183,53 @@ export const modulesData: CourseModule[] = [
     subtopics: [
       {
         id: 'mod3-1',
-        title: 'Look Development e Estética Comercial',
+        title: 'Criando um Look',
         isFree: false,
-        concept: `O Look Development é a construção artística que confere personalidade única ao vídeo. No mercado de produtos, cada nicho (bebidas, cosméticos, eletrônicos, gastronomia) exige paletas de cores, densidades e contrastes específicos.`,
-        steps: [
-          'Defina a paleta de cores dominante respeitando a psicologia das cores para o produto.',
-          'Separe a imagem em camadas tonais com nós de split-toning (sombras frias, altas quentes).',
-          'Controle a densidade cromática sem saturar de forma artificial.',
-          'Garanta que a estética valorize as qualidades táteis do produto em cena.'
+        concept: `O look criativo é a assinatura estética do filme comercial. Define a personalidade da marca através de contrastes tonais, relações de cores complementares e resposta analógica, podendo ser construído manualmente sem plugins ou potencializado por ferramentas dedicadas. Explore as três abordagens nas abas abaixo.`,
+        subtabs: [
+          {
+            id: 'sem_plugins',
+            label: 'Criando look sem plugins',
+            concept: `A construção de looks manuais nativos no DaVinci Resolve utiliza Custom Curves, Hue vs Hue/Sat/Lum, Color Warper e RGB Mixer. Proporciona controle total sobre a matemática das cores sem depender de plugins de terceiros, garantindo máxima compatibilidade e independência técnica.`,
+            steps: [
+              'Modele a curva de resposta tonal com formato em S nas curvas Custom, suavizando os extremos para evitar clipping.',
+              'Crie separação tonal de cores (Split Toning) resfriando as sombras e aquecendo as altas luzes.',
+              'Isole e refine os tons secundários nas curvas Hue vs Hue e Hue vs Sat.',
+              'Manipule o RGB Mixer para alterar o peso perceptual dos canais vermelho, verde e azul.'
+            ],
+            tips: ['Dominar o método sem plugins capacita você a atingir qualquer visual comercial em qualquer estação de trabalho.']
+          },
+          {
+            id: 'film_look_creator',
+            label: 'Film Look Creator',
+            concept: `O Film Look Creator é a ferramenta de emulação cinematográfica moderna do DaVinci Resolve Studio. Ele integra em um único painel a modelagem de contraste de película, halation, bloom, resposta espectral de filme negativo/print e grão fotoquímico.`,
+            steps: [
+              'Insira o nó Film Look Creator após a correção primária normalizada.',
+              'Escolha o perfil de película e ajuste a intensidade da emulação tonal.',
+              'Calibre os controles de Halation para gerar a dispersão de luz avermelhada nas bordas de contraste.',
+              'Adicione Bloom óptico suave para simular a difusão orgânica de lentes de cinema.'
+            ],
+            tips: ['O Film Look Creator oferece processamento acelerado por GPU nativo com preservação total de 32-bit float.']
+          },
+          {
+            id: 'dehancer_pro',
+            label: 'Dehancer Pro',
+            concept: `O Dehancer Pro é o plugin padrão da indústria para emulação analógica ultrarrealista. Simula com precisão física o processo fotoquímico completo: emulsão do filme (Kodak 5219, 5207, Fuji ETERNA), revelação química, halação na camada anti-halo, bloom nas altas luzes, grão analógico realista e compressão de filme print.`,
+            steps: [
+              'Selecione o perfil de filme de captura e o perfil de filme print desejado.',
+              'Ajuste a curva de densidade cromática para obter cores profundas e orgânicas no produto.',
+              'Configure os parâmetros de Halation e Bloom com máscaras baseadas em luminância.',
+              'Ajuste o tamanho e densidade do grão analógico de acordo com a resolução da timeline (4K vs 1080p).'
+            ],
+            tips: ['No Dehancer, reduza a intensidade do Grain para 15-25% em comerciais de produtos de luxo e beleza para manter textura sem perder nitidez.']
+          }
         ],
-        tips: ['Cores desaturadas com contraste profundo transmitem sofisticação; cores vibrantes e limpas transmitem energia.']
-      },
-      {
-        id: 'mod3-2',
-        title: 'Criação de Look Manual (DIY)',
-        isFree: false,
-        concept: `Criar looks manualmente com as ferramentas nativas do DaVinci Resolve (Custom Curves, Hue vs Hue/Sat, Color Warper e RGB Mixer) proporciona controle total e independência artística absoluta.`,
         steps: [
-          'Modele a curva de resposta tonal usando as curvas Custom com proteção de roll-off.',
-          'Isole matizes específicos no Hue vs Hue para direcionar tons adjacentes.',
-          'Utilize o Hue vs Sat para enriquecer as cores institucionais do produto.',
-          'Explore o RGB Mixer para manipular a luminância relativa de cada canal.'
+          'Escolha a abordagem do look (manual sem plugins, Film Look Creator nativo ou Dehancer Pro).',
+          'Construa o contraste e a paleta respeitando a identidade da marca do produto.',
+          'Aplique textura cinematográfica e valide o resultado final em diferentes tipos de display.'
         ],
-        tips: ['Com o Color Warper é possível fazer variações tonais refinadas com poucos nós.']
-      },
-      {
-        id: 'mod3-3',
-        title: 'Look Creator e Ferramentas Especializadas',
-        isFree: false,
-        concept: `O uso de ferramentas avançadas e plugins de Look Development acelera a busca por atmosferas cinematográficas sofisticadas, permitindo testes rápidos de contrastes e paletas harmoniosas.`,
-        steps: [
-          'Aplique presets de base analítica para explorar direções visuais para o cliente.',
-          'Module o contraste perceptual através de curvas de compressão tonal.',
-          'Equilibre a saturação não-linear para manter cores agradáveis aos olhos.',
-          'Integre o plugin na árvore de nós de forma não destrutiva.'
-        ],
-        tips: ['Plugins dedicados são amplificadores de velocidade quando apoiados em uma boa correção primária.']
-      },
-      {
-        id: 'mod3-4',
-        title: 'Dehancer Pro e Emulação de Película',
-        isFree: false,
-        concept: `A textura analógica e a resposta de filme cinematográfico (Kodak 5219, 5207, Fuji ETERNA) trazem peso orgânico e qualidade de cinema aos comerciais digitais.`,
-        steps: [
-          'Configure o perfil de filme de acordo com o clima desejado.',
-          'Ajuste o Halation nas altas luzes para simular a dispersão da camada vermelha da película.',
-          'Adicione Bloom óptico suave para amaciar o aspecto excessivamente nítido do digital.',
-          'Calibre o grão do filme de acordo com o tamanho do sensor e a resolução de entrega.'
-        ],
-        tips: ['Menos é mais: o grão e a halação devem ser sentidos, e não chamar mais atenção que o produto.']
-      },
-      {
-        id: 'mod3-5',
-        title: 'Finalização e Padrões de Exportação',
-        isFree: false,
-        concept: `O processo de Deliver transforma todo o trabalho criativo em arquivos finais perfeitos para exibição em redes sociais, YouTube, televisão ou cinema, sem perda de cor ou contraste.`,
-        steps: [
-          'Configure os parâmetros de exportação no DaVinci Deliver (ProRes, DNxHR, H.264/H.265).',
-          'Ajuste as tags de Color Space e Gamma Tag (Rec.709-A para reprodução fiel no QuickTime/Apple).',
-          'Verifique a nitidez final (Sharpening sutil) otimizada para compressão do Instagram/YouTube.',
-          'Exporte versões de masterização e versões de exibição para arquivo permanente.'
-        ],
-        tips: ['Defina Gamma Tag como Rec.709-A para evitar o famoso "desbotamento" de cor no Mac e iPhone.']
+        tips: ['O look deve valorizar o produto, nunca sufocá-lo ou esconder seus detalhes.']
       }
     ],
     challenges: [
@@ -277,60 +261,61 @@ export const modulesData: CourseModule[] = [
     subtopics: [
       {
         id: 'mod4-1',
-        title: 'Pack de PowerGrades & LUTs Exclusivos',
+        title: 'Color Grading em Frutas',
         isFree: false,
-        concept: `Coleção de PowerGrades nodais prontos para uso em comerciais de produto, estruturados para DaVinci Wide Gamut e ACES, permitindo aplicar looks testados no mercado em instantes.`,
+        concept: `Alimentos e frutas exigem cores vívidas, apetitosas e frescas. Esta aula ensina como realçar o brilho das texturas, proteger e saturar tons orgânicos (vermelhos, laranjas, amarelos e verdes) e criar contraste de volume que desperta o apetite no espectador.`,
         steps: [
-          'Importe a pasta de PowerGrades para a Galeria do seu DaVinci Resolve.',
-          'Compreenda o propósito de cada nó da árvore antes de aplicar no seu plano.',
-          'Ajuste os nós de exposição e balanço para adaptar o preset ao seu material.',
-          'Salve variações personalizadas para compor sua biblioteca própria.'
+          'Isole as cores da fruta no Hue vs Sat e aumente a vivacidade sem estourar detalhes finos.',
+          'Use Power Windows ovais com tracking para realçar reflexos e gotas de água na casca da fruta.',
+          'Equalize as sombras com tons levemente quentes para passar sensação de frescor natural.',
+          'Ajuste o microcontraste (Midtone Detail) para intensificar a percepção de textura da fruta.'
         ],
-        tips: ['Use os PowerGrades como base de estudo para dissecar como grandes coloristas constroem seus nós.']
+        tips: ['O Vectorscope para frutas vermelhas (como morangos e maçãs) deve chegar perto da linha de segurança sem ultrapassar o limite de broadcast.']
       },
       {
         id: 'mod4-2',
-        title: 'Assets de Textura e Grão de Película 35mm',
+        title: 'Color Grading em Roupas',
         isFree: false,
-        concept: `Overlays de granulação 35mm escaneada em alta resolução, halation matte e artefatos analógicos de alta qualidade para adicionar acabamento orgânico a qualquer produção digital.`,
+        concept: `No mercado de moda, vestuário e e-commerce têxtil, a fidelidade de cor dos tecidos é uma exigência contratual rigorosa. Aprenda a preservar a cor exata das peças de roupa sob diferentes fontes de luz, tratar texturas de tecidos e garantir continuidade entre catálogo e vídeo.`,
         steps: [
-          'Importe os arquivos de textura em ProRes 4444 para o seu media pool.',
-          'Aplique o modo de mesclagem (Composite Mode) correto: Overlay, Soft Light ou Screen.',
-          'Ajuste a opacidade para integrar o grão sem ruído perceptível no produto.',
-          'Use máscaras para manter o produto com máxima nitidez e o grão nas áreas abertas.'
+          'Compare a cor do tecido gravado com a cartela Pantone ou referência física da marca.',
+          'Isole a peça de roupa usando o 3D Qualifier ou Magic Mask para correções localizadas.',
+          'Corrija o matiz com Hue vs Hue até bater rigorosamente com a amostra original do produto.',
+          'Trate vincos, sombras e textura do tecido com controle fino de contraste e saturação de luminância (Lum vs Sat).'
         ],
-        tips: ['Texturas de grão 35mm dão sensação de filme de alto orçamento mesmo em vídeos para redes sociais.']
+        tips: ['Em vídeos de roupas brancas ou pretas, garanta que sombras e altas luzes não fiquem contaminadas por reflexos de luz do estúdio.']
       },
       {
         id: 'mod4-3',
-        title: 'Guia de Atalhos e Workflow Rápido no DaVinci Resolve',
+        title: 'Fundamentos da Cor',
         isFree: false,
-        concept: `Guia definitivo de produtividade com atalhos de teclado, layouts customizados e rotinas de trabalho para diminuir o tempo de entrega e aumentar a lucratividade em comerciais.`,
+        concept: `O domínio da teoria cromática: Círculo Cromático de Munsell, harmonias de cor (complementar, análoga, triádica), contraste simultâneo, psicologia da percepção visual e como o cérebro humano interpreta calor, profundidade e emoção através das cores.`,
         steps: [
-          'Configure seu mapa de atalhos otimizado para mouse ou mesa digitalizadora.',
-          'Aprenda a navegar entre nós e versões de grading com comandos de uma tecla.',
-          'Utilize marcadores coloridos para organizar o status de aprovação de cada plano.',
-          'Automatize tarefas repetitivas de exportação em lote.'
+          'Estude as relações harmônicas no Círculo Cromático aplicadas à composição de comerciais.',
+          'Compreenda o fenômeno do contraste simultâneo (como cores adjacentes alteram a percepção uma da outra).',
+          'Aplique harmonias complementares (como Teal & Orange ou Ciano & Âmbar) com intencionalidade dramática.',
+          'Utilize cores quentes para avançar o produto no plano e cores frias para empurrar o fundo para trás, criando profundidade tridimensional.'
         ],
-        tips: ['Trabalhar sem tirar a mão do teclado dobra sua velocidade em timelines com dezenas de planos.']
+        tips: ['Cores quentes expandem e parecem mais próximas do observador; cores frias retraem e dão sensação de distância.']
       }
     ],
     challenges: [
       {
         id: 'challenge-mod4',
-        title: 'Otimização de Workflow com Assets',
-        description: 'Instale os PowerGrades na sua galeria e configure seus atalhos personalizados para iniciar seu próximo trabalho com velocidade.',
-        placeholder: 'Descreva como você organizou sua galeria de PowerGrades...',
+        title: 'Color Grading de Produto e Teoria Cromática',
+        description: 'Aplique os fundamentos de cor em um plano de fruta ou vestuário, garantindo fidelidade de matiz e volume visual.',
+        placeholder: 'Descreva as ferramentas e harmonias cromáticas utilizadas...',
         fields: [
-          { label: 'PowerGrade Favorito Selecionado', fieldId: 'mod4_pg', type: 'text' },
-          { label: 'Atalhos Customizados Principais', fieldId: 'mod4_shortcuts', type: 'text' }
+          { label: 'Tipo de Produto (Fruta ou Roupa)', fieldId: 'mod4_prod', type: 'text' },
+          { label: 'Harmonia Cromática Escolhida', fieldId: 'mod4_harmonia', type: 'text' },
+          { label: 'Estratégia de Fidelidade de Cor', fieldId: 'mod4_fidelidade', type: 'text' }
         ]
       }
     ],
     checklistItems: [
-      { id: 'mod4-chk-1', task: 'Instalar a biblioteca de PowerGrades na galeria', category: 'Assets' },
-      { id: 'mod4-chk-2', task: 'Testar os overlays de granulação analógica 35mm', category: 'Texturas' },
-      { id: 'mod4-chk-3', task: 'Mapear atalhos de navegação de nós no teclado', category: 'Produtividade' }
+      { id: 'mod4-chk-1', task: 'Realçar saturação e textura orgânica no produto', category: 'Alimentos & Moda' },
+      { id: 'mod4-chk-2', task: 'Verificar alinhamento de matiz de tecido com Pantone de referência', category: 'Precisão' },
+      { id: 'mod4-chk-3', task: 'Aplicar contraste quente/frio para criar profundidade 3D', category: 'Teoria da Cor' }
     ]
   }
 ];

@@ -327,10 +327,9 @@ export const ColorMasterLanding: React.FC = () => {
       subtitle: 'Configuração do projeto, ciência de cores e estruturação do fluxo de trabalho no DaVinci Resolve',
       lessons: [
         'Introdução ao DaVinci Resolve',
-        'Gerenciamento de cores',
-        'ACES',
-        'CST (Color Space Transform)',
-        'Fluxo de trabalho e Setup do Projeto'
+        'Gerenciamento de Cores (com abas dedicadas para CST e ACES)',
+        'Como fazer a análise artística do vídeo',
+        'Fluxo de Trabalho'
       ]
     },
     {
@@ -338,10 +337,9 @@ export const ColorMasterLanding: React.FC = () => {
       title: 'Correção de Cor',
       subtitle: 'Leitura técnica e artística, equilíbrio da imagem e continuidade entre planos',
       lessons: [
-        'Análise artística do vídeo',
-        'Correções primárias e balanço de branco',
-        'Shot Matching (Continuidade entre planos)',
-        'Correções secundárias e ajustes localizados'
+        'Primárias',
+        'Shot Matching',
+        'Secundárias'
       ]
     },
     {
@@ -349,20 +347,17 @@ export const ColorMasterLanding: React.FC = () => {
       title: 'Creative Grade',
       subtitle: 'Desenvolvimento de identidade visual, estética autoral e emulação de película',
       lessons: [
-        'Look Development e estética comercial',
-        'DIY (Criação de look manual nativa)',
-        'Look Creator e Dehancer Pro',
-        'Finalização e padrões de exportação'
+        'Criando um Look (com abas para Criando look sem plugins, Film Look Creator e Dehancer Pro)'
       ]
     },
     {
       num: '04',
       title: 'Bônus',
-      subtitle: 'Materiais complementares, presets profissionais e recursos exclusivos para acelerar seu fluxo',
+      subtitle: 'Aplicações práticas em nichos comerciais de alto valor e teoria cromática avançada',
       lessons: [
-        'Pack de PowerGrades & LUTs Exclusivos',
-        'Assets de Textura e Grão de Película 35mm',
-        'Guia de Atalhos e Workflow Rápido no DaVinci Resolve'
+        'Color Grading em Frutas',
+        'Color Grading em Roupas',
+        'Fundamentos da Cor'
       ]
     }
   ];

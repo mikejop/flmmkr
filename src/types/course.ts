@@ -1,5 +1,13 @@
 export type ModuleId = 'mod0' | 'mod1' | 'mod2' | 'mod3' | 'mod4' | 'mod5' | 'mod6' | 'mod7' | 'mod8';
 
+export interface LessonSubtab {
+  id: string;
+  label: string;
+  concept: string;
+  steps?: string[];
+  tips?: string[];
+}
+
 export interface Subtopic {
   id: string;
   title: string;
@@ -7,6 +15,7 @@ export interface Subtopic {
   steps: string[];
   tips?: string[];
   isFree?: boolean;
+  subtabs?: LessonSubtab[];
 }
 
 export interface Challenge {
