@@ -21,6 +21,7 @@ import { MemberPreloader } from '@/components/MemberPreloader';
 import { AccountSettingsModal } from '@/components/AccountSettingsModal';
 import { DeviceSessionKickedModal } from '@/components/DeviceSessionKickedModal';
 import VideoLessonPlayer from '@/components/VideoLessonPlayer';
+import LessonComments from '@/components/LessonComments';
 import IntroducaoDaVinciArticle from '@/components/IntroducaoDaVinciArticle';
 import GenericLessonArticle from '@/components/GenericLessonArticle';
 
@@ -1049,6 +1050,15 @@ export function MemberAreaApp() {
                       title={currentSubtab ? `${activeLesson.title} — ${currentSubtab.label}` : activeLesson.title}
                     />
                   </div>
+
+                  {/* Campo de Comentários da Aula */}
+                  <LessonComments
+                    lessonId={activeLessonId}
+                    moduleId={activeModuleId}
+                    userId={currentUserId || undefined}
+                    userProfile={userProfile}
+                    isAdmin={isMasterAdmin}
+                  />
 
                   {/* Editorial Text Layout under the video */}
                   <Suspense fallback={<ToolFallback />}>
