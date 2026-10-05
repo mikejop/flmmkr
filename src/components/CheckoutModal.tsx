@@ -1189,7 +1189,9 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                 ) : (
                   <>
                     <Lock className="w-4 h-4" />
-                    Pagar R$ {currentPrice.toFixed(2)} com Cartão
+                    {installments > 1
+                      ? `Pagar ${installments}x de R$ ${getAsaasInstallmentValue(currentPrice, installments)} com Cartão`
+                      : `Pagar R$ ${currentPrice.toFixed(2).replace('.', ',')} à vista com Cartão`}
                   </>
                 )}
               </button>

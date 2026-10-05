@@ -4,6 +4,7 @@ import { supabaseAdmin } from '@/utils/supabase/admin';
 import { getCurrentBatchPrice, resolveOfferTimerSession } from '@/utils/offerPricing';
 import { provisionSupabaseUserAndProfile } from '@/services/userService';
 import { validateAndSanitizeBody } from '@/utils/security';
+import { getAsaasInstallmentNumber } from '@/utils/asaasPricing';
 
 export const dynamic = 'force-dynamic';
 
@@ -106,15 +107,19 @@ export async function POST(req: NextRequest) {
     if (billingType === 'CREDIT_CARD') {
       try {
         const installmentCountNum = Number(installments) > 1 ? Number(installments) : undefined;
+        const installmentValueNum = installmentCountNum
+          ? getAsaasInstallmentNumber(productValue, installmentCountNum)
+          : undefined;
+
         const payment = await asaasService.createPayment({
           customer: customer.id,
           billingType: 'CREDIT_CARD',
           value: productValue,
-          totalValue: installmentCountNum ? productValue : undefined,
+          installmentCount: installmentCountNum,
+          installmentValue: installmentValueNum,
           dueDate: dueDateStr,
           description: productDescription,
           externalReference: `cm_${Date.now()}`,
-          installmentCount: installmentCountNum,
           creditCard,
           creditCardHolderInfo: creditCardHolderInfo || {
             name: payerName,

@@ -160,9 +160,10 @@ export const asaasService = {
 
     if (isInstallment) {
       payload.installmentCount = input.installmentCount;
-      payload.totalValue = input.totalValue ?? input.value;
       if (input.installmentValue) {
         payload.installmentValue = input.installmentValue;
+      } else {
+        payload.totalValue = input.totalValue ?? input.value;
       }
     } else {
       payload.value = input.value;
