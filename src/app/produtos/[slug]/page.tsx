@@ -43,7 +43,7 @@ export async function generateMetadata({ params }: ProductPageProps): Promise<Me
     : product.description;
 
   const ogImage = isColorMaster
-    ? `${baseUrl}/assets/produtos/color-master/offer/offer-1.webp`
+    ? `${baseUrl}/assets/produtos/color-grade-produto/opengraph.jpg`
     : (product.imageUrl ? `${baseUrl}${product.imageUrl}` : `${baseUrl}${SITE_CONFIG.seo.ogImage}`);
 
   return {
@@ -65,9 +65,11 @@ export async function generateMetadata({ params }: ProductPageProps): Promise<Me
       images: [
         {
           url: ogImage,
-          width: 1200,
+          width: isColorMaster ? 720 : 1200,
           height: 630,
-          alt: `${product.name} - Masterclass de Color Grading no DaVinci Resolve`,
+          alt: isColorMaster
+            ? 'Color Master® Produto | Masterclass de Color Grading no DaVinci Resolve'
+            : `${product.name} - Masterclass de Color Grading no DaVinci Resolve`,
         },
       ],
     },
@@ -144,7 +146,7 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
       '@type': 'Product',
       '@id': `${canonicalUrl}#product`,
       name: 'Color Master® | Produto',
-      image: `${baseUrl}/assets/produtos/color-master/offer/offer-1.webp`,
+      image: `${baseUrl}/assets/produtos/color-grade-produto/opengraph.jpg`,
       description:
         'Treinamento especializado em Color Grading para vídeos de produto e comerciais no DaVinci Resolve com Michael Oliveira.',
       brand: {
