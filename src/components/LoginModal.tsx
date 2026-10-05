@@ -80,13 +80,35 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, redirec
         }
       } else {
         // Autenticação com Supabase Auth
-        const { data, error } = await supabase.auth.signInWithPassword({
-          email: email.trim(),
-          password: password,
+        const normalizedEmail = email.trim().toLowerCase();
+        const rawPassword = password;
+        const trimmedPassword = password.trim();
+
+        // 1. Tentar autenticação direta
+        let { data, error } = await supabase.auth.signInWithPassword({
+          email: normalizedEmail,
+          password: rawPassword,
         });
 
+        // 2. Se falhar e houver espaços extras no início/fim da senha copiada, tentar com trim
+        if (error && rawPassword !== trimmedPassword) {
+          const retry = await supabase.auth.signInWithPassword({
+            email: normalizedEmail,
+            password: trimmedPassword,
+          });
+          if (!retry.error) {
+            data = retry.data;
+            error = null;
+          }
+        }
+
         if (error) {
-          if (error.message.includes('Invalid login credentials') || error.message.includes('invalid_grant')) {
+          console.warn('[Login Error]:', error);
+          if (
+            error.message.includes('Invalid login credentials') ||
+            error.message.includes('invalid_grant') ||
+            error.message.includes('invalid_credentials')
+          ) {
             setErrorMessage('E-mail ou senha incorretos. Verifique seus dados.');
           } else {
             setErrorMessage(error.message || 'Falha ao autenticar.');
