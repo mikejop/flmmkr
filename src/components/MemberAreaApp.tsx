@@ -439,10 +439,19 @@ export function MemberAreaApp() {
       {/* Brand Preloader exclusivo da Área de Membros */}
       <MemberPreloader />
       
-      {/* Background Sutil com aceleração por GPU */}
-      <div className="hidden md:block absolute inset-0 z-0 overflow-hidden pointer-events-none transform-gpu">
-        <div className="absolute inset-0 bg-gradient-to-tr from-black via-[#0d0e12] to-[#14151b] opacity-90" />
-        <div className="absolute inset-0 bg-radial-gradient from-blue-900/10 via-transparent to-transparent" />
+      {/* Background Geral (Vídeo WebM do YouTuber Pro) */}
+      <div className="hidden md:block absolute inset-0 z-0 overflow-hidden pointer-events-none">
+        <video
+          src={getMediaUrl('bg/02.webm')}
+          poster={getMediaUrl('bg/02.webp')}
+          autoPlay
+          muted
+          loop
+          playsInline
+          className="absolute inset-0 w-full h-full object-cover"
+        />
+        {/* Subtle Dark Contrast Overlay */}
+        <div className="absolute inset-0 bg-black/40 backdrop-blur-[2px]" />
       </div>
 
       {/* FINDER WINDOW CONTAINER (Sem 'layout' prop pesada para 120fps fluidos) */}
