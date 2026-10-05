@@ -73,14 +73,16 @@ export async function POST(req: NextRequest) {
     // 5. Se for Cartão de Crédito
     if (billingType === 'CREDIT_CARD') {
       try {
+        const installmentCountNum = Number(installments) > 1 ? Number(installments) : undefined;
         const payment = await asaasService.createPayment({
           customer: customer.id,
           billingType: 'CREDIT_CARD',
           value: productValue,
+          totalValue: installmentCountNum ? productValue : undefined,
           dueDate: dueDateStr,
           description: productDescription,
           externalReference: `cm_${Date.now()}`,
-          installmentCount: Number(installments) > 1 ? Number(installments) : undefined,
+          installmentCount: installmentCountNum,
           creditCard,
           creditCardHolderInfo: creditCardHolderInfo || {
             name: payerName,

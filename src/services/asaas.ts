@@ -58,6 +58,7 @@ interface AsaasPaymentInput {
   customer: string; // Asaas customer ID
   billingType: 'PIX' | 'CREDIT_CARD' | 'BOLETO' | 'UNDEFINED';
   value: number;
+  totalValue?: number;
   dueDate: string; // YYYY-MM-DD
   description?: string;
   externalReference?: string;
@@ -147,20 +148,24 @@ export const asaasService = {
    * Cria uma nova cobrança (PIX, Cartão de Crédito ou Boleto)
    */
   async createPayment(input: AsaasPaymentInput): Promise<any> {
+    const isInstallment = !!(input.installmentCount && input.installmentCount > 1);
+
     const payload: any = {
       customer: input.customer,
       billingType: input.billingType,
-      value: input.value,
       dueDate: input.dueDate,
       description: input.description,
       externalReference: input.externalReference
     };
 
-    if (input.installmentCount && input.installmentCount > 1) {
+    if (isInstallment) {
       payload.installmentCount = input.installmentCount;
+      payload.totalValue = input.totalValue ?? input.value;
       if (input.installmentValue) {
         payload.installmentValue = input.installmentValue;
       }
+    } else {
+      payload.value = input.value;
     }
 
     if (input.billingType === 'CREDIT_CARD' && input.creditCard) {
