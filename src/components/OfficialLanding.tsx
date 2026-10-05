@@ -243,14 +243,8 @@ export const OfficialLanding: React.FC<OfficialLandingProps> = ({
             allow="autoplay; encrypted-media"
             tabIndex={-1}
           />
-          {/* Retícula Overlay (Black dots grid filter over Hero video) */}
-          <div
-            className="absolute inset-0 z-5 pointer-events-none"
-            style={{
-              backgroundImage: `radial-gradient(circle, rgba(0, 0, 0, 0.8) 1.2px, transparent 1.2px)`,
-              backgroundSize: '5px 5px'
-            }}
-          />
+          {/* Retícula Overlay (Black dots grid filter over Hero video - responsivo menor no mobile) */}
+          <div className="absolute inset-0 z-5 pointer-events-none reticula-pattern" />
           {/* Transparent Shield Overlay to prevent any YouTube player interaction or control popups */}
           <div className="absolute inset-0 w-full h-full z-10 pointer-events-auto bg-transparent select-none" aria-hidden="true" />
         </div>

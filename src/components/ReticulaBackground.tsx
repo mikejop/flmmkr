@@ -124,14 +124,8 @@ export const ReticulaBackground: React.FC<ReticulaBackgroundProps> = ({
         }}
       />
 
-      {/* Camada de Retícula de Pontos Pretos */}
-      <div
-        className="absolute inset-0 z-1 pointer-events-none"
-        style={{
-          backgroundImage: `radial-gradient(circle, rgba(0, 0, 0, 0.8) 1.2px, transparent 1.2px)`,
-          backgroundSize: '5px 5px',
-        }}
-      />
+      {/* Camada de Retícula de Pontos Pretos (Responsiva: menor no mobile, padrão no desktop) */}
+      <div className="absolute inset-0 z-1 pointer-events-none reticula-pattern" />
 
       {/* Camada de Animação de Fade: Branco -> Imagem */}
       <div

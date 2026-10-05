@@ -576,25 +576,13 @@ export const ColorMasterLanding: React.FC = () => {
             className="absolute top-1/2 left-1/2 w-[250%] h-[250%] min-w-full min-h-full -translate-x-1/2 -translate-y-1/2 object-cover pointer-events-none opacity-90"
             allow="autoplay; encrypted-media"
           />
-          <div
-            className="absolute inset-0 z-5 pointer-events-none"
-            style={{
-              backgroundImage: `radial-gradient(circle, rgba(0, 0, 0, 0.85) 1.2px, transparent 1.2px)`,
-              backgroundSize: '5px 5px'
-            }}
-          />
+          <div className="absolute inset-0 z-5 pointer-events-none reticula-pattern" />
           <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-black/60 pointer-events-none z-6" />
         </div>
 
-        {/* Mobile Retícula Overlay over Poster */}
+        {/* Mobile Retícula Overlay over Poster (Tamanho menor no mobile via .reticula-pattern) */}
         <div className="md:hidden absolute inset-0 z-1 pointer-events-none select-none">
-          <div
-            className="absolute inset-0"
-            style={{
-              backgroundImage: `radial-gradient(circle, rgba(0, 0, 0, 0.85) 1.2px, transparent 1.2px)`,
-              backgroundSize: '5px 5px'
-            }}
-          />
+          <div className="absolute inset-0 reticula-pattern" />
           <div className="absolute inset-0 bg-gradient-to-t from-black via-black/55 to-black/75" />
         </div>
 
@@ -992,13 +980,7 @@ export const ColorMasterLanding: React.FC = () => {
           ))}
 
           {/* Pure Retícula Overlay (Black dots grid filter only) */}
-          <div
-            className="absolute inset-0 z-1 pointer-events-none"
-            style={{
-              backgroundImage: `radial-gradient(circle, rgba(0, 0, 0, 0.8) 1.2px, transparent 1.2px)`,
-              backgroundSize: '5px 5px',
-            }}
-          />
+          <div className="absolute inset-0 z-1 pointer-events-none reticula-pattern" />
         </div>
 
         <div className="max-w-3xl mx-auto text-center relative z-10 w-full">
