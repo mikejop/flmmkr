@@ -17,6 +17,7 @@ import {
   UserPlus
 } from 'lucide-react';
 import { getAsaasInstallmentValue } from '@/utils/asaasPricing';
+import { PhoneInputWithDdi } from '@/components/PhoneInputWithDdi';
 
 interface CheckoutModalProps {
   isOpen: boolean;
@@ -660,13 +661,12 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                   <label className="block text-[12px] font-medium text-white/70 mb-1 ml-0.5 tracking-[-0.01em]">
                     WhatsApp / Telefone *
                   </label>
-                  <input
-                    type="tel"
+                  <PhoneInputWithDdi
                     required
                     value={phone}
-                    onChange={(e) => setPhone(formatPhone(e.target.value))}
+                    onChange={setPhone}
                     placeholder="(00) 00000-0000"
-                    className="w-full h-[44px] px-3.5 rounded-xl bg-white/[0.06] border border-white/12 text-white placeholder-white/25 text-[14px] focus:outline-none focus:border-[#0071e3] transition-all"
+                    className="h-[44px] bg-white/[0.06] border-white/12 text-white placeholder-white/25 text-[14px]"
                   />
                 </div>
 
@@ -950,12 +950,11 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                           <label className="block text-[12px] font-medium text-white/70 mb-1 ml-0.5">
                             WhatsApp / Telefone do Titular
                           </label>
-                          <input
-                            type="tel"
+                          <PhoneInputWithDdi
                             value={payerPhone}
-                            onChange={(e) => setPayerPhone(formatPhone(e.target.value))}
+                            onChange={setPayerPhone}
                             placeholder="(00) 00000-0000"
-                            className="w-full h-[44px] px-3.5 rounded-xl bg-white/[0.06] border border-white/12 text-white placeholder-white/25 text-[14px] focus:outline-none focus:border-[#0071e3] transition-all"
+                            className="h-[44px] bg-white/[0.06] border-white/12 text-white placeholder-white/25 text-[14px]"
                           />
                         </div>
 

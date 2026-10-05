@@ -1,8 +1,9 @@
 'use client';
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { X, Camera, Lock, User, Mail, Phone, Eye, EyeOff, CheckCircle2, AlertCircle, Loader2, ShieldCheck, ShieldAlert } from 'lucide-react';
 import { getMediaUrl } from '@/lib/storage';
+import { PhoneInputWithDdi } from '@/components/PhoneInputWithDdi';
 
 interface UserProfile {
   id?: string;
@@ -45,6 +46,18 @@ export const AccountSettingsModal: React.FC<AccountSettingsModalProps> = ({
   const [phone, setPhone] = useState(userProfile.phone || '');
   const [avatar, setAvatar] = useState(userProfile.avatar || PRESET_AVATARS[0]);
 
+  // Sincronizar dados do perfil do Supabase sempre que o modal for aberto ou os dados atualizados
+  useEffect(() => {
+    if (isOpen) {
+      setFirstName(userProfile.firstName || '');
+      setLastName(userProfile.lastName || '');
+      setEmail(userProfile.email || '');
+      setPhone(userProfile.phone || '');
+      setAvatar(userProfile.avatar || PRESET_AVATARS[0]);
+      setFeedback(null);
+    }
+  }, [isOpen, userProfile]);
+
   // Form Password State
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
@@ -56,6 +69,7 @@ export const AccountSettingsModal: React.FC<AccountSettingsModalProps> = ({
 
   // Status & Loaders
   const [savingProfile, setSavingProfile] = useState(false);
+  const [uploadingPhoto, setUploadingPhoto] = useState(false);
   const [savingPassword, setSavingPassword] = useState(false);
   const [feedback, setFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
 
@@ -63,8 +77,8 @@ export const AccountSettingsModal: React.FC<AccountSettingsModalProps> = ({
 
   if (!isOpen) return null;
 
-  // Handle Photo Upload
-  const handlePhotoSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+  // Handle Photo Upload directly to Supabase Storage
+  const handlePhotoSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
@@ -78,14 +92,39 @@ export const AccountSettingsModal: React.FC<AccountSettingsModalProps> = ({
       return;
     }
 
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      const dataUrl = event.target?.result as string;
-      if (dataUrl) {
-        setAvatar(dataUrl);
+    setUploadingPhoto(true);
+    setFeedback(null);
+
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      if (userId) {
+        formData.append('userId', userId);
       }
-    };
-    reader.readAsDataURL(file);
+
+      const res = await fetch('/api/user/upload-avatar', {
+        method: 'POST',
+        body: formData,
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || 'Erro no envio da foto para o Supabase.');
+      }
+
+      const newAvatarUrl = data.avatarUrl;
+      setAvatar(newAvatarUrl);
+      onProfileUpdated({ avatar: newAvatarUrl });
+      setFeedback({ type: 'success', message: 'Foto de perfil salva com sucesso no Supabase!' });
+    } catch (err: any) {
+      setFeedback({ type: 'error', message: err?.message || 'Falha ao salvar foto no banco de dados.' });
+    } finally {
+      setUploadingPhoto(false);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    }
   };
 
   // Save Profile Details
@@ -122,7 +161,7 @@ export const AccountSettingsModal: React.FC<AccountSettingsModalProps> = ({
         avatar,
       });
 
-      setFeedback({ type: 'success', message: 'Dados cadastrais salvos com sucesso!' });
+      setFeedback({ type: 'success', message: 'Dados cadastrais salvos com sucesso no Supabase!' });
     } catch (err: any) {
       setFeedback({ type: 'error', message: err?.message || 'Erro ao salvar alterações.' });
     } finally {
@@ -259,16 +298,22 @@ export const AccountSettingsModal: React.FC<AccountSettingsModalProps> = ({
                 <img 
                   src={avatar} 
                   alt="Avatar" 
-                  className="w-16 h-16 rounded-full object-cover border-2 border-white/20 shadow-md"
+                  className={`w-16 h-16 rounded-full object-cover border-2 border-white/20 shadow-md ${uploadingPhoto ? 'opacity-40' : ''}`}
                 />
-                <button
-                  type="button"
-                  onClick={() => fileInputRef.current?.click()}
-                  className="absolute inset-0 rounded-full bg-black/60 opacity-0 group-hover:opacity-100 flex items-center justify-center text-white transition-opacity cursor-pointer"
-                  title="Alterar foto"
-                >
-                  <Camera size={16} />
-                </button>
+                {uploadingPhoto ? (
+                  <div className="absolute inset-0 rounded-full bg-black/60 flex items-center justify-center text-white">
+                    <Loader2 size={20} className="animate-spin text-[#0071e3]" />
+                  </div>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => fileInputRef.current?.click()}
+                    className="absolute inset-0 rounded-full bg-black/60 opacity-0 group-hover:opacity-100 flex items-center justify-center text-white transition-opacity cursor-pointer"
+                    title="Alterar foto"
+                  >
+                    <Camera size={16} />
+                  </button>
+                )}
                 <input 
                   ref={fileInputRef}
                   type="file" 
@@ -279,8 +324,15 @@ export const AccountSettingsModal: React.FC<AccountSettingsModalProps> = ({
               </div>
 
               <div className="flex-1 space-y-1">
-                <p className="text-xs font-semibold text-white">Foto de Perfil</p>
-                <p className="text-[11px] text-neutral-400">Escolha uma imagem do seu dispositivo ou selecione um preset do estúdio.</p>
+                <div className="flex items-center gap-2">
+                  <p className="text-xs font-semibold text-white">Foto de Perfil</p>
+                  {uploadingPhoto && (
+                    <span className="text-[10px] text-[#00c7fc] flex items-center gap-1 font-mono">
+                      <Loader2 size={11} className="animate-spin" /> Salvando no Supabase...
+                    </span>
+                  )}
+                </div>
+                <p className="text-[11px] text-neutral-400">Escolha uma imagem do seu dispositivo para salvar no banco de dados ou selecione um preset do estúdio.</p>
                 
                 {/* Preset Avatars */}
                 <div className="flex items-center gap-2 pt-1">
@@ -342,18 +394,16 @@ export const AccountSettingsModal: React.FC<AccountSettingsModalProps> = ({
               />
             </div>
 
-            {/* Telefone / WhatsApp */}
+            {/* Telefone / WhatsApp com seletor de DDI e filtro */}
             <div className="space-y-1">
               <label className="text-xs text-neutral-400 font-medium flex items-center gap-1.5">
                 <Phone size={12} />
                 Número de Telefone / WhatsApp
               </label>
-              <input 
-                type="tel" 
-                value={phone} 
-                onChange={(e) => setPhone(e.target.value)}
-                placeholder="(00) 00000-0000"
-                className="w-full bg-[#1e1e22] border border-white/10 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-[#0071e3] transition-colors"
+              <PhoneInputWithDdi
+                value={phone}
+                onChange={setPhone}
+                placeholder="Seu número com DDD"
               />
             </div>
 

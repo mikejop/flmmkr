@@ -200,11 +200,13 @@ export function MemberAreaApp() {
 
           const fullName = prof?.full_name || user.user_metadata?.full_name || user.user_metadata?.name || 'Aluno';
           const nameParts = fullName.split(' ');
+          const loadedFirstName = prof?.first_name || user.user_metadata?.first_name || nameParts[0] || 'Aluno';
+          const loadedLastName = prof?.last_name || user.user_metadata?.last_name || nameParts.slice(1).join(' ') || '';
 
           setUserProfile({
-            firstName: nameParts[0] || 'Aluno',
-            lastName: nameParts.slice(1).join(' ') || '',
-            email: user.email || '',
+            firstName: loadedFirstName,
+            lastName: loadedLastName,
+            email: user.email || prof?.email || '',
             phone: prof?.phone || user.user_metadata?.phone || '',
             avatar: prof?.avatar_url || user.user_metadata?.avatar_url || getMediaUrl('banners/hero_01.webp'),
             isAdmin
@@ -557,37 +559,46 @@ export function MemberAreaApp() {
         />
         {/* Subtle Dark Contrast Overlay */}
         <div className="absolute inset-0 bg-black/40 backdrop-blur-[2px]" />
+        
+        {/* Ambient Color Nodes for Glassmorphism Refraction */}
+        <div className="absolute -top-32 -left-32 w-96 h-96 bg-[#0071e3]/18 rounded-full blur-[100px] pointer-events-none" />
+        <div className="absolute top-1/4 -right-24 w-80 h-80 bg-[#00c7fc]/12 rounded-full blur-[120px] pointer-events-none" />
+        <div className="absolute -bottom-32 -right-32 w-96 h-96 bg-[#5856d6]/15 rounded-full blur-[120px] pointer-events-none" />
       </div>
 
-      {/* FINDER WINDOW CONTAINER (Sem 'layout' prop pesada para 120fps fluidos) */}
+      {/* FINDER WINDOW CONTAINER (Glassmorphism Frame) */}
       <div 
         style={{
-          backdropFilter: 'blur(20px)',
-          WebkitBackdropFilter: 'blur(20px)'
+          backdropFilter: 'blur(30px) saturate(180%)',
+          WebkitBackdropFilter: 'blur(30px) saturate(180%)'
         }}
         className={`w-full h-full ${
           isMaximized 
             ? 'md:w-full md:h-full rounded-none border-none' 
-            : 'md:w-[94vw] md:h-[94vh] rounded-[24px] border border-white/15 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.85)]'
-        } bg-[#121214]/90 flex flex-col md:flex-row overflow-hidden relative z-10 transition-all duration-300 ease-out`} 
+            : 'md:w-[94vw] md:h-[94vh] rounded-[24px] border border-white/20 shadow-[0_30px_90px_rgba(0,0,0,0.85),inset_0_1px_0_rgba(255,255,255,0.15)]'
+        } bg-[#0c0c0f]/45 flex flex-col md:flex-row overflow-hidden relative z-10 transition-all duration-300 ease-out`} 
         id="finder-window"
       >
           
-          {/* SIDEBAR com animação de minimizar e maximizar com curva de velocidade quadrática */}
+          {/* SIDEBAR com Glassmorphism Apple */}
           <aside 
             style={{
               transition: 'width 320ms cubic-bezier(0.455, 0.03, 0.515, 0.955)',
+              backdropFilter: 'blur(28px) saturate(190%) contrast(105%)',
+              WebkitBackdropFilter: 'blur(28px) saturate(190%) contrast(105%)',
             }}
-            className={`${isSidebarExpanded ? 'w-64' : 'w-16'} bg-[#141416]/70 border-r border-white/10 flex flex-col shrink-0 select-none relative will-change-[width] overflow-hidden`} 
+            className={`${isSidebarExpanded ? 'w-64' : 'w-16'} ${isMobileMenuOpen ? 'flex' : 'hidden md:flex'} bg-[#121216]/55 border-r border-white/12 flex-col shrink-0 select-none relative will-change-[width] overflow-hidden shadow-[inset_0_1px_0_rgba(255,255,255,0.1),inset_-1px_0_0_rgba(255,255,255,0.06),0_8px_32px_rgba(0,0,0,0.3)]`} 
             id="window-sidebar"
           >
+            {/* Glass Sheen Gradient Overlay */}
+            <div className="absolute inset-0 bg-gradient-to-b from-white/[0.05] via-transparent to-transparent pointer-events-none" />
             
             {/* Sidebar Header: Traffic Lights & Collapse Button */}
             <div 
               style={{
                 transitionTimingFunction: 'cubic-bezier(0.455, 0.03, 0.515, 0.955)',
               }}
-              className={`h-14 border-b border-white/10 flex items-center ${isSidebarExpanded ? 'px-3 justify-between' : 'px-0 justify-center'} select-none shrink-0 relative z-10 gap-1 transition-all duration-300`}
+              className={`h-14 border-b border-white/10 bg-white/[0.02] backdrop-blur-xl flex items-center ${isSidebarExpanded ? 'px-3 justify-between' : 'px-0 justify-center'} select-none shrink-0 relative z-10 gap-1 transition-all duration-300`}
             >
               
               {/* Traffic Lights */}
@@ -662,8 +673,8 @@ export function MemberAreaApp() {
                           style={{ transitionTimingFunction: 'cubic-bezier(0.455, 0.03, 0.515, 0.955)' }}
                           className={`w-full flex items-center ${isSidebarExpanded ? 'justify-between px-3' : 'justify-center px-0'} py-2 rounded-[10px] text-xs transition-all duration-300 hover:scale-[1.02] text-left cursor-pointer ${
                             isCurrent 
-                              ? 'bg-white/15 text-white border border-white/20 shadow-sm font-semibold' 
-                              : 'text-neutral-300 hover:text-white hover:bg-white/5'
+                              ? 'bg-white/15 text-white border border-white/20 shadow-[0_2px_12px_rgba(0,0,0,0.25),inset_0_1px_0_rgba(255,255,255,0.2)] font-semibold backdrop-blur-md' 
+                              : 'text-neutral-300 hover:text-white hover:bg-white/[0.08] border border-transparent hover:border-white/10'
                           }`}
                           title={!isSidebarExpanded ? getModuleName(mod.title) : undefined}
                         >
@@ -773,11 +784,15 @@ export function MemberAreaApp() {
               </div>
             </div>
 
-            {/* Collapsed Sidebar Hover Flyout Panel */}
+            {/* Collapsed Sidebar Hover Flyout Panel com Glassmorphism */}
             {!isSidebarExpanded && activeFlyoutModule && (
               <div 
-                className="absolute left-[68px] z-50 w-56 bg-[#1c1c1e]/95 backdrop-blur-xl border border-white/10 rounded-2xl p-2 shadow-2xl space-y-1"
-                style={{ top: '70px' }}
+                style={{
+                  top: '70px',
+                  backdropFilter: 'blur(28px) saturate(190%)',
+                  WebkitBackdropFilter: 'blur(28px) saturate(190%)',
+                }}
+                className="absolute left-[68px] z-50 w-56 bg-[#16161a]/85 backdrop-blur-2xl border border-white/15 rounded-2xl p-2 shadow-[0_20px_50px_rgba(0,0,0,0.6),inset_0_1px_0_rgba(255,255,255,0.15)] space-y-1"
                 onMouseEnter={() => {
                   if (flyoutTimeoutRef.current) clearTimeout(flyoutTimeoutRef.current);
                 }}
@@ -800,7 +815,7 @@ export function MemberAreaApp() {
                       setActiveLessonId(sub.id);
                       setActiveFlyoutModule(null);
                     }}
-                    className="w-full text-left px-2 py-1 rounded text-[11px] text-neutral-300 hover:text-white hover:bg-white/10 flex justify-between items-center"
+                    className="w-full text-left px-2 py-1 rounded text-[11px] text-neutral-300 hover:text-white hover:bg-white/10 flex justify-between items-center transition-colors"
                   >
                     <span className="truncate">{sub.title}</span>
                     {progress.completedLessons.includes(sub.id) && <CheckCircle2 size={10} className="text-[#30d158]" />}
@@ -814,11 +829,19 @@ export function MemberAreaApp() {
           {/* MAIN SPACE (TOOLBAR + CONTENT) */}
           <main className="flex-1 flex flex-col overflow-hidden relative">
             
-            {/* Toolbar */}
-            <header className="h-14 bg-transparent border-b border-white/10 flex items-center px-6 justify-between select-none relative z-20 shrink-0">
+            {/* Toolbar com Efeito Glassmorphism Apple */}
+            <header 
+              style={{
+                backdropFilter: 'blur(28px) saturate(190%) contrast(105%)',
+                WebkitBackdropFilter: 'blur(28px) saturate(190%) contrast(105%)',
+              }}
+              className="h-14 bg-[#121216]/55 backdrop-blur-2xl border-b border-white/12 flex items-center px-6 justify-between select-none relative z-20 shrink-0 shadow-[0_4px_24px_rgba(0,0,0,0.25),inset_0_1px_0_rgba(255,255,255,0.12)]"
+            >
+              {/* Glass Sheen Gradient */}
+              <div className="absolute inset-0 bg-gradient-to-r from-white/[0.04] via-transparent to-white/[0.02] pointer-events-none" />
               
               {/* Left Toolbar Info */}
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-3 relative z-10">
                 <button 
                   onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
                   className="md:hidden text-white hover:text-neutral-300 p-1 rounded-md"
@@ -830,21 +853,21 @@ export function MemberAreaApp() {
                   <div className="flex gap-1">
                     <button 
                       onClick={handlePrevLesson}
-                      className="p-1.5 rounded-full bg-white/5 hover:bg-white/10 text-[#f5f5f7] cursor-pointer"
+                      className="p-1.5 rounded-full bg-white/[0.08] hover:bg-white/[0.15] text-[#f5f5f7] border border-white/10 backdrop-blur-md shadow-xs transition-all active:scale-95 cursor-pointer"
                       title="Aula Anterior"
                     >
                       <ChevronLeft size={14} />
                     </button>
                     <button 
                       onClick={handleNextLesson}
-                      className="p-1.5 rounded-full bg-white/5 hover:bg-white/10 text-[#f5f5f7] cursor-pointer"
+                      className="p-1.5 rounded-full bg-white/[0.08] hover:bg-white/[0.15] text-[#f5f5f7] border border-white/10 backdrop-blur-md shadow-xs transition-all active:scale-95 cursor-pointer"
                       title="Próxima Aula"
                     >
                       <ChevronRight size={14} />
                     </button>
                   </div>
 
-                  <div className="border-l border-white/10 pl-3 hidden sm:block">
+                  <div className="border-l border-white/15 pl-3 hidden sm:block">
                     <span className="block text-xs font-bold tracking-tight text-white leading-none">FLMMKR</span>
                   </div>
                 </div>
@@ -852,11 +875,11 @@ export function MemberAreaApp() {
 
               {/* Center Progress Meter */}
               {isLoggedIn && (
-                <div className="hidden lg:flex items-center gap-3 bg-neutral-900/40 px-3.5 py-1.5 rounded-full border border-white/5">
+                <div className="hidden lg:flex items-center gap-3 bg-white/[0.05] hover:bg-white/[0.08] px-3.5 py-1.5 rounded-full border border-white/10 backdrop-blur-md shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] relative z-10 transition-colors">
                   <span className="text-[10px] font-bold tracking-wider text-[#86868b] uppercase leading-none">Progresso</span>
                   <div className="w-32 h-1.5 rounded-full bg-white/10 overflow-hidden">
                     <div 
-                      className="h-full bg-gradient-to-r from-[#0071e3] to-[#00c7fc] transition-all duration-300"
+                      className="h-full bg-gradient-to-r from-[#0071e3] to-[#00c7fc] transition-all duration-300 shadow-[0_0_8px_rgba(0,199,252,0.5)]"
                       style={{ width: `${percentComplete}%` }}
                     />
                   </div>
@@ -865,12 +888,12 @@ export function MemberAreaApp() {
               )}
 
               {/* Right Search, Accessibility & Profile */}
-              <div className="flex items-center gap-2.5">
+              <div className="flex items-center gap-2.5 relative z-10">
                 
                 {/* Search Bar Trigger */}
                 <div 
                   onClick={() => setIsSearchOpen(true)}
-                  className="hidden md:flex items-center bg-[#1d1d1f] border border-white/5 rounded-full px-3 py-1.5 w-28 cursor-pointer hover:bg-[#2c2c2e]/80 transition-colors"
+                  className="hidden md:flex items-center bg-white/[0.06] hover:bg-white/[0.12] border border-white/10 rounded-full px-3 py-1.5 w-28 cursor-pointer backdrop-blur-md shadow-xs transition-all"
                 >
                   <Search size={11} className="text-[#86868b] mr-1.5" />
                   <span className="text-[11px] text-[#86868b] select-none">Buscar...</span>
@@ -879,7 +902,7 @@ export function MemberAreaApp() {
                 {/* Accessibility Button */}
                 <button
                   onClick={() => setIsAccessibilityOpen(true)}
-                  className="p-1.5 rounded-full bg-white/5 hover:bg-white/10 text-neutral-300 hover:text-white transition-colors"
+                  className="p-1.5 rounded-full bg-white/[0.08] hover:bg-white/[0.15] text-neutral-200 hover:text-white border border-white/10 backdrop-blur-md shadow-xs transition-all cursor-pointer"
                   title="Acessibilidade"
                 >
                   <Compass size={15} />
@@ -890,7 +913,7 @@ export function MemberAreaApp() {
                   <div className="relative">
                     <button
                       onClick={() => setIsProfileMenuOpen(!isProfileMenuOpen)}
-                      className="flex items-center gap-2 p-1 pl-2 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 cursor-pointer"
+                      className="flex items-center gap-2 p-1 pl-2.5 rounded-full bg-white/[0.08] hover:bg-white/[0.15] border border-white/15 backdrop-blur-md shadow-xs cursor-pointer transition-all"
                     >
                       <div className="text-right hidden sm:block">
                         <span className="text-xs font-bold text-white block leading-none">{userProfile.firstName}</span>
@@ -901,7 +924,7 @@ export function MemberAreaApp() {
                       <img 
                         src={userProfile.avatar} 
                         alt="Avatar" 
-                        className="w-7 h-7 rounded-full object-cover border border-[#0071e3]"
+                        className="w-7 h-7 rounded-full object-cover border border-[#0071e3] shadow-xs"
                       />
                     </button>
 
@@ -913,7 +936,11 @@ export function MemberAreaApp() {
                           animate={{ opacity: 1, scale: 1, y: 0 }}
                           exit={{ opacity: 0, scale: 0.95, y: -8 }}
                           transition={{ duration: 0.12 }}
-                          className="absolute right-0 top-11 w-52 z-50 overflow-hidden bg-[#1c1c1e] border border-white/10 rounded-2xl shadow-2xl p-2 space-y-1"
+                          style={{
+                            backdropFilter: 'blur(28px) saturate(190%)',
+                            WebkitBackdropFilter: 'blur(28px) saturate(190%)',
+                          }}
+                          className="absolute right-0 top-11 w-52 z-50 overflow-hidden bg-[#16161a]/90 backdrop-blur-2xl border border-white/15 rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.6),inset_0_1px_0_rgba(255,255,255,0.12)] p-2 space-y-1"
                         >
                           <div className="px-3 py-2 border-b border-white/10">
                             <p className="text-xs font-bold text-white truncate">{userProfile.firstName} {userProfile.lastName}</p>
@@ -924,14 +951,14 @@ export function MemberAreaApp() {
                               setIsProfileMenuOpen(false);
                               setIsAccountModalOpen(true);
                             }}
-                            className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-xs text-neutral-200 hover:text-white hover:bg-white/10 text-left font-medium"
+                            className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-xs text-neutral-200 hover:text-white hover:bg-white/10 text-left font-medium transition-colors"
                           >
                             <User size={14} />
                             <span>Minha Conta</span>
                           </button>
                           <button
                             onClick={handleLogout}
-                            className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-xs text-red-400 hover:text-red-300 hover:bg-red-500/10 text-left font-medium"
+                            className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-xs text-red-400 hover:text-red-300 hover:bg-red-500/10 text-left font-medium transition-colors"
                           >
                             <LogOut size={14} />
                             <span>Sair</span>
@@ -952,7 +979,7 @@ export function MemberAreaApp() {
               </div>
 
               {/* Scroll Progress line */}
-              <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-white/[0.05] pointer-events-none">
+              <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-white/[0.06] pointer-events-none">
                 <div 
                   className="h-full bg-gradient-to-r from-[#0071e3] via-[#00c7fc] to-[#30d158] transition-[width] duration-100 ease-out" 
                   style={{ width: `${scrollProgressPercent}%` }}

@@ -25,9 +25,15 @@ export async function POST(req: NextRequest) {
     // 2. Atualizar perfil na tabela public.profiles
     const updateData: Record<string, any> = {
       full_name: fullName,
-      phone: phone || null,
+      first_name: (firstName || '').trim() || fullName.split(' ')[0],
+      last_name: (lastName || '').trim() || fullName.split(' ').slice(1).join(' '),
+      phone: phone ? phone.trim() : null,
       updated_at: new Date().toISOString(),
     };
+
+    if (email) {
+      updateData.email = email.toLowerCase().trim();
+    }
 
     if (avatarUrl) {
       updateData.avatar_url = avatarUrl;
