@@ -21,7 +21,6 @@ import { MemberPreloader } from '@/components/MemberPreloader';
 import { AccountSettingsModal } from '@/components/AccountSettingsModal';
 import { DeviceSessionKickedModal } from '@/components/DeviceSessionKickedModal';
 import VideoLessonPlayer, { VideoLessonPlayerHandle } from '@/components/VideoLessonPlayer';
-import { FocusPromptModal } from '@/components/FocusPromptModal';
 import LessonComments from '@/components/LessonComments';
 import NotificationsDropdown from '@/components/NotificationsDropdown';
 import LessonCompletionTransition from '@/components/LessonCompletionTransition';
@@ -77,6 +76,7 @@ interface UserProfile {
   email: string;
   phone: string;
   avatar: string;
+  nickname?: string;
   isAdmin?: boolean;
 }
 
@@ -142,20 +142,10 @@ export function MemberAreaApp() {
       moduleId: string;
       moduleTitle: string;
     } | null;
-    disableAutoAdvance?: boolean;
-    backgroundReason?: 'background_mode' | 'window_unfocused' | null;
   } | null>(null);
 
-  // Sistema de Foco e Reprodução em Segundo Plano
-  const [allowBackgroundPlayback, setAllowBackgroundPlayback] = useState<boolean>(() => {
-    if (typeof window === 'undefined') return false;
-    try {
-      return localStorage.getItem('flmmkr_allow_bg_playback') === 'true';
-    } catch (_) {
-      return false;
-    }
-  });
-  const [isFocusPromptOpen, setIsFocusPromptOpen] = useState<boolean>(false);
+  // Comentário/resposta a abrir (vindo de uma notificação)
+  const [focusCommentId, setFocusCommentId] = useState<string | null>(null);
   const playerRef = useRef<VideoLessonPlayerHandle>(null);
 
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState<boolean>(false);
@@ -177,23 +167,6 @@ export function MemberAreaApp() {
     return 'Aluno';
   }, [userProfile.firstName, userProfile.lastName]);
 
-  const handleToggleBackgroundPlayback = (enabled: boolean) => {
-    setAllowBackgroundPlayback(enabled);
-    try {
-      localStorage.setItem('flmmkr_allow_bg_playback', String(enabled));
-    } catch (_) {}
-  };
-
-  const handleAllowBackgroundFromPrompt = () => {
-    handleToggleBackgroundPlayback(true);
-    setIsFocusPromptOpen(false);
-    playerRef.current?.play();
-  };
-
-  const handleKeepPausedFromPrompt = () => {
-    handleToggleBackgroundPlayback(false);
-    setIsFocusPromptOpen(false);
-  };
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [kickedModalOpen, setKickedModalOpen] = useState<boolean>(false);
   const [kickedDeviceName, setKickedDeviceName] = useState<string>('Outro Dispositivo');
@@ -291,8 +264,17 @@ export function MemberAreaApp() {
             email: user.email || prof?.email || '',
             phone: prof?.phone || user.user_metadata?.phone || '',
             avatar: prof?.avatar_url || user.user_metadata?.avatar_url || getMediaUrl('banners/hero_01.webp'),
+            nickname: prof?.nickname || '',
             isAdmin
           });
+
+          // Garante um @nickname para quem ainda não tem
+          if (!prof?.nickname) {
+            fetch(`/api/user/ensure-nickname?userId=${encodeURIComponent(user.id)}`)
+              .then(r => r.json())
+              .then(d => { if (d?.nickname) setUserProfile(prev => ({ ...prev, nickname: d.nickname })); })
+              .catch(() => {});
+          }
 
           // Registrar / sincronizar sessão para controle de dispositivo único
           let sessionToken = localStorage.getItem('flmmkr_session_token');
@@ -475,7 +457,7 @@ export function MemberAreaApp() {
     });
   };
 
-  const handleLessonFinished = (finishedLessonId?: string, options?: { wasInBackground?: boolean }) => {
+  const handleLessonFinished = (finishedLessonId?: string) => {
     const targetLessonId = finishedLessonId || activeLessonId;
     
     // 1. Adicionar à barra de progresso imediatamente
@@ -525,19 +507,13 @@ export function MemberAreaApp() {
       }
     }
 
-    // 3. Regra de Foco: se rodou em segundo plano ou o aluno não estiver na página, o avanço automático é bloqueado!
-    const isOutOfFocus = typeof document !== 'undefined' && (document.hidden || !document.hasFocus());
-    const shouldDisableAutoAdvance = !!(options?.wasInBackground || allowBackgroundPlayback || isOutOfFocus);
-
-    // 4. Abrir tela de transição com confetes dentro da tela de conteúdo
+    // 3. Abrir tela de transição com confetes dentro da tela de conteúdo
     if (lessonContainerRef.current) {
       lessonContainerRef.current.scrollTo({ top: 0, behavior: 'instant' });
     }
     setCompletionTransitionData({
       completedLessonTitle: activeLesson.title,
       nextLesson: nextLessonInfo,
-      disableAutoAdvance: shouldDisableAutoAdvance,
-      backgroundReason: shouldDisableAutoAdvance ? (allowBackgroundPlayback ? 'background_mode' : 'window_unfocused') : null,
     });
   };
 
@@ -1095,9 +1071,11 @@ export function MemberAreaApp() {
                 {/* Notifications Button & Dropdown */}
                 <NotificationsDropdown
                   userId={currentUserId}
-                  onNavigateToLesson={(modId, lesId) => {
+                  onNavigateToLesson={(modId, lesId, commentId) => {
                     if (modId) setActiveModuleId(modId as ModuleId);
                     if (lesId) setActiveLessonId(lesId);
+                    setCompletionTransitionData(null);
+                    setFocusCommentId(commentId || null);
                   }}
                 />
 
@@ -1194,8 +1172,6 @@ export function MemberAreaApp() {
                   onProceed={handleProceedToNextLesson}
                   onStay={() => setCompletionTransitionData(null)}
                   studentName={studentDisplayName}
-                  disableAutoAdvance={completionTransitionData.disableAutoAdvance}
-                  backgroundReason={completionTransitionData.backgroundReason}
                 />
               )}
 
@@ -1233,7 +1209,7 @@ export function MemberAreaApp() {
                               onClick={() => setActiveSubtabId(tab.id)}
                               className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
                                 isSelected
-                                  ? 'bg-[#0071e3] text-white shadow-xs'
+                                    ? 'bg-[#0071e3] text-white shadow-xs'
                                   : 'text-neutral-700 hover:text-neutral-900 hover:bg-white/60'
                               }`}
                             >
@@ -1255,10 +1231,7 @@ export function MemberAreaApp() {
                       videoUrl={currentSubtab?.videoUrl || activeLesson.videoUrl}
                       title={currentSubtab ? `${activeLesson.title} — ${currentSubtab.label}` : activeLesson.title}
                       studentName={studentDisplayName}
-                      allowBackgroundPlayback={allowBackgroundPlayback}
-                      onToggleBackgroundPlayback={handleToggleBackgroundPlayback}
-                      onFocusLostWhilePlaying={() => setIsFocusPromptOpen(true)}
-                      onLessonEnded={(info) => handleLessonFinished(activeLessonId, info)}
+                      onLessonEnded={() => handleLessonFinished(activeLessonId)}
                     />
                   </div>
 
@@ -1269,6 +1242,8 @@ export function MemberAreaApp() {
                     userId={currentUserId || undefined}
                     userProfile={userProfile}
                     isAdmin={isMasterAdmin}
+                    focusCommentId={focusCommentId}
+                    onFocusHandled={() => setFocusCommentId(null)}
                   />
 
                   {/* Editorial Text Layout under the video */}
@@ -1383,14 +1358,6 @@ export function MemberAreaApp() {
         }}
       />
 
-      {/* MODAL DE SISTEMA DE FOCO / SEGUNDO PLANO */}
-      <FocusPromptModal
-        isOpen={isFocusPromptOpen}
-        studentName={studentDisplayName}
-        lessonTitle={currentSubtab ? `${activeLesson.title} — ${currentSubtab.label}` : activeLesson.title}
-        onAllowBackground={handleAllowBackgroundFromPrompt}
-        onKeepPaused={handleKeepPausedFromPrompt}
-      />
 
       {/* ACCESSIBILITY WIDGET */}
       {isAccessibilityOpen && (

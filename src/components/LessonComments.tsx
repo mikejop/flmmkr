@@ -23,6 +23,7 @@ interface CommentItem {
   module_id?: string;
   user_id: string;
   user_name: string;
+  user_nickname?: string | null;
   user_avatar?: string;
   parent_id?: string | null;
   content: string;
@@ -50,9 +51,13 @@ interface LessonCommentsProps {
     lastName?: string;
     email?: string;
     avatar?: string;
+    nickname?: string;
     isAdmin?: boolean;
   };
   isAdmin?: boolean;
+  /** Comentário/resposta a ser aberto e destacado (vindo de uma notificação) */
+  focusCommentId?: string | null;
+  onFocusHandled?: () => void;
 }
 
 // Detector de URLs para bloquear compartilhamento de links externos
@@ -63,11 +68,17 @@ export default function LessonComments({
   moduleId,
   userId,
   userProfile,
-  isAdmin = false
+  isAdmin = false,
+  focusCommentId = null,
+  onFocusHandled
 }: LessonCommentsProps) {
   // Estado para controlar abertura / fechamento da barra de comentários
   const [isExpanded, setIsExpanded] = useState(false);
   const [showPublicList, setShowPublicList] = useState(true);
+
+  // Apenas UMA lista de respostas pode ficar aberta por vez
+  const [openRepliesId, setOpenRepliesId] = useState<string | null>(null);
+  const [highlightId, setHighlightId] = useState<string | null>(null);
 
   // Estados de dados
   const [comments, setComments] = useState<CommentItem[]>([]);
@@ -131,7 +142,31 @@ export default function LessonComments({
     loadComments();
     setNewCommentText('');
     setReplyingToId(null);
+    setOpenRepliesId(null);
   }, [loadComments]);
+
+  // Abrir/destacar comentário vindo de uma notificação
+  useEffect(() => {
+    if (!focusCommentId || comments.length === 0) return;
+
+    let rootId: string | null = null;
+    for (const c of comments) {
+      if (c.id === focusCommentId) { rootId = c.id; break; }
+      if ((c.replies || []).some((r) => r.id === focusCommentId)) { rootId = c.id; break; }
+    }
+    if (!rootId) return; // ainda não carregou / não existe mais
+
+    setIsExpanded(true);
+    setShowPublicList(true);
+    if (rootId !== focusCommentId) setOpenRepliesId(rootId); // era uma resposta: abre a thread
+    setHighlightId(focusCommentId);
+
+    setTimeout(() => {
+      document.getElementById(`comment-${focusCommentId}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }, 150);
+    setTimeout(() => setHighlightId(null), 4000);
+    onFocusHandled?.();
+  }, [focusCommentId, comments, onFocusHandled]);
 
   // Checagem de link
   const commentHasLink = URL_REGEX.test(newCommentText);
@@ -355,6 +390,24 @@ export default function LessonComments({
       console.error('Erro ao excluir:', err);
       alert('Não foi possível excluir o comentário.');
     }
+  };
+
+  // Nickname exibido/usado nas menções (sem espaços)
+  const nickOf = (c: CommentItem) =>
+    (c.user_nickname || c.user_name || 'aluno').toLowerCase().replace(/\s+/g, '');
+
+  // Iniciar resposta: sempre responde na thread do comentário raiz e já preenche @nickname
+  const startReply = (rootId: string, targetNick: string) => {
+    setReplyingToId(rootId);
+    setReplyText(`@${targetNick} `);
+    setOpenRepliesId(rootId);
+    setShowMentionMenu(false);
+    setTimeout(() => replyTextareaRef.current?.focus(), 80);
+  };
+
+  // Abre/fecha respostas; abrir uma fecha automaticamente a outra
+  const toggleReplies = (rootId: string) => {
+    setOpenRepliesId((prev) => (prev === rootId ? null : rootId));
   };
 
   const formatDate = (isoString: string) => {
@@ -640,19 +693,25 @@ export default function LessonComments({
               {/* ITERAÇÃO DOS COMENTÁRIOS */}
               <div className="space-y-4">
                 {comments.map((comment) => {
-                  const isAuthor = userId && comment.user_id === userId;
-                  const canDelete = isAuthor || isAdmin;
+                  const isAuthor = !!userId && comment.user_id === userId;
                   const hasLiked = userId && (comment.liked_by || []).includes(userId);
+                  const replies = comment.replies || [];
+                  const repliesOpen = openRepliesId === comment.id;
+                  const commentNick = nickOf(comment);
 
                   return (
                     <div
                       key={comment.id}
-                      className="p-5 rounded-2xl bg-[#1a1a1e] border border-white/10 shadow-md space-y-3"
+                      id={`comment-${comment.id}`}
+                      className={`p-5 rounded-2xl bg-[#1a1a1e] border shadow-md space-y-3 transition-all duration-500 ${
+                        highlightId === comment.id
+                          ? 'border-[#00c7fc] ring-2 ring-[#0071e3]/60'
+                          : 'border-white/10'
+                      }`}
                     >
                       {/* HEADER DO COMENTÁRIO */}
                       <div className="flex items-start justify-between">
                         <div className="flex items-center gap-3">
-                          {/* AVATAR */}
                           {comment.user_avatar ? (
                             <img
                               src={comment.user_avatar}
@@ -666,10 +725,11 @@ export default function LessonComments({
                           )}
 
                           <div>
-                            <div className="flex items-center gap-2">
+                            <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5">
                               <span className="text-xs sm:text-sm font-bold text-white">
                                 {comment.user_name}
                               </span>
+                              <span className="text-xs font-semibold text-[#00c7fc]">@{commentNick}</span>
                               {isAuthor && (
                                 <span className="text-[10px] px-2 py-0.5 rounded-full bg-[#0071e3]/20 text-[#00c7fc] border border-[#0071e3]/40 font-bold">
                                   Você
@@ -688,13 +748,13 @@ export default function LessonComments({
                           </div>
                         </div>
 
-                        {/* BOTÃO EXCLUIR */}
-                        {canDelete && (
+                        {/* EXCLUIR: somente o dono do comentário */}
+                        {isAuthor && (
                           <button
                             type="button"
                             onClick={() => handleDeleteComment(comment.id)}
                             className="text-neutral-400 hover:text-red-400 p-1.5 rounded-lg hover:bg-red-500/10 transition-colors cursor-pointer"
-                            title="Excluir este comentário"
+                            title="Excluir meu comentário"
                           >
                             <Trash2 className="w-4 h-4" />
                           </button>
@@ -706,8 +766,8 @@ export default function LessonComments({
                         {renderFormattedContent(comment.content)}
                       </p>
 
-                      {/* AÇÕES (CURTIR, RESPONDER) */}
-                      <div className="flex items-center gap-4 pl-12 pt-1 text-xs">
+                      {/* AÇÕES (CURTIR, RESPONDER, VER RESPOSTAS) */}
+                      <div className="flex flex-wrap items-center gap-3 pl-12 pt-1 text-xs">
                         <button
                           type="button"
                           onClick={() => handleToggleLike(comment.id)}
@@ -717,9 +777,7 @@ export default function LessonComments({
                               : 'text-neutral-400 hover:text-[#00c7fc] hover:bg-white/5 border border-transparent font-medium'
                           }`}
                         >
-                          <Heart
-                            className={`w-3.5 h-3.5 ${hasLiked ? 'fill-red-400 text-red-400' : ''}`}
-                          />
+                          <Heart className={`w-3.5 h-3.5 ${hasLiked ? 'fill-red-400 text-red-400' : ''}`} />
                           <span className="text-xs font-mono">{comment.likes_count || 0}</span>
                         </button>
 
@@ -729,9 +787,7 @@ export default function LessonComments({
                             if (replyingToId === comment.id) {
                               setReplyingToId(null);
                             } else {
-                              setReplyingToId(comment.id);
-                              const authorTag = comment.user_name.replace(/\s+/g, '');
-                              setReplyText(`@${authorTag} `);
+                              startReply(comment.id, commentNick);
                             }
                           }}
                           className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-neutral-400 hover:text-[#00c7fc] hover:bg-white/5 transition-colors font-medium cursor-pointer"
@@ -739,6 +795,27 @@ export default function LessonComments({
                           <CornerDownRight className="w-3.5 h-3.5" />
                           <span>Responder</span>
                         </button>
+
+                        {/* INDICADOR DE RESPOSTAS (minimizadas por padrão) */}
+                        {replies.length > 0 && (
+                          <button
+                            type="button"
+                            onClick={() => toggleReplies(comment.id)}
+                            aria-expanded={repliesOpen}
+                            className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg transition-colors font-semibold cursor-pointer border ${
+                              repliesOpen
+                                ? 'text-white bg-[#0071e3]/30 border-[#0071e3]/50'
+                                : 'text-[#00c7fc] bg-[#0071e3]/10 border-[#0071e3]/30 hover:bg-[#0071e3]/20'
+                            }`}
+                          >
+                            <MessageSquare className="w-3.5 h-3.5" />
+                            <span>
+                              {repliesOpen ? 'Ocultar' : 'Ver'} {replies.length}{' '}
+                              {replies.length === 1 ? 'resposta' : 'respostas'}
+                            </span>
+                            {repliesOpen ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+                          </button>
+                        )}
                       </div>
 
                       {/* FORMULÁRIO DE RESPOSTA INLINE */}
@@ -749,7 +826,7 @@ export default function LessonComments({
                               ref={replyTextareaRef}
                               value={replyText}
                               onChange={handleReplyChange}
-                              placeholder={`Responder para ${comment.user_name} (use @ para marcar)...`}
+                              placeholder={`Responder para @${commentNick} (use @ para marcar)...`}
                               rows={2}
                               className="w-full px-3.5 py-2 text-xs sm:text-sm bg-[#1a1a1e] border border-white/15 rounded-lg text-white placeholder:text-neutral-500 focus:outline-none focus:border-[#0071e3]"
                             />
@@ -812,19 +889,23 @@ export default function LessonComments({
                         </div>
                       )}
 
-                      {/* RESPOSTAS ANINHADAS (REPLIES) */}
-                      {comment.replies && comment.replies.length > 0 && (
-                        <div className="pl-12 pt-2 space-y-3 border-l-2 border-white/15 ml-4">
-                          {comment.replies.map((reply) => {
-                            const isReplyAuthor = userId && reply.user_id === userId;
-                            const canDeleteReply = isReplyAuthor || isAdmin;
-                            const replyHasLiked =
-                              userId && (reply.liked_by || []).includes(userId);
+                      {/* RESPOSTAS (somente uma lista aberta por vez) */}
+                      {repliesOpen && replies.length > 0 && (
+                        <div className="pl-12 pt-2 space-y-3 border-l-2 border-white/15 ml-4 animate-fadeIn">
+                          {replies.map((reply) => {
+                            const isReplyAuthor = !!userId && reply.user_id === userId;
+                            const replyHasLiked = userId && (reply.liked_by || []).includes(userId);
+                            const replyNick = nickOf(reply);
 
                             return (
                               <div
                                 key={reply.id}
-                                className="p-4 rounded-xl bg-[#141417] border border-white/10 space-y-2"
+                                id={`comment-${reply.id}`}
+                                className={`p-4 rounded-xl bg-[#141417] border space-y-2 transition-all duration-500 ${
+                                  highlightId === reply.id
+                                    ? 'border-[#00c7fc] ring-2 ring-[#0071e3]/60'
+                                    : 'border-white/10'
+                                }`}
                               >
                                 <div className="flex items-start justify-between">
                                   <div className="flex items-center gap-2.5">
@@ -840,10 +921,9 @@ export default function LessonComments({
                                       </div>
                                     )}
                                     <div>
-                                      <div className="flex items-center gap-1.5">
-                                        <span className="text-xs font-bold text-white">
-                                          {reply.user_name}
-                                        </span>
+                                      <div className="flex flex-wrap items-center gap-x-1.5">
+                                        <span className="text-xs font-bold text-white">{reply.user_name}</span>
+                                        <span className="text-[11px] font-semibold text-[#00c7fc]">@{replyNick}</span>
                                         {isReplyAuthor && (
                                           <span className="text-[9px] px-1.5 py-0.2 rounded-full bg-[#0071e3]/20 text-[#00c7fc] border border-[#0071e3]/40 font-bold">
                                             Você
@@ -856,12 +936,13 @@ export default function LessonComments({
                                     </div>
                                   </div>
 
-                                  {canDeleteReply && (
+                                  {/* EXCLUIR: somente o dono da resposta */}
+                                  {isReplyAuthor && (
                                     <button
                                       type="button"
                                       onClick={() => handleDeleteComment(reply.id)}
                                       className="text-neutral-400 hover:text-red-400 p-1 rounded transition-colors cursor-pointer"
-                                      title="Excluir resposta"
+                                      title="Excluir minha resposta"
                                     >
                                       <Trash2 className="w-3.5 h-3.5" />
                                     </button>
@@ -882,14 +963,17 @@ export default function LessonComments({
                                         : 'text-neutral-400 hover:text-[#00c7fc] hover:bg-white/5 font-medium'
                                     }`}
                                   >
-                                    <Heart
-                                      className={`w-3 h-3 ${
-                                        replyHasLiked ? 'fill-red-400 text-red-400' : ''
-                                      }`}
-                                    />
-                                    <span className="text-xs font-mono">
-                                      {reply.likes_count || 0}
-                                    </span>
+                                    <Heart className={`w-3 h-3 ${replyHasLiked ? 'fill-red-400 text-red-400' : ''}`} />
+                                    <span className="text-xs font-mono">{reply.likes_count || 0}</span>
+                                  </button>
+
+                                  <button
+                                    type="button"
+                                    onClick={() => startReply(comment.id, replyNick)}
+                                    className="flex items-center gap-1 px-2 py-0.5 rounded text-neutral-400 hover:text-[#00c7fc] hover:bg-white/5 transition-colors font-medium cursor-pointer"
+                                  >
+                                    <CornerDownRight className="w-3 h-3" />
+                                    <span>Responder</span>
                                   </button>
                                 </div>
                               </div>

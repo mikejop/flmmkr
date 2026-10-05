@@ -29,7 +29,7 @@ interface NotificationItem {
 
 interface NotificationsDropdownProps {
   userId: string | null;
-  onNavigateToLesson?: (moduleId?: string, lessonId?: string) => void;
+  onNavigateToLesson?: (moduleId?: string, lessonId?: string, commentId?: string) => void;
 }
 
 export default function NotificationsDropdown({
@@ -93,6 +93,30 @@ export default function NotificationsDropdown({
     } catch (_) {}
   };
 
+  // Limpar: remove TODAS as notificações da lista (e do banco)
+  const handleClearAll = async () => {
+    if (!userId) return;
+    setNotifications([]);
+    setUnreadCount(0);
+    try {
+      await fetch(`/api/notifications?userId=${encodeURIComponent(userId)}&all=1`, { method: 'DELETE' });
+    } catch (_) {}
+  };
+
+  // Remover uma única notificação (botão X)
+  const handleDeleteOne = async (e: React.MouseEvent, notif: NotificationItem) => {
+    e.stopPropagation();
+    if (!userId) return;
+    setNotifications(prev => prev.filter(n => n.id !== notif.id));
+    if (!notif.is_read) setUnreadCount(prev => Math.max(0, prev - 1));
+    try {
+      await fetch(
+        `/api/notifications?userId=${encodeURIComponent(userId)}&id=${encodeURIComponent(notif.id)}`,
+        { method: 'DELETE' }
+      );
+    } catch (_) {}
+  };
+
   // Clicar em uma notificação
   const handleNotificationClick = async (notif: NotificationItem) => {
     if (!notif.is_read && userId) {
@@ -108,7 +132,7 @@ export default function NotificationsDropdown({
     }
 
     if (notif.lesson_id && onNavigateToLesson) {
-      onNavigateToLesson(notif.module_id, notif.lesson_id);
+      onNavigateToLesson(notif.module_id, notif.lesson_id, notif.comment_id);
       setIsOpen(false);
     }
   };
@@ -152,9 +176,9 @@ export default function NotificationsDropdown({
 
       {/* DROPDOWN POPOVER */}
       {isOpen && (
-        <div className="absolute right-0 mt-3 w-80 sm:w-96 rounded-2xl bg-[#1c1c1e]/95 backdrop-blur-xl border border-white/15 shadow-2xl z-50 overflow-hidden animate-fadeIn">
+        <div className="absolute right-0 mt-3 w-80 sm:w-96 rounded-2xl bg-[#1c1c1e] border border-white/15 shadow-2xl shadow-black/60 z-[60] overflow-hidden animate-fadeIn">
           {/* HEADER */}
-          <div className="flex items-center justify-between px-4 py-3.5 border-b border-white/10 bg-white/[0.02]">
+          <div className="flex items-center justify-between px-4 py-3.5 border-b border-white/10 bg-[#232326]">
             <div className="flex items-center gap-2">
               <span className="text-xs font-bold text-white uppercase tracking-wider">
                 Notificações
@@ -166,15 +190,25 @@ export default function NotificationsDropdown({
               )}
             </div>
 
-            {unreadCount > 0 && (
-              <button
-                onClick={handleMarkAllAsRead}
-                className="text-[11px] font-semibold text-[#00c7fc] hover:text-white transition-colors cursor-pointer flex items-center gap-1"
-              >
-                <Check size={12} />
-                <span>Marcar todas como lidas</span>
-              </button>
-            )}
+            <div className="flex items-center gap-3">
+              {unreadCount > 0 && (
+                <button
+                  onClick={handleMarkAllAsRead}
+                  className="text-[11px] font-semibold text-[#00c7fc] hover:text-white transition-colors cursor-pointer flex items-center gap-1"
+                >
+                  <Check size={12} />
+                  <span>Marcar lidas</span>
+                </button>
+              )}
+              {notifications.length > 0 && (
+                <button
+                  onClick={handleClearAll}
+                  className="text-[11px] font-semibold text-neutral-300 hover:text-white px-2 py-1 rounded-md bg-white/10 hover:bg-white/20 transition-colors cursor-pointer"
+                >
+                  Limpar
+                </button>
+              )}
+            </div>
           </div>
 
           {/* LISTA DE NOTIFICAÇÕES */}
@@ -194,8 +228,8 @@ export default function NotificationsDropdown({
                   <div
                     key={notif.id}
                     onClick={() => handleNotificationClick(notif)}
-                    className={`p-3.5 transition-colors cursor-pointer flex items-start gap-3 hover:bg-white/[0.06] ${
-                      !notif.is_read ? 'bg-[#0071e3]/10' : ''
+                    className={`p-3.5 transition-colors cursor-pointer flex items-start gap-3 hover:bg-[#2a2a2e] ${
+                      !notif.is_read ? 'bg-[#1b2a3d]' : 'bg-[#1c1c1e]'
                     }`}
                   >
                     {/* ÍCONE DA NOTIFICAÇÃO */}
@@ -237,16 +271,27 @@ export default function NotificationsDropdown({
 
                       {notif.lesson_id && (
                         <span className="inline-flex items-center gap-1 text-[10px] text-[#00c7fc] font-semibold mt-1">
-                          <span>Acessar conteúdo</span>
+                          <span>{notif.comment_id ? 'Ver comentário' : 'Acessar conteúdo'}</span>
                           <ExternalLink size={10} />
                         </span>
                       )}
                     </div>
 
-                    {/* PONTO AZUL DE NÃO LIDO */}
-                    {!notif.is_read && (
-                      <div className="w-2 h-2 rounded-full bg-[#0071e3] shrink-0 mt-1.5 shadow-sm shadow-blue-500" />
-                    )}
+                    {/* PONTO AZUL DE NÃO LIDO + EXCLUIR (X) */}
+                    <div className="flex flex-col items-center gap-2 shrink-0">
+                      <button
+                        type="button"
+                        onClick={(e) => handleDeleteOne(e, notif)}
+                        className="p-1 rounded-md text-neutral-400 hover:text-white hover:bg-white/15 transition-colors cursor-pointer"
+                        title="Excluir notificação"
+                        aria-label="Excluir notificação"
+                      >
+                        <X size={13} />
+                      </button>
+                      {!notif.is_read && (
+                        <div className="w-2 h-2 rounded-full bg-[#0071e3] shadow-sm shadow-blue-500" />
+                      )}
+                    </div>
                   </div>
                 );
               })

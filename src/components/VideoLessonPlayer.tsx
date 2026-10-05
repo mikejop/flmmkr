@@ -14,8 +14,7 @@ import {
   Settings,
   Sparkles,
   Loader2,
-  PictureInPicture2,
-  Headphones
+  PictureInPicture2
 } from 'lucide-react';
 
 export interface VideoLessonPlayerHandle {
@@ -24,15 +23,19 @@ export interface VideoLessonPlayerHandle {
   isPlaying: () => boolean;
 }
 
+interface VideoQualityLevel {
+  id: number;
+  label: string;
+  height: number;
+  bitrate?: number;
+}
+
 interface VideoLessonPlayerProps {
   videoUrl?: string;
   title: string;
   poster?: string;
   studentName?: string;
-  allowBackgroundPlayback?: boolean;
-  onToggleBackgroundPlayback?: (enabled: boolean) => void;
-  onFocusLostWhilePlaying?: () => void;
-  onLessonEnded?: (info: { wasInBackground: boolean }) => void;
+  onLessonEnded?: () => void;
 }
 
 export const VideoLessonPlayer = forwardRef<VideoLessonPlayerHandle, VideoLessonPlayerProps>(
@@ -42,9 +45,6 @@ export const VideoLessonPlayer = forwardRef<VideoLessonPlayerHandle, VideoLesson
       title,
       poster,
       studentName = 'Aluno',
-      allowBackgroundPlayback = false,
-      onToggleBackgroundPlayback,
-      onFocusLostWhilePlaying,
       onLessonEnded,
     },
     ref
@@ -53,7 +53,6 @@ export const VideoLessonPlayer = forwardRef<VideoLessonPlayerHandle, VideoLesson
     const videoRef = useRef<HTMLVideoElement>(null);
     const hlsRef = useRef<Hls | null>(null);
     const controlsTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-    const wasInBackgroundRef = useRef<boolean>(false);
 
     const [isPlaying, setIsPlaying] = useState(false);
     const [currentTime, setCurrentTime] = useState(0);
@@ -68,6 +67,12 @@ export const VideoLessonPlayer = forwardRef<VideoLessonPlayerHandle, VideoLesson
     const [showControls, setShowControls] = useState(true);
     const [hasStarted, setHasStarted] = useState(false);
     const [videoAspectRatio, setVideoAspectRatio] = useState<number | null>(null);
+
+    // Sistema de Resolução de Vídeo
+    const [qualityLevels, setQualityLevels] = useState<VideoQualityLevel[]>([]);
+    const [selectedQuality, setSelectedQuality] = useState<number>(-1); // -1 = Auto
+    const [currentQualityLabel, setCurrentQualityLabel] = useState<string>('Auto');
+    const [showQualityMenu, setShowQualityMenu] = useState(false);
 
     // Expor controle imperativo (play / pause / status)
     useImperativeHandle(ref, () => ({
@@ -89,51 +94,6 @@ export const VideoLessonPlayer = forwardRef<VideoLessonPlayerHandle, VideoLesson
       }
     }), []);
 
-    // Resetar flag de segundo plano ao trocar de vídeo
-    useEffect(() => {
-      wasInBackgroundRef.current = false;
-    }, [videoUrl]);
-
-    // SISTEMA DE FOCO: Pausa o vídeo se o aluno sair da página/programa (a menos que segundo plano esteja permitido)
-    useEffect(() => {
-      const handleFocusLoss = () => {
-        const video = videoRef.current;
-        if (!video) return;
-
-        const videoIsActive = !video.paused && !video.ended && video.currentTime > 0;
-        if (!videoIsActive) return;
-
-        if (!allowBackgroundPlayback) {
-          // Pausa imediatamente
-          video.pause();
-          setIsPlaying(false);
-          // Notifica para abrir modal com o nome do aluno
-          onFocusLostWhilePlaying?.();
-        } else {
-          // Permanece rodando em segundo plano e marca flag para bloquear avanço automático
-          wasInBackgroundRef.current = true;
-        }
-      };
-
-      const handleVisibilityChange = () => {
-        if (document.visibilityState === 'hidden') {
-          handleFocusLoss();
-        }
-      };
-
-      const handleWindowBlur = () => {
-        handleFocusLoss();
-      };
-
-      document.addEventListener('visibilitychange', handleVisibilityChange);
-      window.addEventListener('blur', handleWindowBlur);
-
-      return () => {
-        document.removeEventListener('visibilitychange', handleVisibilityChange);
-        window.removeEventListener('blur', handleWindowBlur);
-      };
-    }, [allowBackgroundPlayback, onFocusLostWhilePlaying]);
-
     // Initialize HLS / Native video source
     useEffect(() => {
       const video = videoRef.current;
@@ -141,6 +101,9 @@ export const VideoLessonPlayer = forwardRef<VideoLessonPlayerHandle, VideoLesson
 
       setVideoAspectRatio(null);
       setIsBuffering(true);
+      setQualityLevels([]);
+      setSelectedQuality(-1);
+      setCurrentQualityLabel('Auto');
 
       if (hlsRef.current) {
         hlsRef.current.destroy();
@@ -157,8 +120,44 @@ export const VideoLessonPlayer = forwardRef<VideoLessonPlayerHandle, VideoLesson
         hls.loadSource(videoUrl);
         hls.attachMedia(video);
 
-        hls.on(Hls.Events.MANIFEST_PARSED, () => {
+        hls.on(Hls.Events.MANIFEST_PARSED, (_event, data) => {
           setIsBuffering(false);
+
+          // Extrair apenas as resoluções reais que o vídeo possui
+          if (data && data.levels && data.levels.length > 0) {
+            // Mapeia e remove eventuais alturas duplicadas mantendo os melhores níveis
+            const uniqueLevels: VideoQualityLevel[] = [];
+            const seenHeights = new Set<number>();
+
+            // Iterar preservando o índice real no hls.levels
+            data.levels.forEach((lvl, idx) => {
+              const h = lvl.height;
+              if (h && !seenHeights.has(h)) {
+                seenHeights.add(h);
+                uniqueLevels.push({
+                  id: idx,
+                  label: `${h}p`,
+                  height: h,
+                  bitrate: lvl.bitrate
+                });
+              }
+            });
+
+            // Ordena do maior para o menor (ex: 1080p -> 720p -> 480p)
+            uniqueLevels.sort((a, b) => b.height - a.height);
+            setQualityLevels(uniqueLevels);
+          }
+        });
+
+        hls.on(Hls.Events.LEVEL_SWITCHED, (_event, data) => {
+          if (hls.levels && hls.levels[data.level]) {
+            const lvl = hls.levels[data.level];
+            if (hls.autoLevelEnabled) {
+              setCurrentQualityLabel(`Auto (${lvl.height}p)`);
+            } else {
+              setCurrentQualityLabel(`${lvl.height}p`);
+            }
+          }
         });
 
         hls.on(Hls.Events.BUFFER_APPENDING, () => {
@@ -192,6 +191,13 @@ export const VideoLessonPlayer = forwardRef<VideoLessonPlayerHandle, VideoLesson
           setDuration(video.duration || 0);
           if (video.videoWidth && video.videoHeight && video.videoHeight > 0) {
             setVideoAspectRatio(video.videoWidth / video.videoHeight);
+            // Para MP4 nativo direto ou Safari HLS nativo sem hls.js, registra a resolução detectada
+            setQualityLevels([{
+              id: 0,
+              label: `${video.videoHeight}p`,
+              height: video.videoHeight
+            }]);
+            setCurrentQualityLabel(`${video.videoHeight}p`);
           }
         });
       }
@@ -203,6 +209,25 @@ export const VideoLessonPlayer = forwardRef<VideoLessonPlayerHandle, VideoLesson
         }
       };
     }, [videoUrl]);
+
+    // Troca de resolução de vídeo
+    const handleQualitySelect = (qualityId: number) => {
+      setSelectedQuality(qualityId);
+      setShowQualityMenu(false);
+
+      if (hlsRef.current) {
+        if (qualityId === -1) {
+          hlsRef.current.currentLevel = -1; // Auto ABR
+          setCurrentQualityLabel('Auto');
+        } else {
+          hlsRef.current.currentLevel = qualityId;
+          const chosen = qualityLevels.find(q => q.id === qualityId);
+          if (chosen) {
+            setCurrentQualityLabel(chosen.label);
+          }
+        }
+      }
+    };
 
     // Video Event Handlers
     const handleTimeUpdate = () => {
@@ -232,11 +257,9 @@ export const VideoLessonPlayer = forwardRef<VideoLessonPlayerHandle, VideoLesson
     };
     const handlePause = () => setIsPlaying(false);
 
-    // Final da Aula: Se estiver em segundo plano ou fora da aba, informa para não avançar automaticamente
+    // Final da Aula: Dispara callback para o fluxo da plataforma
     const handleEnded = () => {
-      const isOutOfFocus = typeof document !== 'undefined' && (document.hidden || !document.hasFocus());
-      const wasInBackground = allowBackgroundPlayback || wasInBackgroundRef.current || isOutOfFocus;
-      onLessonEnded?.({ wasInBackground });
+      onLessonEnded?.();
     };
 
     // Toggle Play / Pause
@@ -555,35 +578,97 @@ export const VideoLessonPlayer = forwardRef<VideoLessonPlayerHandle, VideoLesson
               </div>
             </div>
 
-            {/* Right Controls: Background Mode Toggle, Speed, PiP, Fullscreen */}
+            {/* Right Controls: Resolution, Speed, PiP, Fullscreen */}
             <div className="flex items-center gap-1.5 sm:gap-2">
-              {/* Background Playback Mode / Focus Indicator */}
-              {onToggleBackgroundPlayback && (
-                <button
-                  type="button"
-                  onClick={() => onToggleBackgroundPlayback(!allowBackgroundPlayback)}
-                  className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer border ${
-                    allowBackgroundPlayback
-                      ? 'bg-[#0071e3]/20 border-[#0071e3]/50 text-[#00c7fc] shadow-sm'
-                      : 'bg-white/5 border-white/10 text-neutral-400 hover:text-white hover:bg-white/10'
-                  }`}
-                  title={
-                    allowBackgroundPlayback
-                      ? 'Segundo Plano Ativo: A aula continua tocando fora da tela (avanço automático desativado)'
-                      : 'Modo Foco Ativo: A aula pausa ao sair da tela'
-                  }
-                >
-                  <Headphones size={13} className={allowBackgroundPlayback ? 'text-[#00c7fc]' : 'text-neutral-400'} />
-                  <span className="text-[10px] hidden md:inline">
-                    {allowBackgroundPlayback ? 'Segundo Plano ON' : 'Modo Foco'}
-                  </span>
-                </button>
+              {/* Seletor de Resolução do Vídeo (exibe apenas as resoluções reais que o vídeo possui) */}
+              {qualityLevels.length > 0 && (
+                <div className="relative">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowQualityMenu(!showQualityMenu);
+                      setShowSpeedMenu(false);
+                    }}
+                    className={`flex items-center gap-1 px-2 py-1 rounded-md text-[11px] font-mono font-bold transition-all cursor-pointer border ${
+                      showQualityMenu
+                        ? 'bg-[#0071e3] text-white border-[#0071e3]'
+                        : 'bg-white/5 hover:bg-white/15 text-neutral-300 hover:text-white border-white/10'
+                    }`}
+                    title="Qualidade / Resolução do Vídeo"
+                  >
+                    <Settings size={13} className={showQualityMenu ? 'animate-spin' : ''} />
+                    <span>
+                      {selectedQuality === -1
+                        ? (currentQualityLabel.includes('Auto') ? 'Auto' : currentQualityLabel)
+                        : (qualityLevels.find(q => q.id === selectedQuality)?.label || currentQualityLabel)}
+                    </span>
+                  </button>
+
+                  {showQualityMenu && (
+                    <div className="absolute bottom-9 right-0 bg-[#1c1c1e] border border-white/15 rounded-xl shadow-2xl py-1.5 w-32 z-50">
+                      <div className="px-2.5 py-1 text-[9px] font-bold text-neutral-400 uppercase tracking-wider border-b border-white/5 mb-1 flex items-center justify-between">
+                        <span>Resolução</span>
+                        <span className="text-[8px] text-[#00c7fc]">HD</span>
+                      </div>
+
+                      {/* Opção Auto se houver mais de uma resolução HLS */}
+                      {qualityLevels.length > 1 && (
+                        <button
+                          type="button"
+                          onClick={() => handleQualitySelect(-1)}
+                          className={`w-full px-3 py-1.5 text-left text-xs font-mono transition-colors flex items-center justify-between cursor-pointer ${
+                            selectedQuality === -1
+                              ? 'bg-[#0071e3] text-white font-bold'
+                              : 'text-neutral-300 hover:text-white hover:bg-white/10'
+                          }`}
+                        >
+                          <div className="flex flex-col">
+                            <span>Automático</span>
+                            {selectedQuality === -1 && (
+                              <span className="text-[9px] text-blue-200 opacity-90">{currentQualityLabel}</span>
+                            )}
+                          </div>
+                          {selectedQuality === -1 && <span className="text-[10px]">●</span>}
+                        </button>
+                      )}
+
+                      {/* Resoluções reais que o vídeo possui */}
+                      {qualityLevels.map((lvl) => (
+                        <button
+                          key={lvl.id}
+                          type="button"
+                          onClick={() => handleQualitySelect(lvl.id)}
+                          className={`w-full px-3 py-1.5 text-left text-xs font-mono transition-colors flex items-center justify-between cursor-pointer ${
+                            selectedQuality === lvl.id
+                              ? 'bg-[#0071e3] text-white font-bold'
+                              : 'text-neutral-300 hover:text-white hover:bg-white/10'
+                          }`}
+                        >
+                          <div className="flex items-center gap-1.5">
+                            <span>{lvl.label}</span>
+                            {lvl.height >= 1080 && (
+                              <span className="text-[8px] px-1 py-0.2 rounded bg-white/20 font-bold uppercase">FHD</span>
+                            )}
+                            {lvl.height >= 720 && lvl.height < 1080 && (
+                              <span className="text-[8px] px-1 py-0.2 rounded bg-white/20 font-bold uppercase">HD</span>
+                            )}
+                          </div>
+                          {selectedQuality === lvl.id && <span className="text-[10px]">●</span>}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
               )}
 
               {/* Speed Selector */}
               <div className="relative">
                 <button
-                  onClick={() => setShowSpeedMenu(!showSpeedMenu)}
+                  type="button"
+                  onClick={() => {
+                    setShowSpeedMenu(!showSpeedMenu);
+                    setShowQualityMenu(false);
+                  }}
                   className="px-2 py-1 rounded-md text-[11px] font-mono font-bold bg-white/5 hover:bg-white/15 border border-white/10 transition-colors cursor-pointer"
                   title="Velocidade de Reprodução"
                 >

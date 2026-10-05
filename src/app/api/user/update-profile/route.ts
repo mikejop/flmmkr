@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/utils/supabase/admin';
 import { validateAndSanitizeBody } from '@/utils/security';
+import { NICKNAME_REGEX, normalizeNickname } from '@/lib/nickname';
 
 export const dynamic = 'force-dynamic';
 
@@ -14,7 +15,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: reason || 'Entrada inválida' }, { status: 400 });
     }
 
-    const { userId, firstName, lastName, phone, email, avatarUrl } = sanitized;
+    const { userId, firstName, lastName, phone, email, avatarUrl, nickname } = sanitized;
 
     if (!userId) {
       return NextResponse.json({ error: 'ID do usuário não fornecido.' }, { status: 400 });
@@ -37,6 +38,27 @@ export async function POST(req: NextRequest) {
 
     if (avatarUrl) {
       updateData.avatar_url = avatarUrl;
+    }
+
+    // Nickname (@usuario): sem espaços, único
+    if (typeof nickname === 'string' && nickname.trim()) {
+      const cleanNick = normalizeNickname(nickname);
+      if (!NICKNAME_REGEX.test(cleanNick)) {
+        return NextResponse.json(
+          { error: 'O nome de usuário deve ter de 3 a 20 caracteres, usando apenas letras, números e _ (sem espaços).' },
+          { status: 400 }
+        );
+      }
+      const { data: taken } = await supabaseAdmin
+        .from('profiles')
+        .select('id')
+        .eq('nickname', cleanNick)
+        .neq('id', userId)
+        .maybeSingle();
+      if (taken) {
+        return NextResponse.json({ error: `O nome de usuário @${cleanNick} já está em uso.` }, { status: 409 });
+      }
+      updateData.nickname = cleanNick;
     }
 
     const { error: profileError } = await supabaseAdmin

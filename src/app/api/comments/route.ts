@@ -50,12 +50,25 @@ export async function GET(req: NextRequest) {
       return false;
     });
 
+    // 3.1 Buscar nicknames dos autores
+    const authorIds = Array.from(new Set(visibleComments.map(c => c.user_id).filter(Boolean)));
+    const nickById = new Map<string, string>();
+    if (authorIds.length > 0) {
+      const { data: authors } = await supabaseAdmin
+        .from('profiles')
+        .select('id, nickname')
+        .in('id', authorIds);
+      (authors || []).forEach(a => {
+        if (a.nickname) nickById.set(a.id, a.nickname);
+      });
+    }
+
     // 4. Montar a árvore de tópicos (comentários raiz e respostas aninhadas)
     const commentMap = new Map<string, any>();
     const rootComments: any[] = [];
 
     visibleComments.forEach(c => {
-      commentMap.set(c.id, { ...c, replies: [] });
+      commentMap.set(c.id, { ...c, user_nickname: nickById.get(c.user_id) || null, replies: [] });
     });
 
     visibleComments.forEach(c => {
@@ -79,6 +92,7 @@ export async function GET(req: NextRequest) {
       totalPublicCount,
       totalPrivateCount,
       totalVisibleCount: visibleComments.length,
+      total: visibleComments.length,
       isAdmin,
     });
   } catch (err: any) {
@@ -146,73 +160,68 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: insertError.message }, { status: 500 });
     }
 
-    // 3. Processar menções com @ para notificar os alunos marcados
+    // 3. Notificações (menções por @nickname e resposta ao autor do comentário pai)
     try {
-      const mentionMatches = content.match(/@([a-zA-Z0-9_\u00C0-\u017F]+)/g);
-      if (mentionMatches && mentionMatches.length > 0) {
-        const cleanNames = Array.from(new Set(mentionMatches.map((m: string) => m.replace('@', '').toLowerCase())));
-        
-        const { data: allProfiles } = await supabaseAdmin
-          .from('profiles')
-          .select('id, full_name, first_name');
+      const preview = `${content.trim().slice(0, 120)}${content.trim().length > 120 ? '...' : ''}`;
+      const notifiedIds = new Set<string>([userId]); // nunca notificar a si mesmo / evitar duplicidade
 
-        if (allProfiles && allProfiles.length > 0) {
-          for (const p of allProfiles) {
-            if (p.id === userId) continue; // não notificar a si mesmo
-            const pFirst = (p.first_name || '').toLowerCase();
-            const pFull = (p.full_name || '').toLowerCase().replace(/\s+/g, '');
-            const isMatch = cleanNames.some(name => 
-              pFirst === name || 
-              pFull.startsWith(name) || 
-              pFull.includes(name) ||
-              name === pFirst
-            );
+      // 3.1 Menções: casamento EXATO com o nickname do aluno (somente em comentários públicos)
+      if (isPublic) {
+        const mentionMatches: string[] = content.match(/@([a-zA-Z0-9_]+)/g) || [];
+        const nicknames = Array.from(new Set(mentionMatches.map((m) => m.slice(1).toLowerCase())));
 
-            if (isMatch) {
-              await supabaseAdmin.from('user_notifications').insert({
-                user_id: p.id,
-                type: 'mention',
-                title: `${userName} mencionou você`,
-                message: `Mencionou você em um comentário: "${content.trim().slice(0, 120)}${content.length > 120 ? '...' : ''}"`,
-                lesson_id: lessonId,
-                module_id: moduleId || null,
-                comment_id: newComment.id,
-                sender_id: userId,
-                sender_name: userName,
-                sender_avatar: userAvatar,
-                is_read: false
-              });
-            }
+        if (nicknames.length > 0) {
+          const { data: mentioned } = await supabaseAdmin
+            .from('profiles')
+            .select('id, nickname')
+            .in('nickname', nicknames);
+
+          for (const p of mentioned || []) {
+            if (notifiedIds.has(p.id)) continue;
+            notifiedIds.add(p.id);
+            await supabaseAdmin.from('user_notifications').insert({
+              user_id: p.id,
+              type: 'mention',
+              title: `${userName} marcou você`,
+              message: `"${preview}"`,
+              lesson_id: lessonId,
+              module_id: moduleId || null,
+              comment_id: newComment.id,
+              sender_id: userId,
+              sender_name: userName,
+              sender_avatar: userAvatar,
+              is_read: false,
+            });
           }
         }
       }
 
-      // 4. Se for uma resposta em thread, notificar o autor do comentário pai
+      // 3.2 Resposta em thread: notificar o autor do comentário pai (se ainda não foi notificado)
       if (parentId) {
         const { data: parentComment } = await supabaseAdmin
           .from('lesson_comments')
-          .select('user_id, content')
+          .select('user_id')
           .eq('id', parentId)
           .maybeSingle();
 
-        if (parentComment && parentComment.user_id && parentComment.user_id !== userId) {
+        if (parentComment?.user_id && !notifiedIds.has(parentComment.user_id)) {
           await supabaseAdmin.from('user_notifications').insert({
             user_id: parentComment.user_id,
             type: 'reply',
             title: `${userName} respondeu ao seu comentário`,
-            message: `Respondeu: "${content.trim().slice(0, 120)}${content.length > 120 ? '...' : ''}"`,
+            message: `"${preview}"`,
             lesson_id: lessonId,
             module_id: moduleId || null,
             comment_id: newComment.id,
             sender_id: userId,
             sender_name: userName,
             sender_avatar: userAvatar,
-            is_read: false
+            is_read: false,
           });
         }
       }
     } catch (notifErr) {
-      console.warn('Erro ao disparar notificações de menção:', notifErr);
+      console.warn('Erro ao disparar notificações:', notifErr);
     }
 
     return NextResponse.json({
@@ -249,17 +258,9 @@ export async function DELETE(req: NextRequest) {
       return NextResponse.json({ error: 'Comentário não encontrado' }, { status: 404 });
     }
 
-    // 2. Verificar se o usuário é autor ou admin
-    const { data: prof } = await supabaseAdmin
-      .from('profiles')
-      .select('role')
-      .eq('id', userId)
-      .maybeSingle();
-
-    const isAdmin = prof?.role === 'admin';
-
-    if (comment.user_id !== userId && !isAdmin) {
-      return NextResponse.json({ error: 'Você não tem permissão para deletar este comentário.' }, { status: 403 });
+    // 2. Regra: apenas o dono do comentário pode excluí-lo
+    if (comment.user_id !== userId) {
+      return NextResponse.json({ error: 'Apenas o autor pode excluir este comentário.' }, { status: 403 });
     }
 
     // 3. Deletar comentário (respostas são apagadas em cascata pelo ON DELETE CASCADE)

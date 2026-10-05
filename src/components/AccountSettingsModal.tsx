@@ -12,6 +12,7 @@ interface UserProfile {
   email: string;
   phone: string;
   avatar: string;
+  nickname?: string;
   isAdmin?: boolean;
 }
 
@@ -44,6 +45,7 @@ export const AccountSettingsModal: React.FC<AccountSettingsModalProps> = ({
   const [lastName, setLastName] = useState(userProfile.lastName || '');
   const [email, setEmail] = useState(userProfile.email || '');
   const [phone, setPhone] = useState(userProfile.phone || '');
+  const [nickname, setNickname] = useState(userProfile.nickname || '');
   const [avatar, setAvatar] = useState(userProfile.avatar || PRESET_AVATARS[0]);
 
   // Sincronizar dados do perfil do Supabase sempre que o modal for aberto ou os dados atualizados
@@ -53,6 +55,7 @@ export const AccountSettingsModal: React.FC<AccountSettingsModalProps> = ({
       setLastName(userProfile.lastName || '');
       setEmail(userProfile.email || '');
       setPhone(userProfile.phone || '');
+      setNickname(userProfile.nickname || '');
       setAvatar(userProfile.avatar || PRESET_AVATARS[0]);
       setFeedback(null);
     }
@@ -143,6 +146,7 @@ export const AccountSettingsModal: React.FC<AccountSettingsModalProps> = ({
           lastName: lastName.trim(),
           email: email.trim(),
           phone: phone.trim(),
+          nickname: nickname.trim(),
           avatarUrl: avatar,
         }),
       });
@@ -158,6 +162,7 @@ export const AccountSettingsModal: React.FC<AccountSettingsModalProps> = ({
         lastName: lastName.trim(),
         email: email.trim(),
         phone: phone.trim(),
+        nickname: nickname.trim().replace(/^@+/, '').toLowerCase(),
         avatar,
       });
 
@@ -376,6 +381,25 @@ export const AccountSettingsModal: React.FC<AccountSettingsModalProps> = ({
                   required
                 />
               </div>
+            </div>
+
+            {/* Nome de usuário (@nickname) */}
+            <div className="space-y-1">
+              <label className="text-xs text-neutral-400 font-medium">Nome de usuário (usado nas marcações @)</label>
+              <div className="flex items-center bg-[#1e1e22] border border-white/10 rounded-xl focus-within:border-[#0071e3] transition-colors">
+                <span className="pl-3 text-xs font-bold text-[#00c7fc]">@</span>
+                <input
+                  type="text"
+                  value={nickname}
+                  onChange={(e) => setNickname(e.target.value.replace(/[^a-zA-Z0-9_]/g, '').toLowerCase().slice(0, 20))}
+                  placeholder="seunome"
+                  minLength={3}
+                  maxLength={20}
+                  autoComplete="off"
+                  className="w-full bg-transparent px-1.5 py-2 text-xs text-white focus:outline-none"
+                />
+              </div>
+              <p className="text-[10px] text-neutral-500">3 a 20 caracteres: letras, números e _ (sem espaços). Deve ser único.</p>
             </div>
 
             {/* E-mail */}
