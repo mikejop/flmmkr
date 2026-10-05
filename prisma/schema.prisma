@@ -19,6 +19,8 @@ model Profile {
   address         Json?
   asaasCustomerId String?  @map("asaas_customer_id")
   asaasPaymentId  String?  @map("asaas_payment_id")
+  role            String   @default("student")
+  hasAccess       Boolean  @default(true) @map("has_access")
   createdAt       DateTime @default(now()) @map("created_at") @db.Timestamptz
   updatedAt       DateTime @updatedAt @map("updated_at") @db.Timestamptz
 

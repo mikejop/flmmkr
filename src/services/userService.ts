@@ -40,9 +40,15 @@ export async function provisionSupabaseUserAndProfile({
       email: normalizedEmail,
       password: tempPassword,
       email_confirm: true,
+      app_metadata: {
+        role: 'student',
+        has_access: true
+      },
       user_metadata: {
         full_name: name,
-        phone
+        phone,
+        role: 'student',
+        has_access: true
       }
     });
 
@@ -55,6 +61,10 @@ export async function provisionSupabaseUserAndProfile({
 
   // 2. Inserir ou atualizar na tabela profiles
   if (user) {
+    // Preservar role de admin se já existir
+    const currentRole = user.app_metadata?.role || user.user_metadata?.role;
+    const assignedRole = currentRole === 'admin' ? 'admin' : 'student';
+
     const { error: profileErr } = await supabaseAdmin
       .from('profiles')
       .upsert({
@@ -68,6 +78,8 @@ export async function provisionSupabaseUserAndProfile({
         address: address || null,
         asaas_customer_id: asaasCustomerId || null,
         asaas_payment_id: asaasPaymentId || null,
+        role: assignedRole,
+        has_access: true,
         updated_at: new Date().toISOString()
       }, { onConflict: 'id' });
 
