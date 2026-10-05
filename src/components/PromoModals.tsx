@@ -2,6 +2,7 @@
 
 import React, { useEffect, useRef } from 'react';
 import { X, Clock, AlertTriangle, ShieldCheck } from 'lucide-react';
+import { formatAsaas12x } from '@/utils/asaasPricing';
 
 interface PromoModalsProps {
   warningOpen: boolean;
@@ -236,7 +237,7 @@ export const PromoModals: React.FC<PromoModalsProps> = ({
                   R$ {regularPrice} <span className="text-[16px] font-normal text-white/60">no Pix</span>
                 </div>
                 <div className="text-[14px] sm:text-[15px] font-semibold text-[#2997ff] mt-1">
-                  ou em 12x de R$ 16,25 no cartão
+                  ou em {formatAsaas12x(regularPrice)} no cartão
                 </div>
                 <span className="text-[12px] text-white/50 mt-2 block">
                   1 Ano de Acesso Completo • Footages Inclusos

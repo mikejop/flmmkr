@@ -12,6 +12,7 @@ import { CheckoutModal } from '@/components/CheckoutModal';
 import { InstagramIcon, YouTubeIcon, TikTokIcon } from '@/components/SocialIcons';
 import { BrandPreloader } from '@/components/BrandPreloader';
 import { getDeviceFingerprint } from '@/utils/deviceFingerprint';
+import { formatAsaas12x, getAsaas12xInstallmentValue } from '@/utils/asaasPricing';
 
 const OFFER_IMAGES = [
   { src: '/assets/produtos/color-master/offer/offer-1.webp', alt: 'Material do Masterclass - Visual 1' },
@@ -279,8 +280,7 @@ export const ColorMasterLanding: React.FC = () => {
   };
 
   const formatInstallment = (price: number) => {
-    const installment = (price / 12).toFixed(2).replace('.', ',');
-    return `12x de R$ ${installment}`;
+    return formatAsaas12x(price);
   };
 
   const toggleFaq = (index: number) => {
@@ -584,7 +584,7 @@ export const ColorMasterLanding: React.FC = () => {
                   <div className="flex items-baseline gap-1 sm:gap-1.5">
                     <span className="text-[12px] sm:text-sm text-white/70 font-medium">12x de</span>
                     <span className="text-[22px] sm:text-3xl font-extrabold text-white tracking-tight">
-                      R$ {(priceData.promoPrice / 12).toFixed(2).replace('.', ',')}
+                      R$ {getAsaas12xInstallmentValue(priceData.promoPrice)}
                     </span>
                   </div>
                   <span className="text-white/30 hidden sm:inline">•</span>
@@ -600,7 +600,7 @@ export const ColorMasterLanding: React.FC = () => {
                   <div className="flex items-baseline gap-1 sm:gap-1.5">
                     <span className="text-[12px] sm:text-sm text-white/70 font-medium">12x de</span>
                     <span className="text-[22px] sm:text-3xl font-extrabold text-white tracking-tight">
-                      R$ 16,25
+                      R$ {getAsaas12xInstallmentValue(195)}
                     </span>
                   </div>
                   <span className="text-white/30 hidden sm:inline">•</span>
@@ -1048,7 +1048,7 @@ export const ColorMasterLanding: React.FC = () => {
                     R$ 195 <span className="text-base sm:text-xl font-normal text-[#6e6e73]">no Pix</span>
                   </div>
                   <div className="text-[15px] sm:text-lg font-bold text-[#0071e3] mt-1.5 sm:mt-2">
-                    ou em 12x de R$ 16,25 no cartão
+                    ou em {formatInstallment(195)} no cartão
                   </div>
                 </>
               )}
