@@ -127,14 +127,18 @@ export default function ConteudoPage() {
     };
   }, []);
 
-  // Check Master Admin (michaeljop35@gmail.com) and full access permissions
+  // Permissões lidas exclusivamente do banco de dados (auth.users / profiles)
   const isMasterAdmin =
-    user?.email?.toLowerCase() === 'michaeljop35@gmail.com' ||
+    user?.app_metadata?.role === 'admin' ||
+    user?.app_metadata?.has_full_access === true ||
     user?.user_metadata?.role === 'admin' ||
-    user?.user_metadata?.has_full_access === true;
+    user?.user_metadata?.has_full_access === true ||
+    profile?.role === 'admin' ||
+    profile?.has_full_access === true;
 
   const isStudent =
     Boolean(profile?.has_access) ||
+    profile?.role === 'student' ||
     user?.user_metadata?.role === 'student' ||
     Boolean(user?.user_metadata?.has_access);
 
