@@ -988,65 +988,10 @@ export function MemberAreaApp() {
                     {activeLesson.title}
                   </h1>
 
-                  {/* Navigation Tabs: Teoria, Na Prática, Desafio, Checklist */}
-                  <div className="flex items-center gap-2 pt-2 border-t border-neutral-200/60">
-                    <button
-                      onClick={() => setActiveTab('teoria')}
-                      className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-                        activeTab === 'teoria' 
-                          ? 'bg-[#0071e3] text-white shadow-sm' 
-                          : 'bg-white text-neutral-600 hover:text-neutral-900 border border-neutral-200'
-                      }`}
-                    >
-                      Teoria
-                    </button>
-                    <button
-                      onClick={() => setActiveTab('pratica')}
-                      className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-                        activeTab === 'pratica' 
-                          ? 'bg-[#0071e3] text-white shadow-sm' 
-                          : 'bg-white text-neutral-600 hover:text-neutral-900 border border-neutral-200'
-                      }`}
-                    >
-                      Na Prática (Simulador)
-                    </button>
-                    <button
-                      onClick={() => setActiveTab('desafio')}
-                      className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-                        activeTab === 'desafio' 
-                          ? 'bg-[#0071e3] text-white shadow-sm' 
-                          : 'bg-white text-neutral-600 hover:text-neutral-900 border border-neutral-200'
-                      }`}
-                    >
-                      Exercício
-                    </button>
-                    <button
-                      onClick={() => setActiveTab('checklist')}
-                      className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-                        activeTab === 'checklist' 
-                          ? 'bg-[#0071e3] text-white shadow-sm' 
-                          : 'bg-white text-neutral-600 hover:text-neutral-900 border border-neutral-200'
-                      }`}
-                    >
-                      Checklist
-                    </button>
-                  </div>
-                </div>
-
-                {/* Tab Content Rendering */}
-                {activeTab === 'teoria' && (
-                  <div className="space-y-8">
-                    {/* Video Player on Top */}
-                    <div className="w-full">
-                      <VideoLessonPlayer
-                        videoUrl={currentSubtab?.videoUrl || activeLesson.videoUrl}
-                        title={currentSubtab ? `${activeLesson.title} — ${currentSubtab.label}` : activeLesson.title}
-                      />
-                    </div>
-
-                    {/* Internal Subtabs Selector (e.g. CST / ACES ou Métodos de Look) */}
-                    {activeLesson.subtabs && activeLesson.subtabs.length > 0 && (
-                      <div className="flex flex-wrap items-center gap-2 p-1.5 bg-neutral-100/90 rounded-2xl w-fit border border-neutral-200/80 shadow-xs">
+                  {/* Subtabs Selector (e.g. CST / ACES ou Métodos de Look) no TOPO do vídeo */}
+                  {activeLesson.subtabs && activeLesson.subtabs.length > 0 && (
+                    <div className="pt-2">
+                      <div className="flex flex-wrap items-center gap-2 p-1.5 bg-neutral-200/60 rounded-2xl w-fit border border-neutral-300/80 shadow-xs">
                         {activeLesson.subtabs.map(tab => {
                           const isSelected = (currentSubtab?.id || activeLesson.subtabs![0].id) === tab.id;
                           return (
@@ -1056,7 +1001,7 @@ export function MemberAreaApp() {
                               className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
                                 isSelected
                                   ? 'bg-[#0071e3] text-white shadow-xs'
-                                  : 'text-neutral-600 hover:text-neutral-900 hover:bg-white/60'
+                                  : 'text-neutral-700 hover:text-neutral-900 hover:bg-white/60'
                               }`}
                             >
                               {tab.label}
@@ -1064,141 +1009,43 @@ export function MemberAreaApp() {
                           );
                         })}
                       </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Lesson Body: Video on Top, Editorial Article Below */}
+                <div className="space-y-8">
+                  {/* Video Player on Top */}
+                  <div className="w-full">
+                    <VideoLessonPlayer
+                      videoUrl={currentSubtab?.videoUrl || activeLesson.videoUrl}
+                      title={currentSubtab ? `${activeLesson.title} — ${currentSubtab.label}` : activeLesson.title}
+                    />
+                  </div>
+
+                  {/* Editorial Text Layout under the video */}
+                  <Suspense fallback={<ToolFallback />}>
+                    {activeLessonId === 'mod1-1' ? (
+                      <IntroducaoDaVinciArticle />
+                    ) : (
+                      <GenericLessonArticle
+                        moduleTitle={activeModule.title}
+                        lesson={activeLesson}
+                        currentSubtab={currentSubtab}
+                      />
                     )}
+                  </Suspense>
 
-                    {/* Editorial Text Layout under the video */}
-                    <Suspense fallback={<ToolFallback />}>
-                      {activeLessonId === 'mod1-1' ? (
-                        <IntroducaoDaVinciArticle />
-                      ) : (
-                        <GenericLessonArticle
-                          moduleTitle={activeModule.title}
-                          lesson={activeLesson}
-                          currentSubtab={currentSubtab}
-                        />
-                      )}
-                    </Suspense>
-
-                    {/* Botão de Conclusão e Avanço no final da aula */}
-                    <div className="flex justify-center pt-8 pb-4">
-                      <button
-                        onClick={() => handleCompleteAndNext(activeLessonId)}
-                        className="bg-[#0071e3] hover:bg-[#147ce5] text-white rounded-full px-8 py-3.5 font-bold text-sm shadow-md hover:scale-105 active:scale-95 transition-all cursor-pointer select-none flex items-center gap-2"
-                      >
-                        <CheckCircle2 size={16} />
-                        <span>{progress.completedLessons.includes(activeLessonId) ? 'Próxima Aula' : 'Marcar como concluída'}</span>
-                      </button>
-                    </div>
+                  {/* Botão de Conclusão e Avanço no final da aula */}
+                  <div className="flex justify-center pt-8 pb-4">
+                    <button
+                      onClick={() => handleCompleteAndNext(activeLessonId)}
+                      className="bg-[#0071e3] hover:bg-[#147ce5] text-white rounded-full px-8 py-3.5 font-bold text-sm shadow-md hover:scale-105 active:scale-95 transition-all cursor-pointer select-none flex items-center gap-2"
+                    >
+                      <CheckCircle2 size={16} />
+                      <span>{progress.completedLessons.includes(activeLessonId) ? 'Próxima Aula' : 'Marcar como concluída'}</span>
+                    </button>
                   </div>
-                )}
-
-                {activeTab === 'pratica' && (
-                  <div className="space-y-4">
-                    <span className="text-[10px] font-bold tracking-widest text-neutral-400 uppercase block">
-                      FERRAMENTA INTERATIVA · {activeModule.title}
-                    </span>
-                    <div className="bg-white rounded-[20px] border border-neutral-200/80 p-5 shadow-xs overflow-hidden">
-                      <Suspense fallback={<ToolFallback />}>
-                        {renderInteractiveTool(activeModule.id)}
-                      </Suspense>
-                    </div>
-                  </div>
-                )}
-
-                {activeTab === 'desafio' && (
-                  <div className="space-y-5">
-                    {activeModule.challenges.map(ch => (
-                      <div key={ch.id} className="bg-white rounded-[20px] border border-neutral-200/80 p-6 shadow-xs space-y-5">
-                        <div className="space-y-1">
-                          <h3 className="text-lg font-bold text-[#1d1d1f]">{ch.title}</h3>
-                          <p className="text-xs text-neutral-500">{ch.description}</p>
-                        </div>
-
-                        <div className="space-y-3">
-                          {ch.fields.map(field => {
-                            const fieldKey = field.fieldId || field.key || 'field';
-                            const val = progress.challengeDrafts[ch.id]?.[fieldKey] || '';
-                            return (
-                              <div key={fieldKey} className="space-y-1">
-                                <label className="text-xs font-bold text-neutral-700 block">{field.label}</label>
-                                {field.type === 'textarea' ? (
-                                  <textarea
-                                    value={val}
-                                    onChange={(e) => handleChallengeFieldChange(ch.id, fieldKey, e.target.value)}
-                                    placeholder={ch.placeholder}
-                                    rows={3}
-                                    className="w-full bg-neutral-50 border border-neutral-200 rounded-xl p-2.5 text-xs text-neutral-800 focus:outline-none focus:border-[#0071e3]"
-                                  />
-                                ) : (
-                                  <input
-                                    type="text"
-                                    value={val}
-                                    onChange={(e) => handleChallengeFieldChange(ch.id, fieldKey, e.target.value)}
-                                    placeholder={ch.placeholder}
-                                    className="w-full bg-neutral-50 border border-neutral-200 rounded-xl p-2.5 text-xs text-neutral-800 focus:outline-none focus:border-[#0071e3]"
-                                  />
-                                )}
-                              </div>
-                            );
-                          })}
-                        </div>
-
-                        <div className="pt-2 flex justify-end">
-                          <button
-                            onClick={() => handleCopyChallenge(ch.id, ch.fields)}
-                            className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-neutral-100 hover:bg-neutral-200 text-xs font-bold text-neutral-700 transition-colors"
-                          >
-                            <Copy size={12} />
-                            <span>{copiedChallengeId === ch.id ? 'Copiado!' : 'Copiar Respostas'}</span>
-                          </button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-
-                {activeTab === 'checklist' && (
-                  <div className="space-y-4">
-                    <div className="bg-white rounded-[20px] border border-neutral-200/80 p-6 shadow-xs space-y-3">
-                      <h3 className="text-base font-bold text-[#1d1d1f]">Checklist Técnico</h3>
-                      <div className="space-y-2">
-                        {activeModule.checklistItems.map(item => {
-                          const isDone = Boolean(progress.checklistStates[item.id]);
-                          return (
-                            <button
-                              key={item.id}
-                              onClick={() => handleToggleChecklist(item.id)}
-                              className={`w-full flex items-center justify-between p-3 rounded-xl border text-left transition-colors ${
-                                isDone 
-                                  ? 'bg-emerald-50/50 border-emerald-200/80 text-emerald-900' 
-                                  : 'bg-neutral-50 border-neutral-200/80 text-neutral-700 hover:bg-neutral-100'
-                              }`}
-                            >
-                              <div className="flex items-center gap-2.5">
-                                <CheckCircle2 size={15} className={isDone ? 'text-emerald-500' : 'text-neutral-300'} />
-                                <span className={`text-xs font-medium ${isDone ? 'line-through text-neutral-400' : ''}`}>
-                                  {item.task}
-                                </span>
-                              </div>
-                              <span className="text-[9px] uppercase font-bold text-neutral-400 bg-neutral-200/50 px-2 py-0.5 rounded-md">
-                                {item.category}
-                              </span>
-                            </button>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {/* Central Complete Lesson Button */}
-                <div className="flex justify-center pt-6 pb-4">
-                  <button
-                    onClick={() => handleCompleteAndNext(activeLessonId)}
-                    className="bg-[#0071e3] hover:bg-[#147ce5] text-white rounded-full px-7 py-3 font-bold text-xs shadow-md hover:scale-105 active:scale-95 transition-transform cursor-pointer select-none"
-                  >
-                    Marcar como concluída & Próxima Aula
-                  </button>
                 </div>
 
               </div>
