@@ -238,7 +238,7 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
           name: 'O treinamento emite certificado de conclusão?',
           acceptedAnswer: {
             '@type': 'Answer',
-            text: 'Por se tratar de uma Masterclass de imersão prática de mercado (focada em tomada de decisão e workflow de comerciais), o foco primordial é a construção de repertório e portfólio real com footage comercial profissional.',
+            text: 'Por se tratar de uma Masterclass de imersão prática (focada em tomada de decisão e workflow de comerciais), o foco primordial é a construção de repertório e portfólio real com footage comercial profissional.',
           },
         },
       ],
