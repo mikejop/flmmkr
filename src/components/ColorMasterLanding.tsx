@@ -323,52 +323,46 @@ export const ColorMasterLanding: React.FC = () => {
   const learningModules = [
     {
       num: '01',
-      title: 'Preparação e gerenciamento de cores',
-      subtitle: 'Configuração do projeto, ciência de cores e estruturação do fluxo de trabalho',
+      title: 'Fundamentos',
+      subtitle: 'Configuração do projeto, ciência de cores e estruturação do fluxo de trabalho no DaVinci Resolve',
       lessons: [
         'Introdução ao DaVinci Resolve',
         'Gerenciamento de cores',
         'ACES',
         'CST (Color Space Transform)',
-        'Fluxo de trabalho'
+        'Fluxo de trabalho e Setup do Projeto'
       ]
     },
     {
       num: '02',
-      title: 'Análise e correção',
+      title: 'Correção de Cor',
       subtitle: 'Leitura técnica e artística, equilíbrio da imagem e continuidade entre planos',
       lessons: [
         'Análise artística do vídeo',
-        'Correções primárias',
-        'Shot Matching'
+        'Correções primárias e balanço de branco',
+        'Shot Matching (Continuidade entre planos)',
+        'Correções secundárias e ajustes localizados'
       ]
     },
     {
       num: '03',
-      title: 'Refinamento da imagem',
-      subtitle: 'Isolamento cirúrgico de elementos, pele, produto e controle de fundo',
+      title: 'Creative Grade',
+      subtitle: 'Desenvolvimento de identidade visual, estética autoral e emulação de película',
       lessons: [
-        'Correções secundárias',
-        'Seleções e ajustes localizados'
+        'Look Development e estética comercial',
+        'DIY (Criação de look manual nativa)',
+        'Look Creator e Dehancer Pro',
+        'Finalização e padrões de exportação'
       ]
     },
     {
       num: '04',
-      title: 'Criação de look',
-      subtitle: 'Desenvolvimento de identidade visual e estética autoral com ferramentas dedicadas',
+      title: 'Bônus',
+      subtitle: 'Materiais complementares, presets profissionais e recursos exclusivos para acelerar seu fluxo',
       lessons: [
-        'DIY (Criação de look manual nativa)',
-        'Look Creator',
-        'Dehancer Pro'
-      ]
-    },
-    {
-      num: '05',
-      title: 'Finalização',
-      subtitle: 'Padrões de entrega comercial, codecs e exportação para Redes Sociais, YouTube, TV e Cinema',
-      lessons: [
-        'Deliver (Configurações avançadas na aba Deliver)',
-        'Exportação e masterização para Redes Sociais, YouTube, TV e Cinema'
+        'Pack de PowerGrades & LUTs Exclusivos',
+        'Assets de Textura e Grão de Película 35mm',
+        'Guia de Atalhos e Workflow Rápido no DaVinci Resolve'
       ]
     }
   ];
@@ -683,18 +677,17 @@ export const ColorMasterLanding: React.FC = () => {
               Conteúdo do Masterclass
             </h2>
             <p className="text-[17px] leading-[1.47] sm:text-base md:text-lg text-white/70 mt-2.5 sm:mt-3 font-normal max-w-xl mx-auto">
-              Aulas organizadas rigorosamente pelas 5 etapas do processo de pós-produção e color grading de produto.
+              Aulas organizadas rigorosamente pelas etapas do processo de pós-produção e color grading de produto.
             </p>
           </div>
 
           {/* Pipeline Overview Chips */}
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2.5 sm:gap-3 mb-8 sm:mb-10">
+          <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-3 mb-8 sm:mb-10">
             {[
-              { step: '01. Preparação', desc: 'Gerenciamento & ACES' },
-              { step: '02. Análise & Correção', desc: 'Primárias & Matching' },
-              { step: '03. Refinamento', desc: 'Secundárias & Detalhes' },
-              { step: '04. Criação de Look', desc: 'DIY & Dehancer Pro' },
-              { step: '05. Finalização', desc: 'Deliver & Exportação' },
+              { step: '01. Fundamentos', desc: 'Gerenciamento & ACES' },
+              { step: '02. Correção de Cor', desc: 'Primárias & Matching' },
+              { step: '03. Creative Grade', desc: 'Looks & Emulação' },
+              { step: '04. Bônus', desc: 'PowerGrades & Assets' },
             ].map((chip, idx) => (
               <div key={idx} className="p-3 sm:p-4 rounded-xl sm:rounded-2xl bg-[#161617] border border-white/10 shadow-xs text-center">
                 <span className="text-[12px] sm:text-xs font-semibold text-[#2997ff] block">{chip.step}</span>

@@ -21,9 +21,7 @@ import { MemberPreloader } from '@/components/MemberPreloader';
 import { AccountSettingsModal } from '@/components/AccountSettingsModal';
 import { DeviceSessionKickedModal } from '@/components/DeviceSessionKickedModal';
 
-// Lazy load heavy interactive tools and articles for instant initial render and 0 lag
-const EquipamentosLessonArticle = lazy(() => import('@/components/EquipamentosLessonArticle'));
-const InteractiveIdeationTheory = lazy(() => import('@/components/InteractiveIdeationTheory'));
+// Lazy load heavy interactive tools for instant initial render and 0 lag
 const AceleracaoManager = lazy(() => import('@/components/AceleracaoManager'));
 const Iluminacao3Pontos = lazy(() => import('@/components/Iluminacao3Pontos'));
 const ExposureCalculator = lazy(() => import('@/components/ExposureCalculator'));
@@ -45,15 +43,10 @@ const getModuleIcon = (modId: ModuleId, isCurrent: boolean) => {
   const colorClass = isCurrent ? 'text-[#0071e3]' : 'text-[#86868b]';
   const size = 18;
   switch (modId) {
-    case 'mod0': return <Camera size={size} className={colorClass} />;
-    case 'mod1': return <Sun size={size} className={colorClass} />;
-    case 'mod2':
-    case 'mod3': return <SunMedium size={size} className={colorClass} />;
-    case 'mod4': return <Lamp size={size} className={colorClass} />;
-    case 'mod5': return <Palette size={size} className={colorClass} />;
-    case 'mod6': return <Contrast size={size} className={colorClass} />;
-    case 'mod7': return <Users size={size} className={colorClass} />;
-    case 'mod8': return <Wand2 size={size} className={colorClass} />;
+    case 'mod1': return <Compass size={size} className={colorClass} />;
+    case 'mod2': return <Palette size={size} className={colorClass} />;
+    case 'mod3': return <Wand2 size={size} className={colorClass} />;
+    case 'mod4': return <Star size={size} className={colorClass} />;
     default: return <Folder size={size} className={colorClass} />;
   }
 };
@@ -62,6 +55,9 @@ const getModuleName = (title: string | undefined): string => {
   if (!title) return '';
   return title
     .replace(/^MÓDULO\s+\d+:\s*/i, '')
+    .replace(/^MÓDULO\s+\d+\s*[-–—]\s*/i, '')
+    .replace(/^MÓDULO\s+\d+\s*/i, '')
+    .replace(/^MÓDULO\s+BÔNUS:\s*/i, '')
     .replace(/^INTRODUÇÃO:\s*/i, '')
     .trim();
 };
@@ -101,8 +97,8 @@ export function MemberAreaApp() {
   const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
   const [isAuthChecking, setIsAuthChecking] = useState<boolean>(true);
   const [progress, setProgress] = useState<UserProgress>(DEFAULT_PROGRESS);
-  const [activeModuleId, setActiveModuleId] = useState<ModuleId>('mod0');
-  const [activeLessonId, setActiveLessonId] = useState<string>('mod0-1');
+  const [activeModuleId, setActiveModuleId] = useState<ModuleId>('mod1');
+  const [activeLessonId, setActiveLessonId] = useState<string>('mod1-1');
   const [activeTab, setActiveTab] = useState<'teoria' | 'pratica' | 'desafio' | 'checklist'>('teoria');
   
   const [isSidebarExpanded, setIsSidebarExpanded] = useState<boolean>(true);
@@ -134,7 +130,7 @@ export function MemberAreaApp() {
   const [kickedAt, setKickedAt] = useState<string>('');
 
   const [expandedEmenta, setExpandedEmenta] = useState<Record<string, boolean>>({
-    mod0: true
+    mod1: true
   });
 
   // Current selected lesson and module (memoized for instant access)
@@ -960,7 +956,7 @@ export function MemberAreaApp() {
                 <div className="space-y-3 border-b border-neutral-200/80 pb-5">
                   <div className="flex flex-wrap items-center justify-between gap-3">
                     <span className="text-[11px] font-bold tracking-widest text-[#0071e3] uppercase">
-                      {activeModule.badge} · {activeModule.title}
+                      {activeModule.badge ? `${activeModule.badge} · ` : ''}{activeModule.title}
                     </span>
                     
                     {progress.completedLessons.includes(activeLessonId) && (
@@ -1023,12 +1019,7 @@ export function MemberAreaApp() {
                 {activeTab === 'teoria' && (
                   <div className="space-y-6">
                     <Suspense fallback={<ToolFallback />}>
-                      {activeLessonId === 'mod0-1' ? (
-                        <EquipamentosLessonArticle />
-                      ) : activeLessonId === 'mod1-1' ? (
-                        <InteractiveIdeationTheory />
-                      ) : (
-                        <div className="bg-white rounded-[20px] border border-neutral-200/80 p-6 md:p-8 shadow-xs space-y-5">
+                      <div className="bg-white rounded-[20px] border border-neutral-200/80 p-6 md:p-8 shadow-xs space-y-5">
                           <p className="text-neutral-800 text-[15px] leading-relaxed whitespace-pre-line font-normal">
                             {activeLesson.concept}
                           </p>
@@ -1058,7 +1049,6 @@ export function MemberAreaApp() {
                             </div>
                           )}
                         </div>
-                      )}
                     </Suspense>
                   </div>
                 )}
