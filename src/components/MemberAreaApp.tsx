@@ -208,7 +208,7 @@ export function MemberAreaApp() {
         setActiveModuleId(state.lastModuleId);
         setActiveLessonId(state.lastLessonId);
         if (state.lastTab) setActiveTab(state.lastTab);
-        setExpandedEmenta(prev => ({ ...prev, [state.lastModuleId]: true }));
+        setExpandedEmenta({ [state.lastModuleId]: true });
       }
     });
 
@@ -315,7 +315,7 @@ export function MemberAreaApp() {
         const nextMod = modulesData[nextModIndex];
         setActiveModuleId(nextMod.id);
         setActiveLessonId(nextMod.subtopics[0].id);
-        setExpandedEmenta(prev => ({ ...prev, [nextMod.id]: true }));
+        setExpandedEmenta({ [nextMod.id]: true });
         saveReadingState({
           lastModuleId: nextMod.id,
           lastLessonId: nextMod.subtopics[0].id,
@@ -344,7 +344,7 @@ export function MemberAreaApp() {
         const lastLesson = prevMod.subtopics[prevMod.subtopics.length - 1];
         setActiveModuleId(prevMod.id);
         setActiveLessonId(lastLesson.id);
-        setExpandedEmenta(prev => ({ ...prev, [prevMod.id]: true }));
+        setExpandedEmenta({ [prevMod.id]: true });
         saveReadingState({
           lastModuleId: prevMod.id,
           lastLessonId: lastLesson.id,
@@ -407,7 +407,7 @@ export function MemberAreaApp() {
   const handleSelectSearchResult = (modId: ModuleId, lessonId: string) => {
     setActiveModuleId(modId);
     setActiveLessonId(lessonId);
-    setExpandedEmenta(prev => ({ ...prev, [modId]: true }));
+    setExpandedEmenta({ [modId]: true });
     setIsSearchOpen(false);
     setSearchQuery('');
   };
@@ -468,11 +468,22 @@ export function MemberAreaApp() {
         id="finder-window"
       >
           
-          {/* SIDEBAR */}
-          <aside className={`${isSidebarExpanded ? 'w-60' : 'w-16'} bg-[#141416]/70 border-r border-white/10 flex flex-col shrink-0 select-none transition-all duration-200 relative will-change-[width]`} id="window-sidebar">
+          {/* SIDEBAR com animação de minimizar e maximizar com curva de velocidade quadrática */}
+          <aside 
+            style={{
+              transition: 'width 320ms cubic-bezier(0.455, 0.03, 0.515, 0.955)',
+            }}
+            className={`${isSidebarExpanded ? 'w-64' : 'w-16'} bg-[#141416]/70 border-r border-white/10 flex flex-col shrink-0 select-none relative will-change-[width] overflow-hidden`} 
+            id="window-sidebar"
+          >
             
             {/* Sidebar Header: Traffic Lights & Collapse Button */}
-            <div className={`h-14 border-b border-white/10 flex items-center ${isSidebarExpanded ? 'px-3 justify-between' : 'px-0 justify-center'} select-none shrink-0 relative z-10 gap-1`}>
+            <div 
+              style={{
+                transitionTimingFunction: 'cubic-bezier(0.455, 0.03, 0.515, 0.955)',
+              }}
+              className={`h-14 border-b border-white/10 flex items-center ${isSidebarExpanded ? 'px-3 justify-between' : 'px-0 justify-center'} select-none shrink-0 relative z-10 gap-1 transition-all duration-300`}
+            >
               
               {/* Traffic Lights */}
               {isSidebarExpanded && (
@@ -556,80 +567,118 @@ export function MemberAreaApp() {
                             }
                             setActiveModuleId(mod.id);
                             if (!isSidebarExpanded) setIsSidebarExpanded(true);
-                            setExpandedEmenta(prev => ({ ...prev, [mod.id]: !prev[mod.id] }));
+                            
+                            // Regra: quando um módulo estiver aberto, os outros estarão fechados
+                            setExpandedEmenta(prev => {
+                              const isCurrentlyOpen = !!prev[mod.id];
+                              return isCurrentlyOpen ? {} : { [mod.id]: true };
+                            });
                           }}
-                          className={`w-full flex items-center ${isSidebarExpanded ? 'justify-between px-3' : 'justify-center px-0'} py-2 rounded-[10px] text-xs transition-all duration-150 hover:scale-[1.02] text-left cursor-pointer ${
+                          style={{ transitionTimingFunction: 'cubic-bezier(0.455, 0.03, 0.515, 0.955)' }}
+                          className={`w-full flex items-center ${isSidebarExpanded ? 'justify-between px-3' : 'justify-center px-0'} py-2 rounded-[10px] text-xs transition-all duration-300 hover:scale-[1.02] text-left cursor-pointer ${
                             isCurrent 
                               ? 'bg-white/15 text-white border border-white/20 shadow-sm font-semibold' 
                               : 'text-neutral-300 hover:text-white hover:bg-white/5'
                           }`}
                           title={!isSidebarExpanded ? getModuleName(mod.title) : undefined}
                         >
-                          <div className={`flex items-center ${isSidebarExpanded ? 'gap-2.5 truncate' : 'justify-center w-full'}`}>
-                            {getModuleIcon(mod.id, isCurrent)}
+                          <div className={`flex items-center ${isSidebarExpanded ? 'gap-2.5 truncate min-w-0' : 'justify-center w-full'}`}>
+                            <div className="shrink-0 flex items-center justify-center">
+                              {getModuleIcon(mod.id, isCurrent)}
+                            </div>
                             {isSidebarExpanded && (
-                              <span className="truncate text-xs">{getModuleName(mod.title)}</span>
+                              <span className="truncate text-xs whitespace-nowrap">{getModuleName(mod.title)}</span>
                             )}
                           </div>
 
                           {isSidebarExpanded && (
-                            <div className="shrink-0 flex items-center gap-1">
+                            <div className="shrink-0 flex items-center gap-1 pl-1">
                               {isLockedModule ? (
                                 <Lock size={11} className="text-neutral-400 shrink-0" />
                               ) : (
                                 <>
                                   {isAllCompleted && <CheckCircle2 size={11} className="text-[#30d158] shrink-0 mr-1" />}
-                                  {expandedEmenta[mod.id] ? <ChevronDown size={11} /> : <ChevronRight size={11} />}
+                                  <ChevronRight 
+                                    size={12} 
+                                    className={`text-neutral-400 transition-transform duration-300 ${
+                                      expandedEmenta[mod.id] ? 'rotate-90 text-white' : 'rotate-0'
+                                    }`}
+                                    style={{
+                                      transitionTimingFunction: 'cubic-bezier(0.25, 0.46, 0.45, 0.94)'
+                                    }}
+                                  />
                                 </>
                               )}
                             </div>
                           )}
                         </button>
 
-                        {/* Lesson Nest under Expanded Module */}
-                        {isSidebarExpanded && expandedEmenta[mod.id] && (
-                          <div className="pl-2 ml-3 border-l border-white/5 space-y-0.5 py-1">
-                            {mod.subtopics.map((sub) => {
-                              const isCurrentLesson = activeLessonId === sub.id;
-                              const isCompleted = progress.completedLessons.includes(sub.id);
-                              const isLockedLesson = !sub.isFree && !mod.isFree && !isPaidUser;
+                        {/* Lesson Nest under Expanded Module com AnimatePresence e Curva Quadrática */}
+                        <AnimatePresence initial={false}>
+                          {isSidebarExpanded && expandedEmenta[mod.id] && (
+                            <motion.div
+                              key={`module-lessons-${mod.id}`}
+                              initial={{ height: 0, opacity: 0 }}
+                              animate={{ 
+                                height: 'auto', 
+                                opacity: 1,
+                                transition: {
+                                  height: { duration: 0.28, ease: [0.25, 0.46, 0.45, 0.94] },
+                                  opacity: { duration: 0.2, ease: [0.25, 0.46, 0.45, 0.94] }
+                                }
+                              }}
+                              exit={{ 
+                                height: 0, 
+                                opacity: 0,
+                                transition: {
+                                  height: { duration: 0.22, ease: [0.455, 0.03, 0.515, 0.955] },
+                                  opacity: { duration: 0.16, ease: [0.455, 0.03, 0.515, 0.955] }
+                                }
+                              }}
+                              className="overflow-hidden pl-2 ml-3 border-l border-white/10 space-y-0.5 py-1"
+                            >
+                              {mod.subtopics.map((sub) => {
+                                const isCurrentLesson = activeLessonId === sub.id;
+                                const isCompleted = progress.completedLessons.includes(sub.id);
+                                const isLockedLesson = !sub.isFree && !mod.isFree && !isPaidUser;
 
-                              return (
-                                <button
-                                  key={sub.id}
-                                  onClick={() => {
-                                    if (isLockedLesson) {
-                                      setIsCheckoutModalOpen(true);
-                                      return;
-                                    }
-                                    setActiveModuleId(mod.id);
-                                    setActiveLessonId(sub.id);
-                                    saveReadingState({
-                                      lastModuleId: mod.id,
-                                      lastLessonId: sub.id,
-                                      lastTab: activeTab,
-                                      scrollTop: 0
-                                    });
-                                  }}
-                                  className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-[8px] text-[11px] transition-colors text-left cursor-pointer ${
-                                    isCurrentLesson
-                                      ? 'bg-[#0071e3] text-white font-medium shadow-sm'
-                                      : 'text-[#a1a1a6] hover:text-[#f5f5f7] hover:bg-white/5'
-                                  }`}
-                                >
-                                  <span className="truncate pr-1">{sub.title.replace(/^\d+\.\s*/, '')}</span>
-                                  {isLockedLesson ? (
-                                    <Lock size={10} className="text-[#a1a1a6] shrink-0 ml-1" />
-                                  ) : (
-                                    isCompleted && (
-                                      <CheckCircle2 size={10} className={isCurrentLesson ? 'text-white' : 'text-[#30d158]'} />
-                                    )
-                                  )}
-                                </button>
-                              );
-                            })}
-                          </div>
-                        )}
+                                return (
+                                  <button
+                                    key={sub.id}
+                                    onClick={() => {
+                                      if (isLockedLesson) {
+                                        setIsCheckoutModalOpen(true);
+                                        return;
+                                      }
+                                      setActiveModuleId(mod.id);
+                                      setActiveLessonId(sub.id);
+                                      saveReadingState({
+                                        lastModuleId: mod.id,
+                                        lastLessonId: sub.id,
+                                        lastTab: activeTab,
+                                        scrollTop: 0
+                                      });
+                                    }}
+                                    className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-[8px] text-[11px] transition-colors text-left cursor-pointer ${
+                                      isCurrentLesson
+                                        ? 'bg-[#0071e3] text-white font-medium shadow-sm'
+                                        : 'text-[#a1a1a6] hover:text-[#f5f5f7] hover:bg-white/5'
+                                    }`}
+                                  >
+                                    <span className="truncate pr-1">{sub.title.replace(/^\d+\.\s*/, '')}</span>
+                                    {isLockedLesson ? (
+                                      <Lock size={10} className="text-[#a1a1a6] shrink-0 ml-1" />
+                                    ) : (
+                                      isCompleted && (
+                                        <CheckCircle2 size={10} className={isCurrentLesson ? 'text-white' : 'text-[#30d158]'} />
+                                      )
+                                    )}
+                                  </button>
+                                );
+                              })}
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
 
                       </div>
                     );
