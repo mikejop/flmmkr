@@ -104,14 +104,23 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Conteúdo do comentário não pode estar vazio' }, { status: 400 });
     }
 
+    // REGRA DE SEGURANÇA E COMUNIDADE: Não é permitido colocar links nos comentários
+    const URL_REGEX = /(https?:\/\/[^\s]+)|(www\.[^\s]+)|([a-zA-Z0-9-]+\.(com|org|net|io|edu|gov|tv|site|app|dev|me|br|xyz)[^\s]*)/i;
+    if (URL_REGEX.test(content)) {
+      return NextResponse.json(
+        { error: 'Não é permitido incluir links nos comentários. Por favor, envie sua mensagem sem links externos.' },
+        { status: 400 }
+      );
+    }
+
     // 1. Obter informações de perfil atualizadas do usuário
     const { data: prof } = await supabaseAdmin
       .from('profiles')
-      .select('full_name, avatar_url, role')
+      .select('full_name, first_name, avatar_url, role')
       .eq('id', userId)
       .maybeSingle();
 
-    const userName = prof?.full_name || 'Aluno';
+    const userName = prof?.full_name || prof?.first_name || 'Aluno';
     const userAvatar = prof?.avatar_url || '/media/banners/hero_01.webp';
 
     // 2. Inserir comentário no banco de dados
@@ -135,6 +144,75 @@ export async function POST(req: NextRequest) {
     if (insertError) {
       console.error('Erro ao inserir comentário:', insertError);
       return NextResponse.json({ error: insertError.message }, { status: 500 });
+    }
+
+    // 3. Processar menções com @ para notificar os alunos marcados
+    try {
+      const mentionMatches = content.match(/@([a-zA-Z0-9_\u00C0-\u017F]+)/g);
+      if (mentionMatches && mentionMatches.length > 0) {
+        const cleanNames = Array.from(new Set(mentionMatches.map((m: string) => m.replace('@', '').toLowerCase())));
+        
+        const { data: allProfiles } = await supabaseAdmin
+          .from('profiles')
+          .select('id, full_name, first_name');
+
+        if (allProfiles && allProfiles.length > 0) {
+          for (const p of allProfiles) {
+            if (p.id === userId) continue; // não notificar a si mesmo
+            const pFirst = (p.first_name || '').toLowerCase();
+            const pFull = (p.full_name || '').toLowerCase().replace(/\s+/g, '');
+            const isMatch = cleanNames.some(name => 
+              pFirst === name || 
+              pFull.startsWith(name) || 
+              pFull.includes(name) ||
+              name === pFirst
+            );
+
+            if (isMatch) {
+              await supabaseAdmin.from('user_notifications').insert({
+                user_id: p.id,
+                type: 'mention',
+                title: `${userName} mencionou você`,
+                message: `Mencionou você em um comentário: "${content.trim().slice(0, 120)}${content.length > 120 ? '...' : ''}"`,
+                lesson_id: lessonId,
+                module_id: moduleId || null,
+                comment_id: newComment.id,
+                sender_id: userId,
+                sender_name: userName,
+                sender_avatar: userAvatar,
+                is_read: false
+              });
+            }
+          }
+        }
+      }
+
+      // 4. Se for uma resposta em thread, notificar o autor do comentário pai
+      if (parentId) {
+        const { data: parentComment } = await supabaseAdmin
+          .from('lesson_comments')
+          .select('user_id, content')
+          .eq('id', parentId)
+          .maybeSingle();
+
+        if (parentComment && parentComment.user_id && parentComment.user_id !== userId) {
+          await supabaseAdmin.from('user_notifications').insert({
+            user_id: parentComment.user_id,
+            type: 'reply',
+            title: `${userName} respondeu ao seu comentário`,
+            message: `Respondeu: "${content.trim().slice(0, 120)}${content.length > 120 ? '...' : ''}"`,
+            lesson_id: lessonId,
+            module_id: moduleId || null,
+            comment_id: newComment.id,
+            sender_id: userId,
+            sender_name: userName,
+            sender_avatar: userAvatar,
+            is_read: false
+          });
+        }
+      }
+    } catch (notifErr) {
+      console.warn('Erro ao disparar notificações de menção:', notifErr);
     }
 
     return NextResponse.json({

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
   MessageSquare,
   Heart,
@@ -12,7 +12,9 @@ import {
   ChevronUp,
   Send,
   Loader2,
-  Users
+  Users,
+  AtSign,
+  AlertCircle
 } from 'lucide-react';
 
 interface CommentItem {
@@ -31,6 +33,14 @@ interface CommentItem {
   replies?: CommentItem[];
 }
 
+interface StudentItem {
+  id: string;
+  name: string;
+  tag: string;
+  avatar?: string;
+  role?: string;
+}
+
 interface LessonCommentsProps {
   lessonId: string;
   moduleId?: string;
@@ -44,6 +54,9 @@ interface LessonCommentsProps {
   };
   isAdmin?: boolean;
 }
+
+// Detector de URLs para bloquear compartilhamento de links externos
+const URL_REGEX = /(https?:\/\/[^\s]+)|(www\.[^\s]+)|([a-zA-Z0-9-]+\.(com|org|net|io|edu|gov|tv|site|app|dev|me|br|xyz)[^\s]*)/i;
 
 export default function LessonComments({
   lessonId,
@@ -62,14 +75,22 @@ export default function LessonComments({
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
+  // Lista de alunos para menções @
+  const [students, setStudents] = useState<StudentItem[]>([]);
+  const [mentionQuery, setMentionQuery] = useState('');
+  const [showMentionMenu, setShowMentionMenu] = useState(false);
+  const [mentionTarget, setMentionTarget] = useState<'comment' | 'reply'>('comment');
+
   // Novo comentário principal
   const [newCommentText, setNewCommentText] = useState('');
   const [isPublic, setIsPublic] = useState(true);
+  const commentTextareaRef = useRef<HTMLTextAreaElement>(null);
 
   // Resposta inline
   const [replyingToId, setReplyingToId] = useState<string | null>(null);
   const [replyText, setReplyText] = useState('');
   const [replySubmitting, setReplySubmitting] = useState(false);
+  const replyTextareaRef = useRef<HTMLTextAreaElement>(null);
 
   // Carregar comentários
   const loadComments = useCallback(async () => {
@@ -92,16 +113,108 @@ export default function LessonComments({
     }
   }, [lessonId, userId]);
 
+  // Carregar lista de alunos cadastrados para menções
+  useEffect(() => {
+    async function loadStudents() {
+      try {
+        const res = await fetch('/api/students/list');
+        if (res.ok) {
+          const data = await res.json();
+          setStudents(data.students || []);
+        }
+      } catch (_) {}
+    }
+    loadStudents();
+  }, []);
+
   useEffect(() => {
     loadComments();
     setNewCommentText('');
     setReplyingToId(null);
   }, [loadComments]);
 
+  // Checagem de link
+  const commentHasLink = URL_REGEX.test(newCommentText);
+  const replyHasLink = URL_REGEX.test(replyText);
+
+  // Tratamento de input no comentário para detectar '@'
+  const handleCommentChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const val = e.target.value;
+    setNewCommentText(val);
+
+    const cursor = e.target.selectionStart;
+    const textBefore = val.slice(0, cursor);
+    const lastAt = textBefore.lastIndexOf('@');
+
+    if (lastAt !== -1 && !textBefore.slice(lastAt).includes(' ')) {
+      const query = textBefore.slice(lastAt + 1).toLowerCase();
+      setMentionQuery(query);
+      setMentionTarget('comment');
+      setShowMentionMenu(true);
+    } else {
+      setShowMentionMenu(false);
+    }
+  };
+
+  // Tratamento de input na resposta para detectar '@'
+  const handleReplyChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const val = e.target.value;
+    setReplyText(val);
+
+    const cursor = e.target.selectionStart;
+    const textBefore = val.slice(0, cursor);
+    const lastAt = textBefore.lastIndexOf('@');
+
+    if (lastAt !== -1 && !textBefore.slice(lastAt).includes(' ')) {
+      const query = textBefore.slice(lastAt + 1).toLowerCase();
+      setMentionQuery(query);
+      setMentionTarget('reply');
+      setShowMentionMenu(true);
+    } else {
+      setShowMentionMenu(false);
+    }
+  };
+
+  // Inserir aluno selecionado na mensagem
+  const handleSelectMention = (student: StudentItem) => {
+    const tag = student.tag || student.name.replace(/\s+/g, '');
+    const tagText = `@${tag} `;
+
+    if (mentionTarget === 'comment') {
+      const textarea = commentTextareaRef.current;
+      if (!textarea) return;
+      const cursor = textarea.selectionStart;
+      const textBefore = newCommentText.slice(0, cursor);
+      const lastAt = textBefore.lastIndexOf('@');
+      const textAfter = newCommentText.slice(cursor);
+
+      const updated = (lastAt !== -1 ? newCommentText.slice(0, lastAt) : newCommentText) + tagText + textAfter;
+      setNewCommentText(updated);
+      setShowMentionMenu(false);
+      setTimeout(() => {
+        textarea.focus();
+      }, 50);
+    } else {
+      const textarea = replyTextareaRef.current;
+      if (!textarea) return;
+      const cursor = textarea.selectionStart;
+      const textBefore = replyText.slice(0, cursor);
+      const lastAt = textBefore.lastIndexOf('@');
+      const textAfter = replyText.slice(cursor);
+
+      const updated = (lastAt !== -1 ? replyText.slice(0, lastAt) : replyText) + tagText + textAfter;
+      setReplyText(updated);
+      setShowMentionMenu(false);
+      setTimeout(() => {
+        textarea.focus();
+      }, 50);
+    }
+  };
+
   // Publicar comentário principal
   const handleCreateComment = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newCommentText.trim() || submitting) return;
+    if (!newCommentText.trim() || submitting || commentHasLink) return;
 
     if (!userId) {
       alert('Você precisa estar conectado para enviar um comentário.');
@@ -125,6 +238,7 @@ export default function LessonComments({
 
       if (res.ok) {
         setNewCommentText('');
+        setShowMentionMenu(false);
         await loadComments();
         setShowPublicList(true);
       } else {
@@ -141,7 +255,7 @@ export default function LessonComments({
 
   // Publicar resposta para um comentário
   const handleReplySubmit = async (parentId: string, parentIsPublic: boolean) => {
-    if (!replyText.trim() || replySubmitting) return;
+    if (!replyText.trim() || replySubmitting || replyHasLink) return;
 
     if (!userId) {
       alert('Você precisa estar conectado para responder.');
@@ -166,6 +280,7 @@ export default function LessonComments({
       if (res.ok) {
         setReplyText('');
         setReplyingToId(null);
+        setShowMentionMenu(false);
         await loadComments();
       } else {
         const data = await res.json();
@@ -257,6 +372,29 @@ export default function LessonComments({
     }
   };
 
+  // Renderizar texto com destaque em azul para @menções
+  const renderFormattedContent = (content: string) => {
+    const parts = content.split(/(@[a-zA-Z0-9_\u00C0-\u017F]+)/g);
+    return parts.map((part, index) => {
+      if (part.startsWith('@')) {
+        return (
+          <span
+            key={index}
+            className="inline-flex items-center font-bold text-[#0071e3] bg-blue-50 border border-blue-200/80 px-1.5 py-0.5 rounded-md mx-0.5 text-xs sm:text-[13px]"
+          >
+            {part}
+          </span>
+        );
+      }
+      return part;
+    });
+  };
+
+  // Filtrar alunos para o popup de menção
+  const filteredStudents = students.filter(s =>
+    s.name.toLowerCase().includes(mentionQuery) || s.tag.toLowerCase().includes(mentionQuery)
+  );
+
   return (
     <div className="w-full my-6 bg-white border border-neutral-300 shadow-md rounded-[24px] overflow-hidden select-text transition-all duration-300">
       {/* 1. BARRA MINIMIZADA (HEADER CLICÁVEL COM ALTO CONTRASTE) */}
@@ -280,7 +418,7 @@ export default function LessonComments({
             <p className="text-xs sm:text-sm text-neutral-600 font-medium mt-0.5">
               {isExpanded
                 ? 'Clique para recolher o campo de comentários'
-                : 'Clique para deixar um comentário ou tirar dúvidas com o professor'}
+                : 'Clique para deixar um comentário, marcar colegas com @ ou tirar dúvidas'}
             </p>
           </div>
         </div>
@@ -323,7 +461,7 @@ export default function LessonComments({
           {/* FORMULÁRIO DE NOVO COMENTÁRIO */}
           <form
             onSubmit={handleCreateComment}
-            className="p-5 sm:p-6 rounded-2xl bg-white border border-neutral-300 shadow-sm space-y-4"
+            className="p-5 sm:p-6 rounded-2xl bg-white border border-neutral-300 shadow-sm space-y-4 relative"
           >
             <div className="flex flex-wrap items-center justify-between gap-3">
               <span className="text-xs font-bold uppercase tracking-wider text-neutral-800 flex items-center gap-2">
@@ -331,7 +469,7 @@ export default function LessonComments({
                 Deixar sua dúvida ou comentário
               </span>
 
-              {/* SELETOR: PÚBLICO OU NÃO PÚBLICO (AZUL / CINZA DE ALTO CONTRASTE) */}
+              {/* SELETOR: PÚBLICO OU NÃO PÚBLICO */}
               <div className="flex items-center gap-1 bg-neutral-100 p-1 rounded-xl border border-neutral-300">
                 <button
                   type="button"
@@ -369,7 +507,7 @@ export default function LessonComments({
                   <Globe className="w-4 h-4 text-[#0071e3]" />
                   <span>
                     <strong className="text-neutral-900">Público:</strong> visível para todos os
-                    colegas da turma e para o professor.
+                    colegas da turma e para o professor. Use <span className="text-[#0071e3] font-bold">@nome</span> para marcar colegas.
                   </span>
                 </>
               ) : (
@@ -383,22 +521,83 @@ export default function LessonComments({
               )}
             </div>
 
-            {/* TEXTAREA */}
-            <textarea
-              value={newCommentText}
-              onChange={(e) => setNewCommentText(e.target.value)}
-              placeholder="Escreva sua dúvida, reflexão ou comentário sobre a aula..."
-              rows={3}
-              className="w-full px-4 py-3 text-sm bg-white border border-neutral-300 rounded-xl text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:border-[#0071e3] focus:ring-2 focus:ring-[#0071e3]/20 transition-all resize-none shadow-xs font-sans leading-relaxed"
-            />
+            {/* TEXTAREA COM REFERÊNCIA */}
+            <div className="relative">
+              <textarea
+                ref={commentTextareaRef}
+                value={newCommentText}
+                onChange={handleCommentChange}
+                placeholder="Escreva sua dúvida, reflexão ou use @ para marcar outro aluno..."
+                rows={3}
+                className="w-full px-4 py-3 text-sm bg-white border border-neutral-300 rounded-xl text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:border-[#0071e3] focus:ring-2 focus:ring-[#0071e3]/20 transition-all resize-none shadow-xs font-sans leading-relaxed"
+              />
+
+              {/* AUTOCOMPLETE POPUP PARA @MENÇÕES */}
+              {showMentionMenu && mentionTarget === 'comment' && filteredStudents.length > 0 && (
+                <div className="absolute left-0 bottom-full mb-1 w-64 max-h-48 overflow-y-auto bg-white border border-neutral-300 rounded-xl shadow-xl z-30 divide-y divide-neutral-100">
+                  <div className="p-2 bg-neutral-50 text-[11px] font-bold text-neutral-600 uppercase tracking-wider flex items-center gap-1.5">
+                    <AtSign size={12} className="text-[#0071e3]" />
+                    <span>Mencionar Aluno</span>
+                  </div>
+                  {filteredStudents.slice(0, 6).map((student) => (
+                    <div
+                      key={student.id}
+                      onClick={() => handleSelectMention(student)}
+                      className="flex items-center gap-2.5 p-2.5 hover:bg-blue-50 cursor-pointer transition-colors"
+                    >
+                      {student.avatar ? (
+                        <img src={student.avatar} alt={student.name} className="w-6 h-6 rounded-full object-cover" />
+                      ) : (
+                        <div className="w-6 h-6 rounded-full bg-[#0071e3]/10 text-[#0071e3] text-[10px] font-bold flex items-center justify-center">
+                          {student.name.charAt(0)}
+                        </div>
+                      )}
+                      <div>
+                        <div className="text-xs font-bold text-neutral-900">{student.name}</div>
+                        <div className="text-[10px] text-[#0071e3]">@{student.tag}</div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* AVISO DE BLOQUEIO DE LINKS */}
+            {commentHasLink && (
+              <div className="flex items-center gap-2 px-3.5 py-2.5 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs font-medium animate-fadeIn">
+                <AlertCircle className="w-4 h-4 shrink-0 text-red-600" />
+                <span>
+                  <strong>Links não permitidos:</strong> Para manter a segurança da turma, não é permitido compartilhar links externos nos comentários.
+                </span>
+              </div>
+            )}
 
             <div className="flex flex-wrap items-center justify-between gap-3 pt-1">
-              <span className="text-xs text-neutral-500 font-medium">
-                Compartilhe aprendizados e dúvidas sobre as técnicas cinematográficas.
-              </span>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMentionTarget('comment');
+                    setMentionQuery('');
+                    setShowMentionMenu(!showMentionMenu);
+                    if (commentTextareaRef.current) {
+                      setNewCommentText(prev => prev + '@');
+                      commentTextareaRef.current.focus();
+                    }
+                  }}
+                  className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-semibold text-[#0071e3] bg-blue-50 hover:bg-blue-100 border border-blue-200/60 rounded-lg transition-colors cursor-pointer"
+                >
+                  <AtSign size={13} />
+                  <span>Marcar colega</span>
+                </button>
+                <span className="text-[11px] text-neutral-500 font-medium hidden sm:inline">
+                  Digite @ para mencionar outro aluno
+                </span>
+              </div>
+
               <button
                 type="submit"
-                disabled={submitting || !newCommentText.trim()}
+                disabled={submitting || !newCommentText.trim() || commentHasLink}
                 className="flex items-center gap-2 px-5 py-2.5 text-xs font-bold rounded-xl bg-[#0071e3] hover:bg-[#0077ed] text-white disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-md shadow-blue-500/20 cursor-pointer"
               >
                 {submitting ? (
@@ -494,7 +693,7 @@ export default function LessonComments({
                           <button
                             type="button"
                             onClick={() => handleDeleteComment(comment.id)}
-                            className="text-neutral-400 hover:text-red-600 p-1.5 rounded-lg hover:bg-red-50 transition-colors"
+                            className="text-neutral-400 hover:text-red-600 p-1.5 rounded-lg hover:bg-red-50 transition-colors cursor-pointer"
                             title="Excluir este comentário"
                           >
                             <Trash2 className="w-4 h-4" />
@@ -502,9 +701,9 @@ export default function LessonComments({
                         )}
                       </div>
 
-                      {/* CONTEÚDO */}
+                      {/* CONTEÚDO COM FORMATAÇÃO DE MENÇÃO */}
                       <p className="text-sm leading-relaxed text-neutral-800 whitespace-pre-wrap pl-12 font-sans">
-                        {comment.content}
+                        {renderFormattedContent(comment.content)}
                       </p>
 
                       {/* AÇÕES (CURTIR, RESPONDER) */}
@@ -512,7 +711,7 @@ export default function LessonComments({
                         <button
                           type="button"
                           onClick={() => handleToggleLike(comment.id)}
-                          className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg transition-all ${
+                          className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg transition-all cursor-pointer ${
                             hasLiked
                               ? 'text-red-600 bg-red-50 border border-red-200 font-bold'
                               : 'text-neutral-600 hover:text-[#0071e3] hover:bg-neutral-100 border border-transparent font-medium'
@@ -531,10 +730,12 @@ export default function LessonComments({
                               setReplyingToId(null);
                             } else {
                               setReplyingToId(comment.id);
-                              setReplyText('');
+                              // Pré-preencher com a menção do autor
+                              const authorTag = comment.user_name.replace(/\s+/g, '');
+                              setReplyText(`@${authorTag} `);
                             }
                           }}
-                          className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-neutral-600 hover:text-[#0071e3] hover:bg-neutral-100 transition-colors font-medium"
+                          className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-neutral-600 hover:text-[#0071e3] hover:bg-neutral-100 transition-colors font-medium cursor-pointer"
                         >
                           <CornerDownRight className="w-3.5 h-3.5" />
                           <span>Responder</span>
@@ -544,27 +745,66 @@ export default function LessonComments({
                       {/* FORMULÁRIO DE RESPOSTA INLINE */}
                       {replyingToId === comment.id && (
                         <div className="pl-12 pt-2">
-                          <div className="p-4 rounded-xl bg-neutral-100 border border-neutral-300 space-y-2.5">
+                          <div className="p-4 rounded-xl bg-neutral-100 border border-neutral-300 space-y-2.5 relative">
                             <textarea
+                              ref={replyTextareaRef}
                               value={replyText}
-                              onChange={(e) => setReplyText(e.target.value)}
-                              placeholder={`Responder para ${comment.user_name}...`}
+                              onChange={handleReplyChange}
+                              placeholder={`Responder para ${comment.user_name} (use @ para marcar)...`}
                               rows={2}
                               className="w-full px-3.5 py-2 text-xs sm:text-sm bg-white border border-neutral-300 rounded-lg text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:border-[#0071e3]"
                             />
+
+                            {/* AUTOCOMPLETE POPUP PARA @MENÇÕES NA RESPOSTA */}
+                            {showMentionMenu && mentionTarget === 'reply' && filteredStudents.length > 0 && (
+                              <div className="absolute left-4 bottom-full mb-1 w-64 max-h-48 overflow-y-auto bg-white border border-neutral-300 rounded-xl shadow-xl z-30 divide-y divide-neutral-100">
+                                <div className="p-2 bg-neutral-50 text-[11px] font-bold text-neutral-600 uppercase tracking-wider flex items-center gap-1.5">
+                                  <AtSign size={12} className="text-[#0071e3]" />
+                                  <span>Mencionar Aluno</span>
+                                </div>
+                                {filteredStudents.slice(0, 6).map((student) => (
+                                  <div
+                                    key={student.id}
+                                    onClick={() => handleSelectMention(student)}
+                                    className="flex items-center gap-2.5 p-2.5 hover:bg-blue-50 cursor-pointer transition-colors"
+                                  >
+                                    {student.avatar ? (
+                                      <img src={student.avatar} alt={student.name} className="w-6 h-6 rounded-full object-cover" />
+                                    ) : (
+                                      <div className="w-6 h-6 rounded-full bg-[#0071e3]/10 text-[#0071e3] text-[10px] font-bold flex items-center justify-center">
+                                        {student.name.charAt(0)}
+                                      </div>
+                                    )}
+                                    <div>
+                                      <div className="text-xs font-bold text-neutral-900">{student.name}</div>
+                                      <div className="text-[10px] text-[#0071e3]">@{student.tag}</div>
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+
+                            {/* AVISO DE LINK NA RESPOSTA */}
+                            {replyHasLink && (
+                              <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-red-50 border border-red-200 text-red-700 text-xs font-medium">
+                                <AlertCircle className="w-3.5 h-3.5 text-red-600 shrink-0" />
+                                <span>Links não são permitidos nos comentários.</span>
+                              </div>
+                            )}
+
                             <div className="flex items-center justify-end gap-2">
                               <button
                                 type="button"
                                 onClick={() => setReplyingToId(null)}
-                                className="px-3 py-1.5 text-xs text-neutral-600 hover:text-neutral-900 font-medium"
+                                className="px-3 py-1.5 text-xs text-neutral-600 hover:text-neutral-900 font-medium cursor-pointer"
                               >
                                 Cancelar
                               </button>
                               <button
                                 type="button"
-                                disabled={replySubmitting || !replyText.trim()}
+                                disabled={replySubmitting || !replyText.trim() || replyHasLink}
                                 onClick={() => handleReplySubmit(comment.id, comment.is_public)}
-                                className="px-4 py-1.5 text-xs font-bold rounded-lg bg-[#0071e3] hover:bg-[#0077ed] text-white disabled:opacity-50"
+                                className="px-4 py-1.5 text-xs font-bold rounded-lg bg-[#0071e3] hover:bg-[#0077ed] text-white disabled:opacity-50 cursor-pointer"
                               >
                                 {replySubmitting ? 'Respondendo...' : 'Responder'}
                               </button>
@@ -621,7 +861,7 @@ export default function LessonComments({
                                     <button
                                       type="button"
                                       onClick={() => handleDeleteComment(reply.id)}
-                                      className="text-neutral-400 hover:text-red-600 p-1 rounded transition-colors"
+                                      className="text-neutral-400 hover:text-red-600 p-1 rounded transition-colors cursor-pointer"
                                       title="Excluir resposta"
                                     >
                                       <Trash2 className="w-3.5 h-3.5" />
@@ -630,14 +870,14 @@ export default function LessonComments({
                                 </div>
 
                                 <p className="text-xs sm:text-sm text-neutral-800 leading-relaxed whitespace-pre-wrap pl-9 font-sans">
-                                  {reply.content}
+                                  {renderFormattedContent(reply.content)}
                                 </p>
 
                                 <div className="flex items-center gap-3 pl-9 text-xs">
                                   <button
                                     type="button"
                                     onClick={() => handleToggleLike(reply.id)}
-                                    className={`flex items-center gap-1 px-2 py-0.5 rounded transition-colors ${
+                                    className={`flex items-center gap-1 px-2 py-0.5 rounded transition-colors cursor-pointer ${
                                       replyHasLiked
                                         ? 'text-red-600 bg-red-50 border border-red-200 font-bold'
                                         : 'text-neutral-600 hover:text-[#0071e3] hover:bg-neutral-100 font-medium'

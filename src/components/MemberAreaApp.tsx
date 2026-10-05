@@ -22,6 +22,7 @@ import { AccountSettingsModal } from '@/components/AccountSettingsModal';
 import { DeviceSessionKickedModal } from '@/components/DeviceSessionKickedModal';
 import VideoLessonPlayer from '@/components/VideoLessonPlayer';
 import LessonComments from '@/components/LessonComments';
+import NotificationsDropdown from '@/components/NotificationsDropdown';
 import IntroducaoDaVinciArticle from '@/components/IntroducaoDaVinciArticle';
 import GenericLessonArticle from '@/components/GenericLessonArticle';
 
@@ -955,14 +956,14 @@ export function MemberAreaApp() {
                   <span className="text-[11px] text-[#86868b] select-none">Buscar...</span>
                 </div>
 
-                {/* Accessibility Button */}
-                <button
-                  onClick={() => setIsAccessibilityOpen(true)}
-                  className="p-1.5 rounded-full bg-white/[0.08] hover:bg-white/[0.15] text-neutral-200 hover:text-white border border-white/10 backdrop-blur-md shadow-xs transition-all cursor-pointer"
-                  title="Acessibilidade"
-                >
-                  <Compass size={15} />
-                </button>
+                {/* Notifications Button & Dropdown */}
+                <NotificationsDropdown
+                  userId={currentUserId}
+                  onNavigateToLesson={(modId, lesId) => {
+                    if (modId) setActiveModuleId(modId as ModuleId);
+                    if (lesId) setActiveLessonId(lesId);
+                  }}
+                />
 
                 {/* User Profile / Login */}
                 {isLoggedIn ? (
