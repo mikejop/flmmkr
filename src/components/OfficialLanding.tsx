@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { PRODUCTS, Product } from '@/config/products';
 import { SITE_CONFIG } from '@/config/siteConfig';
 import { GENERAL_FAQ } from '@/config/faq';
@@ -55,6 +56,14 @@ export const OfficialLanding: React.FC<OfficialLandingProps> = ({
   const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState<boolean>(false);
   const [loginModalOpen, setLoginModalOpen] = useState<boolean>(false);
+  const searchParams = useSearchParams();
+
+  useEffect(() => {
+    const loginParam = searchParams.get('login');
+    if (loginParam === 'required' || loginParam === 'true') {
+      setLoginModalOpen(true);
+    }
+  }, [searchParams]);
 
   useEffect(() => {
     setAuthorPhotos(getRandomAuthorPhotos());

@@ -99,6 +99,7 @@ const DEFAULT_PROGRESS: UserProgress = {
 
 export function MemberAreaApp() {
   const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
+  const [isAuthChecking, setIsAuthChecking] = useState<boolean>(true);
   const [progress, setProgress] = useState<UserProgress>(DEFAULT_PROGRESS);
   const [activeModuleId, setActiveModuleId] = useState<ModuleId>('mod0');
   const [activeLessonId, setActiveLessonId] = useState<string>('mod0-1');
@@ -166,6 +167,7 @@ export function MemberAreaApp() {
         const { data: { user } } = await supabase.auth.getUser();
         if (user) {
           setIsLoggedIn(true);
+          setIsAuthChecking(false);
           setCurrentUserId(user.id);
           const metaRole = user.app_metadata?.role || user.user_metadata?.role;
           const metaAccess = user.app_metadata?.has_full_access || user.user_metadata?.has_full_access;
@@ -209,9 +211,17 @@ export function MemberAreaApp() {
               }
             } catch (_) {}
           }
+        } else {
+          // Usuário não autenticado: bloqueia acesso e redireciona para a landing page
+          setIsLoggedIn(false);
+          setIsAuthChecking(false);
+          window.location.replace('/?login=required');
         }
       } catch (err) {
         console.warn('Erro auth:', err);
+        setIsLoggedIn(false);
+        setIsAuthChecking(false);
+        window.location.replace('/?login=required');
       }
     }
 
@@ -225,6 +235,7 @@ export function MemberAreaApp() {
         setIsPaidUser(false);
         setIsMasterAdmin(false);
         setCurrentUserId(null);
+        window.location.replace('/?login=required');
       }
     });
 
@@ -296,10 +307,12 @@ export function MemberAreaApp() {
     try {
       await supabase.auth.signOut();
     } catch (_) {}
+    localStorage.removeItem('flmmkr_session_token');
     setIsLoggedIn(false);
     setIsPaidUser(false);
     setIsMasterAdmin(false);
     setIsProfileMenuOpen(false);
+    window.location.replace('/?login=required');
   };
 
   const handleToggleLessonComplete = (lessonId: string) => {
@@ -502,6 +515,15 @@ export function MemberAreaApp() {
       if (rAF !== null) cancelAnimationFrame(rAF);
     };
   }, [activeLessonId]);
+
+  // Se ainda estiver checando ou se não estiver autenticado, exibe apenas a tela segura do preloader
+  if (isAuthChecking || !isLoggedIn) {
+    return (
+      <div className="relative w-screen h-screen bg-[#0a0a0c] text-[#f5f5f7] flex items-center justify-center overflow-hidden font-sans select-none">
+        <MemberPreloader />
+      </div>
+    );
+  }
 
   return (
     <div className="relative w-screen h-screen bg-[#0a0a0c] text-[#f5f5f7] flex items-center justify-center overflow-hidden font-sans select-none will-change-transform">

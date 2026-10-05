@@ -3,11 +3,10 @@ import { createClient } from '@/utils/supabase/middleware';
 import { detectSqlInjection } from '@/utils/security';
 
 export async function middleware(request: NextRequest) {
-  // 1. Verificação global contra injeção SQL em query parameters e path
   const url = request.nextUrl;
   const decodedPath = decodeURIComponent(url.pathname);
   
-  // Inspecionar o caminho
+  // 1. Verificação global contra injeção SQL em query parameters e path
   const pathCheck = detectSqlInjection(decodedPath);
   if (pathCheck.isSuspicious) {
     return NextResponse.json(
@@ -25,6 +24,24 @@ export async function middleware(request: NextRequest) {
         { error: 'Acesso bloqueado por segurança: parâmetro com injeção SQL detectado.' },
         { status: 400 }
       );
+    }
+  }
+
+  // 2. Proteção estrita de rotas da Área do Aluno
+  // Apenas usuários autenticados podem acessar a área do curso.
+  // Quando não estiver logado, redireciona imediatamente para a landing page (/).
+  const isMemberRoute = url.pathname.startsWith('/color-master-produto') || url.pathname.startsWith('/conteudo');
+  if (isMemberRoute) {
+    const allCookies = request.cookies.getAll();
+    const hasAuthSession = allCookies.some((c) => 
+      c.name.startsWith('sb-') && (c.name.includes('-auth-token') || c.name.includes('auth-token'))
+    );
+
+    if (!hasAuthSession) {
+      const redirectUrl = request.nextUrl.clone();
+      redirectUrl.pathname = '/';
+      redirectUrl.searchParams.set('login', 'required');
+      return NextResponse.redirect(redirectUrl);
     }
   }
 
