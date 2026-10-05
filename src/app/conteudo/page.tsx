@@ -5,7 +5,10 @@ import dynamic from 'next/dynamic';
 
 const MemberAreaApp = dynamic(
   () => import('@/components/MemberAreaApp'),
-  { ssr: false }
+  { 
+    ssr: false,
+    loading: () => <div className="fixed inset-0 bg-[#070709]" />
+  }
 );
 
 export default function ConteudoPage() {

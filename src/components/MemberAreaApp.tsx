@@ -17,6 +17,7 @@ import { LoginModal } from '@/components/LoginModal';
 import { CheckoutModal } from '@/components/CheckoutModal';
 import { supabase } from '@/lib/supabase';
 import { getMediaUrl } from '@/lib/storage';
+import { MemberPreloader } from '@/components/MemberPreloader';
 
 // Lazy load heavy interactive tools and articles for instant initial render and 0 lag
 const EquipamentosLessonArticle = lazy(() => import('@/components/EquipamentosLessonArticle'));
@@ -435,6 +436,8 @@ export function MemberAreaApp() {
 
   return (
     <div className="relative w-screen h-screen bg-[#0a0a0c] text-[#f5f5f7] flex items-center justify-center overflow-hidden font-sans select-none will-change-transform">
+      {/* Brand Preloader exclusivo da Área de Membros */}
+      <MemberPreloader />
       
       {/* Background Sutil com aceleração por GPU */}
       <div className="hidden md:block absolute inset-0 z-0 overflow-hidden pointer-events-none transform-gpu">
