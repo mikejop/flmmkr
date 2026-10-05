@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { 
   Folder, ChevronRight, ChevronDown, ChevronLeft,
   CheckCircle2, Lock, PanelLeftClose, PanelLeft, X, Search, Menu,
-  BookOpen, Camera, Sun, SunMedium, Lamp, Contrast, Users, Wand2,
+  Camera, Sun, SunMedium, Lamp, Contrast, Users, Wand2,
   Palette, Plus, User, LogIn, LogOut, Copy, Star, Compass
 } from 'lucide-react';
 import { modulesData } from '@/data/data';
@@ -610,26 +610,6 @@ export function MemberAreaApp() {
             {/* Sidebar Content Tree */}
             <div className="flex-1 py-3 px-2 space-y-3 custom-scrollbar overflow-y-auto relative z-10">
               <div className="space-y-3 w-full">
-                
-                {/* Course Overview Item */}
-                <button 
-                  onClick={() => {
-                    setActiveLessonId('mod0-1');
-                    setActiveModuleId('mod0');
-                  }}
-                  className={`w-full flex items-center ${isSidebarExpanded ? 'justify-between px-3' : 'justify-center px-0'} py-2 rounded-[10px] text-left text-xs font-semibold cursor-pointer transition-all hover:scale-[1.02] active:scale-[0.98] ${
-                    activeLessonId === 'mod0-1' 
-                      ? 'bg-white/15 text-white border border-white/20' 
-                      : 'text-neutral-300 hover:text-white hover:bg-white/5'
-                  }`}
-                  title={!isSidebarExpanded ? "Visão Geral" : undefined}
-                >
-                  <div className="flex items-center gap-2.5">
-                    <BookOpen size={15} className={activeLessonId === 'mod0-1' ? 'text-[#00c7fc]' : 'text-neutral-400'} />
-                    {isSidebarExpanded && <span>Visão Geral</span>}
-                  </div>
-                </button>
-
                 <div className="space-y-1">
                   {isSidebarExpanded && (
                     <span className="text-[9px] font-bold text-[#86868b] tracking-widest uppercase block px-3 mb-1.5">MÓDULOS</span>
