@@ -109,6 +109,7 @@ export const ColorMasterLanding: React.FC = () => {
   const [expiredDismissed, setExpiredDismissed] = useState<boolean>(false);
   const [deviceMac, setDeviceMac] = useState<string>('');
   const [isPastHero, setIsPastHero] = useState<boolean>(false);
+  const [showNavCheckout, setShowNavCheckout] = useState<boolean>(false);
   const hasWarnedRef = useRef<boolean>(false);
   const hasExpiredRef = useRef<boolean>(false);
   const prevTimeLeftRef = useRef<number>(900);
@@ -129,6 +130,33 @@ export const ColorMasterLanding: React.FC = () => {
       setIsPastHero(pastHero);
       // Mostra a barra após sair da Hero e oculta ao chegar na seção de Oferta
       setShowStickyTimer(pastHero && !isReachedOferta);
+
+      // Controle de visibilidade do botão 'Garantir Acesso' da barra de navegação:
+      // Só deve aparecer em seções que NÃO possuem botão que leva à compra.
+      const sections = [
+        { id: 'hero-section', hasBuyButton: true },
+        { id: 'aprendizado', hasBuyButton: false },
+        { id: 'aplicacao', hasBuyButton: true },
+        { id: 'instrutor', hasBuyButton: false },
+        { id: 'oferta', hasBuyButton: true },
+        { id: 'faq', hasBuyButton: false },
+        { id: 'encerramento', hasBuyButton: true },
+      ];
+
+      const triggerY = Math.min(window.innerHeight * 0.35, 250);
+      let activeSectionHasBuyButton = true; // Por padrão na Hero (topo), possui botão de compra
+
+      for (let i = 0; i < sections.length; i++) {
+        const el = document.getElementById(sections[i].id);
+        if (!el) continue;
+        const rect = el.getBoundingClientRect();
+        if (rect.top <= triggerY && rect.bottom > triggerY) {
+          activeSectionHasBuyButton = sections[i].hasBuyButton;
+          break;
+        }
+      }
+
+      setShowNavCheckout(!activeSectionHasBuyButton);
     };
 
     window.addEventListener('scroll', handleScroll, { passive: true });
@@ -503,10 +531,10 @@ export const ColorMasterLanding: React.FC = () => {
             COLOR MASTER® | PRODUTOS
           </span>
 
-          <div className="flex items-center gap-2 sm:gap-3">
+          <div className="flex items-center">
             <button
               onClick={() => setLoginModalOpen(true)}
-              className="px-3.5 sm:px-4 py-2 sm:py-1.5 rounded-full bg-white/10 hover:bg-white/20 text-white text-xs font-semibold border border-white/15 hover:border-white/30 transition-all active:scale-95 min-h-[44px] sm:min-h-0 flex items-center justify-center cursor-pointer"
+              className="px-3.5 sm:px-4 py-2 sm:py-1.5 rounded-full bg-white/10 hover:bg-white/20 text-white text-xs font-semibold border border-white/15 hover:border-white/30 transition-all active:scale-95 min-h-[44px] sm:min-h-0 flex items-center justify-center cursor-pointer shrink-0"
             >
               Acessar
             </button>
@@ -514,7 +542,11 @@ export const ColorMasterLanding: React.FC = () => {
             <button
               type="button"
               onClick={() => setCheckoutModalOpen(true)}
-              className="px-3.5 sm:px-4 py-2 sm:py-1.5 rounded-full bg-[#0071e3] hover:bg-[#0077ed] text-white text-xs font-semibold shadow-[0_2px_12px_rgba(0,113,227,0.4),inset_0_1px_1px_rgba(255,255,255,0.3)] transition-all active:scale-95 min-h-[44px] sm:min-h-0 flex items-center justify-center cursor-pointer"
+              className={`rounded-full bg-[#0071e3] hover:bg-[#0077ed] text-white text-xs font-semibold shadow-[0_2px_12px_rgba(0,113,227,0.4),inset_0_1px_1px_rgba(255,255,255,0.3)] transition-all duration-300 active:scale-95 flex items-center justify-center cursor-pointer whitespace-nowrap overflow-hidden ${
+                showNavCheckout
+                  ? 'opacity-100 scale-100 ml-2 sm:ml-3 px-3.5 sm:px-4 py-2 sm:py-1.5 min-h-[44px] sm:min-h-0 pointer-events-auto max-w-[160px]'
+                  : 'opacity-0 scale-90 max-w-0 ml-0 px-0 py-0 border-0 shadow-none pointer-events-none'
+              }`}
             >
               Garantir Acesso
             </button>
@@ -763,7 +795,7 @@ export const ColorMasterLanding: React.FC = () => {
       {/* ========================================================================= */}
       {/* 04. APLICAÇÃO PROFISSIONAL                                                */}
       {/* ========================================================================= */}
-      <section className="relative z-10 min-h-[100dvh] flex flex-col justify-center py-12 md:py-16 bg-[#f5f5f7] px-4 sm:px-6 lg:px-8 overflow-hidden">
+      <section id="aplicacao" className="relative z-10 min-h-[100dvh] flex flex-col justify-center py-12 md:py-16 bg-[#f5f5f7] px-4 sm:px-6 lg:px-8 overflow-hidden">
         <div className="max-w-5xl mx-auto w-full my-auto">
           <div className="text-center max-w-2xl mx-auto mb-10 sm:mb-12">
             <span className="text-[12px] uppercase tracking-[0.04em] text-[#0071e3] font-semibold mb-2 block">
@@ -841,7 +873,7 @@ export const ColorMasterLanding: React.FC = () => {
       {/* ========================================================================= */}
       {/* 05. QUEM ENSINA: MICHAEL OLIVEIRA                                         */}
       {/* ========================================================================= */}
-      <section className="relative z-10 min-h-[100dvh] flex flex-col justify-center py-12 md:py-16 bg-[#000000] px-4 sm:px-6 lg:px-8 overflow-hidden">
+      <section id="instrutor" className="relative z-10 min-h-[100dvh] flex flex-col justify-center py-12 md:py-16 bg-[#000000] px-4 sm:px-6 lg:px-8 overflow-hidden">
         <ReticulaBackground
           bgImageSrc={authorPhotos.bgSrc}
           crossfadeScroll={true}
@@ -1162,7 +1194,7 @@ export const ColorMasterLanding: React.FC = () => {
       {/* ========================================================================= */}
       {/* 08. ENCERRAMENTO                                                          */}
       {/* ========================================================================= */}
-      <section className="relative z-10 py-16 sm:py-20 md:py-28 px-4 sm:px-6 lg:px-8 bg-[#000000] text-white">
+      <section id="encerramento" className="relative z-10 py-16 sm:py-20 md:py-28 px-4 sm:px-6 lg:px-8 bg-[#000000] text-white">
         <div className="max-w-4xl mx-auto text-center">
           <div className="p-6 sm:p-12 md:p-16 rounded-2xl sm:rounded-3xl bg-gradient-to-b from-[#1c1c1e] to-[#0d0d0f] border border-white/10 shadow-2xl relative overflow-hidden">
             <h2 className="text-[26px] leading-[1.18] sm:text-4xl md:text-5xl font-semibold tracking-[-0.015em] text-white mb-3 sm:mb-4">
