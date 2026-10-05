@@ -33,6 +33,34 @@ const PRODUTORAS_LOGOS = [
   { name: 'Plano B', src: '/assets/empresas/plano-b.jpg' },
 ];
 
+const MAX_EXPIRED_MODAL_VIEWS = 2;
+
+const getExpiredModalViews = (mac?: string): number => {
+  if (typeof window === 'undefined') return 0;
+  try {
+    const key = mac ? `flmmkr_expired_views_${mac}` : 'flmmkr_expired_views';
+    const val = localStorage.getItem(key) || localStorage.getItem('flmmkr_expired_views');
+    return val ? parseInt(val, 10) || 0 : 0;
+  } catch {
+    return 0;
+  }
+};
+
+const recordExpiredModalView = (mac?: string): number => {
+  if (typeof window === 'undefined') return 0;
+  try {
+    const current = getExpiredModalViews(mac);
+    const next = current + 1;
+    localStorage.setItem('flmmkr_expired_views', next.toString());
+    if (mac) {
+      localStorage.setItem(`flmmkr_expired_views_${mac}`, next.toString());
+    }
+    return next;
+  } catch {
+    return 0;
+  }
+};
+
 export const ColorMasterLanding: React.FC = () => {
   const instructorCardRef = useRef<HTMLDivElement>(null);
 
@@ -128,9 +156,13 @@ export const ColorMasterLanding: React.FC = () => {
             });
 
             // Se o cronômetro estiver zerado e o usuário acessar a página novamente,
-            // o modal dizendo que a promoção acabou aparecerá automaticamente
+            // o modal dizendo que a promoção acabou só aparece no máximo 2 vezes para o mesmo usuário
             if (data.isExpired || data.remainingSeconds <= 0) {
-              setExpiredModalOpen(true);
+              const views = getExpiredModalViews(mac);
+              if (views < MAX_EXPIRED_MODAL_VIEWS) {
+                recordExpiredModalView(mac);
+                setExpiredModalOpen(true);
+              }
             }
           }
         })
@@ -182,7 +214,11 @@ export const ColorMasterLanding: React.FC = () => {
     if (timeLeft <= 0 && prev > 0 && !hasExpiredRef.current && !expiredDismissed) {
       hasExpiredRef.current = true;
       setWarningModalOpen(false); // Fecha o modal de aviso se ainda estivesse aberto
-      setExpiredModalOpen(true); // Abre o modal de expiração com o valor real
+      const views = getExpiredModalViews(deviceMac);
+      if (views < MAX_EXPIRED_MODAL_VIEWS) {
+        recordExpiredModalView(deviceMac);
+        setExpiredModalOpen(true); // Abre o modal de expiração com o valor real
+      }
     }
   }, [timeLeft, warningDismissed, expiredDismissed]);
 
@@ -399,73 +435,52 @@ export const ColorMasterLanding: React.FC = () => {
         onOpenCheckout={() => setCheckoutModalOpen(true)}
       />
 
-      {/* TOP FIXED COUNTDOWN BANNER (SÓ APARECE APÓS SAIR DA HERO) */}
-      <div
-        className={`fixed top-0 inset-x-0 z-50 w-full transition-all duration-400 [transition-timing-function:cubic-bezier(0.45,0,0.55,1)] ${
-          showStickyTimer
-            ? 'translate-y-0 opacity-100 pointer-events-auto'
-            : '-translate-y-full opacity-0 pointer-events-none'
-        } ${
-          isExpired
-            ? 'bg-[#1c1c1e]/95 text-white border-b border-red-500/30'
-            : 'bg-gradient-to-r from-[#0071e3] via-[#0051a8] to-[#0071e3] text-white border-b border-white/20'
-        } backdrop-blur-md shadow-md`}
-      >
-        <div className="max-w-6xl mx-auto px-3 sm:px-4 py-2 sm:py-2.5 flex items-center justify-between gap-2 text-xs sm:text-sm font-medium">
-          <div className="flex items-center gap-1.5 sm:gap-2 min-w-0">
-            {!isExpired ? (
-              <>
-                <span className="flex h-2 w-2 relative shrink-0">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#2997ff] opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-2 w-2 bg-[#2997ff]"></span>
-                </span>
-                <span className="font-bold text-white uppercase tracking-wider text-[10px] sm:text-xs truncate">
-                  Oferta 15 Minutos
-                </span>
-                <span className="hidden md:inline text-white/90">
-                  • Garanta por apenas <strong className="text-white underline decoration-white/60 font-bold">R$ {priceData.promoPrice}</strong> no lote promocional de lançamento!
-                </span>
-              </>
-            ) : (
-              <>
-                <span className="text-red-400 font-bold uppercase tracking-wider text-[10px] sm:text-xs shrink-0">
-                  Tempo Expirado
-                </span>
-                <span className="text-white/80 hidden sm:inline truncate">
-                  • Preço regular: R$ 195.
-                </span>
-              </>
-            )}
-          </div>
+      {/* TOP FIXED COUNTDOWN BANNER (SÓ APARECE APÓS SAIR DA HERO E ENQUANTO NÃO EXPIRADO) */}
+      {!isExpired && (
+        <div
+          className={`fixed top-0 inset-x-0 z-50 w-full transition-all duration-400 [transition-timing-function:cubic-bezier(0.45,0,0.55,1)] ${
+            showStickyTimer
+              ? 'translate-y-0 opacity-100 pointer-events-auto'
+              : '-translate-y-full opacity-0 pointer-events-none'
+          } bg-gradient-to-r from-[#0071e3] via-[#0051a8] to-[#0071e3] text-white border-b border-white/20 backdrop-blur-md shadow-md`}
+        >
+          <div className="max-w-6xl mx-auto px-3 sm:px-4 py-2 sm:py-2.5 flex items-center justify-between gap-2 text-xs sm:text-sm font-medium">
+            <div className="flex items-center gap-1.5 sm:gap-2 min-w-0">
+              <span className="flex h-2 w-2 relative shrink-0">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#2997ff] opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-[#2997ff]"></span>
+              </span>
+              <span className="font-bold text-white uppercase tracking-wider text-[10px] sm:text-xs truncate">
+                Oferta 15 Minutos
+              </span>
+              <span className="hidden md:inline text-white/90">
+                • Garanta por apenas <strong className="text-white underline decoration-white/60 font-bold">R$ {priceData.promoPrice}</strong> no lote promocional de lançamento!
+              </span>
+            </div>
 
-          <div className="flex items-center gap-2 sm:gap-3 shrink-0">
-            {!isExpired ? (
+            <div className="flex items-center gap-2 sm:gap-3 shrink-0">
               <div className="flex items-center gap-1 sm:gap-1.5 bg-black/40 backdrop-blur-md px-2.5 sm:px-3 py-1 rounded-full border border-white/20">
                 <span className="text-[9px] sm:text-[10px] uppercase font-bold text-white/70">Tempo:</span>
                 <span className="text-[11px] sm:text-xs font-mono font-bold tracking-wider text-[#2997ff]">
                   {formatTime(timeLeft)}
                 </span>
               </div>
-            ) : (
-              <span className="text-[10px] sm:text-xs font-bold text-red-300 bg-red-950/60 px-2 py-0.5 rounded-full border border-red-800/40">
-                Expirado
-              </span>
-            )}
 
-            <a
-              href="#oferta"
-              className="px-2.5 sm:px-3 py-1 rounded-full bg-white text-[#0071e3] hover:bg-white/90 text-[11px] sm:text-xs font-bold transition-all shadow-xs shrink-0 active:scale-95"
-            >
-              {!isExpired ? 'Aproveitar' : 'Ver Preço'}
-            </a>
+              <a
+                href="#oferta"
+                className="px-2.5 sm:px-3 py-1 rounded-full bg-white text-[#0071e3] hover:bg-white/90 text-[11px] sm:text-xs font-bold transition-all shadow-xs shrink-0 active:scale-95"
+              >
+                Aproveitar
+              </a>
+            </div>
           </div>
         </div>
-      </div>
+      )}
 
       {/* Glassmorphism Header Navigation */}
       <header
         className={`sticky z-40 w-full border-b border-white/10 shadow-[0_8px_32px_-4px_rgba(0,0,0,0.5)] transition-all duration-300 ${
-          showStickyTimer ? 'top-[39px] sm:top-[42px]' : 'top-0'
+          showStickyTimer && !isExpired ? 'top-[39px] sm:top-[42px]' : 'top-0'
         }`}
         style={{ background: 'rgba(14,14,18,0.85)', backdropFilter: 'blur(28px) saturate(180%)', WebkitBackdropFilter: 'blur(28px) saturate(180%)' }}
       >
