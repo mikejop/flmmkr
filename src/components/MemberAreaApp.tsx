@@ -1051,7 +1051,7 @@ export function MemberAreaApp() {
             >
               <TextHighlighterTool lessonId={activeLessonId} containerRef={lessonContainerRef} />
               
-              <div className="w-full lg:w-[85%] max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-1 space-y-6">
+              <div className="w-full max-w-[1536px] mx-auto px-4 sm:px-6 lg:px-10 py-8 flex-1 space-y-8">
                 
                 {/* Lesson Header */}
                 <div className="space-y-3 border-b border-neutral-200/80 pb-5">

@@ -41,12 +41,14 @@ export default function VideoLessonPlayer({ videoUrl, title, poster }: VideoLess
   const [isBuffering, setIsBuffering] = useState(false);
   const [showControls, setShowControls] = useState(true);
   const [hasStarted, setHasStarted] = useState(false);
+  const [videoAspectRatio, setVideoAspectRatio] = useState<number | null>(null);
 
   // Initialize HLS / Native video source
   useEffect(() => {
     const video = videoRef.current;
     if (!video || !videoUrl) return;
 
+    setVideoAspectRatio(null);
     setIsBuffering(true);
 
     if (hlsRef.current) {
@@ -98,6 +100,9 @@ export default function VideoLessonPlayer({ videoUrl, title, poster }: VideoLess
       video.addEventListener('loadedmetadata', () => {
         setIsBuffering(false);
         setDuration(video.duration || 0);
+        if (video.videoWidth && video.videoHeight && video.videoHeight > 0) {
+          setVideoAspectRatio(video.videoWidth / video.videoHeight);
+        }
       });
     }
 
@@ -122,8 +127,11 @@ export default function VideoLessonPlayer({ videoUrl, title, poster }: VideoLess
   const handleLoadedMetadata = () => {
     const video = videoRef.current;
     if (!video) return;
-    setDuration(video.duration);
+    setDuration(video.duration || 0);
     setIsBuffering(false);
+    if (video.videoWidth && video.videoHeight && video.videoHeight > 0) {
+      setVideoAspectRatio(video.videoWidth / video.videoHeight);
+    }
   };
 
   const handleWaiting = () => setIsBuffering(true);
@@ -322,7 +330,8 @@ export default function VideoLessonPlayer({ videoUrl, title, poster }: VideoLess
       ref={containerRef}
       onMouseMove={handleMouseMove}
       onMouseLeave={() => isPlaying && setShowControls(false)}
-      className="group relative w-full aspect-video rounded-[22px] sm:rounded-[26px] bg-black overflow-hidden shadow-2xl border border-white/10 select-none transition-all duration-300"
+      style={videoAspectRatio ? { aspectRatio: `${videoAspectRatio}` } : undefined}
+      className={`group relative w-full ${!videoAspectRatio ? 'aspect-video' : ''} rounded-[22px] sm:rounded-[26px] bg-black overflow-hidden shadow-2xl border border-white/10 select-none transition-all duration-300`}
     >
       {/* Video Element */}
       <video
@@ -336,7 +345,7 @@ export default function VideoLessonPlayer({ videoUrl, title, poster }: VideoLess
         onPlaying={handlePlaying}
         onPause={handlePause}
         onClick={togglePlay}
-        className="w-full h-full object-contain cursor-pointer"
+        className="w-full h-full object-cover cursor-pointer"
       />
 
       {/* Buffering Indicator */}
