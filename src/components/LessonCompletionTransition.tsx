@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useRef, useState } from 'react';
-import { CheckCircle2, ArrowRight, RotateCcw, Sparkles, Trophy } from 'lucide-react';
+import { CheckCircle2, ArrowRight, RotateCcw, Sparkles, Trophy, ShieldAlert, Headphones } from 'lucide-react';
 
 interface NextLessonInfo {
   id: string;
@@ -15,6 +15,9 @@ interface LessonCompletionTransitionProps {
   nextLesson: NextLessonInfo | null;
   onProceed: () => void;
   onStay: () => void;
+  studentName?: string;
+  disableAutoAdvance?: boolean;
+  backgroundReason?: 'background_mode' | 'window_unfocused' | null;
 }
 
 const CONFETTI_COLORS = [
@@ -47,6 +50,9 @@ export default function LessonCompletionTransition({
   nextLesson,
   onProceed,
   onStay,
+  studentName = 'Aluno',
+  disableAutoAdvance = false,
+  backgroundReason = null,
 }: LessonCompletionTransitionProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [secondsLeft, setSecondsLeft] = useState(4);
@@ -136,20 +142,31 @@ export default function LessonCompletionTransition({
   }, []);
 
   // 2. CONTAGEM REGRESSIVA PARA TRANSIÇÃO AUTOMÁTICA
+  // Se disableAutoAdvance for true, ou se o aluno NÃO estiver na página (document.hidden / blur), o avanço é bloqueado!
   useEffect(() => {
-    if (!nextLesson) return;
+    if (!nextLesson || disableAutoAdvance) return;
+
+    const checkIsActive = () => {
+      if (typeof document === 'undefined') return true;
+      return !document.hidden && document.hasFocus();
+    };
 
     if (secondsLeft <= 0) {
-      onProceed();
+      if (checkIsActive()) {
+        onProceed();
+      }
       return;
     }
 
     const timer = setInterval(() => {
-      setSecondsLeft((prev) => prev - 1);
+      // Só decrementa se o aluno estiver efetivamente com a página aberta e com foco
+      if (checkIsActive()) {
+        setSecondsLeft((prev) => prev - 1);
+      }
     }, 1000);
 
     return () => clearInterval(timer);
-  }, [secondsLeft, nextLesson, onProceed]);
+  }, [secondsLeft, nextLesson, onProceed, disableAutoAdvance]);
 
   return (
     <div className="absolute inset-0 bg-white/95 backdrop-blur-md z-40 flex flex-col items-center justify-center p-6 select-none overflow-hidden animate-fadeIn">
@@ -168,7 +185,7 @@ export default function LessonCompletionTransition({
           </div>
         </div>
 
-        {/* MENSAGEM DE PARABÉNS */}
+        {/* MENSAGEM DE PARABÉNS PERSONALIZADA */}
         <div className="space-y-2">
           <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-bold uppercase tracking-wider">
             <CheckCircle2 size={13} />
@@ -176,7 +193,7 @@ export default function LessonCompletionTransition({
           </div>
 
           <h2 className="text-2xl sm:text-3xl font-black text-neutral-900 tracking-tight">
-            Parabéns por finalizar a aula!
+            Parabéns, {studentName}!
           </h2>
 
           <p className="text-sm text-neutral-600 font-medium max-w-md mx-auto line-clamp-2">
@@ -184,12 +201,12 @@ export default function LessonCompletionTransition({
           </p>
         </div>
 
-        {/* PRÓXIMA AULA OU FIM DO CURSO */}
+        {/* AVISO DE SEGUNDO PLANO / FOCO OU CONTAGEM REGRESSIVA */}
         {nextLesson ? (
           <div className="p-5 rounded-2xl bg-neutral-50 border border-neutral-200 shadow-sm text-left space-y-3">
             <div className="flex items-center justify-between text-xs">
               <span className="font-bold uppercase tracking-wider text-[#0071e3]">
-                Próxima Aula ({secondsLeft}s)
+                {disableAutoAdvance ? 'Avanço Automático Pausado' : `Próxima Aula (${secondsLeft}s)`}
               </span>
               <span className="text-[11px] font-mono text-neutral-500">
                 {nextLesson.moduleTitle}
@@ -200,19 +217,28 @@ export default function LessonCompletionTransition({
               {nextLesson.title}
             </h3>
 
-            {/* BARRA DE PROGRESSO DE TEMPO */}
-            <div className="w-full h-1.5 bg-neutral-200 rounded-full overflow-hidden">
-              <div
-                className="h-full bg-gradient-to-r from-[#0071e3] to-[#00c7fc] transition-all duration-1000 ease-linear rounded-full"
-                style={{ width: `${((4 - secondsLeft) / 4) * 100}%` }}
-              />
-            </div>
+            {disableAutoAdvance ? (
+              <div className="p-3 bg-blue-50/70 border border-blue-200/80 rounded-xl flex items-start gap-2.5">
+                <Headphones size={16} className="text-[#0071e3] shrink-0 mt-0.5" />
+                <p className="text-xs text-neutral-700 leading-relaxed">
+                  <strong>{studentName}</strong>, como a aula terminou em segundo plano ou fora da tela, o avanço automático foi desativado para garantir que você não perca o início da próxima aula. Clique abaixo quando estiver pronto.
+                </p>
+              </div>
+            ) : (
+              /* BARRA DE PROGRESSO DE TEMPO */
+              <div className="w-full h-1.5 bg-neutral-200 rounded-full overflow-hidden">
+                <div
+                  className="h-full bg-gradient-to-r from-[#0071e3] to-[#00c7fc] transition-all duration-1000 ease-linear rounded-full"
+                  style={{ width: `${((4 - secondsLeft) / 4) * 100}%` }}
+                />
+              </div>
+            )}
           </div>
         ) : (
           <div className="p-5 rounded-2xl bg-neutral-50 border border-neutral-200 text-center space-y-2">
             <Sparkles className="w-6 h-6 text-[#0071e3] mx-auto" />
             <h3 className="text-lg font-bold text-neutral-900">
-              Você concluiu todos os módulos do curso!
+              {studentName}, você concluiu todos os módulos do curso!
             </h3>
             <p className="text-xs text-neutral-600">
               Parabéns por essa conquista extraordinária no Color Master.
@@ -226,7 +252,7 @@ export default function LessonCompletionTransition({
             <button
               type="button"
               onClick={onProceed}
-              className="w-full sm:w-auto flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-[#0071e3] hover:bg-[#0077ed] text-white font-bold text-sm shadow-lg shadow-blue-500/25 transition-all cursor-pointer hover:scale-105 active:scale-95"
+              className="w-full sm:w-auto flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl bg-[#0071e3] hover:bg-[#0077ed] text-white font-bold text-sm shadow-lg shadow-blue-500/25 transition-all cursor-pointer hover:scale-105 active:scale-95"
             >
               <span>Ir para a próxima aula agora</span>
               <ArrowRight size={16} />
@@ -236,7 +262,7 @@ export default function LessonCompletionTransition({
           <button
             type="button"
             onClick={onStay}
-            className="w-full sm:w-auto flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-neutral-100 hover:bg-neutral-200 text-neutral-700 font-semibold text-sm transition-all cursor-pointer"
+            className="w-full sm:w-auto flex items-center justify-center gap-2 px-5 py-3.5 rounded-xl bg-neutral-100 hover:bg-neutral-200 text-neutral-700 font-semibold text-sm transition-all cursor-pointer"
           >
             <RotateCcw size={15} />
             <span>Rever esta aula</span>

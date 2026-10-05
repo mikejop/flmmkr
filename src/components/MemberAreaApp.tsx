@@ -20,7 +20,8 @@ import { getMediaUrl } from '@/lib/storage';
 import { MemberPreloader } from '@/components/MemberPreloader';
 import { AccountSettingsModal } from '@/components/AccountSettingsModal';
 import { DeviceSessionKickedModal } from '@/components/DeviceSessionKickedModal';
-import VideoLessonPlayer from '@/components/VideoLessonPlayer';
+import VideoLessonPlayer, { VideoLessonPlayerHandle } from '@/components/VideoLessonPlayer';
+import { FocusPromptModal } from '@/components/FocusPromptModal';
 import LessonComments from '@/components/LessonComments';
 import NotificationsDropdown from '@/components/NotificationsDropdown';
 import LessonCompletionTransition from '@/components/LessonCompletionTransition';
@@ -141,12 +142,58 @@ export function MemberAreaApp() {
       moduleId: string;
       moduleTitle: string;
     } | null;
+    disableAutoAdvance?: boolean;
+    backgroundReason?: 'background_mode' | 'window_unfocused' | null;
   } | null>(null);
+
+  // Sistema de Foco e Reprodução em Segundo Plano
+  const [allowBackgroundPlayback, setAllowBackgroundPlayback] = useState<boolean>(() => {
+    if (typeof window === 'undefined') return false;
+    try {
+      return localStorage.getItem('flmmkr_allow_bg_playback') === 'true';
+    } catch (_) {
+      return false;
+    }
+  });
+  const [isFocusPromptOpen, setIsFocusPromptOpen] = useState<boolean>(false);
+  const playerRef = useRef<VideoLessonPlayerHandle>(null);
+
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState<boolean>(false);
   const [isAccountModalOpen, setIsAccountModalOpen] = useState<boolean>(false);
   const [isAccessibilityOpen, setIsAccessibilityOpen] = useState<boolean>(false);
   
   const [userProfile, setUserProfile] = useState<UserProfile>(DEFAULT_PROFILE);
+
+  // Nome pessoal do aluno para avisos
+  const studentDisplayName = useMemo(() => {
+    const first = userProfile.firstName?.trim();
+    if (first && first.toLowerCase() !== 'aluno') {
+      return first;
+    }
+    const last = userProfile.lastName?.trim();
+    if (last && last.toLowerCase() !== 'flmmkr' && last.length > 0) {
+      return `${first || ''} ${last}`.trim();
+    }
+    return 'Aluno';
+  }, [userProfile.firstName, userProfile.lastName]);
+
+  const handleToggleBackgroundPlayback = (enabled: boolean) => {
+    setAllowBackgroundPlayback(enabled);
+    try {
+      localStorage.setItem('flmmkr_allow_bg_playback', String(enabled));
+    } catch (_) {}
+  };
+
+  const handleAllowBackgroundFromPrompt = () => {
+    handleToggleBackgroundPlayback(true);
+    setIsFocusPromptOpen(false);
+    playerRef.current?.play();
+  };
+
+  const handleKeepPausedFromPrompt = () => {
+    handleToggleBackgroundPlayback(false);
+    setIsFocusPromptOpen(false);
+  };
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [kickedModalOpen, setKickedModalOpen] = useState<boolean>(false);
   const [kickedDeviceName, setKickedDeviceName] = useState<string>('Outro Dispositivo');
@@ -428,7 +475,7 @@ export function MemberAreaApp() {
     });
   };
 
-  const handleLessonFinished = (finishedLessonId?: string) => {
+  const handleLessonFinished = (finishedLessonId?: string, options?: { wasInBackground?: boolean }) => {
     const targetLessonId = finishedLessonId || activeLessonId;
     
     // 1. Adicionar à barra de progresso imediatamente
@@ -478,13 +525,19 @@ export function MemberAreaApp() {
       }
     }
 
-    // 3. Abrir tela de transição com confetes dentro da tela de conteúdo
+    // 3. Regra de Foco: se rodou em segundo plano ou o aluno não estiver na página, o avanço automático é bloqueado!
+    const isOutOfFocus = typeof document !== 'undefined' && (document.hidden || !document.hasFocus());
+    const shouldDisableAutoAdvance = !!(options?.wasInBackground || allowBackgroundPlayback || isOutOfFocus);
+
+    // 4. Abrir tela de transição com confetes dentro da tela de conteúdo
     if (lessonContainerRef.current) {
       lessonContainerRef.current.scrollTo({ top: 0, behavior: 'instant' });
     }
     setCompletionTransitionData({
       completedLessonTitle: activeLesson.title,
-      nextLesson: nextLessonInfo
+      nextLesson: nextLessonInfo,
+      disableAutoAdvance: shouldDisableAutoAdvance,
+      backgroundReason: shouldDisableAutoAdvance ? (allowBackgroundPlayback ? 'background_mode' : 'window_unfocused') : null,
     });
   };
 
@@ -1140,6 +1193,9 @@ export function MemberAreaApp() {
                   nextLesson={completionTransitionData.nextLesson}
                   onProceed={handleProceedToNextLesson}
                   onStay={() => setCompletionTransitionData(null)}
+                  studentName={studentDisplayName}
+                  disableAutoAdvance={completionTransitionData.disableAutoAdvance}
+                  backgroundReason={completionTransitionData.backgroundReason}
                 />
               )}
 
@@ -1195,9 +1251,14 @@ export function MemberAreaApp() {
                   {/* Video Player on Top */}
                   <div className="w-full">
                     <VideoLessonPlayer
+                      ref={playerRef}
                       videoUrl={currentSubtab?.videoUrl || activeLesson.videoUrl}
                       title={currentSubtab ? `${activeLesson.title} — ${currentSubtab.label}` : activeLesson.title}
-                      onLessonEnded={() => handleLessonFinished(activeLessonId)}
+                      studentName={studentDisplayName}
+                      allowBackgroundPlayback={allowBackgroundPlayback}
+                      onToggleBackgroundPlayback={handleToggleBackgroundPlayback}
+                      onFocusLostWhilePlaying={() => setIsFocusPromptOpen(true)}
+                      onLessonEnded={(info) => handleLessonFinished(activeLessonId, info)}
                     />
                   </div>
 
@@ -1312,6 +1373,7 @@ export function MemberAreaApp() {
       {/* MODAL DE SESSÃO DERRUBADA POR OUTRO DISPOSITIVO */}
       <DeviceSessionKickedModal
         isOpen={kickedModalOpen}
+        studentName={studentDisplayName}
         replacedByDevice={kickedDeviceName}
         replacedByLocation={kickedDeviceLocation}
         replacedAt={kickedAt}
@@ -1319,6 +1381,15 @@ export function MemberAreaApp() {
           setKickedModalOpen(false);
           setIsLoginModalOpen(true);
         }}
+      />
+
+      {/* MODAL DE SISTEMA DE FOCO / SEGUNDO PLANO */}
+      <FocusPromptModal
+        isOpen={isFocusPromptOpen}
+        studentName={studentDisplayName}
+        lessonTitle={currentSubtab ? `${activeLesson.title} — ${currentSubtab.label}` : activeLesson.title}
+        onAllowBackground={handleAllowBackgroundFromPrompt}
+        onKeepPaused={handleKeepPausedFromPrompt}
       />
 
       {/* ACCESSIBILITY WIDGET */}
