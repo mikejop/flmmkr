@@ -4,6 +4,8 @@ import { validateAndSanitizeBody } from '@/utils/security';
 import { getDeviceInfoFromRequest } from '@/utils/deviceDetection';
 import crypto from 'crypto';
 
+export const dynamic = 'force-dynamic';
+
 export async function POST(req: NextRequest) {
   try {
     const rawBody = await req.json();

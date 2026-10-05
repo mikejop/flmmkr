@@ -5,6 +5,8 @@ import { getDeviceInfoFromRequest } from '@/utils/deviceDetection';
 import { sendSecurityAlertEmail } from '@/services/notificationService';
 import crypto from 'crypto';
 
+export const dynamic = 'force-dynamic';
+
 export async function POST(req: NextRequest) {
   try {
     const rawBody = await req.json();
