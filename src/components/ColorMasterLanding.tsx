@@ -957,7 +957,7 @@ export const ColorMasterLanding: React.FC = () => {
       {/* ========================================================================= */}
       {/* 06. OFERTA E COMPRA                                                       */}
       {/* ========================================================================= */}
-      <section id="oferta" className="relative z-10 scroll-mt-14 sm:scroll-mt-20 py-12 sm:py-16 md:py-24 bg-[#f5f5f7] px-4 sm:px-6 lg:px-8 overflow-hidden min-h-[90dvh] flex flex-col justify-center">
+      <section id="oferta" className="relative z-10 scroll-mt-14 sm:scroll-mt-20 min-h-[100dvh] w-full flex flex-col justify-center py-8 sm:py-12 md:py-16 bg-[#f5f5f7] px-4 sm:px-6 lg:px-8 overflow-hidden">
         {/* Background Images Showcase Layer */}
         <div className="absolute inset-0 pointer-events-none z-0 overflow-hidden">
           {OFFER_IMAGES.map((img, idx) => (
@@ -975,8 +975,8 @@ export const ColorMasterLanding: React.FC = () => {
           <div className="absolute inset-0 z-1 pointer-events-none reticula-pattern" />
         </div>
 
-        <div className="max-w-3xl mx-auto text-center relative z-10 w-full">
-          <div className="p-6 sm:p-10 md:p-14 rounded-2xl sm:rounded-3xl bg-[#ffffff]/95 backdrop-blur-xl border border-[#0071e3]/30 shadow-2xl relative overflow-hidden">
+        <div className="max-w-4xl mx-auto text-center relative z-10 w-full my-auto">
+          <div className="p-6 sm:p-10 md:p-12 lg:p-14 rounded-2xl sm:rounded-3xl bg-[#ffffff]/95 backdrop-blur-xl border border-[#0071e3]/30 shadow-2xl relative overflow-hidden">
             {/* Offer Header Tag */}
             <span className="px-3.5 sm:px-4 py-1 sm:py-1.5 rounded-full bg-[#0071e3]/10 text-[#0071e3] text-[12px] sm:text-xs font-semibold uppercase tracking-[0.04em] mb-4 sm:mb-6 inline-block border border-[#0071e3]/20">
               OFERTA ESPECIAL DE ACESSO
