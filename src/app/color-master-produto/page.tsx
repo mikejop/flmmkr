@@ -32,12 +32,12 @@ export default function ColorMasterProdutoPage() {
           setIsAuthenticated(true);
         } else {
           setIsAuthenticated(false);
-          window.location.replace('/?login=required');
+          window.location.replace('/');
         }
       } catch (err) {
         if (isMounted) {
           setIsAuthenticated(false);
-          window.location.replace('/?login=required');
+          window.location.replace('/');
         }
       }
     }
@@ -47,7 +47,7 @@ export default function ColorMasterProdutoPage() {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       if (!session && isMounted) {
         setIsAuthenticated(false);
-        window.location.replace('/?login=required');
+        window.location.replace('/');
       }
     });
 

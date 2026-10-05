@@ -215,13 +215,13 @@ export function MemberAreaApp() {
           // Usuário não autenticado: bloqueia acesso e redireciona para a landing page
           setIsLoggedIn(false);
           setIsAuthChecking(false);
-          window.location.replace('/?login=required');
+          window.location.replace('/');
         }
       } catch (err) {
         console.warn('Erro auth:', err);
         setIsLoggedIn(false);
         setIsAuthChecking(false);
-        window.location.replace('/?login=required');
+        window.location.replace('/');
       }
     }
 
@@ -235,7 +235,7 @@ export function MemberAreaApp() {
         setIsPaidUser(false);
         setIsMasterAdmin(false);
         setCurrentUserId(null);
-        window.location.replace('/?login=required');
+        window.location.replace('/');
       }
     });
 
@@ -312,7 +312,7 @@ export function MemberAreaApp() {
     setIsPaidUser(false);
     setIsMasterAdmin(false);
     setIsProfileMenuOpen(false);
-    window.location.replace('/?login=required');
+    window.location.replace('/');
   };
 
   const handleToggleLessonComplete = (lessonId: string) => {

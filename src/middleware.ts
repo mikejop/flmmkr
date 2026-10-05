@@ -40,7 +40,7 @@ export async function middleware(request: NextRequest) {
     if (!hasAuthSession) {
       const redirectUrl = request.nextUrl.clone();
       redirectUrl.pathname = '/';
-      redirectUrl.searchParams.set('login', 'required');
+      redirectUrl.search = '';
       return NextResponse.redirect(redirectUrl);
     }
   }
