@@ -842,7 +842,7 @@ export function MemberAreaApp() {
                   </div>
 
                   <div className="border-l border-white/10 pl-3 hidden sm:block">
-                    <span className="block text-xs font-bold tracking-tight text-white leading-none">FLMMKR Academy</span>
+                    <span className="block text-xs font-bold tracking-tight text-white leading-none">FLMMKR</span>
                   </div>
                 </div>
               </div>
