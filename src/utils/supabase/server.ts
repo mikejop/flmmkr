@@ -4,13 +4,32 @@ import { cookies } from "next/headers";
 const DEFAULT_SUPABASE_URL = 'https://gnqqaskurjkrllnhjygt.supabase.co';
 const DEFAULT_SUPABASE_ANON_KEY = 'dummy-anon-key-for-build';
 
-export const createClient = (cookieStore: Awaited<ReturnType<typeof cookies>>) => {
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || DEFAULT_SUPABASE_URL;
-  const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || DEFAULT_SUPABASE_ANON_KEY;
+function resolveUrl(): string {
+  const envUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  if (typeof envUrl === 'string') {
+    const trimmed = envUrl.trim();
+    if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) {
+      return trimmed;
+    }
+  }
+  return DEFAULT_SUPABASE_URL;
+}
 
+function resolveKey(): string {
+  const envKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  if (typeof envKey === 'string') {
+    const trimmed = envKey.trim();
+    if (trimmed.length > 0 && trimmed !== 'undefined' && trimmed !== 'null') {
+      return trimmed;
+    }
+  }
+  return DEFAULT_SUPABASE_ANON_KEY;
+}
+
+export const createClient = (cookieStore: Awaited<ReturnType<typeof cookies>>) => {
   return createServerClient(
-    supabaseUrl,
-    supabaseKey,
+    resolveUrl(),
+    resolveKey(),
     {
       cookies: {
         getAll() {

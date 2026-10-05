@@ -5,6 +5,8 @@ import { getCurrentBatchPrice, resolveOfferTimerSession } from '@/utils/offerPri
 import { provisionSupabaseUserAndProfile } from '@/services/userService';
 import { validateAndSanitizeBody } from '@/utils/security';
 
+export const dynamic = 'force-dynamic';
+
 export async function POST(req: NextRequest) {
   let requestData: any = {};
   try {

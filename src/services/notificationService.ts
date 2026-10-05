@@ -3,7 +3,7 @@
  * Sends security email notifications when suspicious activity or repeated failed login attempts occur.
  */
 
-import { supabaseAdmin } from '@/services/userService';
+import { supabaseAdmin } from '@/utils/supabase/admin';
 
 interface SecurityAlertOptions {
   email: string;

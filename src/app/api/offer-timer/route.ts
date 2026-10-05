@@ -4,6 +4,8 @@ import {
   resolveOfferTimerSession
 } from '@/utils/offerPricing';
 
+export const dynamic = 'force-dynamic';
+
 export async function GET(req: NextRequest) {
   // 1. Extração segura do IP no servidor
   const forwardedFor = req.headers.get('x-forwarded-for');
