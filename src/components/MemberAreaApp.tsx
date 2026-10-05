@@ -17,6 +17,7 @@ import { LoginModal } from '@/components/LoginModal';
 import { CheckoutModal } from '@/components/CheckoutModal';
 import { supabase } from '@/lib/supabase';
 import { getMediaUrl } from '@/lib/storage';
+import { getDeviceFingerprint } from '@/utils/deviceFingerprint';
 import { MemberPreloader } from '@/components/MemberPreloader';
 import { AccountSettingsModal } from '@/components/AccountSettingsModal';
 import { DeviceSessionKickedModal } from '@/components/DeviceSessionKickedModal';
@@ -172,6 +173,113 @@ export function MemberAreaApp() {
   const [kickedDeviceName, setKickedDeviceName] = useState<string>('Outro Dispositivo');
   const [kickedDeviceLocation, setKickedDeviceLocation] = useState<string>('Brasil');
   const [kickedAt, setKickedAt] = useState<string>('');
+
+  // Controle de congelamento no último frame e reset de 72h do vídeo de fundo
+  const bgVideoRef = useRef<HTMLVideoElement>(null);
+  const [isBgVideoFrozen, setIsBgVideoFrozen] = useState<boolean>(() => {
+    if (typeof window === 'undefined') return false;
+    try {
+      const stored = localStorage.getItem('flmmkr_member_bg_video_frozen_v1');
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        if (parsed.resetAt && Date.now() < parsed.resetAt) {
+          return true;
+        }
+      }
+    } catch (_) {}
+    return false;
+  });
+
+  // Sincronizar com o backend (MAC/IP/userId) o status de 72h do vídeo de fundo
+  useEffect(() => {
+    let isCancelled = false;
+
+    async function checkBgVideoStatus() {
+      try {
+        const mac = await getDeviceFingerprint();
+        const url = `/api/member/bg-video?macAddress=${encodeURIComponent(mac)}${currentUserId ? `&userId=${encodeURIComponent(currentUserId)}` : ''}`;
+        const res = await fetch(url);
+        if (!res.ok) return;
+        const data = await res.json();
+
+        if (isCancelled) return;
+
+        if (data.isFrozen && data.resetAt) {
+          const resetTime = new Date(data.resetAt).getTime();
+          if (Date.now() < resetTime) {
+            setIsBgVideoFrozen(true);
+            try {
+              localStorage.setItem('flmmkr_member_bg_video_frozen_v1', JSON.stringify({ resetAt: resetTime }));
+            } catch (_) {}
+
+            // Congelar no último frame se o vídeo já estiver montado
+            const vid = bgVideoRef.current;
+            if (vid) {
+              vid.pause();
+              if (vid.duration && !isNaN(vid.duration)) {
+                vid.currentTime = Math.max(0, vid.duration - 0.05);
+              }
+            }
+          } else {
+            // Já expirou as 72h -> reseta o vídeo
+            setIsBgVideoFrozen(false);
+            try {
+              localStorage.removeItem('flmmkr_member_bg_video_frozen_v1');
+            } catch (_) {}
+            const vid = bgVideoRef.current;
+            if (vid) {
+              vid.currentTime = 0;
+              vid.play().catch(() => {});
+            }
+          }
+        } else {
+          setIsBgVideoFrozen(false);
+          try {
+            localStorage.removeItem('flmmkr_member_bg_video_frozen_v1');
+          } catch (_) {}
+        }
+      } catch (err) {
+        console.warn('[BgVideo] Erro checagem 72h:', err);
+      }
+    }
+
+    checkBgVideoStatus();
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [currentUserId]);
+
+  // Handler disparado quando o vídeo de background chega ao fim
+  const handleBgVideoEnded = async () => {
+    const vid = bgVideoRef.current;
+    if (vid) {
+      vid.pause();
+      if (vid.duration && !isNaN(vid.duration)) {
+        vid.currentTime = Math.max(0, vid.duration - 0.05);
+      }
+    }
+    setIsBgVideoFrozen(true);
+
+    const resetTime = Date.now() + 72 * 60 * 60 * 1000;
+    try {
+      localStorage.setItem('flmmkr_member_bg_video_frozen_v1', JSON.stringify({ resetAt: resetTime }));
+    } catch (_) {}
+
+    try {
+      const mac = await getDeviceFingerprint();
+      await fetch('/api/member/bg-video', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          macAddress: mac,
+          userId: currentUserId || null
+        })
+      });
+    } catch (err) {
+      console.warn('[BgVideo] Erro ao registrar término:', err);
+    }
+  };
 
   const [expandedEmenta, setExpandedEmenta] = useState<Record<string, boolean>>(() => {
     const saved = getLocalReadingState();
@@ -715,15 +823,26 @@ export function MemberAreaApp() {
       {/* Brand Preloader exclusivo da Área de Membros */}
       <MemberPreloader />
       
-      {/* Background Geral (Vídeo WebM do YouTuber Pro) */}
+      {/* Background Geral (Vídeo WebM do YouTuber Pro com congelamento no último frame e reset de 72h) */}
       <div className="hidden md:block absolute inset-0 z-0 overflow-hidden pointer-events-none">
         <video
+          ref={bgVideoRef}
           src={getMediaUrl('bg/02.webm')}
           poster={getMediaUrl('bg/02.webp')}
-          autoPlay
+          autoPlay={!isBgVideoFrozen}
           muted
-          loop
+          loop={false}
           playsInline
+          onEnded={handleBgVideoEnded}
+          onLoadedMetadata={() => {
+            if (isBgVideoFrozen && bgVideoRef.current) {
+              const vid = bgVideoRef.current;
+              vid.pause();
+              if (vid.duration && !isNaN(vid.duration)) {
+                vid.currentTime = Math.max(0, vid.duration - 0.05);
+              }
+            }
+          }}
           className="absolute inset-0 w-full h-full object-cover"
         />
         {/* Subtle Dark Contrast Overlay */}
