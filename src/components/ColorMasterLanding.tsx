@@ -413,8 +413,8 @@ export const ColorMasterLanding: React.FC = () => {
       a: 'O acesso é liberado imediatamente após a confirmação do pagamento e tem duração de 1 ano completo (365 dias). Durante esse período, você pode assistir a todas as aulas quantas vezes quiser, além de baixar os materiais e projetos.'
     },
     {
-      q: 'Como funciona a mentoria em grupo para os 10 primeiros inscritos?',
-      a: 'Os 10 primeiros inscritos ganham a Mentoria em Grupo ao vivo com Michael Oliveira com 1 sessão de mais de 3 horas de duração, onde vamos analisar os trabalhos de cada um e buscar soluções práticas para melhorar e elevar o nível das produções.'
+      q: 'Como funciona a mentoria individual para os 10 primeiros inscritos?',
+      a: 'Os 10 primeiros inscritos ganham a Mentoria Individual ao vivo com Michael Oliveira com 1 sessão de mais de 3 horas de duração, focada exclusivamente nas suas necessidades e projetos, onde vamos analisar seus trabalhos e buscar soluções práticas para melhorar e elevar o nível das produções.'
     },
     {
       q: 'Como funciona o pagamento e quais são as formas disponíveis?',
@@ -512,7 +512,7 @@ export const ColorMasterLanding: React.FC = () => {
                   Oferta 15 Minutos
                 </span>
                 <span className="hidden md:inline text-white/90">
-                  • Garanta por apenas <strong className="text-white underline decoration-white/60 font-bold">R$ {priceData.promoPrice}</strong> + Mentoria em Grupo para os 10 primeiros!
+                  • Garanta por apenas <strong className="text-white underline decoration-white/60 font-bold">R$ {priceData.promoPrice}</strong> + Mentoria Individual para os 10 primeiros!
                 </span>
               </>
             ) : (
@@ -1016,7 +1016,7 @@ export const ColorMasterLanding: React.FC = () => {
       </section>
 
       {/* ========================================================================= */}
-      {/* 06. BÔNUS EXCLUSIVO: MENTORIA EM GRUPO AO VIVO                            */}
+      {/* 06. BÔNUS EXCLUSIVO: MENTORIA INDIVIDUAL AO VIVO                          */}
       {/* ========================================================================= */}
       <section
         ref={bonusSectionRef}
@@ -1050,7 +1050,7 @@ export const ColorMasterLanding: React.FC = () => {
               </div>
 
               <h2 className="text-[26px] leading-[1.18] sm:text-3xl md:text-5xl font-semibold tracking-[-0.015em] text-white mb-3 sm:mb-4">
-                Mentoria em Grupo ao Vivo com Análise dos Seus Trabalhos
+                Mentoria Individual ao Vivo com Análise dos Seus Trabalhos
               </h2>
 
               <p className="text-[17px] leading-[1.47] sm:text-lg md:text-xl text-white/80 font-normal mb-6 sm:mb-8 max-w-3xl">
@@ -1065,8 +1065,8 @@ export const ColorMasterLanding: React.FC = () => {
                 </div>
                 <div className="p-4 sm:p-5 rounded-xl sm:rounded-2xl bg-white/5 border border-white/10">
                   <span className="text-[12px] sm:text-xs uppercase tracking-[0.04em] text-[#2997ff] font-semibold block mb-1">Formato</span>
-                  <span className="text-[19px] sm:text-xl font-bold text-white block">1 Sessão ao Vivo</span>
-                  <span className="text-[13px] text-white/70 mt-1 block">Encontro exclusivo em grupo</span>
+                  <span className="text-[19px] sm:text-xl font-bold text-white block">1 Sessão Individual</span>
+                  <span className="text-[13px] text-white/70 mt-1 block">Encontro individual exclusivo</span>
                 </div>
                 <div className="p-4 sm:p-5 rounded-xl sm:rounded-2xl bg-white/5 border border-white/10">
                   <span className="text-[12px] sm:text-xs uppercase tracking-[0.04em] text-[#2997ff] font-semibold block mb-1">Foco Central</span>
@@ -1077,7 +1077,7 @@ export const ColorMasterLanding: React.FC = () => {
 
               <div className="p-4 sm:p-6 rounded-xl sm:rounded-2xl bg-white/[0.04] border border-white/10 text-white/90 text-[15px] sm:text-sm md:text-base leading-[1.55]">
                 <p>
-                  As primeiras 10 pessoas inscritas participarão de 1 sessão ao vivo e intensiva de mais de 3 horas com Michael Oliveira. Uma oportunidade fechada para analisar os projetos e grades de cada participante, identificando falhas, refinando o tratamento e encontrando soluções técnicas para atingir o padrão comercial exigido pelas grandes produtoras e agências.
+                  As primeiras 10 pessoas inscritas garantirão 1 sessão individual ao vivo de mais de 3 horas com Michael Oliveira. Um encontro individual e personalizado para analisar os seus próprios projetos e grades no DaVinci Resolve, identificando falhas, refinando o seu tratamento de cor e encontrando soluções técnicas para atingir o padrão comercial exigido pelas grandes produtoras e agências.
                 </p>
               </div>
             </div>
@@ -1129,7 +1129,7 @@ export const ColorMasterLanding: React.FC = () => {
             {/* Checklist of What's Included */}
             <div className="text-left space-y-3 sm:space-y-3.5 max-w-lg mx-auto mb-6 sm:mb-8 text-[14px] sm:text-sm md:text-base leading-[1.5] text-[#1d1d1f] border-y border-[#e5e5e7] py-5 sm:py-6">
               <div className="py-1 border-b border-[#e5e5e7]/50 flex items-center justify-between font-bold text-[#1d1d1f]">
-                <span>• Mentoria ao Vivo (+3 Horas) para os 10 primeiros</span>
+                <span>• Mentoria Individual ao Vivo (+3 Horas) para os 10 primeiros</span>
                 <span className="text-[10px] uppercase font-bold tracking-wider bg-[#0071e3] text-white px-2.5 py-0.5 rounded-full shrink-0">
                   Bônus
                 </span>

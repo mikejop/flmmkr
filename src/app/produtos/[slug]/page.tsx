@@ -203,10 +203,10 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
         },
         {
           '@type': 'Question',
-          name: 'Como funciona a mentoria em grupo para os 10 primeiros inscritos?',
+          name: 'Como funciona a mentoria individual para os 10 primeiros inscritos?',
           acceptedAnswer: {
             '@type': 'Answer',
-            text: 'Os 10 primeiros inscritos ganham a Mentoria em Grupo ao vivo com Michael Oliveira em 1 sessão intensiva de mais de 3 horas para analisar trabalhos e buscar soluções práticas.',
+            text: 'Os 10 primeiros inscritos ganham a Mentoria Individual ao vivo com Michael Oliveira em 1 sessão intensiva de mais de 3 horas para analisar trabalhos e buscar soluções práticas.',
           },
         },
         {
