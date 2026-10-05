@@ -109,7 +109,7 @@ export const PromoModals: React.FC<PromoModalsProps> = ({
               {/* Description */}
               <p className="text-[15px] sm:text-[16px] text-white/75 leading-[1.5] mb-5 max-w-md mx-auto font-normal">
                 Restam menos de 1 minuto e meio para encerrar o lote de abertura do{' '}
-                <strong className="text-white font-semibold">Color Master | Produto</strong>. Assim que o tempo zerar, o desconto expira e as condições de mentoria individual serão finalizadas.
+                <strong className="text-white font-semibold">Color Master | Produto</strong>. Assim que o tempo zerar, o desconto expira e o valor voltará ao preço regular.
               </p>
 
               {/* Countdown & Price Highlight Card */}

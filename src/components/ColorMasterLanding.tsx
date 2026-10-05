@@ -34,10 +34,6 @@ const PRODUTORAS_LOGOS = [
 ];
 
 export const ColorMasterLanding: React.FC = () => {
-  const bonusSectionRef = useRef<HTMLElement>(null);
-  const bonusWrapperRef = useRef<HTMLDivElement>(null);
-  const bonusCardRef = useRef<HTMLDivElement>(null);
-  const bonusGlowRef = useRef<HTMLDivElement>(null);
   const instructorCardRef = useRef<HTMLDivElement>(null);
 
   const [authorPhotos, setAuthorPhotos] = useState<AuthorPhotoPair>({
@@ -87,32 +83,6 @@ export const ColorMasterLanding: React.FC = () => {
   const hasExpiredRef = useRef<boolean>(false);
   const prevTimeLeftRef = useRef<number>(900);
 
-  // Mouse tracking spotlight for bonus card
-  const handleBonusMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (!bonusCardRef.current || !bonusGlowRef.current) return;
-    const rect = bonusCardRef.current.getBoundingClientRect();
-    const x = e.clientX - rect.left - 200;
-    const y = e.clientY - rect.top - 200;
-
-    bonusGlowRef.current.style.transform = `translate3d(${x}px, ${y}px, 0)`;
-    bonusGlowRef.current.style.opacity = '0.35';
-  };
-
-  const handleBonusMouseLeave = () => {
-    if (!bonusGlowRef.current) return;
-    bonusGlowRef.current.style.opacity = '0.08';
-    bonusGlowRef.current.style.transform = 'translate3d(120px, -60px, 0)';
-  };
-
-  const handleBonusMouseEnter = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (!bonusCardRef.current || !bonusGlowRef.current) return;
-    const rect = bonusCardRef.current.getBoundingClientRect();
-    const x = e.clientX - rect.left - 200;
-    const y = e.clientY - rect.top - 200;
-    bonusGlowRef.current.style.transform = `translate3d(${x}px, ${y}px, 0)`;
-    bonusGlowRef.current.style.opacity = '0.35';
-  };
-
   useEffect(() => {
     const handleScroll = () => {
       const heroSection = document.getElementById('hero-section');
@@ -133,61 +103,6 @@ export const ColorMasterLanding: React.FC = () => {
     window.addEventListener('scroll', handleScroll, { passive: true });
     handleScroll();
     return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
-
-  // Animação de Scroll: o bloco do Bônus começa embaixo e vai subindo conforme o usuário rola
-  useEffect(() => {
-    let animFrame: number;
-
-    const updateBonusParallax = () => {
-      if (!bonusSectionRef.current || !bonusWrapperRef.current) return;
-
-      const isMobileOrTablet = typeof window !== 'undefined' && window.innerWidth <= 1180;
-      const prefersReduced = typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-
-      // No modo mobile e tablet (até 1180px) ou com movimento reduzido, desativa animações de scroll
-      if (isMobileOrTablet || prefersReduced) {
-        bonusWrapperRef.current.style.transform = 'none';
-        bonusWrapperRef.current.style.opacity = '1';
-        return;
-      }
-
-      const rect = bonusSectionRef.current.getBoundingClientRect();
-      const windowHeight = window.innerHeight || 800;
-
-      // Inicia a subida quando o topo da seção entra no rodapé da janela
-      const start = windowHeight;
-      // Conclui a subida quando a seção atinge o terço superior (centralizada confortavelmente)
-      const end = windowHeight * 0.22;
-
-      const rawProgress = Math.min(1, Math.max(0, (start - rect.top) / (start - end)));
-
-      // Curva quadrática suave de desaceleração (ease-out)
-      const easedProgress = 1 - Math.pow(1 - rawProgress, 2);
-
-      // Deslocamento de 110px embaixo subindo suavemente até 0px
-      const translateY = (1 - easedProgress) * 110;
-      const opacity = 0.25 + 0.75 * easedProgress;
-      const scale = 0.95 + 0.05 * easedProgress;
-
-      bonusWrapperRef.current.style.transform = `translate3d(0, ${translateY.toFixed(1)}px, 0) scale(${scale.toFixed(3)})`;
-      bonusWrapperRef.current.style.opacity = opacity.toFixed(3);
-    };
-
-    const onScroll = () => {
-      cancelAnimationFrame(animFrame);
-      animFrame = requestAnimationFrame(updateBonusParallax);
-    };
-
-    updateBonusParallax();
-    window.addEventListener('scroll', onScroll, { passive: true });
-    window.addEventListener('resize', onScroll, { passive: true });
-
-    return () => {
-      cancelAnimationFrame(animFrame);
-      window.removeEventListener('scroll', onScroll);
-      window.removeEventListener('resize', onScroll);
-    };
   }, []);
 
   useEffect(() => {
@@ -413,10 +328,6 @@ export const ColorMasterLanding: React.FC = () => {
       a: 'O acesso é liberado imediatamente após a confirmação do pagamento e tem duração de 1 ano completo (365 dias). Durante esse período, você pode assistir a todas as aulas quantas vezes quiser, além de baixar os materiais e projetos.'
     },
     {
-      q: 'Como funciona a mentoria individual para os 10 primeiros inscritos?',
-      a: 'Os 10 primeiros inscritos ganham a Mentoria Individual ao vivo com Michael Oliveira com 1 sessão de até 3 horas. Trata-se de uma análise aprofundada dos trabalhos e estudos que você já fez ou está fazendo, orientando como melhorar de ponta a ponta: partindo da pré-produção, passando pela produção (direção de fotografia e resolução de problemas no set para que tudo fique adequado) e chegando na pós-produção, no color grading.'
-    },
-    {
       q: 'Como funciona o pagamento e quais são as formas disponíveis?',
       a: 'O pagamento é processado com total segurança pelo Asaas (instituição de pagamento autorizada pelo Banco Central). Você pode parcelar em até 12x no cartão de crédito, pagar à vista via Pix com liberação imediata ou via boleto bancário.'
     },
@@ -512,7 +423,7 @@ export const ColorMasterLanding: React.FC = () => {
                   Oferta 15 Minutos
                 </span>
                 <span className="hidden md:inline text-white/90">
-                  • Garanta por apenas <strong className="text-white underline decoration-white/60 font-bold">R$ {priceData.promoPrice}</strong> + Mentoria Individual para os 10 primeiros!
+                  • Garanta por apenas <strong className="text-white underline decoration-white/60 font-bold">R$ {priceData.promoPrice}</strong> no lote promocional de lançamento!
                 </span>
               </>
             ) : (
@@ -1016,80 +927,7 @@ export const ColorMasterLanding: React.FC = () => {
       </section>
 
       {/* ========================================================================= */}
-      {/* 06. BÔNUS EXCLUSIVO: MENTORIA INDIVIDUAL AO VIVO                          */}
-      {/* ========================================================================= */}
-      <section
-        ref={bonusSectionRef}
-        className="relative z-10 min-h-[100dvh] flex flex-col justify-center py-12 md:py-16 bg-[#000000] text-white px-4 sm:px-6 lg:px-8 overflow-hidden"
-      >
-        <div
-          ref={bonusWrapperRef}
-          className="max-w-4xl mx-auto w-full my-auto will-change-transform"
-        >
-          <div
-            ref={bonusCardRef}
-            onMouseMove={handleBonusMouseMove}
-            onMouseEnter={handleBonusMouseEnter}
-            onMouseLeave={handleBonusMouseLeave}
-            className="p-6 sm:p-10 md:p-14 rounded-2xl sm:rounded-3xl bg-gradient-to-b from-[#1c1c1e] to-[#0d0d0f] border border-[#0071e3]/30 shadow-2xl relative overflow-hidden group cursor-default"
-          >
-            {/* Mouse-tracking dynamic background glow */}
-            <div
-              ref={bonusGlowRef}
-              className="absolute top-0 left-0 w-[420px] h-[420px] bg-[#0071e3] rounded-full blur-[100px] pointer-events-none will-change-transform"
-              style={{
-                opacity: 0.15,
-                transform: 'translate3d(120px, -60px, 0)',
-                transition: 'opacity 0.35s cubic-bezier(0.45, 0, 0.55, 1)',
-              }}
-            />
-            
-            <div className="relative z-10">
-              <div className="inline-flex items-center px-3 sm:px-3.5 py-1 sm:py-1.5 rounded-full bg-[#0071e3]/15 border border-[#0071e3]/30 text-[#2997ff] text-[12px] sm:text-xs font-semibold uppercase tracking-[0.04em] mb-4 sm:mb-6">
-                BÔNUS EXCLUSIVO
-              </div>
-
-              <h2 className="text-[26px] leading-[1.18] sm:text-3xl md:text-5xl font-semibold tracking-[-0.015em] text-white mb-3 sm:mb-4">
-                Mentoria Individual ao Vivo: Análise Completa dos Seus Trabalhos
-              </h2>
-
-              <p className="text-[17px] leading-[1.47] sm:text-lg md:text-xl text-white/80 font-normal mb-6 sm:mb-8 max-w-3xl">
-                Bônus de aceleração exclusivo para os <strong className="text-[#2997ff] font-semibold">10 primeiros inscritos</strong>: análise individual dos trabalhos e estudos que você fez ou está fazendo.
-              </p>
-
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 mb-6 sm:mb-8">
-                <div className="p-4 sm:p-5 rounded-xl sm:rounded-2xl bg-white/5 border border-white/10">
-                  <span className="text-[12px] sm:text-xs uppercase tracking-[0.04em] text-[#2997ff] font-semibold block mb-1">01. Pré-Produção</span>
-                  <span className="text-[19px] sm:text-xl font-bold text-white block">Planejamento</span>
-                  <span className="text-[13px] text-white/70 mt-1 block">Setup técnico e intenção visual antes de gravar</span>
-                </div>
-                <div className="p-4 sm:p-5 rounded-xl sm:rounded-2xl bg-white/5 border border-white/10">
-                  <span className="text-[12px] sm:text-xs uppercase tracking-[0.04em] text-[#2997ff] font-semibold block mb-1">02. Produção</span>
-                  <span className="text-[19px] sm:text-xl font-bold text-white block">Direção de Fotografia</span>
-                  <span className="text-[13px] text-white/70 mt-1 block">Resolver no set para o color ficar adequado</span>
-                </div>
-                <div className="p-4 sm:p-5 rounded-xl sm:rounded-2xl bg-white/5 border border-white/10">
-                  <span className="text-[12px] sm:text-xs uppercase tracking-[0.04em] text-[#2997ff] font-semibold block mb-1">03. Pós-Produção</span>
-                  <span className="text-[19px] sm:text-xl font-bold text-white block">Color Grading</span>
-                  <span className="text-[13px] text-white/70 mt-1 block">Até 3h ao vivo analisando seus projetos</span>
-                </div>
-              </div>
-
-              <div className="p-4 sm:p-6 rounded-xl sm:rounded-2xl bg-white/[0.04] border border-white/10 text-white/90 text-[15px] sm:text-sm md:text-base leading-[1.6] space-y-3">
-                <p>
-                  As primeiras 10 pessoas inscritas garantirão 1 sessão individual ao vivo de até 3 horas com Michael Oliveira. Uma oportunidade personalizada para colocar os seus próprios trabalhos e estudos sob análise profissional.
-                </p>
-                <p className="text-white/80">
-                  Vamos mapear como melhorar seus resultados partindo desde a <strong>pré-produção</strong>, passando profundamente pela <strong>produção (direção de fotografia)</strong> — entendendo como resolver problemas de iluminação, exposição e contraste diretamente na captação para que no color tudo fique adequado —, até chegar na <strong>pós-produção</strong> e no acabamento técnico do seu color grading no DaVinci Resolve.
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ========================================================================= */}
-      {/* 07. OFERTA E COMPRA                                                       */}
+      {/* 06. OFERTA E COMPRA                                                       */}
       {/* ========================================================================= */}
       <section id="oferta" className="relative z-10 scroll-mt-14 sm:scroll-mt-20 py-12 sm:py-16 md:py-24 bg-[#f5f5f7] px-4 sm:px-6 lg:px-8 overflow-hidden min-h-[90dvh] flex flex-col justify-center">
         {/* Background Images Showcase Layer */}
@@ -1131,28 +969,6 @@ export const ColorMasterLanding: React.FC = () => {
 
             {/* Checklist of What's Included */}
             <div className="text-left space-y-3 sm:space-y-3.5 max-w-lg mx-auto mb-6 sm:mb-8 text-[14px] sm:text-sm md:text-base leading-[1.5] text-[#1d1d1f] border-y border-[#e5e5e7] py-5 sm:py-6">
-              <div className="py-1 border-b border-[#e5e5e7]/50 flex items-center justify-between font-bold text-[#1d1d1f]">
-                <span>• Mentoria Individual ao Vivo para os 10 primeiros</span>
-                <div className="relative group inline-flex items-center">
-                  <span
-                    tabIndex={0}
-                    role="button"
-                    aria-label="Informações sobre o Bônus de Mentoria"
-                    className="text-[10px] uppercase font-bold tracking-wider bg-[#0071e3] hover:bg-[#0077ed] text-white px-2.5 py-0.5 rounded-full shrink-0 cursor-help transition-colors focus:outline-none shadow-sm"
-                  >
-                    Bônus
-                  </span>
-                  <div className="absolute bottom-full right-0 mb-2 hidden group-hover:block group-focus-within:block w-72 sm:w-88 p-4 bg-[#1d1d1f] text-white text-xs rounded-2xl shadow-2xl border border-white/15 z-30 pointer-events-none text-left animate-in fade-in zoom-in-95 duration-200">
-                    <span className="font-semibold text-[#2997ff] flex items-center gap-1.5 mb-1.5 text-xs">
-                      Sessão Individual • De até 3 Horas
-                    </span>
-                    <span className="text-white/80 leading-relaxed block text-[11px] font-normal">
-                      Análise individual com Michael Oliveira dos trabalhos e estudos que você fez ou está fazendo. Uma mentoria avaliando como melhorar partindo da pré-produção, passando pela produção (direção de fotografia — resolvendo no set para que no color tudo fique adequado) até chegar na pós e no color grading.
-                    </span>
-                    <div className="absolute top-full right-4 border-4 border-transparent border-t-[#1d1d1f]" />
-                  </div>
-                </div>
-              </div>
               <div className="py-1 border-b border-[#e5e5e7]/50 flex items-center gap-2">
                 <span>• Masterclass Completo</span>
                 <div className="relative group inline-flex items-center">

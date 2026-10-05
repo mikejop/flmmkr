@@ -203,14 +203,6 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
         },
         {
           '@type': 'Question',
-          name: 'Como funciona a mentoria individual para os 10 primeiros inscritos?',
-          acceptedAnswer: {
-            '@type': 'Answer',
-            text: 'Os 10 primeiros inscritos ganham a Mentoria Individual ao vivo com Michael Oliveira em 1 sessão intensiva de até 3 horas. É uma análise aprofundada dos trabalhos e estudos que o aluno fez ou está fazendo, ensinando como melhorar partindo desde a pré-produção, passando pela produção (direção de fotografia e soluções no set para que no color tudo fique adequado) e chegando na pós-produção, no color grading.',
-          },
-        },
-        {
-          '@type': 'Question',
           name: 'Como funciona o pagamento e quais são as formas disponíveis?',
           acceptedAnswer: {
             '@type': 'Answer',
