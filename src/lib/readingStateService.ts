@@ -4,106 +4,146 @@ import { ModuleId } from '../types';
 export interface UserReadingState {
   lastModuleId: ModuleId;
   lastLessonId: string;
-  lastTab: 'teoria' | 'pratica' | 'desafio' | 'checklist';
-  scrollTop: number;
+  lastSubtabId?: string;
+  lastTab?: 'teoria' | 'pratica' | 'desafio' | 'checklist';
+  scrollTop?: number;
   updatedAt?: string;
 }
 
-const STORAGE_KEY = 'youtuber_pro_last_reading_state';
+const STORAGE_KEY = 'flmmkr_last_reading_state';
+const LEGACY_STORAGE_KEY = 'youtuber_pro_last_reading_state';
 
 /**
- * Fetch last reading location (module, lesson, tab, scroll position)
+ * Lê o estado armazenado localmente de forma síncrona
  */
-export async function fetchReadingState(): Promise<UserReadingState | null> {
-  let localState: UserReadingState | null = null;
-
+export function getLocalReadingState(): UserReadingState | null {
+  if (typeof window === 'undefined') return null;
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
+    const raw = localStorage.getItem(STORAGE_KEY) || localStorage.getItem(LEGACY_STORAGE_KEY);
     if (raw) {
-      localState = JSON.parse(raw);
+      return JSON.parse(raw);
     }
   } catch (e) {
-    console.warn('Error reading local reading state:', e);
+    console.warn('Erro ao ler estado de leitura local:', e);
   }
+  return null;
+}
+
+/**
+ * Busca a última posição do aluno (módulo, aula, subtab, tab, scroll)
+ * tanto no LocalStorage quanto remotamente no Supabase/API.
+ */
+export async function fetchReadingState(explicitUserId?: string): Promise<UserReadingState | null> {
+  const localState = getLocalReadingState();
 
   try {
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session?.user?.id) {
+    let userId = explicitUserId;
+    if (!userId) {
+      const { data: { session } } = await supabase.auth.getSession();
+      userId = session?.user?.id;
+    }
+
+    if (!userId) {
       return localState;
     }
 
+    // 1. Tentar buscar via endpoint robusto
+    try {
+      const res = await fetch(`/api/user/reading-state?userId=${encodeURIComponent(userId)}`);
+      if (res.ok) {
+        const body = await res.json();
+        if (body?.state) {
+          const remoteState: UserReadingState = {
+            lastModuleId: (body.state.last_module_id || 'mod1') as ModuleId,
+            lastLessonId: body.state.last_lesson_id || 'mod1-1',
+            lastSubtabId: body.state.last_subtab_id || undefined,
+            lastTab: (body.state.last_tab || 'teoria') as UserReadingState['lastTab'],
+            scrollTop: Number(body.state.scroll_top || 0),
+            updatedAt: body.state.updated_at
+          };
+
+          // Salvar no storage local
+          try {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(remoteState));
+          } catch (_) {}
+
+          return remoteState;
+        }
+      }
+    } catch (_) {}
+
+    // 2. Fallback direto ao Supabase Client
     const { data, error } = await supabase
       .from('user_reading_state')
       .select('*')
-      .eq('user_id', session.user.id)
+      .eq('user_id', userId)
       .maybeSingle();
 
-    if (error) {
-      console.warn('Error fetching reading state from Supabase:', error);
-      return localState;
-    }
-
-    if (data) {
+    if (!error && data) {
       const remoteState: UserReadingState = {
-        lastModuleId: (data.last_module_id || 'mod0') as ModuleId,
-        lastLessonId: data.last_lesson_id || '',
+        lastModuleId: (data.last_module_id || 'mod1') as ModuleId,
+        lastLessonId: data.last_lesson_id || 'mod1-1',
+        lastSubtabId: data.last_subtab_id || undefined,
         lastTab: (data.last_tab || 'teoria') as UserReadingState['lastTab'],
         scrollTop: Number(data.scroll_top || 0),
         updatedAt: data.updated_at
       };
 
-      // Save locally
       try {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(remoteState));
-      } catch (e) {
-        // ignore
-      }
+      } catch (_) {}
 
       return remoteState;
     }
   } catch (e) {
-    console.warn('Exception fetching reading state from Supabase:', e);
+    console.warn('Exceção ao buscar reading state:', e);
   }
 
   return localState;
 }
 
 /**
- * Save current reading state to LocalStorage and Supabase DB
+ * Salva a posição atual do aluno imediatamente no LocalStorage e no Supabase/API.
  */
-export async function saveReadingState(state: UserReadingState): Promise<void> {
+export async function saveReadingState(state: UserReadingState, explicitUserId?: string): Promise<void> {
   const stateToSave: UserReadingState = {
     ...state,
     updatedAt: new Date().toISOString()
   };
 
-  // Instant LocalStorage save
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(stateToSave));
-  } catch (e) {
-    console.warn('Error saving local reading state:', e);
+  // 1. Salva instantaneamente no LocalStorage (0 latência)
+  if (typeof window !== 'undefined') {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(stateToSave));
+    } catch (e) {
+      console.warn('Erro ao salvar local reading state:', e);
+    }
   }
 
-  // Persist to Supabase if logged in
+  // 2. Persiste remotamente na nuvem se autenticado
   try {
-    const { data: { session } } = await supabase.auth.getSession();
-    if (session?.user?.id) {
-      const { error } = await supabase
-        .from('user_reading_state')
-        .upsert({
-          user_id: session.user.id,
-          last_module_id: stateToSave.lastModuleId,
-          last_lesson_id: stateToSave.lastLessonId,
-          last_tab: stateToSave.lastTab,
-          scroll_top: Math.round(stateToSave.scrollTop),
-          updated_at: stateToSave.updatedAt
-        });
+    let userId = explicitUserId;
+    if (!userId) {
+      const { data: { session } } = await supabase.auth.getSession();
+      userId = session?.user?.id;
+    }
 
-      if (error) {
-        console.warn('Error saving reading state to Supabase:', error);
-      }
+    if (userId) {
+      // API call (usando supabaseAdmin internamente, contornando qualquer problema de token)
+      fetch('/api/user/reading-state', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId,
+          lastModuleId: stateToSave.lastModuleId,
+          lastLessonId: stateToSave.lastLessonId,
+          lastSubtabId: stateToSave.lastSubtabId || null,
+          lastTab: stateToSave.lastTab || 'teoria',
+          scrollTop: stateToSave.scrollTop || 0
+        })
+      }).catch((err) => console.warn('Erro fetch reading-state:', err));
     }
   } catch (e) {
-    console.warn('Exception saving reading state to Supabase:', e);
+    console.warn('Exceção ao salvar reading state:', e);
   }
 }

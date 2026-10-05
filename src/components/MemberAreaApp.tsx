@@ -11,7 +11,7 @@ import {
 import { modulesData } from '@/data/data';
 import { UserProgress, CourseModule, ModuleId, Subtopic } from '@/types/course';
 import { TextHighlighterTool } from '@/components/TextHighlighterTool';
-import { fetchReadingState, saveReadingState } from '@/lib/readingStateService';
+import { fetchReadingState, saveReadingState, getLocalReadingState } from '@/lib/readingStateService';
 import { AccessibilityWidget } from '@/components/AccessibilityWidget';
 import { LoginModal } from '@/components/LoginModal';
 import { CheckoutModal } from '@/components/CheckoutModal';
@@ -101,9 +101,18 @@ export function MemberAreaApp() {
   const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
   const [isAuthChecking, setIsAuthChecking] = useState<boolean>(true);
   const [progress, setProgress] = useState<UserProgress>(DEFAULT_PROGRESS);
-  const [activeModuleId, setActiveModuleId] = useState<ModuleId>('mod1');
-  const [activeLessonId, setActiveLessonId] = useState<string>('mod1-1');
-  const [activeTab, setActiveTab] = useState<'teoria' | 'pratica' | 'desafio' | 'checklist'>('teoria');
+  const [activeModuleId, setActiveModuleId] = useState<ModuleId>(() => {
+    const saved = getLocalReadingState();
+    return (saved?.lastModuleId as ModuleId) || 'mod1';
+  });
+  const [activeLessonId, setActiveLessonId] = useState<string>(() => {
+    const saved = getLocalReadingState();
+    return saved?.lastLessonId || 'mod1-1';
+  });
+  const [activeTab, setActiveTab] = useState<'teoria' | 'pratica' | 'desafio' | 'checklist'>(() => {
+    const saved = getLocalReadingState();
+    return saved?.lastTab || 'teoria';
+  });
   
   const [isSidebarExpanded, setIsSidebarExpanded] = useState<boolean>(true);
   const [isMaximized, setIsMaximized] = useState<boolean>(false);
@@ -133,8 +142,10 @@ export function MemberAreaApp() {
   const [kickedDeviceLocation, setKickedDeviceLocation] = useState<string>('Brasil');
   const [kickedAt, setKickedAt] = useState<string>('');
 
-  const [expandedEmenta, setExpandedEmenta] = useState<Record<string, boolean>>({
-    mod1: true
+  const [expandedEmenta, setExpandedEmenta] = useState<Record<string, boolean>>(() => {
+    const saved = getLocalReadingState();
+    const mod = (saved?.lastModuleId as string) || 'mod1';
+    return { [mod]: true };
   });
 
   // Current selected lesson and module (memoized for instant access)
@@ -146,11 +157,23 @@ export function MemberAreaApp() {
     return activeModule.subtopics.find(s => s.id === activeLessonId) || activeModule.subtopics[0];
   }, [activeModule, activeLessonId]);
 
-  const [activeSubtabId, setActiveSubtabId] = useState<string>('');
+  const [activeSubtabId, setActiveSubtabId] = useState<string>(() => {
+    const saved = getLocalReadingState();
+    return saved?.lastSubtabId || '';
+  });
 
   useEffect(() => {
     if (activeLesson?.subtabs && activeLesson.subtabs.length > 0) {
-      setActiveSubtabId(activeLesson.subtabs[0].id);
+      setActiveSubtabId(prev => {
+        if (prev && activeLesson.subtabs?.some(t => t.id === prev)) {
+          return prev;
+        }
+        const saved = getLocalReadingState();
+        if (saved?.lastSubtabId && activeLesson.subtabs?.some(t => t.id === saved.lastSubtabId)) {
+          return saved.lastSubtabId;
+        }
+        return activeLesson.subtabs![0].id;
+      });
     } else {
       setActiveSubtabId('');
     }
@@ -228,6 +251,22 @@ export function MemberAreaApp() {
               }
             } catch (_) {}
           }
+
+          // Recuperar última página/aula onde o aluno parou (memória em nuvem do Supabase)
+          try {
+            const remoteState = await fetchReadingState(user.id);
+            if (remoteState && remoteState.lastLessonId) {
+              setActiveModuleId(remoteState.lastModuleId);
+              setActiveLessonId(remoteState.lastLessonId);
+              if (remoteState.lastSubtabId) {
+                setActiveSubtabId(remoteState.lastSubtabId);
+              }
+              if (remoteState.lastTab) {
+                setActiveTab(remoteState.lastTab);
+              }
+              setExpandedEmenta(prev => ({ ...prev, [remoteState.lastModuleId]: true }));
+            }
+          } catch (_) {}
         } else {
           // Usuário não autenticado: bloqueia acesso e redireciona para a landing page
           setIsLoggedIn(false);
@@ -260,8 +299,9 @@ export function MemberAreaApp() {
       if (state && state.lastLessonId) {
         setActiveModuleId(state.lastModuleId);
         setActiveLessonId(state.lastLessonId);
+        if (state.lastSubtabId) setActiveSubtabId(state.lastSubtabId);
         if (state.lastTab) setActiveTab(state.lastTab);
-        setExpandedEmenta({ [state.lastModuleId]: true });
+        setExpandedEmenta(prev => ({ ...prev, [state.lastModuleId]: true }));
       }
     });
 
@@ -269,6 +309,21 @@ export function MemberAreaApp() {
       subscription?.unsubscribe();
     };
   }, []);
+
+  // Memória contínua da área do aluno: salva a aula, módulo e subtab sempre que o aluno navegar
+  useEffect(() => {
+    if (!activeLessonId) return;
+    saveReadingState(
+      {
+        lastModuleId: activeModuleId,
+        lastLessonId: activeLessonId,
+        lastSubtabId: activeSubtabId || undefined,
+        lastTab: activeTab,
+        scrollTop: 0
+      },
+      currentUserId || undefined
+    );
+  }, [activeModuleId, activeLessonId, activeSubtabId, activeTab, currentUserId]);
 
   // Monitoramento de Concorrência de Dispositivo Único (Heartbeat)
   useEffect(() => {
