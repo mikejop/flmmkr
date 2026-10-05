@@ -1129,10 +1129,26 @@ export const ColorMasterLanding: React.FC = () => {
             {/* Checklist of What's Included */}
             <div className="text-left space-y-3 sm:space-y-3.5 max-w-lg mx-auto mb-6 sm:mb-8 text-[14px] sm:text-sm md:text-base leading-[1.5] text-[#1d1d1f] border-y border-[#e5e5e7] py-5 sm:py-6">
               <div className="py-1 border-b border-[#e5e5e7]/50 flex items-center justify-between font-bold text-[#1d1d1f]">
-                <span>• Mentoria Individual ao Vivo (+3 Horas) para os 10 primeiros</span>
-                <span className="text-[10px] uppercase font-bold tracking-wider bg-[#0071e3] text-white px-2.5 py-0.5 rounded-full shrink-0">
-                  Bônus
-                </span>
+                <span>• Mentoria Individual ao Vivo para os 10 primeiros</span>
+                <div className="relative group inline-flex items-center">
+                  <span
+                    tabIndex={0}
+                    role="button"
+                    aria-label="Informações sobre o Bônus de Mentoria"
+                    className="text-[10px] uppercase font-bold tracking-wider bg-[#0071e3] hover:bg-[#0077ed] text-white px-2.5 py-0.5 rounded-full shrink-0 cursor-help transition-colors focus:outline-none shadow-sm"
+                  >
+                    Bônus
+                  </span>
+                  <div className="absolute bottom-full right-0 mb-2 hidden group-hover:block group-focus-within:block w-72 sm:w-80 p-3.5 bg-[#1d1d1f] text-white text-xs rounded-2xl shadow-2xl border border-white/15 z-30 pointer-events-none text-left animate-in fade-in zoom-in-95 duration-200">
+                    <span className="font-semibold text-[#2997ff] flex items-center gap-1.5 mb-1.5 text-xs">
+                      Sessão Individual • Mais de 3 Horas
+                    </span>
+                    <span className="text-white/80 leading-relaxed block text-[11px] font-normal">
+                      Os 10 primeiros inscritos ganham 1 sessão individual ao vivo com Michael Oliveira de mais de 3 horas de duração, focada em analisar seus projetos no DaVinci Resolve e acelerar suas produções para o padrão comercial.
+                    </span>
+                    <div className="absolute top-full right-4 border-4 border-transparent border-t-[#1d1d1f]" />
+                  </div>
+                </div>
               </div>
               <div className="py-1 border-b border-[#e5e5e7]/50 flex items-center gap-2">
                 <span>• Masterclass Completo</span>
