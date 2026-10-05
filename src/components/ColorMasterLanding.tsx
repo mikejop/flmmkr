@@ -414,7 +414,7 @@ export const ColorMasterLanding: React.FC = () => {
     },
     {
       q: 'Como funciona a mentoria individual para os 10 primeiros inscritos?',
-      a: 'Os 10 primeiros inscritos ganham a Mentoria Individual ao vivo com Michael Oliveira com 1 sessão de mais de 3 horas de duração, focada exclusivamente nas suas necessidades e projetos, onde vamos analisar seus trabalhos e buscar soluções práticas para melhorar e elevar o nível das produções.'
+      a: 'Os 10 primeiros inscritos ganham a Mentoria Individual ao vivo com Michael Oliveira com 1 sessão de até 3 horas de duração, focada exclusivamente nas suas necessidades e projetos, onde vamos analisar seus trabalhos e buscar soluções práticas para melhorar e elevar o nível das produções.'
     },
     {
       q: 'Como funciona o pagamento e quais são as formas disponíveis?',
@@ -1060,7 +1060,7 @@ export const ColorMasterLanding: React.FC = () => {
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 mb-6 sm:mb-8">
                 <div className="p-4 sm:p-5 rounded-xl sm:rounded-2xl bg-white/5 border border-white/10">
                   <span className="text-[12px] sm:text-xs uppercase tracking-[0.04em] text-[#2997ff] font-semibold block mb-1">Duração</span>
-                  <span className="text-[19px] sm:text-xl font-bold text-white block">+3 Horas</span>
+                  <span className="text-[19px] sm:text-xl font-bold text-white block">Até 3 Horas</span>
                   <span className="text-[13px] text-white/70 mt-1 block">Sessão intensiva e aprofundada</span>
                 </div>
                 <div className="p-4 sm:p-5 rounded-xl sm:rounded-2xl bg-white/5 border border-white/10">
@@ -1077,7 +1077,7 @@ export const ColorMasterLanding: React.FC = () => {
 
               <div className="p-4 sm:p-6 rounded-xl sm:rounded-2xl bg-white/[0.04] border border-white/10 text-white/90 text-[15px] sm:text-sm md:text-base leading-[1.55]">
                 <p>
-                  As primeiras 10 pessoas inscritas garantirão 1 sessão individual ao vivo de mais de 3 horas com Michael Oliveira. Um encontro individual e personalizado para analisar os seus próprios projetos e grades no DaVinci Resolve, identificando falhas, refinando o seu tratamento de cor e encontrando soluções técnicas para atingir o padrão comercial exigido pelas grandes produtoras e agências.
+                  As primeiras 10 pessoas inscritas garantirão 1 sessão individual ao vivo de até 3 horas com Michael Oliveira. Um encontro individual e personalizado para analisar os seus próprios projetos e grades no DaVinci Resolve, identificando falhas, refinando o seu tratamento de cor e encontrando soluções técnicas para atingir o padrão comercial exigido pelas grandes produtoras e agências.
                 </p>
               </div>
             </div>
@@ -1141,10 +1141,10 @@ export const ColorMasterLanding: React.FC = () => {
                   </span>
                   <div className="absolute bottom-full right-0 mb-2 hidden group-hover:block group-focus-within:block w-72 sm:w-80 p-3.5 bg-[#1d1d1f] text-white text-xs rounded-2xl shadow-2xl border border-white/15 z-30 pointer-events-none text-left animate-in fade-in zoom-in-95 duration-200">
                     <span className="font-semibold text-[#2997ff] flex items-center gap-1.5 mb-1.5 text-xs">
-                      Sessão Individual • Mais de 3 Horas
+                      Sessão Individual • De até 3 Horas
                     </span>
                     <span className="text-white/80 leading-relaxed block text-[11px] font-normal">
-                      Os 10 primeiros inscritos ganham 1 sessão individual ao vivo com Michael Oliveira de mais de 3 horas de duração, focada em analisar seus projetos no DaVinci Resolve e acelerar suas produções para o padrão comercial.
+                      Os 10 primeiros inscritos ganham 1 sessão individual ao vivo com Michael Oliveira de até 3 horas de duração, focada em analisar seus projetos no DaVinci Resolve e acelerar suas produções para o padrão comercial.
                     </span>
                     <div className="absolute top-full right-4 border-4 border-transparent border-t-[#1d1d1f]" />
                   </div>
