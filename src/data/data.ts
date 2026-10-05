@@ -13,6 +13,7 @@ export const modulesData: CourseModule[] = [
         id: 'mod1-1',
         title: 'Introdução ao DaVinci Resolve',
         isFree: true,
+        videoUrl: 'https://b-vz-5bb7b1c1-d28.tv.pandavideo.com.br/e559c1ae-4471-4c85-84ab-62154cb40b9f/playlist.m3u8',
         concept: `O DaVinci Resolve é o padrão global da indústria cinematográfica e publicitária para pós-produção e tratamento de cor. Compreender a interface da página Color, a navegação ágil e a lógica de nós (nodes) cria o alicerce indispensável para trabalhar com velocidade e consistência técnica.`,
         steps: [
           'Conheça a interface da página Color (Node Graph, Scopes, Paletas Primárias e Galeria).',

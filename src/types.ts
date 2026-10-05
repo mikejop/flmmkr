@@ -6,6 +6,7 @@ export interface LessonSubtab {
   concept: string;
   steps?: string[];
   tips?: string[];
+  videoUrl?: string;
 }
 
 export interface Subtopic {
@@ -15,6 +16,7 @@ export interface Subtopic {
   steps: string[];
   tips?: string[];
   isFree?: boolean;
+  videoUrl?: string;
   subtabs?: LessonSubtab[];
 }
 
