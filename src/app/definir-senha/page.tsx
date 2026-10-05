@@ -78,7 +78,7 @@ function DefinirSenhaContent() {
 
       // 3. Redirecionar para o conteúdo da área de membros
       setTimeout(() => {
-        router.push('/conteudo');
+        router.push('/color-master-produto');
       }, 1200);
     } catch (err: any) {
       setError(err?.message || 'Falha ao salvar senha. Tente novamente.');
