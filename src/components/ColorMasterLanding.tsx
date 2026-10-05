@@ -414,7 +414,7 @@ export const ColorMasterLanding: React.FC = () => {
     },
     {
       q: 'Como funciona a mentoria individual para os 10 primeiros inscritos?',
-      a: 'Os 10 primeiros inscritos ganham a Mentoria Individual ao vivo com Michael Oliveira com 1 sessão de até 3 horas de duração, focada exclusivamente nas suas necessidades e projetos, onde vamos analisar seus trabalhos e buscar soluções práticas para melhorar e elevar o nível das produções.'
+      a: 'Os 10 primeiros inscritos ganham a Mentoria Individual ao vivo com Michael Oliveira com 1 sessão de até 3 horas. Trata-se de uma análise aprofundada dos trabalhos e estudos que você já fez ou está fazendo, orientando como melhorar de ponta a ponta: partindo da pré-produção, passando pela produção (direção de fotografia e resolução de problemas no set para que tudo fique adequado) e chegando na pós-produção, no color grading.'
     },
     {
       q: 'Como funciona o pagamento e quais são as formas disponíveis?',
@@ -1050,34 +1050,37 @@ export const ColorMasterLanding: React.FC = () => {
               </div>
 
               <h2 className="text-[26px] leading-[1.18] sm:text-3xl md:text-5xl font-semibold tracking-[-0.015em] text-white mb-3 sm:mb-4">
-                Mentoria Individual ao Vivo com Análise dos Seus Trabalhos
+                Mentoria Individual ao Vivo: Análise Completa dos Seus Trabalhos
               </h2>
 
               <p className="text-[17px] leading-[1.47] sm:text-lg md:text-xl text-white/80 font-normal mb-6 sm:mb-8 max-w-3xl">
-                Bônus especial de aceleração garantido para os <strong className="text-[#2997ff] font-semibold">10 primeiros inscritos</strong> na Masterclass Color Master | Produto.
+                Bônus de aceleração exclusivo para os <strong className="text-[#2997ff] font-semibold">10 primeiros inscritos</strong>: análise individual dos trabalhos e estudos que você fez ou está fazendo.
               </p>
 
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 mb-6 sm:mb-8">
                 <div className="p-4 sm:p-5 rounded-xl sm:rounded-2xl bg-white/5 border border-white/10">
-                  <span className="text-[12px] sm:text-xs uppercase tracking-[0.04em] text-[#2997ff] font-semibold block mb-1">Duração</span>
-                  <span className="text-[19px] sm:text-xl font-bold text-white block">Até 3 Horas</span>
-                  <span className="text-[13px] text-white/70 mt-1 block">Sessão intensiva e aprofundada</span>
+                  <span className="text-[12px] sm:text-xs uppercase tracking-[0.04em] text-[#2997ff] font-semibold block mb-1">01. Pré-Produção</span>
+                  <span className="text-[19px] sm:text-xl font-bold text-white block">Planejamento</span>
+                  <span className="text-[13px] text-white/70 mt-1 block">Setup técnico e intenção visual antes de gravar</span>
                 </div>
                 <div className="p-4 sm:p-5 rounded-xl sm:rounded-2xl bg-white/5 border border-white/10">
-                  <span className="text-[12px] sm:text-xs uppercase tracking-[0.04em] text-[#2997ff] font-semibold block mb-1">Formato</span>
-                  <span className="text-[19px] sm:text-xl font-bold text-white block">1 Sessão Individual</span>
-                  <span className="text-[13px] text-white/70 mt-1 block">Encontro individual exclusivo</span>
+                  <span className="text-[12px] sm:text-xs uppercase tracking-[0.04em] text-[#2997ff] font-semibold block mb-1">02. Produção</span>
+                  <span className="text-[19px] sm:text-xl font-bold text-white block">Direção de Fotografia</span>
+                  <span className="text-[13px] text-white/70 mt-1 block">Resolver no set para o color ficar adequado</span>
                 </div>
                 <div className="p-4 sm:p-5 rounded-xl sm:rounded-2xl bg-white/5 border border-white/10">
-                  <span className="text-[12px] sm:text-xs uppercase tracking-[0.04em] text-[#2997ff] font-semibold block mb-1">Foco Central</span>
-                  <span className="text-[19px] sm:text-xl font-bold text-white block">Análise Prática</span>
-                  <span className="text-[13px] text-white/70 mt-1 block">Soluções reais para seus projetos</span>
+                  <span className="text-[12px] sm:text-xs uppercase tracking-[0.04em] text-[#2997ff] font-semibold block mb-1">03. Pós-Produção</span>
+                  <span className="text-[19px] sm:text-xl font-bold text-white block">Color Grading</span>
+                  <span className="text-[13px] text-white/70 mt-1 block">Até 3h ao vivo analisando seus projetos</span>
                 </div>
               </div>
 
-              <div className="p-4 sm:p-6 rounded-xl sm:rounded-2xl bg-white/[0.04] border border-white/10 text-white/90 text-[15px] sm:text-sm md:text-base leading-[1.55]">
+              <div className="p-4 sm:p-6 rounded-xl sm:rounded-2xl bg-white/[0.04] border border-white/10 text-white/90 text-[15px] sm:text-sm md:text-base leading-[1.6] space-y-3">
                 <p>
-                  As primeiras 10 pessoas inscritas garantirão 1 sessão individual ao vivo de até 3 horas com Michael Oliveira. Um encontro individual e personalizado para analisar os seus próprios projetos e grades no DaVinci Resolve, identificando falhas, refinando o seu tratamento de cor e encontrando soluções técnicas para atingir o padrão comercial exigido pelas grandes produtoras e agências.
+                  As primeiras 10 pessoas inscritas garantirão 1 sessão individual ao vivo de até 3 horas com Michael Oliveira. Uma oportunidade personalizada para colocar os seus próprios trabalhos e estudos sob análise profissional.
+                </p>
+                <p className="text-white/80">
+                  Vamos mapear como melhorar seus resultados partindo desde a <strong>pré-produção</strong>, passando profundamente pela <strong>produção (direção de fotografia)</strong> — entendendo como resolver problemas de iluminação, exposição e contraste diretamente na captação para que no color tudo fique adequado —, até chegar na <strong>pós-produção</strong> e no acabamento técnico do seu color grading no DaVinci Resolve.
                 </p>
               </div>
             </div>
@@ -1139,12 +1142,12 @@ export const ColorMasterLanding: React.FC = () => {
                   >
                     Bônus
                   </span>
-                  <div className="absolute bottom-full right-0 mb-2 hidden group-hover:block group-focus-within:block w-72 sm:w-80 p-3.5 bg-[#1d1d1f] text-white text-xs rounded-2xl shadow-2xl border border-white/15 z-30 pointer-events-none text-left animate-in fade-in zoom-in-95 duration-200">
+                  <div className="absolute bottom-full right-0 mb-2 hidden group-hover:block group-focus-within:block w-72 sm:w-88 p-4 bg-[#1d1d1f] text-white text-xs rounded-2xl shadow-2xl border border-white/15 z-30 pointer-events-none text-left animate-in fade-in zoom-in-95 duration-200">
                     <span className="font-semibold text-[#2997ff] flex items-center gap-1.5 mb-1.5 text-xs">
                       Sessão Individual • De até 3 Horas
                     </span>
                     <span className="text-white/80 leading-relaxed block text-[11px] font-normal">
-                      Os 10 primeiros inscritos ganham 1 sessão individual ao vivo com Michael Oliveira de até 3 horas de duração, focada em analisar seus projetos no DaVinci Resolve e acelerar suas produções para o padrão comercial.
+                      Análise individual com Michael Oliveira dos trabalhos e estudos que você fez ou está fazendo. Uma mentoria avaliando como melhorar partindo da pré-produção, passando pela produção (direção de fotografia — resolvendo no set para que no color tudo fique adequado) até chegar na pós e no color grading.
                     </span>
                     <div className="absolute top-full right-4 border-4 border-transparent border-t-[#1d1d1f]" />
                   </div>
