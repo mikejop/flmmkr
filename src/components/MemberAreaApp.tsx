@@ -23,6 +23,7 @@ import { DeviceSessionKickedModal } from '@/components/DeviceSessionKickedModal'
 import VideoLessonPlayer from '@/components/VideoLessonPlayer';
 import LessonComments from '@/components/LessonComments';
 import NotificationsDropdown from '@/components/NotificationsDropdown';
+import LessonCompletionTransition from '@/components/LessonCompletionTransition';
 import IntroducaoDaVinciArticle from '@/components/IntroducaoDaVinciArticle';
 import GenericLessonArticle from '@/components/GenericLessonArticle';
 
@@ -132,6 +133,15 @@ export function MemberAreaApp() {
   const [scrollProgressPercent, setScrollProgressPercent] = useState<number>(0);
   const [activeFlyoutModule, setActiveFlyoutModule] = useState<string | null>(null);
   const flyoutTimeoutRef = useRef<any>(null);
+  const [completionTransitionData, setCompletionTransitionData] = useState<{
+    completedLessonTitle: string;
+    nextLesson: {
+      id: string;
+      title: string;
+      moduleId: string;
+      moduleTitle: string;
+    } | null;
+  } | null>(null);
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState<boolean>(false);
   const [isAccountModalOpen, setIsAccountModalOpen] = useState<boolean>(false);
   const [isAccessibilityOpen, setIsAccessibilityOpen] = useState<boolean>(false);
@@ -418,14 +428,87 @@ export function MemberAreaApp() {
     });
   };
 
-  const handleCompleteAndNext = (lessonId: string) => {
-    if (!progress.completedLessons.includes(lessonId)) {
-      handleToggleLessonComplete(lessonId);
+  const handleLessonFinished = (finishedLessonId?: string) => {
+    const targetLessonId = finishedLessonId || activeLessonId;
+    
+    // 1. Adicionar à barra de progresso imediatamente
+    const nextCompleted = progress.completedLessons.includes(targetLessonId)
+      ? progress.completedLessons
+      : [...progress.completedLessons, targetLessonId];
+
+    const finalCompletedModules = [...progress.completedModules];
+    modulesData.forEach(m => {
+      const allLessonsCompleted = m.subtopics.every(s => nextCompleted.includes(s.id));
+      const hasCompletedRecord = finalCompletedModules.includes(m.id);
+      if (allLessonsCompleted && !hasCompletedRecord) {
+        finalCompletedModules.push(m.id);
+      }
+    });
+
+    saveProgress({ 
+      ...progress, 
+      completedLessons: nextCompleted,
+      completedModules: finalCompletedModules
+    });
+
+    // 2. Determinar próxima aula (próxima do mesmo módulo ou primeira do próximo módulo)
+    const currentIndex = activeModule.subtopics.findIndex(s => s.id === targetLessonId);
+    let nextLessonInfo: { id: string; title: string; moduleId: string; moduleTitle: string } | null = null;
+
+    if (currentIndex < activeModule.subtopics.length - 1) {
+      // Próxima aula do mesmo módulo
+      const nextSub = activeModule.subtopics[currentIndex + 1];
+      nextLessonInfo = {
+        id: nextSub.id,
+        title: nextSub.title,
+        moduleId: activeModule.id,
+        moduleTitle: activeModule.title
+      };
+    } else {
+      // Última aula do módulo -> primeira aula do próximo módulo
+      const nextModIndex = modulesData.findIndex(m => m.id === activeModuleId) + 1;
+      if (nextModIndex < modulesData.length) {
+        const nextMod = modulesData[nextModIndex];
+        nextLessonInfo = {
+          id: nextMod.subtopics[0].id,
+          title: nextMod.subtopics[0].title,
+          moduleId: nextMod.id,
+          moduleTitle: nextMod.title
+        };
+      }
     }
-    handleNextLesson();
+
+    // 3. Abrir tela de transição com confetes dentro da tela de conteúdo
+    if (lessonContainerRef.current) {
+      lessonContainerRef.current.scrollTo({ top: 0, behavior: 'instant' });
+    }
+    setCompletionTransitionData({
+      completedLessonTitle: activeLesson.title,
+      nextLesson: nextLessonInfo
+    });
+  };
+
+  const handleProceedToNextLesson = () => {
+    if (completionTransitionData?.nextLesson) {
+      const next = completionTransitionData.nextLesson;
+      setActiveModuleId(next.moduleId as ModuleId);
+      setActiveLessonId(next.id);
+      setExpandedEmenta(prev => ({ ...prev, [next.moduleId]: true }));
+      saveReadingState({
+        lastModuleId: next.moduleId as ModuleId,
+        lastLessonId: next.id,
+        lastTab: activeTab,
+        scrollTop: 0
+      }, currentUserId || undefined);
+    }
+    setCompletionTransitionData(null);
     if (lessonContainerRef.current) {
       lessonContainerRef.current.scrollTo({ top: 0, behavior: 'smooth' });
     }
+  };
+
+  const handleCompleteAndNext = (lessonId: string) => {
+    handleLessonFinished(lessonId);
   };
 
   const handleToggleChecklist = (itemId: string) => {
@@ -1046,10 +1129,20 @@ export function MemberAreaApp() {
 
             {/* LESSON CANVAS */}
             <div 
-              className="flex-1 overflow-y-auto bg-[#f5f5f7] pb-24 relative select-text custom-scrollbar flex flex-col text-[#1d1d1f]" 
+              className={`flex-1 ${completionTransitionData ? 'overflow-hidden' : 'overflow-y-auto'} bg-[#f5f5f7] pb-24 relative select-text custom-scrollbar flex flex-col text-[#1d1d1f]`} 
               id="lesson-view-container" 
               ref={lessonContainerRef}
             >
+              {/* Tela de Transição com Confetes coloridos ao finalizar a aula */}
+              {completionTransitionData && (
+                <LessonCompletionTransition
+                  completedLessonTitle={completionTransitionData.completedLessonTitle}
+                  nextLesson={completionTransitionData.nextLesson}
+                  onProceed={handleProceedToNextLesson}
+                  onStay={() => setCompletionTransitionData(null)}
+                />
+              )}
+
               <TextHighlighterTool lessonId={activeLessonId} containerRef={lessonContainerRef} />
               
               <div className="w-full max-w-[1536px] mx-auto px-4 sm:px-6 lg:px-10 py-8 flex-1 space-y-8">
@@ -1104,6 +1197,7 @@ export function MemberAreaApp() {
                     <VideoLessonPlayer
                       videoUrl={currentSubtab?.videoUrl || activeLesson.videoUrl}
                       title={currentSubtab ? `${activeLesson.title} — ${currentSubtab.label}` : activeLesson.title}
+                      onLessonEnded={() => handleLessonFinished(activeLessonId)}
                     />
                   </div>
 

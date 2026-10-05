@@ -21,9 +21,10 @@ interface VideoLessonPlayerProps {
   videoUrl?: string;
   title: string;
   poster?: string;
+  onLessonEnded?: () => void;
 }
 
-export default function VideoLessonPlayer({ videoUrl, title, poster }: VideoLessonPlayerProps) {
+export default function VideoLessonPlayer({ videoUrl, title, poster, onLessonEnded }: VideoLessonPlayerProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const hlsRef = useRef<Hls | null>(null);
@@ -344,6 +345,7 @@ export default function VideoLessonPlayer({ videoUrl, title, poster }: VideoLess
         onWaiting={handleWaiting}
         onPlaying={handlePlaying}
         onPause={handlePause}
+        onEnded={() => onLessonEnded?.()}
         onClick={togglePlay}
         className="w-full h-full object-cover cursor-pointer"
       />
