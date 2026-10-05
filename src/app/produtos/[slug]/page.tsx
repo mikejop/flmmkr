@@ -206,7 +206,7 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
           name: 'Como funciona a mentoria em grupo para os 10 primeiros inscritos?',
           acceptedAnswer: {
             '@type': 'Answer',
-            text: 'Os 10 primeiros inscritos ganham a Mentoria em Grupo ao vivo com Michael Oliveira com duração de 4 semanas (um encontro semanal) para analisar trabalhos e buscar soluções práticas.',
+            text: 'Os 10 primeiros inscritos ganham a Mentoria em Grupo ao vivo com Michael Oliveira em 1 sessão intensiva de mais de 3 horas para analisar trabalhos e buscar soluções práticas.',
           },
         },
         {

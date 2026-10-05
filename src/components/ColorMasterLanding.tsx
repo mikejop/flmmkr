@@ -414,7 +414,7 @@ export const ColorMasterLanding: React.FC = () => {
     },
     {
       q: 'Como funciona a mentoria em grupo para os 10 primeiros inscritos?',
-      a: 'Os 10 primeiros inscritos ganham a Mentoria em Grupo ao vivo com Michael Oliveira. A mentoria tem duração de 4 semanas, sendo um encontro ao vivo por semana, onde vamos analisar os trabalhos de cada um e buscar soluções práticas para melhorar e elevar o nível das produções.'
+      a: 'Os 10 primeiros inscritos ganham a Mentoria em Grupo ao vivo com Michael Oliveira com 1 sessão de mais de 3 horas de duração, onde vamos analisar os trabalhos de cada um e buscar soluções práticas para melhorar e elevar o nível das produções.'
     },
     {
       q: 'Como funciona o pagamento e quais são as formas disponíveis?',
@@ -1060,13 +1060,13 @@ export const ColorMasterLanding: React.FC = () => {
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 mb-6 sm:mb-8">
                 <div className="p-4 sm:p-5 rounded-xl sm:rounded-2xl bg-white/5 border border-white/10">
                   <span className="text-[12px] sm:text-xs uppercase tracking-[0.04em] text-[#2997ff] font-semibold block mb-1">Duração</span>
-                  <span className="text-[19px] sm:text-xl font-bold text-white block">4 Semanas</span>
-                  <span className="text-[13px] text-white/70 mt-1 block">Acompanhamento estruturado</span>
+                  <span className="text-[19px] sm:text-xl font-bold text-white block">+3 Horas</span>
+                  <span className="text-[13px] text-white/70 mt-1 block">Sessão intensiva e aprofundada</span>
                 </div>
                 <div className="p-4 sm:p-5 rounded-xl sm:rounded-2xl bg-white/5 border border-white/10">
-                  <span className="text-[12px] sm:text-xs uppercase tracking-[0.04em] text-[#2997ff] font-semibold block mb-1">Frequência</span>
-                  <span className="text-[19px] sm:text-xl font-bold text-white block">1x por Semana</span>
-                  <span className="text-[13px] text-white/70 mt-1 block">Encontros ao vivo com Michael</span>
+                  <span className="text-[12px] sm:text-xs uppercase tracking-[0.04em] text-[#2997ff] font-semibold block mb-1">Formato</span>
+                  <span className="text-[19px] sm:text-xl font-bold text-white block">1 Sessão ao Vivo</span>
+                  <span className="text-[13px] text-white/70 mt-1 block">Encontro exclusivo em grupo</span>
                 </div>
                 <div className="p-4 sm:p-5 rounded-xl sm:rounded-2xl bg-white/5 border border-white/10">
                   <span className="text-[12px] sm:text-xs uppercase tracking-[0.04em] text-[#2997ff] font-semibold block mb-1">Foco Central</span>
@@ -1077,7 +1077,7 @@ export const ColorMasterLanding: React.FC = () => {
 
               <div className="p-4 sm:p-6 rounded-xl sm:rounded-2xl bg-white/[0.04] border border-white/10 text-white/90 text-[15px] sm:text-sm md:text-base leading-[1.55]">
                 <p>
-                  Durante 4 semanas consecutivas, você participará de encontros ao vivo em grupo com Michael Oliveira. Uma oportunidade fechada para analisar os projetos e grades de cada participante, identificando falhas, refinando o tratamento e encontrando soluções técnicas para atingir o padrão comercial exigido pelas grandes produtoras e agências.
+                  As primeiras 10 pessoas inscritas participarão de 1 sessão ao vivo e intensiva de mais de 3 horas com Michael Oliveira. Uma oportunidade fechada para analisar os projetos e grades de cada participante, identificando falhas, refinando o tratamento e encontrando soluções técnicas para atingir o padrão comercial exigido pelas grandes produtoras e agências.
                 </p>
               </div>
             </div>
@@ -1129,7 +1129,7 @@ export const ColorMasterLanding: React.FC = () => {
             {/* Checklist of What's Included */}
             <div className="text-left space-y-3 sm:space-y-3.5 max-w-lg mx-auto mb-6 sm:mb-8 text-[14px] sm:text-sm md:text-base leading-[1.5] text-[#1d1d1f] border-y border-[#e5e5e7] py-5 sm:py-6">
               <div className="py-1 border-b border-[#e5e5e7]/50 flex items-center justify-between font-bold text-[#1d1d1f]">
-                <span>• Mentoria de 4 Semanas para os 10 primeiros</span>
+                <span>• Mentoria ao Vivo (+3 Horas) para os 10 primeiros</span>
                 <span className="text-[10px] uppercase font-bold tracking-wider bg-[#0071e3] text-white px-2.5 py-0.5 rounded-full shrink-0">
                   Bônus
                 </span>
