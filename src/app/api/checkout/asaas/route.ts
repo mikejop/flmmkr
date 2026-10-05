@@ -3,11 +3,17 @@ import { asaasService } from '@/services/asaas';
 import { supabaseAdmin } from '@/utils/supabase/admin';
 import { getCurrentBatchPrice, resolveOfferTimerSession } from '@/utils/offerPricing';
 import { provisionSupabaseUserAndProfile } from '@/services/userService';
+import { validateAndSanitizeBody } from '@/utils/security';
 
 export async function POST(req: NextRequest) {
   let requestData: any = {};
   try {
-    requestData = await req.json();
+    const rawJson = await req.json();
+    const { safe, sanitized, reason } = validateAndSanitizeBody(rawJson);
+    if (!safe) {
+      return NextResponse.json({ error: reason || 'Tentativa de injeção SQL bloqueada.' }, { status: 400 });
+    }
+    requestData = sanitized;
 
     const {
       name,

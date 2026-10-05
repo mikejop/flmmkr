@@ -18,6 +18,8 @@ import { CheckoutModal } from '@/components/CheckoutModal';
 import { supabase } from '@/lib/supabase';
 import { getMediaUrl } from '@/lib/storage';
 import { MemberPreloader } from '@/components/MemberPreloader';
+import { AccountSettingsModal } from '@/components/AccountSettingsModal';
+import { DeviceSessionKickedModal } from '@/components/DeviceSessionKickedModal';
 
 // Lazy load heavy interactive tools and articles for instant initial render and 0 lag
 const EquipamentosLessonArticle = lazy(() => import('@/components/EquipamentosLessonArticle'));
@@ -124,6 +126,11 @@ export function MemberAreaApp() {
   const [isAccessibilityOpen, setIsAccessibilityOpen] = useState<boolean>(false);
   
   const [userProfile, setUserProfile] = useState<UserProfile>(DEFAULT_PROFILE);
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  const [kickedModalOpen, setKickedModalOpen] = useState<boolean>(false);
+  const [kickedDeviceName, setKickedDeviceName] = useState<string>('Outro Dispositivo');
+  const [kickedDeviceLocation, setKickedDeviceLocation] = useState<string>('Brasil');
+  const [kickedAt, setKickedAt] = useState<string>('');
 
   const [expandedEmenta, setExpandedEmenta] = useState<Record<string, boolean>>({
     mod0: true
@@ -159,6 +166,7 @@ export function MemberAreaApp() {
         const { data: { user } } = await supabase.auth.getUser();
         if (user) {
           setIsLoggedIn(true);
+          setCurrentUserId(user.id);
           const metaRole = user.app_metadata?.role || user.user_metadata?.role;
           const metaAccess = user.app_metadata?.has_full_access || user.user_metadata?.has_full_access;
 
@@ -182,9 +190,25 @@ export function MemberAreaApp() {
             lastName: nameParts.slice(1).join(' ') || '',
             email: user.email || '',
             phone: prof?.phone || user.user_metadata?.phone || '',
-            avatar: getMediaUrl('banners/hero_01.webp'),
+            avatar: prof?.avatar_url || user.user_metadata?.avatar_url || getMediaUrl('banners/hero_01.webp'),
             isAdmin
           });
+
+          // Registrar / sincronizar sessão para controle de dispositivo único
+          let sessionToken = localStorage.getItem('flmmkr_session_token');
+          if (!sessionToken) {
+            try {
+              const regRes = await fetch('/api/auth/register-session', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ userId: user.id }),
+              });
+              const regData = await regRes.json();
+              if (regData?.sessionToken) {
+                localStorage.setItem('flmmkr_session_token', regData.sessionToken);
+              }
+            } catch (_) {}
+          }
         }
       } catch (err) {
         console.warn('Erro auth:', err);
@@ -200,6 +224,7 @@ export function MemberAreaApp() {
         setIsLoggedIn(false);
         setIsPaidUser(false);
         setIsMasterAdmin(false);
+        setCurrentUserId(null);
       }
     });
 
@@ -216,6 +241,50 @@ export function MemberAreaApp() {
       subscription?.unsubscribe();
     };
   }, []);
+
+  // Monitoramento de Concorrência de Dispositivo Único (Heartbeat)
+  useEffect(() => {
+    if (!isLoggedIn || !currentUserId) return;
+
+    const checkSessionHeartbeat = async () => {
+      const sessionToken = localStorage.getItem('flmmkr_session_token');
+      if (!sessionToken) return;
+
+      try {
+        const res = await fetch('/api/auth/session-heartbeat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ sessionToken, userId: currentUserId }),
+        });
+        const data = await res.json();
+
+        if (data && data.valid === false && data.replaced === true) {
+          // Conta logou em outro dispositivo -> desconectar este
+          setKickedDeviceName(data.replacedByDevice || 'Outro Dispositivo');
+          setKickedDeviceLocation(data.replacedByLocation || 'Brasil');
+          setKickedAt(data.replacedAt || new Date().toISOString());
+          setKickedModalOpen(true);
+          localStorage.removeItem('flmmkr_session_token');
+          handleLogout();
+        }
+      } catch (e) {
+        // Silêncio em caso de instabilidade pontual de conexão
+      }
+    };
+
+    const interval = setInterval(checkSessionHeartbeat, 10000);
+    const onVisibilityChange = () => {
+      if (document.visibilityState === 'visible') checkSessionHeartbeat();
+    };
+    window.addEventListener('focus', checkSessionHeartbeat);
+    document.addEventListener('visibilitychange', onVisibilityChange);
+
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('focus', checkSessionHeartbeat);
+      document.removeEventListener('visibilitychange', onVisibilityChange);
+    };
+  }, [isLoggedIn, currentUserId]);
 
   // Save progress helper
   const saveProgress = (newProgress: UserProgress) => {
@@ -1162,79 +1231,30 @@ export function MemberAreaApp() {
       )}
 
       {/* MINHA CONTA MODAL */}
-      {isAccountModalOpen && (
-        <div 
-          className="fixed inset-0 bg-black/75 backdrop-blur-md z-50 flex items-center justify-center p-4 overflow-y-auto"
-          onClick={() => setIsAccountModalOpen(false)}
-        >
-          <div 
-            className="w-full max-w-lg bg-[#1c1c1e] border border-white/15 rounded-3xl p-6 shadow-2xl text-white space-y-5"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="flex items-start justify-between border-b border-white/10 pb-3">
-              <div>
-                <h2 className="text-base font-bold text-white">Minha Conta</h2>
-                <p className="text-xs text-neutral-400">Dados cadastrais do aluno.</p>
-              </div>
-              <button onClick={() => setIsAccountModalOpen(false)} className="text-neutral-400 hover:text-white">
-                <X size={16} />
-              </button>
-            </div>
+      <AccountSettingsModal
+        isOpen={isAccountModalOpen}
+        onClose={() => setIsAccountModalOpen(false)}
+        userProfile={userProfile}
+        userId={currentUserId || undefined}
+        onProfileUpdated={(updated) => {
+          setUserProfile((prev) => ({
+            ...prev,
+            ...updated,
+          }));
+        }}
+      />
 
-            <div className="space-y-3">
-              <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-1">
-                  <label className="text-xs text-neutral-400">Nome</label>
-                  <input 
-                    type="text" 
-                    value={userProfile.firstName} 
-                    onChange={(e) => setUserProfile({ ...userProfile, firstName: e.target.value })}
-                    className="w-full bg-[#2c2c2e] border border-white/10 rounded-xl px-3 py-2 text-xs text-white"
-                  />
-                </div>
-                <div className="space-y-1">
-                  <label className="text-xs text-neutral-400">Sobrenome</label>
-                  <input 
-                    type="text" 
-                    value={userProfile.lastName} 
-                    onChange={(e) => setUserProfile({ ...userProfile, lastName: e.target.value })}
-                    className="w-full bg-[#2c2c2e] border border-white/10 rounded-xl px-3 py-2 text-xs text-white"
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-1">
-                <label className="text-xs text-neutral-400">E-mail</label>
-                <input 
-                  type="email" 
-                  value={userProfile.email} 
-                  disabled
-                  className="w-full bg-[#222224] border border-white/5 rounded-xl px-3 py-2 text-xs text-neutral-400"
-                />
-              </div>
-
-              <div className="space-y-1">
-                <label className="text-xs text-neutral-400">Telefone / WhatsApp</label>
-                <input 
-                  type="text" 
-                  value={userProfile.phone} 
-                  onChange={(e) => setUserProfile({ ...userProfile, phone: e.target.value })}
-                  className="w-full bg-[#2c2c2e] border border-white/10 rounded-xl px-3 py-2 text-xs text-white"
-                />
-              </div>
-            </div>
-
-            <div className="pt-2 flex justify-end">
-              <button
-                onClick={() => setIsAccountModalOpen(false)}
-                className="px-5 py-2 bg-[#0071e3] text-white rounded-xl text-xs font-semibold cursor-pointer"
-              >
-                Fechar
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* MODAL DE SESSÃO DERRUBADA POR OUTRO DISPOSITIVO */}
+      <DeviceSessionKickedModal
+        isOpen={kickedModalOpen}
+        replacedByDevice={kickedDeviceName}
+        replacedByLocation={kickedDeviceLocation}
+        replacedAt={kickedAt}
+        onReLogin={() => {
+          setKickedModalOpen(false);
+          setIsLoginModalOpen(true);
+        }}
+      />
 
       {/* ACCESSIBILITY WIDGET */}
       {isAccessibilityOpen && (

@@ -1,4 +1,5 @@
 import { supabaseAdmin } from '@/utils/supabase/admin';
+export { supabaseAdmin };
 
 export interface ProvisionUserInput {
   email: string;

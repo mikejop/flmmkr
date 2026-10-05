@@ -19,10 +19,27 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, redirec
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [lockCountdown, setLockCountdown] = useState<number>(0);
   const overlayRef = useRef<HTMLDivElement>(null);
   const emailRef = useRef<HTMLInputElement>(null);
 
   const supabase = createClient();
+
+  // Timer countdown for brute-force lock
+  useEffect(() => {
+    if (lockCountdown <= 0) return;
+    const timer = setInterval(() => {
+      setLockCountdown((prev) => {
+        if (prev <= 1) {
+          clearInterval(timer);
+          setErrorMessage(null);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [lockCountdown]);
 
   // Animate in/out
   useEffect(() => {
@@ -58,6 +75,8 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, redirec
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (lockCountdown > 0) return;
+
     setErrorMessage(null);
     setSuccessMessage(null);
     setLoading(true);
@@ -79,46 +98,42 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, redirec
           setSuccessMessage('Enviamos as instruções de redefinição para o seu e-mail.');
         }
       } else {
-        // Autenticação com Supabase Auth
-        const normalizedEmail = email.trim().toLowerCase();
-        const rawPassword = password;
-        const trimmedPassword = password.trim();
-
-        // 1. Tentar autenticação direta
-        let { data, error } = await supabase.auth.signInWithPassword({
-          email: normalizedEmail,
-          password: rawPassword,
+        // Autenticação com proteção contra Brute-Force e Controle de Sessão Única via /api/auth/login
+        const res = await fetch('/api/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            email: email.trim(),
+            password,
+          }),
         });
 
-        // 2. Se falhar e houver espaços extras no início/fim da senha copiada, tentar com trim
-        if (error && rawPassword !== trimmedPassword) {
-          const retry = await supabase.auth.signInWithPassword({
-            email: normalizedEmail,
-            password: trimmedPassword,
-          });
-          if (!retry.error) {
-            data = retry.data;
-            error = null;
-          }
-        }
+        const data = await res.json();
 
-        if (error) {
-          console.warn('[Login Error]:', error);
-          if (
-            error.message.includes('Invalid login credentials') ||
-            error.message.includes('invalid_grant') ||
-            error.message.includes('invalid_credentials')
-          ) {
-            setErrorMessage('E-mail ou senha incorretos. Verifique seus dados.');
-          } else {
-            setErrorMessage(error.message || 'Falha ao autenticar.');
+        if (!res.ok || !data.success) {
+          if (data.locked && data.remainingSeconds) {
+            setLockCountdown(data.remainingSeconds);
           }
+          setErrorMessage(data.error || 'Falha ao autenticar.');
           setLoading(false);
           return;
         }
 
-        if (data?.session) {
-          // Login realizado com sucesso -> redirecionar para a área de conteúdo
+        if (data.session) {
+          // 1. Sincronizar sessão no cliente Supabase
+          if (data.session.access_token && data.session.refresh_token) {
+            await supabase.auth.setSession({
+              access_token: data.session.access_token,
+              refresh_token: data.session.refresh_token,
+            });
+          }
+
+          // 2. Salvar token de sessão para verificação de concorrência de dispositivo único
+          if (data.sessionToken) {
+            localStorage.setItem('flmmkr_session_token', data.sessionToken);
+          }
+
+          // 3. Redirecionar para a área do aluno
           window.location.href = redirectUrl;
         }
       }
@@ -254,12 +269,18 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, redirec
             {/* Submit button */}
             <button
               type="submit"
-              disabled={loading}
-              className="w-full min-h-[48px] py-3 rounded-xl bg-[#0071e3] hover:bg-[#0077ed] disabled:opacity-60 text-white text-sm font-semibold shadow-[0_4px_16px_rgba(0,113,227,0.4),inset_0_1px_1px_rgba(255,255,255,0.3)] transition-all active:scale-[0.98] mt-2 cursor-pointer flex items-center justify-center gap-2"
+              disabled={loading || lockCountdown > 0}
+              className={`w-full min-h-[48px] py-3 rounded-xl text-white text-sm font-semibold shadow-[0_4px_16px_rgba(0,113,227,0.4),inset_0_1px_1px_rgba(255,255,255,0.3)] transition-all active:scale-[0.98] mt-2 cursor-pointer flex items-center justify-center gap-2 ${
+                lockCountdown > 0 
+                  ? 'bg-neutral-700/80 cursor-not-allowed opacity-80' 
+                  : 'bg-[#0071e3] hover:bg-[#0077ed] disabled:opacity-60'
+              }`}
             >
               {loading && <Loader2 className="w-4 h-4 animate-spin text-white" />}
               {loading
                 ? (forgotMode ? 'Enviando...' : 'Entrando...')
+                : lockCountdown > 0
+                ? `Bloqueado temporariamente (${Math.floor(lockCountdown / 60)}m ${lockCountdown % 60}s)`
                 : (forgotMode ? 'Enviar link de redefinição' : 'Entrar')}
             </button>
           </form>

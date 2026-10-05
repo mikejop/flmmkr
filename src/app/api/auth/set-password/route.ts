@@ -1,9 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/utils/supabase/admin';
+import { validateAndSanitizeBody } from '@/utils/security';
 
 export async function POST(req: NextRequest) {
   try {
-    const { email, password } = await req.json();
+    const rawBody = await req.json();
+    const { safe, sanitized, reason } = validateAndSanitizeBody(rawBody);
+    if (!safe) {
+      return NextResponse.json({ error: reason || 'Tentativa de injeção SQL bloqueada.' }, { status: 400 });
+    }
+    const { email, password } = sanitized;
 
     if (!email || !password) {
       return NextResponse.json(
