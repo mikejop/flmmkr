@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { asaasService } from '@/services/asaas';
 import { supabaseAdmin } from '@/utils/supabase/admin';
-import { getCurrentBatchPrice } from '@/utils/offerPricing';
+import { getCurrentBatchPrice, resolveOfferTimerSession } from '@/utils/offerPricing';
 import { provisionSupabaseUserAndProfile } from '@/services/userService';
 
 export async function POST(req: NextRequest) {
@@ -24,6 +24,7 @@ export async function POST(req: NextRequest) {
       creditCard,
       creditCardHolderInfo,
       billingInfo,
+      macAddress,
       isExpired = false
     } = requestData;
 
@@ -35,9 +36,32 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // 2. Definir valor baseado no lote promocional e expiração
+    // 2. Validação estrita do cronômetro no servidor por MAC e IP (Anti-Fraude)
+    const forwardedFor = req.headers.get('x-forwarded-for');
+    const realIp = req.headers.get('x-real-ip');
+    const ip = forwardedFor ? forwardedFor.split(',')[0].trim() : (realIp || '127.0.0.1');
+    const cookieMac = req.cookies.get('flmmkr_device_mac')?.value;
+    const finalMac = (macAddress || cookieMac || '').trim();
+
+    let isRealExpired = isExpired;
+    if (productId !== 'color-master-completo') {
+      try {
+        const timerSession = await resolveOfferTimerSession({
+          macAddress: finalMac,
+          ip,
+          userAgent: req.headers.get('user-agent') || undefined
+        });
+        const now = Date.now();
+        const expiresAtTime = new Date(timerSession.expiresAt).getTime();
+        isRealExpired = now >= expiresAtTime || timerSession.isExpired;
+      } catch (timerErr) {
+        console.warn('Erro ao validar timer no checkout:', timerErr);
+      }
+    }
+
+    // 3. Definir valor baseado no lote promocional e expiração validada pelo servidor
     const batchInfo = getCurrentBatchPrice(new Date());
-    let productValue = isExpired ? batchInfo.regularPrice : batchInfo.promoPrice;
+    let productValue = isRealExpired ? batchInfo.regularPrice : batchInfo.promoPrice;
     let productDescription = `Masterclass Color Master | Produto (${batchInfo.batchName})`;
 
     if (productId === 'color-master-completo') {

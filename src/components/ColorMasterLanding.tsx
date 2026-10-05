@@ -11,6 +11,7 @@ import { PromoModals } from '@/components/PromoModals';
 import { CheckoutModal } from '@/components/CheckoutModal';
 import { InstagramIcon, YouTubeIcon, TikTokIcon } from '@/components/SocialIcons';
 import { BrandPreloader } from '@/components/BrandPreloader';
+import { getDeviceFingerprint } from '@/utils/deviceFingerprint';
 
 const OFFER_IMAGES = [
   { src: '/assets/produtos/color-master/offer/offer-1.webp', alt: 'Material do Masterclass - Visual 1' },
@@ -81,6 +82,7 @@ export const ColorMasterLanding: React.FC = () => {
   const [expiredModalOpen, setExpiredModalOpen] = useState<boolean>(false);
   const [warningDismissed, setWarningDismissed] = useState<boolean>(false);
   const [expiredDismissed, setExpiredDismissed] = useState<boolean>(false);
+  const [deviceMac, setDeviceMac] = useState<string>('');
   const hasWarnedRef = useRef<boolean>(false);
   const hasExpiredRef = useRef<boolean>(false);
   const prevTimeLeftRef = useRef<number>(900);
@@ -191,35 +193,34 @@ export const ColorMasterLanding: React.FC = () => {
   useEffect(() => {
     setAuthorPhotos(getRandomAuthorPhotos());
 
-    // Gerar ou recuperar Client/Device ID no navegador
-    let clientId = '';
-    try {
-      clientId = localStorage.getItem('flmmkr_client_device_id_v2') || '';
-      if (!clientId) {
-        clientId = 'dev_' + Math.random().toString(36).substring(2, 15) + '_' + Date.now().toString(36);
-        localStorage.setItem('flmmkr_client_device_id_v2', clientId);
-      }
-    } catch {
-      clientId = 'client_' + Date.now();
-    }
+    // Obter a impressão digital do computador (MAC Address de hardware)
+    getDeviceFingerprint().then((mac) => {
+      setDeviceMac(mac);
 
-    // Sincronizar com o servidor (grava IP e Client ID, preparado para Supabase)
-    fetch(`/api/offer-timer?clientId=${encodeURIComponent(clientId)}`)
-      .then((res) => res.json())
-      .then((data) => {
-        if (data && typeof data.remainingSeconds === 'number') {
-          setTimeLeft(data.remainingSeconds);
-          setIsExpired(data.isExpired);
-          setPriceData({
-            promoPrice: data.promoPrice,
-            regularPrice: data.regularPrice,
-            finalPrice: data.finalPrice,
-            batchName: data.batchName,
-            nextPriceDate: data.nextPriceDate
-          });
-        }
-      })
-      .catch(() => {});
+      // Sincronizar com o servidor: prioridade 1 = MAC Address, prioridade 2 = IP
+      fetch(`/api/offer-timer?macAddress=${encodeURIComponent(mac)}`)
+        .then((res) => res.json())
+        .then((data) => {
+          if (data && typeof data.remainingSeconds === 'number') {
+            setTimeLeft(data.remainingSeconds);
+            setIsExpired(data.isExpired);
+            setPriceData({
+              promoPrice: data.promoPrice,
+              regularPrice: data.regularPrice,
+              finalPrice: data.finalPrice,
+              batchName: data.batchName,
+              nextPriceDate: data.nextPriceDate
+            });
+
+            // Se o cronômetro estiver zerado e o usuário acessar a página novamente,
+            // o modal dizendo que a promoção acabou aparecerá automaticamente
+            if (data.isExpired || data.remainingSeconds <= 0) {
+              setExpiredModalOpen(true);
+            }
+          }
+        })
+        .catch(() => {});
+    });
 
     fetch('/api/empresas')
       .then((res) => res.json())
@@ -464,6 +465,7 @@ export const ColorMasterLanding: React.FC = () => {
         price={priceData.promoPrice}
         regularPrice={priceData.regularPrice}
         isExpired={isExpired}
+        macAddress={deviceMac}
       />
 
       {/* Modais de Alerta (1:30) e Expiração (Preço Real) */}

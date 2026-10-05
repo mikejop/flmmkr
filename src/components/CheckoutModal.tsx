@@ -23,6 +23,7 @@ interface CheckoutModalProps {
   price?: number;
   regularPrice?: number;
   isExpired?: boolean;
+  macAddress?: string;
 }
 
 const PROFESSIONS = [
@@ -39,7 +40,8 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
   onClose,
   price = 95,
   regularPrice = 195,
-  isExpired = false
+  isExpired = false,
+  macAddress
 }) => {
   // Modal visibility & animation
   const [visible, setVisible] = useState(false);
@@ -424,6 +426,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
             address: studentAddress,
             billingType: 'PIX',
             billingInfo,
+            macAddress,
             isExpired
           })
         });
@@ -473,6 +476,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
               ccv: cardCvv
             },
             billingInfo,
+            macAddress,
             isExpired
           })
         });

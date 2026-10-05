@@ -63,3 +63,25 @@ CREATE TABLE IF NOT EXISTS public.pending_checkouts (
 );
 
 ALTER TABLE public.pending_checkouts ENABLE ROW LEVEL SECURITY;
+
+-- 4. Tabela de Sessões do Cronômetro de Oferta (Prioridade MAC Address + IP + 36h Cooldown)
+CREATE TABLE IF NOT EXISTS public.offer_timer_sessions (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  mac_address TEXT NOT NULL,
+  ip TEXT NOT NULL,
+  client_identifier TEXT UNIQUE NOT NULL,
+  user_agent TEXT,
+  first_access_at TIMESTAMPTZ NOT NULL DEFAULT timezone('utc'::text, now()),
+  expires_at TIMESTAMPTZ NOT NULL,
+  cooldown_until TIMESTAMPTZ NOT NULL,
+  is_expired BOOLEAN NOT NULL DEFAULT false,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT timezone('utc'::text, now()),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT timezone('utc'::text, now())
+);
+
+CREATE INDEX IF NOT EXISTS idx_offer_timer_mac ON public.offer_timer_sessions(mac_address);
+CREATE INDEX IF NOT EXISTS idx_offer_timer_ip ON public.offer_timer_sessions(ip);
+CREATE INDEX IF NOT EXISTS idx_offer_timer_client_id ON public.offer_timer_sessions(client_identifier);
+
+ALTER TABLE public.offer_timer_sessions ENABLE ROW LEVEL SECURITY;
+
