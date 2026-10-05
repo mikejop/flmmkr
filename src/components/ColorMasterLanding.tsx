@@ -63,8 +63,6 @@ const recordExpiredModalView = (mac?: string): number => {
 };
 
 export const ColorMasterLanding: React.FC = () => {
-  const instructorCardRef = useRef<HTMLDivElement>(null);
-
   const [authorPhotos, setAuthorPhotos] = useState<AuthorPhotoPair>({
     profileSrc: '/assets/mike-photos/01.jpg',
     bgSrc: '/assets/bg/about-mike/02.jpg'
@@ -857,16 +855,10 @@ export const ColorMasterLanding: React.FC = () => {
       <section id="instrutor" className="relative z-10 min-h-[100dvh] flex flex-col justify-center py-12 md:py-16 bg-[#000000] px-4 sm:px-6 lg:px-8 overflow-hidden">
         <ReticulaBackground
           bgImageSrc={authorPhotos.bgSrc}
-          crossfadeScroll={true}
-          fadeFromColor="#f5f5f7"
-          fadeToColor="#000000"
-          targetBlockRef={instructorCardRef}
+          crossfadeScroll={false}
         />
 
-        <div
-          ref={instructorCardRef}
-          className="max-w-5xl mx-auto relative z-10 w-full my-auto will-change-[opacity]"
-        >
+        <div className="max-w-5xl mx-auto relative z-10 w-full my-auto">
           <div className="rounded-2xl sm:rounded-3xl bg-[#ffffff]/90 backdrop-blur-md border border-[#e5e5e7] p-6 sm:p-10 md:p-12 shadow-sm">
             <div className="grid grid-cols-1 md:grid-cols-12 gap-6 sm:gap-8 items-center">
               {/* Teacher Photo */}

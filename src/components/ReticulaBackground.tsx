@@ -25,8 +25,6 @@ export const ReticulaBackground: React.FC<ReticulaBackgroundProps> = ({
 
   useEffect(() => {
     if (!crossfadeScroll) {
-      if (whiteLayerRef.current) whiteLayerRef.current.style.opacity = '0';
-      if (blackLayerRef.current) blackLayerRef.current.style.opacity = '0';
       if (targetBlockRef?.current) targetBlockRef.current.style.opacity = '1';
       return;
     }
@@ -127,25 +125,27 @@ export const ReticulaBackground: React.FC<ReticulaBackgroundProps> = ({
       {/* Camada de Retícula de Pontos Pretos (Responsiva: menor no mobile, padrão no desktop) */}
       <div className="absolute inset-0 z-1 pointer-events-none reticula-pattern" />
 
-      {/* Camada de Animação de Fade: Branco -> Imagem */}
-      <div
-        ref={whiteLayerRef}
-        className="absolute inset-0 z-2 pointer-events-none will-change-[opacity]"
-        style={{
-          backgroundColor: fadeFromColor,
-          opacity: 0,
-        }}
-      />
-
-      {/* Camada de Animação de Fade: Imagem -> Escuro/Preto */}
-      <div
-        ref={blackLayerRef}
-        className="absolute inset-0 z-2 pointer-events-none will-change-[opacity]"
-        style={{
-          backgroundColor: fadeToColor,
-          opacity: 0,
-        }}
-      />
+      {/* Camadas opcionais de Animação de Fade quando crossfadeScroll estiver ativo */}
+      {crossfadeScroll && (
+        <>
+          <div
+            ref={whiteLayerRef}
+            className="absolute inset-0 z-2 pointer-events-none will-change-[opacity]"
+            style={{
+              backgroundColor: fadeFromColor,
+              opacity: 0,
+            }}
+          />
+          <div
+            ref={blackLayerRef}
+            className="absolute inset-0 z-2 pointer-events-none will-change-[opacity]"
+            style={{
+              backgroundColor: fadeToColor,
+              opacity: 0,
+            }}
+          />
+        </>
+      )}
     </div>
   );
 };
