@@ -655,8 +655,8 @@ export const ColorMasterLanding: React.FC = () => {
               )}
             </div>
 
-            {/* Main CTAs (Apple button typography: 14px / text-sm, compact pill) */}
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-2.5 sm:gap-4 w-full sm:w-auto mb-4">
+            {/* Main CTA */}
+            <div className="flex flex-col sm:flex-row items-center justify-center w-full sm:w-auto mb-4">
               <button
                 type="button"
                 onClick={() => {
@@ -667,13 +667,6 @@ export const ColorMasterLanding: React.FC = () => {
               >
                 {!isExpired ? `Garantir por R$ ${priceData.promoPrice}` : 'Garantir Acesso à Masterclass'}
               </button>
-
-              <a
-                href="#aprendizado"
-                className="w-full max-w-[260px] sm:max-w-none sm:w-auto px-4 sm:px-6 py-2.5 sm:py-4 rounded-full bg-white/10 hover:bg-white/20 text-white font-normal text-[14px] sm:text-sm transition-all border border-white/20 flex items-center justify-center active:scale-95 cursor-pointer"
-              >
-                Ver Conteúdo Completo
-              </a>
             </div>
 
             {/* Trust highlights */}
