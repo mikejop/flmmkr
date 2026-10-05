@@ -1,5 +1,5 @@
 import React from 'react';
-import { Film, CheckCircle2 } from 'lucide-react';
+import { CheckCircle2 } from 'lucide-react';
 
 export default function IntroducaoDaVinciArticle() {
   return (
@@ -24,10 +24,7 @@ export default function IntroducaoDaVinciArticle() {
             O DaVinci Resolve tem ferramenta pra caramba. Você abre o programa e tem painel, botão, menu, node, scope... então não precisa tentar aprender tudo de uma vez.
           </p>
           <p>
-            Pra começar, entende uma coisa: o colorista vai trabalhar principalmente na página Color. Mas precisa saber o mínimo das outras páginas, principalmente Media e Edit, porque é ali que o projeto começa a se organizar.{' '}
-            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md bg-neutral-100 text-neutral-600 text-xs font-mono font-medium border border-neutral-200 align-middle">
-              <Film size={11} className="text-[#0071e3]" /> Camera_color-master-produto_v1_…
-            </span>
+            Pra começar, entende uma coisa: o colorista vai trabalhar principalmente na página Color. Mas precisa saber o mínimo das outras páginas, principalmente Media e Edit, porque é ali que o projeto começa a se organizar.
           </p>
           <p>
             Na página Media, você vai trazer os arquivos do computador para dentro do projeto. E aqui tem um detalhe importante: mantenha a organização que você já fez no computador.
@@ -151,10 +148,7 @@ export default function IntroducaoDaVinciArticle() {
             Aqui começa uma parte importante.
           </p>
           <p>
-            Você vai encontrar Color Wheels, Color Bars e Log Wheels. As três servem para trabalhar a imagem, mas não fazem exatamente a mesma coisa.{' '}
-            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md bg-neutral-100 text-neutral-600 text-xs font-mono font-medium border border-neutral-200 align-middle">
-              <Film size={11} className="text-[#0071e3]" /> Camera_color-master-produto_v1_…
-            </span>
+            Você vai encontrar Color Wheels, Color Bars e Log Wheels. As três servem para trabalhar a imagem, mas não fazem exatamente a mesma coisa.
           </p>
           <p>
             O Color Wheel trabalha de maneira mais ampla. Quando você mexe nele, uma parte grande da imagem acompanha a alteração.
@@ -211,19 +205,13 @@ export default function IntroducaoDaVinciArticle() {
             É aqui que começam a aparecer ferramentas mais específicas.
           </p>
           <p>
-            O HDR permite trabalhar diferentes partes da escala tonal. Então, se existe um ponto muito claro que está chamando atenção, você consegue mexer naquele pedaço sem destruir o resto da imagem.{' '}
-            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md bg-neutral-100 text-neutral-600 text-xs font-mono font-medium border border-neutral-200 align-middle">
-              <Film size={11} className="text-[#0071e3]" /> Camera_color-master-produto_v1_…
-            </span>
+            O HDR permite trabalhar diferentes partes da escala tonal. Então, se existe um ponto muito claro que está chamando atenção, você consegue mexer naquele pedaço sem destruir o resto da imagem.
           </p>
           <p>
             O RGB Mixer faz outra coisa. Ele permite trabalhar cada canal separadamente.
           </p>
           <p>
-            Está tudo meio amarelado e você precisa corrigir uma dominante? Em vez de ficar mexendo na imagem inteira, você pode trabalhar diretamente no canal que está causando o problema.{' '}
-            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md bg-neutral-100 text-neutral-600 text-xs font-mono font-medium border border-neutral-200 align-middle">
-              <Film size={11} className="text-[#0071e3]" /> Camera_color-master-produto_v1_…
-            </span>
+            Está tudo meio amarelado e você precisa corrigir uma dominante? Em vez de ficar mexendo na imagem inteira, você pode trabalhar diretamente no canal que está causando o problema.
           </p>
           <p>
             E aí começam a aparecer as curvas.
@@ -266,10 +254,7 @@ export default function IntroducaoDaVinciArticle() {
             E aí vem o Tracker. Criou uma máscara e o objeto se mexe? Você faz o track e o Resolve acompanha aquele movimento.
           </p>
           <p>
-            Quando precisa de uma seleção mais automatizada, existe o Magic Mask, disponível na versão Studio. Ele usa inteligência artificial para identificar o objeto que você quer selecionar.{' '}
-            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md bg-neutral-100 text-neutral-600 text-xs font-mono font-medium border border-neutral-200 align-middle">
-              <Film size={11} className="text-[#0071e3]" /> Camera_color-master-produto_v1_…
-            </span>
+            Quando precisa de uma seleção mais automatizada, existe o Magic Mask, disponível na versão Studio. Ele usa inteligência artificial para identificar o objeto que você quer selecionar.
           </p>
         </div>
 
@@ -346,10 +331,7 @@ export default function IntroducaoDaVinciArticle() {
 
         <blockquote className="bg-[#f5f5f7] p-6 sm:p-8 rounded-2xl border-l-4 border-[#0071e3] my-7 shadow-xs">
           <p className="font-serif italic font-medium text-xl sm:text-2xl text-[#0071e3] leading-snug !mb-0">
-            “Normalmente, quando você trabalha com mais de uma câmera e aí você tem que equalizar todas elas, a gente usa o color match.”{' '}
-            <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded bg-white text-neutral-600 text-xs font-mono font-normal border border-neutral-200 align-middle not-italic ml-2">
-              <Film size={11} className="text-[#0071e3]" /> Camera_color-master-produto_v1_…
-            </span>
+            “Normalmente, quando você trabalha com mais de uma câmera e aí você tem que equalizar todas elas, a gente usa o color match.”
           </p>
         </blockquote>
 
@@ -381,19 +363,13 @@ export default function IntroducaoDaVinciArticle() {
             Os Scopes existem justamente para te dar uma leitura mais objetiva do sinal.
           </p>
           <p>
-            Na Waveform, você acompanha a luminosidade. No Parade, consegue enxergar separadamente a intensidade de cada canal. E no Vector Scope, você vê como as cores estão distribuídas dentro do espectro.{' '}
-            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md bg-neutral-100 text-neutral-600 text-xs font-mono font-medium border border-neutral-200 align-middle">
-              <Film size={11} className="text-[#0071e3]" /> Camera_color-master-produto_v1_…
-            </span>
+            Na Waveform, você acompanha a luminosidade. No Parade, consegue enxergar separadamente a intensidade de cada canal. E no Vector Scope, você vê como as cores estão distribuídas dentro do espectro.
           </p>
         </div>
 
         <blockquote className="bg-[#f5f5f7] p-6 sm:p-8 rounded-2xl border-l-4 border-[#0071e3] my-7 shadow-xs">
           <p className="font-serif italic font-medium text-xl sm:text-2xl text-[#0071e3] leading-snug !mb-0">
-            “Aqui eu tenho o vector scope, onde eu consigo ver a distribuição de cores através do espectro visível.”{' '}
-            <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded bg-white text-neutral-600 text-xs font-mono font-normal border border-neutral-200 align-middle not-italic ml-2">
-              <Film size={11} className="text-[#0071e3]" /> Camera_color-master-produto_v1_…
-            </span>
+            “Aqui eu tenho o vector scope, onde eu consigo ver a distribuição de cores através do espectro visível.”
           </p>
         </blockquote>
 
@@ -436,10 +412,7 @@ export default function IntroducaoDaVinciArticle() {
 
         <blockquote className="bg-[#f5f5f7] p-6 sm:p-8 rounded-2xl border-l-4 border-red-500 my-7 shadow-xs">
           <p className="font-serif italic font-medium text-xl sm:text-2xl text-red-600 leading-snug !mb-0">
-            “Sempre que você for fazer color grading, tira do proxy.”{' '}
-            <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded bg-white text-neutral-600 text-xs font-mono font-normal border border-neutral-200 align-middle not-italic ml-2">
-              <Film size={11} className="text-[#0071e3]" /> Camera_color-master-produto_v1_…
-            </span>
+            “Sempre que você for fazer color grading, tira do proxy.”
           </p>
         </blockquote>
 
