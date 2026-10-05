@@ -1,6 +1,6 @@
 import React from 'react';
 
-export function EquipamentosLessonArticle() {
+export default function EquipamentosLessonArticle() {
   return (
     <article className="w-full text-[#111111] font-serif select-text leading-relaxed relative space-y-10">
 

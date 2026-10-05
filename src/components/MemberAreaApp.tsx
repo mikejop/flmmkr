@@ -1,95 +1,76 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo, Suspense, lazy } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
-  Folder, FolderOpen, FileText, ChevronRight, ChevronDown, ChevronLeft,
-  Play, Clock, ArrowRight, Zap, CheckCircle2, Circle, Lock, 
-  PanelLeftClose, PanelLeft, X, Search, Menu, Target, Wrench, 
-  Image as ImageIcon, Shield, Star, GraduationCap, RefreshCw, Layers, Check, Copy, AlertTriangle, PlayCircle, BookOpen, Volume2,
-  Compass, Mic, Camera, Sun, SunMedium, Lamp, Contrast, Users, Wand2, Video, Scissors, Palette, Activity, Plus, Upload, User, LogIn, LogOut, Mail, Phone, Eye, EyeOff, Trash2
+  Folder, ChevronRight, ChevronDown, ChevronLeft,
+  CheckCircle2, Lock, PanelLeftClose, PanelLeft, X, Search, Menu,
+  BookOpen, Camera, Sun, SunMedium, Lamp, Contrast, Users, Wand2,
+  Palette, Plus, User, LogIn, LogOut, Copy, Star, Compass
 } from 'lucide-react';
 import { modulesData } from '@/data/data';
 import { UserProgress, CourseModule, ModuleId, Subtopic } from '@/types/course';
-import { formatTelefone } from '@/lib/utils';
-import { EquipamentosLessonArticle } from '@/components/EquipamentosLessonArticle';
 import { TextHighlighterTool } from '@/components/TextHighlighterTool';
 import { fetchReadingState, saveReadingState } from '@/lib/readingStateService';
 import { AccessibilityWidget } from '@/components/AccessibilityWidget';
-import LiquidGlass from '@/components/LiquidGlass';
 import { LoginModal } from '@/components/LoginModal';
 import { CheckoutModal } from '@/components/CheckoutModal';
 import { supabase } from '@/lib/supabase';
 import { getMediaUrl } from '@/lib/storage';
 
-// Interactive tools
-import AceleracaoManager from '@/components/AceleracaoManager';
-import AvEditorTeleprompter from '@/components/AvEditorTeleprompter';
-import CenarioPlanner from '@/components/CenarioPlanner';
-import Iluminacao3Pontos from '@/components/Iluminacao3Pontos';
-import ExposureCalculator from '@/components/ExposureCalculator';
-import PudovkinSequencer from '@/components/PudovkinSequencer';
-import AudioMixer from '@/components/AudioMixer';
-import ColorwheelsGrading from '@/components/ColorwheelsGrading';
-import CtrSimulator from '@/components/CtrSimulator';
-import DeliverExporter from '@/components/DeliverExporter';
-import IdeationFlowchart from '@/components/IdeationFlowchart';
-import InteractiveIdeationTheory from '@/components/InteractiveIdeationTheory';
+// Lazy load heavy interactive tools and articles for instant initial render and 0 lag
+const EquipamentosLessonArticle = lazy(() => import('@/components/EquipamentosLessonArticle'));
+const InteractiveIdeationTheory = lazy(() => import('@/components/InteractiveIdeationTheory'));
+const AceleracaoManager = lazy(() => import('@/components/AceleracaoManager'));
+const Iluminacao3Pontos = lazy(() => import('@/components/Iluminacao3Pontos'));
+const ExposureCalculator = lazy(() => import('@/components/ExposureCalculator'));
+const CenarioPlanner = lazy(() => import('@/components/CenarioPlanner'));
+const PudovkinSequencer = lazy(() => import('@/components/PudovkinSequencer'));
+const ColorwheelsGrading = lazy(() => import('@/components/ColorwheelsGrading'));
+const AudioMixer = lazy(() => import('@/components/AudioMixer'));
+const DeliverExporter = lazy(() => import('@/components/DeliverExporter'));
+const CtrSimulator = lazy(() => import('@/components/CtrSimulator'));
+
+const ToolFallback = () => (
+  <div className="w-full h-48 flex items-center justify-center text-xs text-neutral-400 animate-pulse">
+    Carregando ferramenta...
+  </div>
+);
 
 // Helper to render Apple-style module icons
 const getModuleIcon = (modId: ModuleId, isCurrent: boolean) => {
   const colorClass = isCurrent ? 'text-[#0071e3]' : 'text-[#86868b]';
-  const size = 20;
+  const size = 18;
   switch (modId) {
-    case 'mod0': // O Que Importa (Equipamentos/Câmeras)
-      return <Camera size={size} className={colorClass} />;
-    case 'mod1': // 1 Ponto de Luz
-      return <Sun size={size} className={colorClass} />;
-    case 'mod2': // 2 Pontos de Luz
-      return <SunMedium size={size} className={colorClass} />;
-    case 'mod3': // 3 Pontos de Luz
-      return <SunMedium size={size} className={colorClass} />;
-    case 'mod4': // Luz de Ambiente
-      return <Lamp size={size} className={colorClass} />;
-    case 'mod5': // Luz Colorida RGB
-      return <Palette size={size} className={colorClass} />;
-    case 'mod6': // Luz Dramática
-      return <Contrast size={size} className={colorClass} />;
-    case 'mod7': // Setup Entrevista
-      return <Users size={size} className={colorClass} />;
-    case 'mod8': // Estilo Autoral
-      return <Wand2 size={size} className={colorClass} />;
-    default:
-      return <Folder size={size} className={colorClass} />;
+    case 'mod0': return <Camera size={size} className={colorClass} />;
+    case 'mod1': return <Sun size={size} className={colorClass} />;
+    case 'mod2':
+    case 'mod3': return <SunMedium size={size} className={colorClass} />;
+    case 'mod4': return <Lamp size={size} className={colorClass} />;
+    case 'mod5': return <Palette size={size} className={colorClass} />;
+    case 'mod6': return <Contrast size={size} className={colorClass} />;
+    case 'mod7': return <Users size={size} className={colorClass} />;
+    case 'mod8': return <Wand2 size={size} className={colorClass} />;
+    default: return <Folder size={size} className={colorClass} />;
   }
 };
 
 const getModuleName = (title: string | undefined): string => {
   if (!title) return '';
-  const cleaned = title
+  return title
     .replace(/^MÓDULO\s+\d+:\s*/i, '')
     .replace(/^INTRODUÇÃO:\s*/i, '')
     .trim();
-  if (cleaned.startsWith('Deliver')) {
-    return 'Deliver';
-  }
-  return cleaned;
 };
 
 const STORAGE_KEY = 'flmmkr_member_progress';
-const LOGIN_KEY = 'flmmkr_member_logged';
-const PROFILE_KEY = 'flmmkr_member_profile';
 
 interface UserProfile {
   firstName: string;
   lastName: string;
   email: string;
   phone: string;
-  password?: string;
-  confirmPassword?: string;
   avatar: string;
-  isSocialLogin?: boolean;
-  providerName?: string;
   isAdmin?: boolean;
 }
 
@@ -113,10 +94,6 @@ const DEFAULT_PROGRESS: UserProgress = {
   activeTab: {}
 };
 
-const BG_VIDEOS = [
-  getMediaUrl('bg/02.webm')
-];
-
 export function MemberAreaApp() {
   const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
   const [progress, setProgress] = useState<UserProgress>(DEFAULT_PROGRESS);
@@ -133,56 +110,47 @@ export function MemberAreaApp() {
   
   const [isLoginModalOpen, setIsLoginModalOpen] = useState<boolean>(false);
   const [isCheckoutModalOpen, setIsCheckoutModalOpen] = useState<boolean>(false);
-  const [checkoutModalTitle, setCheckoutModalTitle] = useState<string>('');
   
   const [isPaidUser, setIsPaidUser] = useState<boolean>(false);
   const [isMasterAdmin, setIsMasterAdmin] = useState<boolean>(false);
   
   const [copiedChallengeId, setCopiedChallengeId] = useState<string | null>(null);
   const [scrollProgressPercent, setScrollProgressPercent] = useState<number>(0);
-  const [hoveredModuleIndex, setHoveredModuleIndex] = useState<number | null>(null);
-  const [hoveredLessonIndex, setHoveredLessonIndex] = useState<number | null>(null);
-  const [hoveredTrafficLight, setHoveredTrafficLight] = useState<boolean>(false);
   const [activeFlyoutModule, setActiveFlyoutModule] = useState<string | null>(null);
   const flyoutTimeoutRef = useRef<any>(null);
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState<boolean>(false);
   const [isAccountModalOpen, setIsAccountModalOpen] = useState<boolean>(false);
-  const [accountSaveSuccess, setAccountSaveSuccess] = useState<boolean>(false);
   const [isAccessibilityOpen, setIsAccessibilityOpen] = useState<boolean>(false);
   
   const [userProfile, setUserProfile] = useState<UserProfile>(DEFAULT_PROFILE);
 
   const [expandedEmenta, setExpandedEmenta] = useState<Record<string, boolean>>({
-    mod0: true,
-    mod1: false,
-    mod2: false,
-    mod3: false,
-    mod4: false,
-    mod5: false,
-    mod6: false,
-    mod7: false,
-    mod8: false
+    mod0: true
   });
 
-  // Current selected lesson object
-  const activeModule = modulesData.find(m => m.id === activeModuleId) || modulesData[0];
-  const activeLesson = activeModule.subtopics.find(s => s.id === activeLessonId) || activeModule.subtopics[0];
+  // Current selected lesson and module (memoized for instant access)
+  const activeModule = useMemo(() => {
+    return modulesData.find(m => m.id === activeModuleId) || modulesData[0];
+  }, [activeModuleId]);
 
-  // Calculate overall course progress percentage
-  const totalLessonsCount = modulesData.reduce((acc, curr) => acc + curr.subtopics.length, 0);
-  const percentComplete = Math.min(
-    100, 
-    Math.round((progress.completedLessons.length / (totalLessonsCount || 1)) * 100)
-  );
+  const activeLesson = useMemo(() => {
+    return activeModule.subtopics.find(s => s.id === activeLessonId) || activeModule.subtopics[0];
+  }, [activeModule, activeLessonId]);
+
+  // Overall course progress percentage
+  const totalLessonsCount = useMemo(() => {
+    return modulesData.reduce((acc, curr) => acc + curr.subtopics.length, 0);
+  }, []);
+
+  const percentComplete = useMemo(() => {
+    return Math.min(100, Math.round((progress.completedLessons.length / (totalLessonsCount || 1)) * 100));
+  }, [progress.completedLessons.length, totalLessonsCount]);
 
   // 1. Initial Load & Auth State
   useEffect(() => {
-    // Load local progress
     try {
       const savedProg = localStorage.getItem(STORAGE_KEY);
-      if (savedProg) {
-        setProgress(JSON.parse(savedProg));
-      }
+      if (savedProg) setProgress(JSON.parse(savedProg));
     } catch (_) {}
 
     async function checkAuth() {
@@ -193,7 +161,6 @@ export function MemberAreaApp() {
           const metaRole = user.app_metadata?.role || user.user_metadata?.role;
           const metaAccess = user.app_metadata?.has_full_access || user.user_metadata?.has_full_access;
 
-          // Fetch profile from Supabase
           const { data: prof } = await supabase
             .from('profiles')
             .select('*')
@@ -217,19 +184,15 @@ export function MemberAreaApp() {
             avatar: getMediaUrl('banners/hero_01.webp'),
             isAdmin
           });
-        } else {
-          setIsLoggedIn(false);
-          setIsPaidUser(false);
-          setIsMasterAdmin(false);
         }
       } catch (err) {
-        console.warn('Erro ao carregar sessão:', err);
+        console.warn('Erro auth:', err);
       }
     }
 
     checkAuth();
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       if (session?.user) {
         checkAuth();
       } else {
@@ -239,7 +202,6 @@ export function MemberAreaApp() {
       }
     });
 
-    // Fetch remote reading state
     fetchReadingState().then(state => {
       if (state && state.lastLessonId) {
         setActiveModuleId(state.lastModuleId);
@@ -270,11 +232,6 @@ export function MemberAreaApp() {
     setIsProfileMenuOpen(false);
   };
 
-  const handleToggleMaximize = () => {
-    setIsMaximized(prev => !prev);
-  };
-
-  // Toggle lesson complete
   const handleToggleLessonComplete = (lessonId: string) => {
     if (!isLoggedIn) {
       setIsLoginModalOpen(true);
@@ -283,13 +240,7 @@ export function MemberAreaApp() {
 
     const completed = [...progress.completedLessons];
     const isCompleted = completed.includes(lessonId);
-    
-    let nextCompleted;
-    if (isCompleted) {
-      nextCompleted = completed.filter(id => id !== lessonId);
-    } else {
-      nextCompleted = [...completed, lessonId];
-    }
+    const nextCompleted = isCompleted ? completed.filter(id => id !== lessonId) : [...completed, lessonId];
 
     const finalCompletedModules = [...progress.completedModules];
     modulesData.forEach(m => {
@@ -316,52 +267,40 @@ export function MemberAreaApp() {
       handleToggleLessonComplete(lessonId);
     }
     handleNextLesson();
-    setTimeout(() => {
-      if (lessonContainerRef.current) {
-        lessonContainerRef.current.scrollTo({ top: 0, behavior: 'smooth' });
-      }
-    }, 50);
+    if (lessonContainerRef.current) {
+      lessonContainerRef.current.scrollTo({ top: 0, behavior: 'smooth' });
+    }
   };
 
-  // Toggle checklist item progress
   const handleToggleChecklist = (itemId: string) => {
     const nextStates = { ...progress.checklistStates, [itemId]: !progress.checklistStates[itemId] };
     saveProgress({ ...progress, checklistStates: nextStates });
   };
 
-  // Challenge form field draft changes
   const handleChallengeFieldChange = (challengeId: string, key: string, value: string) => {
     const drafts = { ...progress.challengeDrafts };
-    if (!drafts[challengeId]) {
-      drafts[challengeId] = {};
-    }
+    if (!drafts[challengeId]) drafts[challengeId] = {};
     drafts[challengeId][key] = value;
     saveProgress({ ...progress, challengeDrafts: drafts });
   };
 
   const handleCopyChallenge = (challengeId: string, fields: any[]) => {
-    let copyText = `📋 PLANO DE ESTUDO & EXERCÍCIO\n`;
-    copyText += `==============================================\n\n`;
-    
+    let copyText = `📋 PLANO DE ESTUDO & EXERCÍCIO\n==============================================\n\n`;
     const draft = progress.challengeDrafts[challengeId] || {};
     fields.forEach(field => {
       const fieldKey = field.fieldId || field.key;
       const val = draft[fieldKey] || '';
       copyText += `👉 ${field.label}:\n   ${val || 'Não preenchido.'}\n\n`;
     });
-
     navigator.clipboard.writeText(copyText);
     setCopiedChallengeId(challengeId);
     setTimeout(() => setCopiedChallengeId(null), 2000);
   };
 
   const handleNextLesson = () => {
-    const currentModule = modulesData.find(m => m.id === activeModuleId);
-    if (!currentModule) return;
-    
-    const currentIndex = currentModule.subtopics.findIndex(s => s.id === activeLessonId);
-    if (currentIndex < currentModule.subtopics.length - 1) {
-      const nextLesson = currentModule.subtopics[currentIndex + 1];
+    const currentIndex = activeModule.subtopics.findIndex(s => s.id === activeLessonId);
+    if (currentIndex < activeModule.subtopics.length - 1) {
+      const nextLesson = activeModule.subtopics[currentIndex + 1];
       setActiveLessonId(nextLesson.id);
       saveReadingState({
         lastModuleId: activeModuleId,
@@ -387,12 +326,9 @@ export function MemberAreaApp() {
   };
 
   const handlePrevLesson = () => {
-    const currentModule = modulesData.find(m => m.id === activeModuleId);
-    if (!currentModule) return;
-    
-    const currentIndex = currentModule.subtopics.findIndex(s => s.id === activeLessonId);
+    const currentIndex = activeModule.subtopics.findIndex(s => s.id === activeLessonId);
     if (currentIndex > 0) {
-      const prevLesson = currentModule.subtopics[currentIndex - 1];
+      const prevLesson = activeModule.subtopics[currentIndex - 1];
       setActiveLessonId(prevLesson.id);
       saveReadingState({
         lastModuleId: activeModuleId,
@@ -448,8 +384,8 @@ export function MemberAreaApp() {
     }
   };
 
-  // Search Results Filter
-  const searchResults = React.useMemo(() => {
+  // Search Results Filter (memoized)
+  const searchResults = useMemo(() => {
     if (!searchQuery.trim()) return [];
     const q = searchQuery.toLowerCase();
     const results: { module: CourseModule; lesson: Subtopic }[] = [];
@@ -475,81 +411,65 @@ export function MemberAreaApp() {
     setSearchQuery('');
   };
 
-  // Scroll Progress listener
+  // Throttled Scroll Progress listener with requestAnimationFrame
   useEffect(() => {
     const el = lessonContainerRef.current;
     if (!el) return;
+    let rAF: number | null = null;
     const handleScroll = () => {
-      const total = el.scrollHeight - el.clientHeight;
-      if (total > 0) {
-        setScrollProgressPercent(Math.round((el.scrollTop / total) * 100));
-      }
+      if (rAF !== null) return;
+      rAF = requestAnimationFrame(() => {
+        const total = el.scrollHeight - el.clientHeight;
+        if (total > 0) {
+          setScrollProgressPercent(Math.round((el.scrollTop / total) * 100));
+        }
+        rAF = null;
+      });
     };
     el.addEventListener('scroll', handleScroll, { passive: true });
-    return () => el.removeEventListener('scroll', handleScroll);
+    return () => {
+      el.removeEventListener('scroll', handleScroll);
+      if (rAF !== null) cancelAnimationFrame(rAF);
+    };
   }, [activeLessonId]);
 
   return (
-    <div className="relative w-screen h-screen bg-[#0a0a0c] text-[#f5f5f7] flex items-center justify-center overflow-hidden font-sans select-none">
+    <div className="relative w-screen h-screen bg-[#0a0a0c] text-[#f5f5f7] flex items-center justify-center overflow-hidden font-sans select-none will-change-transform">
       
-      {/* Background Video com Crossfade sutil */}
-      <div className="hidden md:block absolute inset-0 z-0 overflow-hidden pointer-events-none">
-        <video
-          src={BG_VIDEOS[0]}
-          autoPlay
-          muted
-          loop
-          playsInline
-          className="absolute inset-0 w-full h-full object-cover opacity-60"
-        />
-        <div className="absolute inset-0 bg-black/40 backdrop-blur-xs" />
+      {/* Background Sutil com aceleração por GPU */}
+      <div className="hidden md:block absolute inset-0 z-0 overflow-hidden pointer-events-none transform-gpu">
+        <div className="absolute inset-0 bg-gradient-to-tr from-black via-[#0d0e12] to-[#14151b] opacity-90" />
+        <div className="absolute inset-0 bg-radial-gradient from-blue-900/10 via-transparent to-transparent" />
       </div>
 
-      {/* FINDER WINDOW CONTAINER */}
-      <motion.div 
-        layout
-        transition={{
-          layout: { duration: 0.5, ease: [0.16, 1, 0.3, 1] },
-          default: { ease: "easeOut" }
-        }}
+      {/* FINDER WINDOW CONTAINER (Sem 'layout' prop pesada para 120fps fluidos) */}
+      <div 
         style={{
-          backdropFilter: `blur(20px)`,
-          WebkitBackdropFilter: `blur(20px)`
+          backdropFilter: 'blur(20px)',
+          WebkitBackdropFilter: 'blur(20px)'
         }}
         className={`w-full h-full ${
           isMaximized 
             ? 'md:w-full md:h-full rounded-none border-none' 
-            : 'md:w-[92vw] md:h-[94vh] rounded-[24px] border border-white/15 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.85)]'
-        } bg-[#121214]/85 flex flex-col md:flex-row overflow-hidden relative z-10`} 
+            : 'md:w-[94vw] md:h-[94vh] rounded-[24px] border border-white/15 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.85)]'
+        } bg-[#121214]/90 flex flex-col md:flex-row overflow-hidden relative z-10 transition-all duration-300 ease-out`} 
         id="finder-window"
       >
           
           {/* SIDEBAR */}
-          <aside className={`${isSidebarExpanded ? 'w-60' : 'w-16'} bg-transparent border-r border-white/10 flex flex-col shrink-0 overflow-y-auto select-none transition-all duration-300 relative`} id="window-sidebar">
-            
-            {/* Liquid Glass Frosted Blobs */}
-            <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none opacity-15">
-              <div className="absolute -top-10 -left-10 w-32 h-32 bg-white/20 rounded-full blur-[45px] animate-pulse" />
-              <div className="absolute bottom-1/4 -right-12 w-24 h-24 bg-white/10 rounded-full blur-[40px] animate-pulse" style={{ animationDelay: '2s' }} />
-            </div>
+          <aside className={`${isSidebarExpanded ? 'w-60' : 'w-16'} bg-[#141416]/70 border-r border-white/10 flex flex-col shrink-0 select-none transition-all duration-200 relative will-change-[width]`} id="window-sidebar">
             
             {/* Sidebar Header: Traffic Lights & Collapse Button */}
-            <div className={`h-14 border-b border-white/15 bg-transparent flex items-center ${isSidebarExpanded ? 'px-3 justify-between' : 'px-0 justify-center'} select-none shrink-0 relative z-10 gap-1`}>
+            <div className={`h-14 border-b border-white/10 flex items-center ${isSidebarExpanded ? 'px-3 justify-between' : 'px-0 justify-center'} select-none shrink-0 relative z-10 gap-1`}>
               
               {/* Traffic Lights */}
               {isSidebarExpanded && (
-                <div 
-                  className="flex items-center gap-1.5 shrink-0"
-                  onMouseEnter={() => setHoveredTrafficLight(true)}
-                  onMouseLeave={() => setHoveredTrafficLight(false)}
-                >
+                <div className="flex items-center gap-1.5 shrink-0 pl-1">
                   <button 
-                    onClick={handleToggleMaximize}
+                    onClick={() => setIsMaximized(!isMaximized)}
                     className={`w-3 h-3 rounded-full ${isMaximized ? 'bg-[#27c93f]' : 'bg-[#8e8e93]'} hover:brightness-110 active:brightness-90 flex items-center justify-center cursor-pointer border border-black/15 shrink-0 transition-colors`}
                     title={isMaximized ? "Restaurar Janela" : "Maximizar na Janela"}
-                  >
-                    {hoveredTrafficLight && <span className="text-[7px] text-neutral-950 font-black leading-none">＋</span>}
-                  </button>
+                  />
                 </div>
               )}
 
@@ -557,7 +477,7 @@ export function MemberAreaApp() {
               {isSidebarExpanded ? (
                 <button 
                   onClick={() => setIsSidebarExpanded(false)}
-                  className="text-[#86868b] hover:text-white transition-colors p-1 rounded-md hover:bg-white/5 cursor-pointer shrink-0"
+                  className="text-[#86868b] hover:text-white transition-colors p-1.5 rounded-md hover:bg-white/5 cursor-pointer shrink-0"
                   title="Recolher Barra"
                 >
                   <PanelLeftClose size={15} />
@@ -574,8 +494,8 @@ export function MemberAreaApp() {
             </div>
 
             {/* Sidebar Content Tree */}
-            <div className="flex-1 py-4 px-2 space-y-4 custom-scrollbar overflow-y-auto relative z-10 bg-transparent border-t border-white/15">
-              <div className="space-y-4 w-full">
+            <div className="flex-1 py-3 px-2 space-y-3 custom-scrollbar overflow-y-auto relative z-10">
+              <div className="space-y-3 w-full">
                 
                 {/* Course Overview Item */}
                 <button 
@@ -583,7 +503,7 @@ export function MemberAreaApp() {
                     setActiveLessonId('mod0-1');
                     setActiveModuleId('mod0');
                   }}
-                  className={`w-full flex items-center ${isSidebarExpanded ? 'justify-between px-3' : 'justify-center px-0'} py-2.5 rounded-[12px] text-left text-xs font-semibold cursor-pointer transition-colors ${
+                  className={`w-full flex items-center ${isSidebarExpanded ? 'justify-between px-3' : 'justify-center px-0'} py-2 rounded-[10px] text-left text-xs font-semibold cursor-pointer transition-all hover:scale-[1.02] active:scale-[0.98] ${
                     activeLessonId === 'mod0-1' 
                       ? 'bg-white/15 text-white border border-white/20' 
                       : 'text-neutral-300 hover:text-white hover:bg-white/5'
@@ -591,69 +511,44 @@ export function MemberAreaApp() {
                   title={!isSidebarExpanded ? "Visão Geral" : undefined}
                 >
                   <div className="flex items-center gap-2.5">
-                    <BookOpen size={16} className={activeLessonId === 'mod0-1' ? 'text-[#00c7fc]' : 'text-neutral-400'} />
+                    <BookOpen size={15} className={activeLessonId === 'mod0-1' ? 'text-[#00c7fc]' : 'text-neutral-400'} />
                     {isSidebarExpanded && <span>Visão Geral</span>}
                   </div>
                 </button>
 
-                <div className="space-y-1" onMouseLeave={() => setHoveredModuleIndex(null)}>
+                <div className="space-y-1">
                   {isSidebarExpanded && (
-                    <span className="text-[9px] font-bold text-[#86868b] tracking-widest uppercase block px-3 mb-2">MÓDULOS</span>
+                    <span className="text-[9px] font-bold text-[#86868b] tracking-widest uppercase block px-3 mb-1.5">MÓDULOS</span>
                   )}
                   
-                  {modulesData.map((mod, mIdx) => {
+                  {modulesData.map((mod) => {
                     const isCurrent = activeModuleId === mod.id;
                     const completedLessons = mod.subtopics.filter(s => progress.completedLessons.includes(s.id)).length;
                     const isAllCompleted = completedLessons === mod.subtopics.length;
                     const isLockedModule = !mod.isFree && !isPaidUser;
 
-                    let lockOpacity = 0;
-                    let dockScale = 1;
-
-                    if (hoveredModuleIndex !== null) {
-                      const dist = Math.abs(mIdx - hoveredModuleIndex);
-                      if (dist === 0) {
-                        lockOpacity = 1;
-                        dockScale = 1.035;
-                      } else if (dist === 1) {
-                        lockOpacity = 0.5;
-                        dockScale = 1.018;
-                      }
-                    }
-
                     return (
                       <div 
                         key={mod.id} 
-                        className="space-y-0.5 w-full overflow-hidden"
-                        style={{
-                          transform: `scale(${dockScale})`,
-                          transformOrigin: 'center center',
-                          transition: 'transform 220ms cubic-bezier(0.25, 1, 0.5, 1), opacity 300ms ease-out',
-                        }}
-                        onMouseEnter={() => {
-                          setHoveredModuleIndex(mIdx);
-                          handleModuleMouseEnter(mod.id);
-                        }}
+                        className="space-y-0.5 w-full"
+                        onMouseEnter={() => handleModuleMouseEnter(mod.id)}
                         onMouseLeave={handleModuleMouseLeave}
                       >
                         
-                        {/* Module Button */}
+                        {/* Module Button com aceleração CSS leve */}
                         <button
                           onClick={() => {
                             if (isLockedModule) {
-                              setCheckoutModalTitle(`Desbloquear ${mod.title}`);
                               setIsCheckoutModalOpen(true);
                               return;
                             }
                             setActiveModuleId(mod.id);
-                            if (!isSidebarExpanded) {
-                              setIsSidebarExpanded(true);
-                            }
+                            if (!isSidebarExpanded) setIsSidebarExpanded(true);
                             setExpandedEmenta(prev => ({ ...prev, [mod.id]: !prev[mod.id] }));
                           }}
-                          className={`w-full flex items-center ${isSidebarExpanded ? 'justify-between px-3' : 'justify-center px-0'} py-2.5 rounded-[12px] text-[13px] transition-all text-left cursor-pointer ${
+                          className={`w-full flex items-center ${isSidebarExpanded ? 'justify-between px-3' : 'justify-center px-0'} py-2 rounded-[10px] text-xs transition-all duration-150 hover:scale-[1.02] text-left cursor-pointer ${
                             isCurrent 
-                              ? 'bg-white/15 text-white border border-white/20 shadow-sm' 
+                              ? 'bg-white/15 text-white border border-white/20 shadow-sm font-semibold' 
                               : 'text-neutral-300 hover:text-white hover:bg-white/5'
                           }`}
                           title={!isSidebarExpanded ? getModuleName(mod.title) : undefined}
@@ -661,22 +556,18 @@ export function MemberAreaApp() {
                           <div className={`flex items-center ${isSidebarExpanded ? 'gap-2.5 truncate' : 'justify-center w-full'}`}>
                             {getModuleIcon(mod.id, isCurrent)}
                             {isSidebarExpanded && (
-                              <span className="truncate font-semibold text-xs">{getModuleName(mod.title)}</span>
+                              <span className="truncate text-xs">{getModuleName(mod.title)}</span>
                             )}
                           </div>
 
                           {isSidebarExpanded && (
                             <div className="shrink-0 flex items-center gap-1">
                               {isLockedModule ? (
-                                <Lock 
-                                  size={12} 
-                                  className="text-neutral-300 shrink-0 transition-opacity duration-300 ease-out" 
-                                  style={{ opacity: lockOpacity }}
-                                />
+                                <Lock size={11} className="text-neutral-400 shrink-0" />
                               ) : (
                                 <>
                                   {isAllCompleted && <CheckCircle2 size={11} className="text-[#30d158] shrink-0 mr-1" />}
-                                  {expandedEmenta[mod.id] ? <ChevronDown size={12} /> : <ChevronRight size={12} />}
+                                  {expandedEmenta[mod.id] ? <ChevronDown size={11} /> : <ChevronRight size={11} />}
                                 </>
                               )}
                             </div>
@@ -684,60 +575,49 @@ export function MemberAreaApp() {
                         </button>
 
                         {/* Lesson Nest under Expanded Module */}
-                        <AnimatePresence initial={false}>
-                          {isSidebarExpanded && expandedEmenta[mod.id] && (
-                            <motion.div 
-                              initial={{ height: 0, opacity: 0 }}
-                              animate={{ height: "auto", opacity: 1 }}
-                              exit={{ height: 0, opacity: 0 }}
-                              transition={{ duration: 0.35, ease: "easeInOut" }}
-                              className="pl-2 ml-3 border-l border-white/5 space-y-0.5 py-1 overflow-hidden"
-                              onMouseLeave={() => setHoveredLessonIndex(null)}
-                            >
-                              {mod.subtopics.map((sub, sIdx) => {
-                                const isCurrentLesson = activeLessonId === sub.id;
-                                const isCompleted = progress.completedLessons.includes(sub.id);
-                                const isLockedLesson = !sub.isFree && !mod.isFree && !isPaidUser;
+                        {isSidebarExpanded && expandedEmenta[mod.id] && (
+                          <div className="pl-2 ml-3 border-l border-white/5 space-y-0.5 py-1">
+                            {mod.subtopics.map((sub) => {
+                              const isCurrentLesson = activeLessonId === sub.id;
+                              const isCompleted = progress.completedLessons.includes(sub.id);
+                              const isLockedLesson = !sub.isFree && !mod.isFree && !isPaidUser;
 
-                                return (
-                                  <button
-                                    key={sub.id}
-                                    onMouseEnter={() => setHoveredLessonIndex(sIdx)}
-                                    onClick={() => {
-                                      if (isLockedLesson) {
-                                        setCheckoutModalTitle(`Desbloquear ${sub.title}`);
-                                        setIsCheckoutModalOpen(true);
-                                        return;
-                                      }
-                                      setActiveModuleId(mod.id);
-                                      setActiveLessonId(sub.id);
-                                      saveReadingState({
-                                        lastModuleId: mod.id,
-                                        lastLessonId: sub.id,
-                                        lastTab: activeTab,
-                                        scrollTop: 0
-                                      });
-                                    }}
-                                    className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-[10px] text-[11px] transition-all text-left cursor-pointer ${
-                                      isCurrentLesson
-                                        ? 'bg-[#0071e3] text-white font-medium shadow-md shadow-blue-500/10'
-                                        : 'text-[#a1a1a6] hover:text-[#f5f5f7] hover:bg-white/5'
-                                    }`}
-                                  >
-                                    <span className="whitespace-normal break-words leading-tight pr-1">{sub.title.replace(/^\d+\.\s*/, '')}</span>
-                                    {isLockedLesson ? (
-                                      <Lock size={10} className="text-[#a1a1a6] shrink-0 ml-1" />
-                                    ) : (
-                                      isCompleted && (
-                                        <CheckCircle2 size={10} className={isCurrentLesson ? 'text-white' : 'text-[#30d158]'} />
-                                      )
-                                    )}
-                                  </button>
-                                );
-                              })}
-                            </motion.div>
-                          )}
-                        </AnimatePresence>
+                              return (
+                                <button
+                                  key={sub.id}
+                                  onClick={() => {
+                                    if (isLockedLesson) {
+                                      setIsCheckoutModalOpen(true);
+                                      return;
+                                    }
+                                    setActiveModuleId(mod.id);
+                                    setActiveLessonId(sub.id);
+                                    saveReadingState({
+                                      lastModuleId: mod.id,
+                                      lastLessonId: sub.id,
+                                      lastTab: activeTab,
+                                      scrollTop: 0
+                                    });
+                                  }}
+                                  className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-[8px] text-[11px] transition-colors text-left cursor-pointer ${
+                                    isCurrentLesson
+                                      ? 'bg-[#0071e3] text-white font-medium shadow-sm'
+                                      : 'text-[#a1a1a6] hover:text-[#f5f5f7] hover:bg-white/5'
+                                  }`}
+                                >
+                                  <span className="truncate pr-1">{sub.title.replace(/^\d+\.\s*/, '')}</span>
+                                  {isLockedLesson ? (
+                                    <Lock size={10} className="text-[#a1a1a6] shrink-0 ml-1" />
+                                  ) : (
+                                    isCompleted && (
+                                      <CheckCircle2 size={10} className={isCurrentLesson ? 'text-white' : 'text-[#30d158]'} />
+                                    )
+                                  )}
+                                </button>
+                              );
+                            })}
+                          </div>
+                        )}
 
                       </div>
                     );
@@ -750,41 +630,36 @@ export function MemberAreaApp() {
             {/* Collapsed Sidebar Hover Flyout Panel */}
             {!isSidebarExpanded && activeFlyoutModule && (
               <div 
-                className="absolute left-[70px] z-50 w-64"
-                style={{ top: '80px' }}
+                className="absolute left-[68px] z-50 w-56 bg-[#1c1c1e]/95 backdrop-blur-xl border border-white/10 rounded-2xl p-2 shadow-2xl space-y-1"
+                style={{ top: '70px' }}
                 onMouseEnter={() => {
                   if (flyoutTimeoutRef.current) clearTimeout(flyoutTimeoutRef.current);
                 }}
                 onMouseLeave={handleModuleMouseLeave}
               >
-                <LiquidGlass cornerRadius={16} padding="8px" className="w-full">
-                  <div className="w-full p-2 space-y-1">
-                    <p className="text-xs font-bold text-white truncate border-b border-white/10 pb-1 mb-1">
-                      {getModuleName(modulesData.find(m => m.id === activeFlyoutModule)?.title)}
-                    </p>
-                    {modulesData.find(m => m.id === activeFlyoutModule)?.subtopics.map(sub => (
-                      <button
-                        key={sub.id}
-                        onClick={() => {
-                          const targetMod = modulesData.find(m => m.id === activeFlyoutModule);
-                          const isLocked = !sub.isFree && !targetMod?.isFree && !isPaidUser;
-                          if (isLocked) {
-                            setCheckoutModalTitle(`Desbloquear ${sub.title}`);
-                            setIsCheckoutModalOpen(true);
-                            return;
-                          }
-                          setActiveModuleId(activeFlyoutModule as ModuleId);
-                          setActiveLessonId(sub.id);
-                          setActiveFlyoutModule(null);
-                        }}
-                        className="w-full text-left px-2 py-1 rounded text-[11px] text-neutral-300 hover:text-white hover:bg-white/10 flex justify-between items-center"
-                      >
-                        <span className="truncate">{sub.title}</span>
-                        {progress.completedLessons.includes(sub.id) && <CheckCircle2 size={10} className="text-[#30d158]" />}
-                      </button>
-                    ))}
-                  </div>
-                </LiquidGlass>
+                <p className="text-[11px] font-bold text-white truncate border-b border-white/10 pb-1 mb-1 px-1">
+                  {getModuleName(modulesData.find(m => m.id === activeFlyoutModule)?.title)}
+                </p>
+                {modulesData.find(m => m.id === activeFlyoutModule)?.subtopics.map(sub => (
+                  <button
+                    key={sub.id}
+                    onClick={() => {
+                      const targetMod = modulesData.find(m => m.id === activeFlyoutModule);
+                      const isLocked = !sub.isFree && !targetMod?.isFree && !isPaidUser;
+                      if (isLocked) {
+                        setIsCheckoutModalOpen(true);
+                        return;
+                      }
+                      setActiveModuleId(activeFlyoutModule as ModuleId);
+                      setActiveLessonId(sub.id);
+                      setActiveFlyoutModule(null);
+                    }}
+                    className="w-full text-left px-2 py-1 rounded text-[11px] text-neutral-300 hover:text-white hover:bg-white/10 flex justify-between items-center"
+                  >
+                    <span className="truncate">{sub.title}</span>
+                    {progress.completedLessons.includes(sub.id) && <CheckCircle2 size={10} className="text-[#30d158]" />}
+                  </button>
+                ))}
               </div>
             )}
 
@@ -794,7 +669,7 @@ export function MemberAreaApp() {
           <main className="flex-1 flex flex-col overflow-hidden relative">
             
             {/* Toolbar */}
-            <header className={`h-14 bg-transparent border-b border-white/15 ${isMaximized ? '' : 'md:rounded-tr-[24px]'} flex items-center px-6 justify-between select-none relative z-20 shrink-0`}>
+            <header className="h-14 bg-transparent border-b border-white/10 flex items-center px-6 justify-between select-none relative z-20 shrink-0">
               
               {/* Left Toolbar Info */}
               <div className="flex items-center gap-3">
@@ -802,7 +677,7 @@ export function MemberAreaApp() {
                   onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
                   className="md:hidden text-white hover:text-neutral-300 p-1 rounded-md"
                 >
-                  {isMobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
+                  {isMobileMenuOpen ? <X size={18} /> : <Menu size={18} />}
                 </button>
 
                 <div className="flex items-center gap-3">
@@ -824,34 +699,34 @@ export function MemberAreaApp() {
                   </div>
 
                   <div className="border-l border-white/10 pl-3 hidden sm:block">
-                    <span className="block text-sm font-bold tracking-tight text-white leading-none">FLMMKR Academy</span>
+                    <span className="block text-xs font-bold tracking-tight text-white leading-none">FLMMKR Academy</span>
                   </div>
                 </div>
               </div>
 
               {/* Center Progress Meter */}
               {isLoggedIn && (
-                <div className="hidden lg:flex items-center gap-3 bg-neutral-900/30 px-4 py-1.5 rounded-full border border-white/5">
-                  <span className="text-[10px] font-bold tracking-wider text-[#86868b] uppercase leading-none">Progresso Geral</span>
-                  <div className="w-40 h-1.5 rounded-full bg-white/10 border border-white/5 shadow-inner overflow-hidden">
+                <div className="hidden lg:flex items-center gap-3 bg-neutral-900/40 px-3.5 py-1.5 rounded-full border border-white/5">
+                  <span className="text-[10px] font-bold tracking-wider text-[#86868b] uppercase leading-none">Progresso</span>
+                  <div className="w-32 h-1.5 rounded-full bg-white/10 overflow-hidden">
                     <div 
-                      className="h-full bg-gradient-to-r from-[#0071e3] to-[#00c7fc] shadow-[0_0_8px_rgba(0,199,252,0.4)] transition-all duration-500"
+                      className="h-full bg-gradient-to-r from-[#0071e3] to-[#00c7fc] transition-all duration-300"
                       style={{ width: `${percentComplete}%` }}
                     />
                   </div>
-                  <span className="text-[10px] font-bold tracking-wider text-[#00c7fc] font-mono leading-none">{percentComplete}%</span>
+                  <span className="text-[10px] font-bold text-[#00c7fc] font-mono leading-none">{percentComplete}%</span>
                 </div>
               )}
 
               {/* Right Search, Accessibility & Profile */}
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2.5">
                 
                 {/* Search Bar Trigger */}
                 <div 
                   onClick={() => setIsSearchOpen(true)}
-                  className="hidden md:flex items-center bg-[#1d1d1f] border border-white/5 rounded-full px-3 py-1.5 w-32 cursor-pointer hover:bg-[#2c2c2e]/80 transition-colors relative"
+                  className="hidden md:flex items-center bg-[#1d1d1f] border border-white/5 rounded-full px-3 py-1.5 w-28 cursor-pointer hover:bg-[#2c2c2e]/80 transition-colors"
                 >
-                  <Search size={12} className="text-[#86868b] mr-1.5" />
+                  <Search size={11} className="text-[#86868b] mr-1.5" />
                   <span className="text-[11px] text-[#86868b] select-none">Buscar...</span>
                 </div>
 
@@ -874,7 +749,7 @@ export function MemberAreaApp() {
                       <div className="text-right hidden sm:block">
                         <span className="text-xs font-bold text-white block leading-none">{userProfile.firstName}</span>
                         <span className="text-[9px] text-[#00c7fc] font-semibold block leading-none mt-0.5">
-                          {isMasterAdmin ? 'ADMIN MASTER' : 'ALUNO VIP'}
+                          {isMasterAdmin ? 'ADMIN' : 'ALUNO'}
                         </span>
                       </div>
                       <img 
@@ -891,7 +766,8 @@ export function MemberAreaApp() {
                           initial={{ opacity: 0, scale: 0.95, y: -8 }}
                           animate={{ opacity: 1, scale: 1, y: 0 }}
                           exit={{ opacity: 0, scale: 0.95, y: -8 }}
-                          className="absolute right-0 top-11 w-56 z-50 overflow-hidden bg-[#1c1c1e] border border-white/10 rounded-2xl shadow-2xl p-2 space-y-1"
+                          transition={{ duration: 0.12 }}
+                          className="absolute right-0 top-11 w-52 z-50 overflow-hidden bg-[#1c1c1e] border border-white/10 rounded-2xl shadow-2xl p-2 space-y-1"
                         >
                           <div className="px-3 py-2 border-b border-white/10">
                             <p className="text-xs font-bold text-white truncate">{userProfile.firstName} {userProfile.lastName}</p>
@@ -921,7 +797,7 @@ export function MemberAreaApp() {
                 ) : (
                   <button
                     onClick={() => setIsLoginModalOpen(true)}
-                    className="flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-[#0071e3] hover:bg-[#0077ed] text-white font-bold text-xs transition-all shadow-md shadow-blue-500/20 cursor-pointer"
+                    className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-[#0071e3] hover:bg-[#0077ed] text-white font-bold text-xs transition-all shadow-md shadow-blue-500/20 cursor-pointer"
                   >
                     <LogIn size={13} />
                     <span>Entrar</span>
@@ -932,7 +808,7 @@ export function MemberAreaApp() {
               {/* Scroll Progress line */}
               <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-white/[0.05] pointer-events-none">
                 <div 
-                  className="h-full bg-gradient-to-r from-[#0071e3] via-[#00c7fc] to-[#30d158] transition-[width] duration-150 ease-out" 
+                  className="h-full bg-gradient-to-r from-[#0071e3] via-[#00c7fc] to-[#30d158] transition-[width] duration-100 ease-out" 
                   style={{ width: `${scrollProgressPercent}%` }}
                 />
               </div>
@@ -946,10 +822,10 @@ export function MemberAreaApp() {
             >
               <TextHighlighterTool lessonId={activeLessonId} containerRef={lessonContainerRef} />
               
-              <div className="w-full lg:w-[85%] max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-1 space-y-6">
+              <div className="w-full lg:w-[85%] max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-1 space-y-6">
                 
                 {/* Lesson Header */}
-                <div className="space-y-3 border-b border-neutral-200/80 pb-6">
+                <div className="space-y-3 border-b border-neutral-200/80 pb-5">
                   <div className="flex flex-wrap items-center justify-between gap-3">
                     <span className="text-[11px] font-bold tracking-widest text-[#0071e3] uppercase">
                       {activeModule.badge} · {activeModule.title}
@@ -957,12 +833,12 @@ export function MemberAreaApp() {
                     
                     {progress.completedLessons.includes(activeLessonId) && (
                       <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 text-emerald-600 border border-emerald-200/60 px-3 py-1 text-xs font-bold uppercase tracking-wider">
-                        <CheckCircle2 size={13} /> Concluída
+                        <CheckCircle2 size={12} /> Concluída
                       </span>
                     )}
                   </div>
 
-                  <h1 className="text-3xl md:text-5xl font-extrabold tracking-tight leading-tight text-[#1d1d1f]">
+                  <h1 className="text-2xl md:text-4xl font-extrabold tracking-tight leading-tight text-[#1d1d1f]">
                     {activeLesson.title}
                   </h1>
 
@@ -970,17 +846,17 @@ export function MemberAreaApp() {
                   <div className="flex items-center gap-2 pt-2 border-t border-neutral-200/60">
                     <button
                       onClick={() => setActiveTab('teoria')}
-                      className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                      className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
                         activeTab === 'teoria' 
                           ? 'bg-[#0071e3] text-white shadow-sm' 
                           : 'bg-white text-neutral-600 hover:text-neutral-900 border border-neutral-200'
                       }`}
                     >
-                      Teoria e Fundamentos
+                      Teoria
                     </button>
                     <button
                       onClick={() => setActiveTab('pratica')}
-                      className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                      className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
                         activeTab === 'pratica' 
                           ? 'bg-[#0071e3] text-white shadow-sm' 
                           : 'bg-white text-neutral-600 hover:text-neutral-900 border border-neutral-200'
@@ -990,17 +866,17 @@ export function MemberAreaApp() {
                     </button>
                     <button
                       onClick={() => setActiveTab('desafio')}
-                      className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                      className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
                         activeTab === 'desafio' 
                           ? 'bg-[#0071e3] text-white shadow-sm' 
                           : 'bg-white text-neutral-600 hover:text-neutral-900 border border-neutral-200'
                       }`}
                     >
-                      Exercício & Desafio
+                      Exercício
                     </button>
                     <button
                       onClick={() => setActiveTab('checklist')}
-                      className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                      className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
                         activeTab === 'checklist' 
                           ? 'bg-[#0071e3] text-white shadow-sm' 
                           : 'bg-white text-neutral-600 hover:text-neutral-900 border border-neutral-200'
@@ -1014,71 +890,75 @@ export function MemberAreaApp() {
                 {/* Tab Content Rendering */}
                 {activeTab === 'teoria' && (
                   <div className="space-y-6">
-                    {activeLessonId === 'mod0-1' ? (
-                      <EquipamentosLessonArticle />
-                    ) : activeLessonId === 'mod1-1' ? (
-                      <InteractiveIdeationTheory />
-                    ) : (
-                      <div className="bg-white rounded-[24px] border border-neutral-200/80 p-8 shadow-[0_4px_24px_rgba(0,0,0,0.02)] space-y-6">
-                        <p className="text-neutral-800 text-[15px] leading-relaxed whitespace-pre-line font-normal">
-                          {activeLesson.concept}
-                        </p>
+                    <Suspense fallback={<ToolFallback />}>
+                      {activeLessonId === 'mod0-1' ? (
+                        <EquipamentosLessonArticle />
+                      ) : activeLessonId === 'mod1-1' ? (
+                        <InteractiveIdeationTheory />
+                      ) : (
+                        <div className="bg-white rounded-[20px] border border-neutral-200/80 p-6 md:p-8 shadow-xs space-y-5">
+                          <p className="text-neutral-800 text-[15px] leading-relaxed whitespace-pre-line font-normal">
+                            {activeLesson.concept}
+                          </p>
 
-                        {activeLesson.steps && activeLesson.steps.length > 0 && (
-                          <div className="space-y-3 pt-4 border-t border-neutral-100">
-                            <h4 className="text-xs font-bold text-neutral-400 uppercase tracking-wider">Passo a Passo Recomendado</h4>
-                            <div className="space-y-2">
-                              {activeLesson.steps.map((step, idx) => (
-                                <div key={idx} className="flex items-start gap-3 text-sm text-neutral-700">
-                                  <span className="w-5 h-5 rounded-full bg-[#0071e3]/10 text-[#0071e3] font-bold text-xs flex items-center justify-center shrink-0 mt-0.5">
-                                    {idx + 1}
-                                  </span>
-                                  <span>{step}</span>
-                                </div>
-                              ))}
+                          {activeLesson.steps && activeLesson.steps.length > 0 && (
+                            <div className="space-y-2.5 pt-4 border-t border-neutral-100">
+                              <h4 className="text-[11px] font-bold text-neutral-400 uppercase tracking-wider">Passos Recomendados</h4>
+                              <div className="space-y-2">
+                                {activeLesson.steps.map((step, idx) => (
+                                  <div key={idx} className="flex items-start gap-2.5 text-xs text-neutral-700 leading-normal">
+                                    <span className="w-4 h-4 rounded-full bg-[#0071e3]/10 text-[#0071e3] font-bold text-[10px] flex items-center justify-center shrink-0 mt-0.5">
+                                      {idx + 1}
+                                    </span>
+                                    <span>{step}</span>
+                                  </div>
+                                ))}
+                              </div>
                             </div>
-                          </div>
-                        )}
+                          )}
 
-                        {activeLesson.tips && activeLesson.tips.length > 0 && (
-                          <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-amber-900 text-xs font-medium space-y-1">
-                            <span className="font-bold flex items-center gap-1.5 text-amber-800">
-                              <Star size={14} className="text-amber-500 fill-amber-500" /> Dica de Ouro
-                            </span>
-                            <p>{activeLesson.tips.join(' ')}</p>
-                          </div>
-                        )}
-                      </div>
-                    )}
+                          {activeLesson.tips && activeLesson.tips.length > 0 && (
+                            <div className="p-3.5 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-900 text-xs font-medium space-y-1">
+                              <span className="font-bold flex items-center gap-1.5 text-amber-800 text-[11px]">
+                                <Star size={13} className="text-amber-500 fill-amber-500" /> Dica de Ouro
+                              </span>
+                              <p>{activeLesson.tips.join(' ')}</p>
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </Suspense>
                   </div>
                 )}
 
                 {activeTab === 'pratica' && (
                   <div className="space-y-4">
-                    <span className="text-[11px] font-bold tracking-widest text-neutral-400 uppercase block">
+                    <span className="text-[10px] font-bold tracking-widest text-neutral-400 uppercase block">
                       FERRAMENTA INTERATIVA · {activeModule.title}
                     </span>
-                    <div className="bg-white rounded-[24px] border border-neutral-200/80 p-6 shadow-sm overflow-hidden">
-                      {renderInteractiveTool(activeModule.id)}
+                    <div className="bg-white rounded-[20px] border border-neutral-200/80 p-5 shadow-xs overflow-hidden">
+                      <Suspense fallback={<ToolFallback />}>
+                        {renderInteractiveTool(activeModule.id)}
+                      </Suspense>
                     </div>
                   </div>
                 )}
 
                 {activeTab === 'desafio' && (
-                  <div className="space-y-6">
+                  <div className="space-y-5">
                     {activeModule.challenges.map(ch => (
-                      <div key={ch.id} className="bg-white rounded-[24px] border border-neutral-200/80 p-8 shadow-sm space-y-6">
+                      <div key={ch.id} className="bg-white rounded-[20px] border border-neutral-200/80 p-6 shadow-xs space-y-5">
                         <div className="space-y-1">
-                          <h3 className="text-xl font-bold text-[#1d1d1f]">{ch.title}</h3>
+                          <h3 className="text-lg font-bold text-[#1d1d1f]">{ch.title}</h3>
                           <p className="text-xs text-neutral-500">{ch.description}</p>
                         </div>
 
-                        <div className="space-y-4">
+                        <div className="space-y-3">
                           {ch.fields.map(field => {
                             const fieldKey = field.fieldId || field.key || 'field';
                             const val = progress.challengeDrafts[ch.id]?.[fieldKey] || '';
                             return (
-                              <div key={fieldKey} className="space-y-1.5">
+                              <div key={fieldKey} className="space-y-1">
                                 <label className="text-xs font-bold text-neutral-700 block">{field.label}</label>
                                 {field.type === 'textarea' ? (
                                   <textarea
@@ -1086,7 +966,7 @@ export function MemberAreaApp() {
                                     onChange={(e) => handleChallengeFieldChange(ch.id, fieldKey, e.target.value)}
                                     placeholder={ch.placeholder}
                                     rows={3}
-                                    className="w-full bg-neutral-50 border border-neutral-200 rounded-xl p-3 text-xs text-neutral-800 focus:outline-none focus:border-[#0071e3]"
+                                    className="w-full bg-neutral-50 border border-neutral-200 rounded-xl p-2.5 text-xs text-neutral-800 focus:outline-none focus:border-[#0071e3]"
                                   />
                                 ) : (
                                   <input
@@ -1094,7 +974,7 @@ export function MemberAreaApp() {
                                     value={val}
                                     onChange={(e) => handleChallengeFieldChange(ch.id, fieldKey, e.target.value)}
                                     placeholder={ch.placeholder}
-                                    className="w-full bg-neutral-50 border border-neutral-200 rounded-xl p-3 text-xs text-neutral-800 focus:outline-none focus:border-[#0071e3]"
+                                    className="w-full bg-neutral-50 border border-neutral-200 rounded-xl p-2.5 text-xs text-neutral-800 focus:outline-none focus:border-[#0071e3]"
                                   />
                                 )}
                               </div>
@@ -1105,9 +985,9 @@ export function MemberAreaApp() {
                         <div className="pt-2 flex justify-end">
                           <button
                             onClick={() => handleCopyChallenge(ch.id, ch.fields)}
-                            className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-neutral-100 hover:bg-neutral-200 text-xs font-bold text-neutral-700 transition-colors"
+                            className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-neutral-100 hover:bg-neutral-200 text-xs font-bold text-neutral-700 transition-colors"
                           >
-                            <Copy size={13} />
+                            <Copy size={12} />
                             <span>{copiedChallengeId === ch.id ? 'Copiado!' : 'Copiar Respostas'}</span>
                           </button>
                         </div>
@@ -1118,8 +998,8 @@ export function MemberAreaApp() {
 
                 {activeTab === 'checklist' && (
                   <div className="space-y-4">
-                    <div className="bg-white rounded-[24px] border border-neutral-200/80 p-8 shadow-sm space-y-4">
-                      <h3 className="text-lg font-bold text-[#1d1d1f]">Checklist Técnico do Módulo</h3>
+                    <div className="bg-white rounded-[20px] border border-neutral-200/80 p-6 shadow-xs space-y-3">
+                      <h3 className="text-base font-bold text-[#1d1d1f]">Checklist Técnico</h3>
                       <div className="space-y-2">
                         {activeModule.checklistItems.map(item => {
                           const isDone = Boolean(progress.checklistStates[item.id]);
@@ -1127,23 +1007,19 @@ export function MemberAreaApp() {
                             <button
                               key={item.id}
                               onClick={() => handleToggleChecklist(item.id)}
-                              className={`w-full flex items-center justify-between p-3.5 rounded-xl border text-left transition-all ${
+                              className={`w-full flex items-center justify-between p-3 rounded-xl border text-left transition-colors ${
                                 isDone 
                                   ? 'bg-emerald-50/50 border-emerald-200/80 text-emerald-900' 
                                   : 'bg-neutral-50 border-neutral-200/80 text-neutral-700 hover:bg-neutral-100'
                               }`}
                             >
-                              <div className="flex items-center gap-3">
-                                {isDone ? (
-                                  <CheckCircle2 size={16} className="text-emerald-500 shrink-0" />
-                                ) : (
-                                  <Circle size={16} className="text-neutral-400 shrink-0" />
-                                )}
-                                <span className={`text-xs font-medium ${isDone ? 'line-through text-neutral-500' : ''}`}>
+                              <div className="flex items-center gap-2.5">
+                                <CheckCircle2 size={15} className={isDone ? 'text-emerald-500' : 'text-neutral-300'} />
+                                <span className={`text-xs font-medium ${isDone ? 'line-through text-neutral-400' : ''}`}>
                                   {item.task}
                                 </span>
                               </div>
-                              <span className="text-[10px] uppercase font-bold text-neutral-400 bg-neutral-200/50 px-2 py-0.5 rounded-md">
+                              <span className="text-[9px] uppercase font-bold text-neutral-400 bg-neutral-200/50 px-2 py-0.5 rounded-md">
                                 {item.category}
                               </span>
                             </button>
@@ -1155,10 +1031,10 @@ export function MemberAreaApp() {
                 )}
 
                 {/* Central Complete Lesson Button */}
-                <div className="flex justify-center pt-8 pb-4">
+                <div className="flex justify-center pt-6 pb-4">
                   <button
                     onClick={() => handleCompleteAndNext(activeLessonId)}
-                    className="bg-[#0071e3] hover:bg-[#147ce5] text-white rounded-full px-8 py-3.5 font-bold text-sm shadow-md hover:scale-105 active:scale-95 transition-all cursor-pointer select-none"
+                    className="bg-[#0071e3] hover:bg-[#147ce5] text-white rounded-full px-7 py-3 font-bold text-xs shadow-md hover:scale-105 active:scale-95 transition-transform cursor-pointer select-none"
                   >
                     Marcar como concluída & Próxima Aula
                   </button>
@@ -1170,19 +1046,19 @@ export function MemberAreaApp() {
 
           </main>
 
-      </motion.div>
+      </div>
 
       {/* SEARCH MODAL */}
       {isSearchOpen && (
         <div className="absolute inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-start justify-center pt-[10vh] p-4">
           <div className="bg-[#1c1c1e]/95 border border-white/10 rounded-2xl max-w-lg w-full shadow-2xl max-h-[70vh] flex flex-col overflow-hidden">
             <div className="flex items-center gap-2.5 p-4 border-b border-white/10 shrink-0">
-              <Search size={18} className="text-[#86868b]" />
+              <Search size={16} className="text-[#86868b]" />
               <input 
                 type="text" 
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="flex-1 bg-transparent text-white text-sm focus:outline-none placeholder:text-[#86868b]"
+                className="flex-1 bg-transparent text-white text-xs focus:outline-none placeholder:text-[#86868b]"
                 placeholder="Busque por tópicos, conceitos, equipamentos..."
                 autoFocus
               />
@@ -1208,13 +1084,13 @@ export function MemberAreaApp() {
                     <button
                       key={lesson.id}
                       onClick={() => handleSelectSearchResult(module.id, lesson.id)}
-                      className="w-full text-left p-3 rounded-xl hover:bg-white/5 transition-colors flex justify-between items-center text-white"
+                      className="w-full text-left p-2.5 rounded-xl hover:bg-white/5 transition-colors flex justify-between items-center text-white"
                     >
                       <div>
                         <span className="text-[10px] font-bold text-[#00c7fc] uppercase">{module.title}</span>
-                        <h4 className="text-sm font-semibold">{lesson.title}</h4>
+                        <h4 className="text-xs font-semibold">{lesson.title}</h4>
                       </div>
-                      <ChevronRight size={14} className="text-neutral-500" />
+                      <ChevronRight size={13} className="text-neutral-500" />
                     </button>
                   ))}
                 </div>
@@ -1231,20 +1107,20 @@ export function MemberAreaApp() {
           onClick={() => setIsAccountModalOpen(false)}
         >
           <div 
-            className="w-full max-w-lg bg-[#1c1c1e] border border-white/15 rounded-3xl p-6 sm:p-8 shadow-2xl text-white space-y-6"
+            className="w-full max-w-lg bg-[#1c1c1e] border border-white/15 rounded-3xl p-6 shadow-2xl text-white space-y-5"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex items-start justify-between border-b border-white/10 pb-4">
+            <div className="flex items-start justify-between border-b border-white/10 pb-3">
               <div>
-                <h2 className="text-lg font-bold text-white">Minha Conta</h2>
+                <h2 className="text-base font-bold text-white">Minha Conta</h2>
                 <p className="text-xs text-neutral-400">Dados cadastrais do aluno.</p>
               </div>
               <button onClick={() => setIsAccountModalOpen(false)} className="text-neutral-400 hover:text-white">
-                <X size={18} />
+                <X size={16} />
               </button>
             </div>
 
-            <div className="space-y-4">
+            <div className="space-y-3">
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1">
                   <label className="text-xs text-neutral-400">Nome</label>
@@ -1290,7 +1166,7 @@ export function MemberAreaApp() {
             <div className="pt-2 flex justify-end">
               <button
                 onClick={() => setIsAccountModalOpen(false)}
-                className="px-5 py-2 bg-[#0071e3] text-white rounded-xl text-xs font-semibold"
+                className="px-5 py-2 bg-[#0071e3] text-white rounded-xl text-xs font-semibold cursor-pointer"
               >
                 Fechar
               </button>
@@ -1300,7 +1176,9 @@ export function MemberAreaApp() {
       )}
 
       {/* ACCESSIBILITY WIDGET */}
-      <AccessibilityWidget />
+      {isAccessibilityOpen && (
+        <AccessibilityWidget />
+      )}
 
       {/* LOGIN MODAL */}
       <LoginModal 
