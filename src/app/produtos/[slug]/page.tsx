@@ -35,7 +35,7 @@ export async function generateMetadata({ params }: ProductPageProps): Promise<Me
   const isColorMaster = product.slug === 'color-master-produto' || product.slug === 'color-master';
 
   const title = isColorMaster
-    ? 'Color Master® Produto | Curso de Color Grading no DaVinci Resolve'
+    ? 'Color Master® | Produtos'
     : `${product.name} | ${SITE_CONFIG.name}`;
 
   const description = isColorMaster
@@ -47,7 +47,7 @@ export async function generateMetadata({ params }: ProductPageProps): Promise<Me
     : (product.imageUrl ? `${baseUrl}${product.imageUrl}` : `${baseUrl}${SITE_CONFIG.seo.ogImage}`);
 
   return {
-    title,
+    title: isColorMaster ? { absolute: 'Color Master® | Produtos' } : title,
     description,
     alternates: {
       canonical: canonicalUrl,
@@ -56,7 +56,7 @@ export async function generateMetadata({ params }: ProductPageProps): Promise<Me
       },
     },
     openGraph: {
-      title,
+      title: isColorMaster ? 'Color Master® | Produtos' : title,
       description,
       url: canonicalUrl,
       siteName: SITE_CONFIG.name,
@@ -68,14 +68,14 @@ export async function generateMetadata({ params }: ProductPageProps): Promise<Me
           width: isColorMaster ? 720 : 1200,
           height: 630,
           alt: isColorMaster
-            ? 'Color Master® Produto | Masterclass de Color Grading no DaVinci Resolve'
+            ? 'Color Master® | Produtos'
             : `${product.name} - Masterclass de Color Grading no DaVinci Resolve`,
         },
       ],
     },
     twitter: {
       card: 'summary_large_image',
-      title,
+      title: isColorMaster ? 'Color Master® | Produtos' : title,
       description,
       images: [ogImage],
       creator: '@mike_flmmkr',
@@ -111,7 +111,7 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
       '@context': 'https://schema.org',
       '@type': 'Course',
       '@id': `${canonicalUrl}#course`,
-      name: 'Color Master® | Produto',
+      name: 'Color Master® | Produtos',
       description:
         'Masterclass prática de Color Grading no DaVinci Resolve focada em comerciais de produto, publicidade e vídeos de alto impacto visual com footage real de TV.',
       inLanguage: 'pt-BR',
@@ -145,7 +145,7 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
       '@context': 'https://schema.org',
       '@type': 'Product',
       '@id': `${canonicalUrl}#product`,
-      name: 'Color Master® | Produto',
+      name: 'Color Master® | Produtos',
       image: `${baseUrl}/assets/produtos/color-grade-produto/opengraph.jpg`,
       description:
         'Treinamento especializado em Color Grading para vídeos de produto e comerciais no DaVinci Resolve com Michael Oliveira.',
@@ -257,7 +257,7 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
         {
           '@type': 'ListItem',
           position: 3,
-          name: 'Color Master | Produto',
+          name: 'Color Master® | Produtos',
           item: canonicalUrl,
         },
       ],

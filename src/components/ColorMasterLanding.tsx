@@ -348,7 +348,7 @@ export const ColorMasterLanding: React.FC = () => {
   // 07. Perguntas Frequentes
   const faqList = [
     {
-      q: 'Para quem é o masterclass Color Master | Produto?',
+      q: 'Para quem é o masterclass Color Master® | Produtos?',
       a: 'É indicado para videomakers, diretores de fotografia, editores e criadores de conteúdo que trabalham ou desejam atuar no mercado de comerciais, publicidade e vídeos de produto. Seja você um profissional buscando refinar suas tomadas de decisão ou alguém querendo elevar o padrão visual de seus projetos, a metodologia ensina o fluxo completo de ponta a ponta.'
     },
     {
@@ -976,7 +976,7 @@ export const ColorMasterLanding: React.FC = () => {
             </span>
 
             <h2 className="text-[28px] leading-[1.14] sm:text-4xl md:text-5xl font-semibold tracking-[-0.015em] text-[#1d1d1f] mb-2 sm:mb-3">
-              Color Master | Produto
+              Color Master® | Produtos
             </h2>
             <p className="text-[17px] leading-[1.47] sm:text-base md:text-lg text-[#6e6e73] mb-6 sm:mb-8 font-normal">
               Masterclass completa de Color Grading para comerciais e imagens de produto no DaVinci Resolve.
@@ -1214,7 +1214,7 @@ export const ColorMasterLanding: React.FC = () => {
               FLMMKR
             </span>
             <span className="text-[#86868b]">
-              Color Master | Produto • Treinamento Oficial Michael Oliveira
+              Color Master® | Produtos • Treinamento Oficial Michael Oliveira
             </span>
             <p className="text-xs text-[#86868b] mt-2">
               © {new Date().getFullYear()} FLMMKR. Todos os direitos reservados.
