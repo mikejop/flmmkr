@@ -110,7 +110,7 @@ export const ColorMasterLanding: React.FC = () => {
     regularPrice: 195,
     finalPrice: 95,
     batchName: 'Lote Especial de Abertura',
-    nextPriceDate: '06/10/2026'
+    nextPriceDate: '09/10/2026'
   });
 
   // Modais de Alerta (1:30) e Expiração (tempo esgotado)
@@ -595,7 +595,9 @@ export const ColorMasterLanding: React.FC = () => {
             poster="/assets/videos/dom-dourado-poster.webp"
             className="w-full h-full object-cover pointer-events-none opacity-90 scale-105"
           >
-            <source src="/assets/videos/dom-dourado-av1.mp4" type="video/mp4" />
+            <source src="/assets/videos/dom-dourado.webm" type="video/webm" />
+            {/* AV1 desativado estaticamente para contingência: */}
+            {/* <source src="/assets/videos/dom-dourado-av1.mp4" type="video/mp4" /> */}
           </video>
           <div className="absolute inset-0 z-5 pointer-events-none reticula-pattern" />
           <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-black/60 pointer-events-none z-6" />

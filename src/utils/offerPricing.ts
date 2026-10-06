@@ -23,10 +23,10 @@ const ipMemoryCache = new Map<string, UserTimerRecord>();
 
 /**
  * Função para calcular o preço promocional de acordo com as datas dos lotes:
- * - Até 06/10/2026: R$ 95
- * - De 07/10/2026 até 09/10/2026: R$ 125
- * - De 10/10/2026 até 13/10/2026: R$ 145
- * - A partir de 14/10/2026: R$ 195 (Preço normal)
+ * - Até 09/10/2026 (Sexta-feira 23:59:59): R$ 95 (Lote Especial de Abertura)
+ * - De 10/10/2026 até 12/10/2026 (Segunda-feira 23:59:59 - intervalo de 3 dias): R$ 125 (2º Lote)
+ * - De 13/10/2026 até 15/10/2026 (Quinta-feira 23:59:59 - intervalo de 3 dias): R$ 145 (3º Lote)
+ * - A partir de 16/10/2026: R$ 195 (Preço Oficial Regular)
  */
 export function getCurrentBatchPrice(now: Date = new Date()): {
   promoPrice: number;
@@ -42,16 +42,16 @@ export function getCurrentBatchPrice(now: Date = new Date()): {
     refDate.setFullYear(2026);
   }
 
-  const lote1End = new Date('2026-10-06T23:59:59-03:00');
-  const lote2End = new Date('2026-10-09T23:59:59-03:00');
-  const lote3End = new Date('2026-10-13T23:59:59-03:00');
+  const lote1End = new Date('2026-10-09T23:59:59-03:00');
+  const lote2End = new Date('2026-10-12T23:59:59-03:00');
+  const lote3End = new Date('2026-10-15T23:59:59-03:00');
 
   if (refDate <= lote1End) {
     return {
       promoPrice: 95,
       regularPrice,
       batchName: 'Lote Especial de Abertura',
-      nextPriceDate: '06/10/2026'
+      nextPriceDate: '09/10/2026'
     };
   }
 
@@ -60,7 +60,7 @@ export function getCurrentBatchPrice(now: Date = new Date()): {
       promoPrice: 125,
       regularPrice,
       batchName: '2º Lote Promocional',
-      nextPriceDate: '09/10/2026'
+      nextPriceDate: '12/10/2026'
     };
   }
 
@@ -69,7 +69,7 @@ export function getCurrentBatchPrice(now: Date = new Date()): {
       promoPrice: 145,
       regularPrice,
       batchName: '3º Lote Promocional',
-      nextPriceDate: '13/10/2026'
+      nextPriceDate: '15/10/2026'
     };
   }
 

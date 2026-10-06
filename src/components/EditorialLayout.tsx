@@ -69,11 +69,11 @@ export const TwoColumnText: React.FC<TwoColumnTextProps> = ({
   className = '',
 }) => {
   return (
-    <div className={`grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-12 font-serif text-lg text-neutral-800 leading-[1.65] ${className}`}>
-      <div className="space-y-5">
+    <div className={`grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-12 font-serif text-[16px] sm:text-[17px] text-neutral-800 leading-[1.6] ${className}`}>
+      <div className="space-y-3.5">
         {left}
       </div>
-      <div className="space-y-5">
+      <div className="space-y-3.5">
         {right}
       </div>
     </div>
@@ -137,7 +137,7 @@ export const ImageAndText: React.FC<ImageAndTextProps> = ({
   );
 
   const textElement = (
-    <div className="space-y-5 font-serif text-lg text-neutral-800 leading-[1.65]">
+    <div className="space-y-3.5 font-serif text-[16px] sm:text-[17px] text-neutral-800 leading-[1.6]">
       {children}
     </div>
   );
