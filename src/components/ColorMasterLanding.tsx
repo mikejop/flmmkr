@@ -963,7 +963,7 @@ export const ColorMasterLanding: React.FC = () => {
                   Editores
                 </h3>
                 <p className="text-[14px] sm:text-[15px] text-white/70 leading-relaxed">
-                  Profissionais que já operam software de edição ou DaVinci Resolve e desejam dominar o workflow industrial de color grading comercial para atender clientes de maior orçamento.
+                  Profissionais que já trabalham com edição e querem incorporar o color grading ao próprio fluxo de pós-produção. Para quem quer entender como organizar, tratar e finalizar a imagem de um projeto comercial dentro do DaVinci Resolve.
                 </p>
               </div>
               <div className="mt-6 pt-4 border-t border-white/10 text-[12px] text-[#2997ff] font-medium">
@@ -981,7 +981,7 @@ export const ColorMasterLanding: React.FC = () => {
                   Filmmakers/Videomakers
                 </h3>
                 <p className="text-[14px] sm:text-[15px] text-white/70 leading-relaxed">
-                  Criadores que gravam em LOG e querem garantir que a estética planejada na filmagem seja traduzida com riqueza de contraste, textura e fidelidade às cores originais do produto.
+                  Profissionais que querem ter mais controle sobre o resultado final das próprias imagens. Para quem busca entender o processo de color grading e transformar um material bem captado em uma imagem consistente, precisa e esteticamente construída.
                 </p>
               </div>
               <div className="mt-6 pt-4 border-t border-white/10 text-[12px] text-[#2997ff] font-medium">
@@ -999,7 +999,7 @@ export const ColorMasterLanding: React.FC = () => {
                   Produtoras, Agências e Pequenas/Médias Empresas
                 </h3>
                 <p className="text-[14px] sm:text-[15px] text-white/70 leading-relaxed">
-                  Equipes que entregam peças de publicidade, e-commerce e conteúdo de marca, precisando padronizar o pipeline de pós-produção com agilidade e consistência visual rigorosa.
+                  Para quem produz conteúdo para apresentar produtos, próprios ou de clientes, em e-commerce, publicidade, redes sociais e outros canais de venda. O Masterclass ajuda a construir imagens mais precisas, consistentes e cuidadas, capazes de valorizar o produto sem distorcer suas características.
                 </p>
               </div>
               <div className="mt-6 pt-4 border-t border-white/10 text-[12px] text-[#2997ff] font-medium">
