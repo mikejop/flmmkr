@@ -315,6 +315,20 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
             style={{ display: 'none', visibility: 'hidden' }}
           />
         </noscript>
+        {/* Google Analytics específico do produto */}
+        <Script
+          src="https://www.googletagmanager.com/gtag/js?id=G-44TKSTB0X1"
+          strategy="afterInteractive"
+        />
+        <Script id="ga-color-master-produto" strategy="afterInteractive">
+          {`
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+
+            gtag('config', 'G-44TKSTB0X1');
+          `}
+        </Script>
         <ColorMasterLanding />
       </>
     );
