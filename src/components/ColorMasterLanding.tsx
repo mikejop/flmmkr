@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Play, Pause, Volume2, VolumeX } from 'lucide-react';
 import { SITE_CONFIG } from '@/config/siteConfig';
 import { trackProductClick, trackSocialClick } from '@/utils/analytics';
 import { ReticulaBackground } from '@/components/ReticulaBackground';
@@ -108,6 +108,9 @@ export const ColorMasterLanding: React.FC = () => {
   const [deviceMac, setDeviceMac] = useState<string>('');
   const [isPastHero, setIsPastHero] = useState<boolean>(false);
   const [showNavCheckout, setShowNavCheckout] = useState<boolean>(false);
+  const [isPlayingProjectVideo, setIsPlayingProjectVideo] = useState<boolean>(true);
+  const [isMutedProjectVideo, setIsMutedProjectVideo] = useState<boolean>(true);
+  const projectVideoIframeRef = useRef<HTMLIFrameElement | null>(null);
   const hasWarnedRef = useRef<boolean>(false);
   const hasExpiredRef = useRef<boolean>(false);
   const prevTimeLeftRef = useRef<number>(900);
@@ -397,6 +400,26 @@ export const ColorMasterLanding: React.FC = () => {
       a: 'Por se tratar de uma Masterclass de imersão prática (focada em tomada de decisão e workflow de comerciais), o foco primordial é a construção de repertório e portfólio real com footage comercial profissional.'
     }
   ];
+
+  const togglePlayProjectVideo = () => {
+    if (!projectVideoIframeRef.current?.contentWindow) return;
+    const command = isPlayingProjectVideo ? 'pauseVideo' : 'playVideo';
+    projectVideoIframeRef.current.contentWindow.postMessage(
+      JSON.stringify({ event: 'command', func: command, args: [] }),
+      '*'
+    );
+    setIsPlayingProjectVideo(!isPlayingProjectVideo);
+  };
+
+  const toggleMuteProjectVideo = () => {
+    if (!projectVideoIframeRef.current?.contentWindow) return;
+    const command = isMutedProjectVideo ? 'unMute' : 'mute';
+    projectVideoIframeRef.current.contentWindow.postMessage(
+      JSON.stringify({ event: 'command', func: command, args: [] }),
+      '*'
+    );
+    setIsMutedProjectVideo(!isMutedProjectVideo);
+  };
 
   const getAsaasCheckoutUrl = () => {
     if (isExpired) {
@@ -760,6 +783,218 @@ export const ColorMasterLanding: React.FC = () => {
       </section>
 
       {/* ========================================================================= */}
+      {/* 03.1 PROJETO PRÁTICO DO MASTERCLASS (ESTILO APPLE TV+ COM PLAYER CENTRAL)  */}
+      {/* ========================================================================= */}
+      <section id="projeto-pratico" className="relative z-10 py-14 sm:py-20 md:py-28 bg-[#0a0a0c] text-white overflow-hidden border-t border-white/10">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center max-w-3xl mx-auto mb-10 sm:mb-14">
+            <span className="text-[12px] uppercase tracking-[0.04em] text-[#2997ff] font-semibold mb-2 block">
+              PROJETO DO MASTERCLASS
+            </span>
+            <h2 className="text-[28px] leading-[1.14] sm:text-4xl md:text-5xl font-semibold tracking-[-0.015em] text-white">
+              O projeto que você vai construir do zero.
+            </h2>
+            <p className="text-[16px] sm:text-lg text-white/70 mt-3 font-normal max-w-2xl mx-auto leading-relaxed">
+              Assista a um trecho do comercial real que usaremos como base. Você fará a correção primária, equilíbrio de tons, separação de planos e a construção do look final de produto.
+            </p>
+          </div>
+        </div>
+
+        {/* Layout Estilo Apple TV+: Vídeo centralizado com moldura e fotos originais saindo pelas bordas */}
+        <div className="relative w-full max-w-[1400px] mx-auto px-2 sm:px-4 flex items-center justify-center">
+          {/* Imagens decorativas da esquerda saindo da lateral */}
+          <div className="hidden lg:flex items-center gap-3 sm:gap-4 -mr-16 sm:-mr-24 z-0 pointer-events-none select-none opacity-80 shrink-0">
+            <div className="w-[180px] xl:w-[230px] aspect-[16/9] rounded-2xl overflow-hidden border border-white/15 shadow-2xl transform -rotate-3 scale-90 translate-y-6">
+              <img
+                src={OFFER_IMAGES[0].src}
+                alt={OFFER_IMAGES[0].alt}
+                className="w-full h-full object-cover"
+              />
+            </div>
+            <div className="w-[210px] xl:w-[270px] aspect-[16/9] rounded-2xl overflow-hidden border border-white/15 shadow-2xl transform -rotate-1 scale-95 translate-y-1">
+              <img
+                src={OFFER_IMAGES[1].src}
+                alt={OFFER_IMAGES[1].alt}
+                className="w-full h-full object-cover"
+              />
+            </div>
+          </div>
+
+          {/* Player de Vídeo Central */}
+          <div className="relative z-10 w-full max-w-[720px] aspect-[16/9] rounded-2xl sm:rounded-3xl overflow-hidden bg-black border border-white/20 shadow-[0_20px_60px_rgba(0,0,0,0.8)] group">
+            <iframe
+              ref={projectVideoIframeRef}
+              id="project-showcase-yt-player"
+              src="https://www.youtube-nocookie.com/embed/gp75L5H0kIU?autoplay=1&mute=1&controls=0&loop=1&playlist=gp75L5H0kIU&playsinline=1&rel=0&modestbranding=1&enablejsapi=1"
+              title="Projeto Prático Comercial - Color Master"
+              className="w-full h-full object-cover pointer-events-none"
+              allow="autoplay; encrypted-media"
+            />
+
+            {/* Retícula Overlay Suave sobre o player */}
+            <div className="absolute inset-0 z-5 pointer-events-none reticula-pattern opacity-60" />
+
+            {/* Gradiente sutil para legibilidade dos controles */}
+            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/30 pointer-events-none z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+
+            {/* Barra de Controles Discretos (Play / Pause e Áudio) */}
+            <div className="absolute bottom-3 sm:bottom-4 inset-x-3 sm:inset-x-5 z-20 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={togglePlayProjectVideo}
+                  aria-label={isPlayingProjectVideo ? 'Pausar vídeo' : 'Reproduzir vídeo'}
+                  className="h-10 px-4 rounded-full bg-white/20 hover:bg-white/30 backdrop-blur-md border border-white/20 text-white text-xs font-semibold flex items-center gap-2 transition-all active:scale-95 cursor-pointer shadow-lg"
+                >
+                  {isPlayingProjectVideo ? (
+                    <>
+                      <Pause className="w-3.5 h-3.5 fill-current" />
+                      <span>Pausar</span>
+                    </>
+                  ) : (
+                    <>
+                      <Play className="w-3.5 h-3.5 fill-current" />
+                      <span>Assistir</span>
+                    </>
+                  )}
+                </button>
+
+                <button
+                  type="button"
+                  onClick={toggleMuteProjectVideo}
+                  aria-label={isMutedProjectVideo ? 'Ativar som' : 'Desativar som'}
+                  className="w-10 h-10 rounded-full bg-white/20 hover:bg-white/30 backdrop-blur-md border border-white/20 text-white flex items-center justify-center transition-all active:scale-95 cursor-pointer shadow-lg"
+                  title={isMutedProjectVideo ? 'Ativar som' : 'Desativar som'}
+                >
+                  {isMutedProjectVideo ? (
+                    <VolumeX className="w-4 h-4 text-white/80" />
+                  ) : (
+                    <Volume2 className="w-4 h-4 text-emerald-400" />
+                  )}
+                </button>
+              </div>
+
+              <div className="hidden sm:flex items-center gap-1.5 px-3 py-1 rounded-full bg-black/60 backdrop-blur-md border border-white/15 text-[11px] font-medium text-white/80">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                Footage Real de Produto
+              </div>
+            </div>
+          </div>
+
+          {/* Imagens decorativas da direita saindo da lateral */}
+          <div className="hidden lg:flex items-center gap-3 sm:gap-4 -ml-16 sm:-ml-24 z-0 pointer-events-none select-none opacity-80 shrink-0">
+            <div className="w-[210px] xl:w-[270px] aspect-[16/9] rounded-2xl overflow-hidden border border-white/15 shadow-2xl transform rotate-1 scale-95 translate-y-1">
+              <img
+                src={OFFER_IMAGES[2].src}
+                alt={OFFER_IMAGES[2].alt}
+                className="w-full h-full object-cover"
+              />
+            </div>
+            <div className="w-[180px] xl:w-[230px] aspect-[16/9] rounded-2xl overflow-hidden border border-white/15 shadow-2xl transform rotate-3 scale-90 translate-y-6">
+              <img
+                src={OFFER_IMAGES[3].src}
+                alt={OFFER_IMAGES[3].alt}
+                className="w-full h-full object-cover"
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Faixa de imagens para mobile e tablet (thumbnails na proporção real 16:9 que saem da lateral com scroll) */}
+        <div className="lg:hidden mt-6 px-4 overflow-x-auto no-scrollbar">
+          <div className="flex items-center gap-3 w-max mx-auto py-2">
+            {OFFER_IMAGES.slice(0, 4).map((img, idx) => (
+              <div
+                key={idx}
+                className="w-[180px] sm:w-[220px] aspect-[16/9] rounded-xl overflow-hidden border border-white/15 shadow-md shrink-0"
+              >
+                <img
+                  src={img.src}
+                  alt={img.alt}
+                  className="w-full h-full object-cover"
+                />
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ========================================================================= */}
+      {/* 03.2 PARA QUEM É ESTE MASTERCLASS                                         */}
+      {/* ========================================================================= */}
+      <section id="para-quem" className="relative z-10 py-14 sm:py-20 md:py-28 bg-[#111113] text-white px-4 sm:px-6 lg:px-8 border-t border-white/10">
+        <div className="max-w-5xl mx-auto">
+          <div className="text-center max-w-3xl mx-auto mb-12 sm:mb-16">
+            <span className="text-[12px] uppercase tracking-[0.04em] text-[#2997ff] font-semibold mb-2 block">
+              PÚBLICO-ALVO
+            </span>
+            <h2 className="text-[28px] leading-[1.14] sm:text-4xl md:text-5xl font-semibold tracking-[-0.015em] text-white">
+              Para quem é este Masterclass?
+            </h2>
+            <p className="text-[16px] sm:text-lg text-white/70 mt-3 font-normal max-w-2xl mx-auto leading-relaxed">
+              Desenvolvido estrategicamente para quem precisa elevar a barra técnica e o valor percebido de suas produções visuais.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
+            {/* Card 1 */}
+            <div className="p-6 sm:p-7 rounded-2xl sm:rounded-3xl bg-[#18181b] border border-white/10 shadow-sm flex flex-col justify-between hover:border-[#2997ff]/40 transition-all">
+              <div>
+                <div className="w-10 h-10 rounded-2xl bg-[#0071e3]/15 text-[#2997ff] border border-[#0071e3]/30 font-bold text-sm flex items-center justify-center mb-5">
+                  01
+                </div>
+                <h3 className="text-[19px] sm:text-xl font-semibold text-white mb-2 leading-snug">
+                  Coloristas e Editores
+                </h3>
+                <p className="text-[14px] sm:text-[15px] text-white/70 leading-relaxed">
+                  Profissionais que já operam software de edição ou DaVinci Resolve e desejam dominar o workflow industrial de color grading comercial para atender clientes de maior orçamento.
+                </p>
+              </div>
+              <div className="mt-6 pt-4 border-t border-white/10 text-[12px] text-[#2997ff] font-medium">
+                Refinamento &amp; Workflow de Alto Nível
+              </div>
+            </div>
+
+            {/* Card 2 */}
+            <div className="p-6 sm:p-7 rounded-2xl sm:rounded-3xl bg-[#18181b] border border-white/10 shadow-sm flex flex-col justify-between hover:border-[#2997ff]/40 transition-all">
+              <div>
+                <div className="w-10 h-10 rounded-2xl bg-[#0071e3]/15 text-[#2997ff] border border-[#0071e3]/30 font-bold text-sm flex items-center justify-center mb-5">
+                  02
+                </div>
+                <h3 className="text-[19px] sm:text-xl font-semibold text-white mb-2 leading-snug">
+                  Filmmakers e Diretores
+                </h3>
+                <p className="text-[14px] sm:text-[15px] text-white/70 leading-relaxed">
+                  Criadores que gravam em LOG e querem garantir que a estética planejada na filmagem seja traduzida com riqueza de contraste, textura e fidelidade às cores originais do produto.
+                </p>
+              </div>
+              <div className="mt-6 pt-4 border-t border-white/10 text-[12px] text-[#2997ff] font-medium">
+                Controle Autoral &amp; Valor de Produção
+              </div>
+            </div>
+
+            {/* Card 3 */}
+            <div className="p-6 sm:p-7 rounded-2xl sm:rounded-3xl bg-[#18181b] border border-white/10 shadow-sm flex flex-col justify-between hover:border-[#2997ff]/40 transition-all">
+              <div>
+                <div className="w-10 h-10 rounded-2xl bg-[#0071e3]/15 text-[#2997ff] border border-[#0071e3]/30 font-bold text-sm flex items-center justify-center mb-5">
+                  03
+                </div>
+                <h3 className="text-[19px] sm:text-xl font-semibold text-white mb-2 leading-snug">
+                  Produtoras e Agências
+                </h3>
+                <p className="text-[14px] sm:text-[15px] text-white/70 leading-relaxed">
+                  Equipes que entregam peças de publicidade, e-commerce e conteúdo de marca, precisando padronizar o pipeline de pós-produção com agilidade e consistência visual rigorosa.
+                </p>
+              </div>
+              <div className="mt-6 pt-4 border-t border-white/10 text-[12px] text-[#2997ff] font-medium">
+                Padrão Broadcast &amp; Escalabilidade
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ========================================================================= */}
       {/* 04. APLICAÇÃO PROFISSIONAL                                                */}
       {/* ========================================================================= */}
       <section id="aplicacao" className="relative z-10 min-h-[100dvh] flex flex-col justify-center py-12 md:py-16 bg-[#f5f5f7] px-4 sm:px-6 lg:px-8 overflow-hidden">
@@ -1001,10 +1236,10 @@ export const ColorMasterLanding: React.FC = () => {
                 </div>
               </div>
               <div className="py-1 border-b border-[#e5e5e7]/50">
-                • Aulas práticas gravadas em alta resolução no DaVinci Resolve
+                • Aulas práticas gravadas em alta resolução
               </div>
               <div className="py-1 border-b border-[#e5e5e7]/50">
-                • Footages reais de produto em LOG como material de apoio
+                • Footages em LOG como material de apoio
               </div>
               <div className="py-1 font-semibold text-[#1d1d1f]">
                 • 1 Ano de Acesso Completo e Ilimitado à Plataforma
