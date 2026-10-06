@@ -44,10 +44,16 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 0.5,
     },
     {
-      url: `${baseUrl}/definir-senha`,
+      url: `${baseUrl}/privacidade`,
       lastModified: lastModDate,
       changeFrequency: 'monthly',
-      priority: 0.4,
+      priority: 0.5,
+    },
+    {
+      url: `${baseUrl}/termos`,
+      lastModified: lastModDate,
+      changeFrequency: 'monthly',
+      priority: 0.5,
     },
   ];
 
