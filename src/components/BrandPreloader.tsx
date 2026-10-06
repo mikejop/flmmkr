@@ -5,32 +5,19 @@ import React, { useEffect, useState } from 'react';
 interface BrandPreloaderProps {
   onComplete?: () => void;
   minDurationMs?: number;
+  isReady?: boolean;
 }
 
 export const BrandPreloader: React.FC<BrandPreloaderProps> = ({
   onComplete,
   minDurationMs = 2400,
+  isReady = true,
 }) => {
   // Stages: 'flmmkr' -> 'morphing' -> 'color-master' -> 'fading' -> 'done'
   const [stage, setStage] = useState<'flmmkr' | 'morphing' | 'color-master' | 'fading' | 'done'>('flmmkr');
-  const [pageLoaded, setPageLoaded] = useState<boolean>(false);
+  const [minTimeElapsed, setMinTimeElapsed] = useState<boolean>(false);
 
   useEffect(() => {
-    const startTime = Date.now();
-
-    // Check document readiness
-    const checkReady = () => {
-      if (document.readyState === 'complete') {
-        setPageLoaded(true);
-      }
-    };
-
-    if (document.readyState === 'complete') {
-      setPageLoaded(true);
-    } else {
-      window.addEventListener('load', checkReady);
-    }
-
     // Step 1: Hold FLMMKR for 700ms, then trigger letter morph
     const morphTimer = setTimeout(() => {
       setStage('morphing');
@@ -41,34 +28,46 @@ export const BrandPreloader: React.FC<BrandPreloaderProps> = ({
       setStage('color-master');
     }, 1500);
 
-    // Step 3: Trigger exit fade once minDuration is met AND page is loaded
-    const completeTimer = setTimeout(() => {
-      const executeFade = () => {
-        setStage('fading');
-        setTimeout(() => {
-          setStage('done');
-          if (onComplete) onComplete();
-        }, 650);
-      };
-
-      if (document.readyState === 'complete') {
-        executeFade();
-      } else {
-        const onFinalLoad = () => {
-          executeFade();
-          window.removeEventListener('load', onFinalLoad);
-        };
-        window.addEventListener('load', onFinalLoad);
-      }
-    }, Math.max(minDurationMs, Date.now() - startTime + 800));
+    // Step 3: Marca que a animação mínima da marca foi cumprida
+    const minTimer = setTimeout(() => {
+      setMinTimeElapsed(true);
+    }, minDurationMs);
 
     return () => {
-      window.removeEventListener('load', checkReady);
       clearTimeout(morphTimer);
       clearTimeout(revealTimer);
-      clearTimeout(completeTimer);
+      clearTimeout(minTimer);
     };
-  }, [minDurationMs, onComplete]);
+  }, [minDurationMs]);
+
+  // Executa o fade out somente quando:
+  // 1. O tempo mínimo da animação decorreu (minTimeElapsed === true)
+  // 2. Os dados essenciais externos estão prontos (isReady === true)
+  // 3. O DOM está completamente carregado
+  useEffect(() => {
+    if (!minTimeElapsed || !isReady || stage === 'fading' || stage === 'done') return;
+
+    const executeFade = () => {
+      setStage('fading');
+      setTimeout(() => {
+        setStage('done');
+        if (onComplete) onComplete();
+      }, 650);
+    };
+
+    if (document.readyState === 'complete') {
+      executeFade();
+    } else {
+      const onFinalLoad = () => {
+        executeFade();
+        window.removeEventListener('load', onFinalLoad);
+      };
+      window.addEventListener('load', onFinalLoad);
+      return () => {
+        window.removeEventListener('load', onFinalLoad);
+      };
+    }
+  }, [minTimeElapsed, isReady, stage, onComplete]);
 
   if (stage === 'done') return null;
 

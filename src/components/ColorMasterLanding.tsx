@@ -86,6 +86,7 @@ export const ColorMasterLanding: React.FC = () => {
   // 15-Minute Countdown & Batch Price State
   const [timeLeft, setTimeLeft] = useState<number>(900); // 15 minutos em segundos
   const [isExpired, setIsExpired] = useState<boolean>(false);
+  const [isPriceLoaded, setIsPriceLoaded] = useState<boolean>(false);
   const [priceData, setPriceData] = useState<{
     promoPrice: number;
     regularPrice: number;
@@ -168,38 +169,47 @@ export const ColorMasterLanding: React.FC = () => {
   useEffect(() => {
     setAuthorPhotos(getRandomAuthorPhotos());
 
+    // Timeout de segurança caso a rede demore muito (evita preloader travado eternamente)
+    const safetyTimeout = setTimeout(() => {
+      setIsPriceLoaded(true);
+    }, 6000);
+
     // Obter a impressão digital do computador (MAC Address de hardware)
-    getDeviceFingerprint().then((mac) => {
-      setDeviceMac(mac);
+    getDeviceFingerprint()
+      .then((mac) => {
+        setDeviceMac(mac);
 
-      // Sincronizar com o servidor: prioridade 1 = MAC Address, prioridade 2 = IP
-      fetch(`/api/offer-timer?macAddress=${encodeURIComponent(mac)}`)
-        .then((res) => res.json())
-        .then((data) => {
-          if (data && typeof data.remainingSeconds === 'number') {
-            setTimeLeft(data.remainingSeconds);
-            setIsExpired(data.isExpired);
-            setPriceData({
-              promoPrice: data.promoPrice,
-              regularPrice: data.regularPrice,
-              finalPrice: data.finalPrice,
-              batchName: data.batchName,
-              nextPriceDate: data.nextPriceDate
-            });
+        // Sincronizar com o servidor: prioridade 1 = MAC Address, prioridade 2 = IP
+        return fetch(`/api/offer-timer?macAddress=${encodeURIComponent(mac)}`)
+          .then((res) => res.json())
+          .then((data) => {
+            if (data && typeof data.remainingSeconds === 'number') {
+              setTimeLeft(data.remainingSeconds);
+              setIsExpired(data.isExpired);
+              setPriceData({
+                promoPrice: data.promoPrice,
+                regularPrice: data.regularPrice,
+                finalPrice: data.finalPrice,
+                batchName: data.batchName,
+                nextPriceDate: data.nextPriceDate
+              });
 
-            // Se o cronômetro estiver zerado e o usuário acessar a página novamente,
-            // o modal dizendo que a promoção acabou só aparece no máximo 2 vezes para o mesmo usuário
-            if (data.isExpired || data.remainingSeconds <= 0) {
-              const views = getExpiredModalViews(mac);
-              if (views < MAX_EXPIRED_MODAL_VIEWS) {
-                recordExpiredModalView(mac);
-                setExpiredModalOpen(true);
+              // Se o cronômetro estiver zerado e o usuário acessar a página novamente,
+              // o modal dizendo que a promoção acabou só aparece no máximo 2 vezes para o mesmo usuário
+              if (data.isExpired || data.remainingSeconds <= 0) {
+                const views = getExpiredModalViews(mac);
+                if (views < MAX_EXPIRED_MODAL_VIEWS) {
+                  recordExpiredModalView(mac);
+                  setExpiredModalOpen(true);
+                }
               }
             }
-          }
-        })
-        .catch(() => {});
-    });
+          });
+      })
+      .catch(() => {})
+      .finally(() => {
+        setIsPriceLoaded(true);
+      });
 
     fetch('/api/empresas')
       .then((res) => res.json())
@@ -209,6 +219,8 @@ export const ColorMasterLanding: React.FC = () => {
         }
       })
       .catch(() => {});
+
+    return () => clearTimeout(safetyTimeout);
   }, []);
 
   // Intervalo local do cronômetro de 15 minutos
@@ -440,7 +452,7 @@ export const ColorMasterLanding: React.FC = () => {
   return (
     <div className="min-h-screen bg-[#f5f5f7] text-[#1d1d1f] font-sans antialiased selection:bg-[#0071e3]/20 selection:text-[#0071e3]">
       {/* Brand Transition Preloader */}
-      <BrandPreloader />
+      <BrandPreloader isReady={isPriceLoaded} />
 
       {/* Login Modal */}
       <LoginModal isOpen={loginModalOpen} onClose={() => setLoginModalOpen(false)} />
