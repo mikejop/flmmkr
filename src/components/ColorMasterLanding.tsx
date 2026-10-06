@@ -956,9 +956,6 @@ export const ColorMasterLanding: React.FC = () => {
             {/* Card 1 */}
             <div className="p-6 sm:p-7 rounded-2xl sm:rounded-3xl bg-[#18181b] border border-white/10 shadow-sm flex flex-col justify-between hover:border-[#2997ff]/40 transition-all">
               <div>
-                <div className="w-10 h-10 rounded-2xl bg-[#0071e3]/15 text-[#2997ff] border border-[#0071e3]/30 font-bold text-sm flex items-center justify-center mb-5">
-                  01
-                </div>
                 <h3 className="text-[19px] sm:text-xl font-semibold text-white mb-2 leading-snug">
                   Editores
                 </h3>
@@ -974,9 +971,6 @@ export const ColorMasterLanding: React.FC = () => {
             {/* Card 2 */}
             <div className="p-6 sm:p-7 rounded-2xl sm:rounded-3xl bg-[#18181b] border border-white/10 shadow-sm flex flex-col justify-between hover:border-[#2997ff]/40 transition-all">
               <div>
-                <div className="w-10 h-10 rounded-2xl bg-[#0071e3]/15 text-[#2997ff] border border-[#0071e3]/30 font-bold text-sm flex items-center justify-center mb-5">
-                  02
-                </div>
                 <h3 className="text-[19px] sm:text-xl font-semibold text-white mb-2 leading-snug">
                   Filmmakers/Videomakers
                 </h3>
@@ -992,9 +986,6 @@ export const ColorMasterLanding: React.FC = () => {
             {/* Card 3 */}
             <div className="p-6 sm:p-7 rounded-2xl sm:rounded-3xl bg-[#18181b] border border-white/10 shadow-sm flex flex-col justify-between hover:border-[#2997ff]/40 transition-all">
               <div>
-                <div className="w-10 h-10 rounded-2xl bg-[#0071e3]/15 text-[#2997ff] border border-[#0071e3]/30 font-bold text-sm flex items-center justify-center mb-5">
-                  03
-                </div>
                 <h3 className="text-[19px] sm:text-xl font-semibold text-white mb-2 leading-snug">
                   Produtoras, Agências e Pequenas/Médias Empresas
                 </h3>
@@ -1020,10 +1011,10 @@ export const ColorMasterLanding: React.FC = () => {
               MERCADO DE TRABALHO REAL
             </span>
             <h2 className="text-[28px] leading-[1.14] sm:text-4xl md:text-5xl font-semibold tracking-[-0.015em] text-[#1d1d1f]">
-              Aplicação Profissional
+              Da publicidade ao conteúdo digital, o color grading faz parte da entrega profissional de uma imagem.
             </h2>
-            <p className="text-[17px] leading-[1.47] sm:text-base md:text-lg text-[#6e6e73] mt-2.5 sm:mt-3 font-normal max-w-xl mx-auto">
-              Domine as competências mais cobradas em produtoras, agências e clientes de alta exigência.
+            <p className="text-[17px] leading-[1.47] sm:text-base md:text-lg text-[#6e6e73] mt-2.5 sm:mt-3 font-normal max-w-2xl mx-auto">
+              Aprenda a trabalhar a cor em diferentes tipos de produção, entendendo o que cada projeto exige da imagem e do processo de finalização.
             </p>
           </div>
 
@@ -1035,14 +1026,14 @@ export const ColorMasterLanding: React.FC = () => {
                   PUBLICIDADE
                 </span>
                 <h3 className="text-[21px] leading-[1.24] sm:text-2xl font-semibold text-[#1d1d1f] mb-2 sm:mb-3">
-                  Comerciais & Campanhas de TV
+                  Comerciais &amp; Campanhas de TV
                 </h3>
                 <p className="text-[15px] sm:text-base text-[#6e6e73] leading-[1.5]">
-                  Leve projetos de produto a um acabamento visual à altura da publicidade. Trabalhe cor, contraste, consistência entre planos e construção de look para valorizar o produto e dar ao projeto a qualidade visual esperada em uma entrega para televisão.
+                  Em publicidade, a imagem precisa apresentar o produto com precisão, consistência e intenção estética. Você vai entender como trabalhar cor, contraste, textura e matching entre planos e câmeras para construir uma imagem que funcione para a campanha e para o produto.
                 </p>
               </div>
               <div className="mt-6 sm:mt-8 pt-4 border-t border-[#e5e5e7] text-[12px] font-semibold text-[#1d1d1f]">
-                Padrão Broadcast
+                Cor, precisão e consistência para publicidade.
               </div>
             </div>
 
@@ -1053,10 +1044,10 @@ export const ColorMasterLanding: React.FC = () => {
                   CONTEÚDO
                 </span>
                 <h3 className="text-[21px] leading-[1.24] sm:text-2xl font-semibold text-[#1d1d1f] mb-2 sm:mb-3">
-                  Filmes Digitais & Social Media
+                  Filmes Digitais &amp; Social Media
                 </h3>
                 <p className="text-[15px] sm:text-base text-[#6e6e73] leading-[1.5]">
-                  Do conteúdo para YouTube aos vídeos de produto para redes sociais, o trabalho de cor ajuda a manter unidade, valorizar o que está em cena e dar mais qualidade visual a cada entrega.
+                  Vídeos para YouTube, redes sociais e campanhas digitais também precisam de uma imagem bem construída. O processo de color grading ajuda a manter consistência entre diferentes cenas e produções, além de valorizar produtos, pessoas e ambientes mesmo em trabalhos com prazos e volumes maiores.
                 </p>
               </div>
               <div className="mt-6 sm:mt-8 pt-4 border-t border-[#e5e5e7] text-[12px] font-semibold text-[#1d1d1f]">
@@ -1069,13 +1060,15 @@ export const ColorMasterLanding: React.FC = () => {
           <div className="p-6 sm:p-8 md:p-10 rounded-2xl sm:rounded-3xl bg-[#ffffff] border border-[#0071e3]/30 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-6">
             <div className="max-w-2xl">
               <span className="text-[12px] font-semibold text-[#0071e3] uppercase tracking-[0.04em] block mb-1">
-                Nada de Simulacro
+                NADA DE SIMULAÇÃO
               </span>
               <h3 className="text-[19px] sm:text-2xl font-semibold text-[#1d1d1f] mb-2 leading-[1.3] tracking-[-0.01em]">
-                "Você não vai aprender usando imagens aleatórias, mas sim em projetos reais, com problemas reais e soluções reais."
+                Você vai aprender usando um projeto que realmente foi produzido para um cliente.
               </h3>
               <p className="text-[15px] sm:text-base text-[#6e6e73] leading-[1.5]">
-                Nada na nossa metodologia simula projetos de clientes que nunca existiram. Tudo é feito baseado em projetos reais, que fizemos para nossos clientes. Você vai aprender o workflow que funciona no mundo real e as soluções usadas dentro de um projeto que passou pelo crivo do cliente.
+                O projeto usado no Masterclass saiu de uma produção real e passou por todas as etapas de uma ilha de color grading profissional. O material tem diferentes câmeras, problemas de exposição e cor, decisões de look e outras situações que fazem parte do trabalho cotidiano de um colorista.
+                <br className="hidden sm:inline" />{' '}
+                É esse projeto que você vai receber para trabalhar durante o Masterclass. O aprendizado acontece sobre imagens reais, dentro de um contexto real de produção.
               </p>
             </div>
             <a
