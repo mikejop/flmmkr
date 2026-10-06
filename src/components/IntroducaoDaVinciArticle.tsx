@@ -7,6 +7,7 @@ import {
   TwoColumnText,
   ImageAndText,
   EditorialQuote,
+  FullWidthImage,
 } from './EditorialLayout';
 
 export default function IntroducaoDaVinciArticle() {
@@ -22,6 +23,11 @@ export default function IntroducaoDaVinciArticle() {
         title="PRIMEIRO, VAMOS ENTENDER O DAVINCI RESOLVE"
         subtitle="COMO O PROGRAMA ESTÁ ORGANIZADO E ONDE VOCÊ VAI TRABALHAR"
       >
+        <FullWidthImage
+          src="/assets/artigos/introducao-davinci/color-page.webp"
+          alt="Interface da Página Color do DaVinci Resolve"
+        />
+
         <TwoColumnText
           left={
             <>
@@ -66,8 +72,8 @@ export default function IntroducaoDaVinciArticle() {
         subtitle="É AQUI QUE A IMAGEM COMEÇA A TOMAR FORMA"
       >
         <ImageAndText
+          imageSrc="/assets/artigos/introducao-davinci/color-page.webp"
           imageAlt="Interface Principal da Página Color"
-          caption="Visor central, timeline de clipes, grafo de nodes e painel de primárias"
           imagePosition="left"
         >
           <p>
@@ -94,31 +100,24 @@ export default function IntroducaoDaVinciArticle() {
         title="OS NODES"
         subtitle="A IMAGEM PASSA POR AQUI"
       >
-        <TwoColumnText
-          left={
-            <>
-              <p>
-                Os nodes funcionam de um jeito muito simples. A imagem entra por um lado, você faz uma alteração e manda essa alteração para o próximo node. Depois você faz outra alteração, manda para o próximo, e assim por diante.
-              </p>
-              <EditorialQuote
-                quote="O node é como se fosse uma camada, só que ele funciona de um jeito um pouco diferente."
-              />
-              <p>
-                Em vez de empilhar tudo no mesmo lugar, você vai construindo o tratamento da imagem em etapas organizadas.
-              </p>
-            </>
-          }
-          right={
-            <>
-              <p>
-                Isso é excelente porque você consegue saber exatamente o que cada node está fazendo. Se alguma coisa der errado, você não precisa desmontar o ajuste inteiro: é só ir no node responsável e corrigir.
-              </p>
-              <p>
-                E se você deixar o node graph bagunçado, o Resolve resolve isso fácil: basta clicar com o botão direito e selecionar <strong className="font-sans text-neutral-900">Cleanup Node Graph</strong> para alinhar tudo em segundos.
-              </p>
-            </>
-          }
-        />
+        <ImageAndText
+          imageSrc="/assets/artigos/introducao-davinci/NODES.webp"
+          imageAlt="Node Graph no DaVinci Resolve"
+          imagePosition="right"
+        >
+          <p>
+            Os nodes funcionam de um jeito muito simples. A imagem entra por um lado, você faz uma alteração e manda essa alteração para o próximo node. Depois você faz outra alteração, manda para o próximo, e assim por diante.
+          </p>
+          <EditorialQuote
+            quote="O node é como se fosse uma camada, só que ele funciona de um jeito um pouco diferente."
+          />
+          <p>
+            Em vez de empilhar tudo no mesmo lugar, você vai construindo o tratamento da imagem em etapas organizadas. Isso é excelente porque você consegue saber exatamente o que cada node está fazendo.
+          </p>
+          <p>
+            E se você deixar o node graph bagunçado, o Resolve resolve isso fácil: basta clicar com o botão direito e selecionar <strong className="font-sans text-neutral-900">Cleanup Node Graph</strong> para alinhar tudo em segundos.
+          </p>
+        </ImageAndText>
       </EditorialSection>
 
       {/* ===================================================================
@@ -130,28 +129,24 @@ export default function IntroducaoDaVinciArticle() {
         title="PRIMARIES"
         subtitle="ONDE A GENTE COMEÇA A CORRIGIR A IMAGEM"
       >
-        <TwoColumnText
-          left={
-            <>
-              <p>
-                Nas Primaries, você encontra três ferramentas fundamentais: <strong className="font-sans text-neutral-900">Color Wheels, Color Bars e Log Wheels</strong>. As três servem para trabalhar exposição, contraste e cor, mas cada uma tem um alcance diferente sobre os tons da imagem.
-              </p>
-              <p>
-                A grande diferença entre elas está na forma como atuam na imagem: uma ferramenta é mais generalista, enquanto a outra é muito mais cirúrgica e específica.
-              </p>
-            </>
-          }
-          right={
-            <>
-              <EditorialQuote
-                quote="Um é mais específico e o outro é mais generalista, tá?"
-              />
-              <p>
-                Se você precisa mudar a imagem inteira de uma vez, vai para um ajuste mais geral. Se precisa mexer só numa faixa tonal restrita, usa uma ferramenta mais específica. É essa lógica que você precisa dominar.
-              </p>
-            </>
-          }
-        />
+        <ImageAndText
+          imageSrc="/assets/artigos/introducao-davinci/PRIMARIES.webp"
+          imageAlt="Painel Primaries no DaVinci Resolve"
+          imagePosition="left"
+        >
+          <p>
+            Nas Primaries, você encontra três ferramentas fundamentais: <strong className="font-sans text-neutral-900">Color Wheels, Color Bars e Log Wheels</strong>. As três servem para trabalhar exposição, contraste e cor, mas cada uma tem um alcance diferente sobre os tons da imagem.
+          </p>
+          <p>
+            A grande diferença entre elas está na forma como atuam na imagem: uma ferramenta é mais generalista, enquanto a outra é muito mais cirúrgica e específica.
+          </p>
+          <EditorialQuote
+            quote="Um é mais específico e o outro é mais generalista, tá?"
+          />
+          <p>
+            Se você precisa mudar a imagem inteira de uma vez, vai para um ajuste mais geral. Se precisa mexer só numa faixa tonal restrita, usa uma ferramenta mais específica.
+          </p>
+        </ImageAndText>
       </EditorialSection>
 
       {/* ===================================================================
@@ -164,8 +159,8 @@ export default function IntroducaoDaVinciArticle() {
         subtitle="LIFT, GAMMA, GAIN E OFFSET"
       >
         <ImageAndText
+          imageSrc="/assets/artigos/introducao-davinci/COLOR WHEELS.webp"
           imageAlt="Painel das Color Wheels no DaVinci Resolve"
-          caption="Lift (sombras), Gamma (médios), Gain (altas) e Offset (geral)"
           imagePosition="right"
         >
           <p>
@@ -189,28 +184,24 @@ export default function IntroducaoDaVinciArticle() {
         title="LOG WHEELS"
         subtitle="SHADOW, MIDTONE E HIGHLIGHT"
       >
-        <TwoColumnText
-          left={
-            <>
-              <p>
-                As Log Wheels têm uma função parecida com as Color Wheels, mas com uma diferença crucial: elas são muito mais restritas e contidas na sua atuação tonal.
-              </p>
-              <p>
-                Quando você mexe em <strong className="font-sans text-neutral-900">Shadow</strong>, você atua nas sombras sem arrastar os médios junto. Quando mexe em <strong className="font-sans text-neutral-900">Highlight</strong>, altera as altas luzes sem contaminar o resto da escala.
-              </p>
-            </>
-          }
-          right={
-            <>
-              <EditorialQuote
-                quote="O Log é mais cirúrgico. Ele mexe onde você manda e não mexe no resto."
-              />
-              <p>
-                Isso é ideal quando você já tem a imagem praticamente equilibrada e precisa apenas ajustar uma ponta específica da exposição sem desmanchar o trabalho feito nas primárias.
-              </p>
-            </>
-          }
-        />
+        <ImageAndText
+          imageSrc="/assets/artigos/introducao-davinci/LOG WHEELS.webp"
+          imageAlt="Painel das Log Wheels no DaVinci Resolve"
+          imagePosition="left"
+        >
+          <p>
+            As Log Wheels têm uma função parecida com as Color Wheels, mas com uma diferença crucial: elas são muito mais restritas e contidas na sua atuação tonal.
+          </p>
+          <p>
+            Quando você mexe em <strong className="font-sans text-neutral-900">Shadow</strong>, você atua nas sombras sem arrastar os médios junto. Quando mexe em <strong className="font-sans text-neutral-900">Highlight</strong>, altera as altas luzes sem contaminar o resto da escala.
+          </p>
+          <EditorialQuote
+            quote="O Log é mais cirúrgico. Ele mexe onde você manda e não mexe no resto."
+          />
+          <p>
+            Isso é ideal quando você já tem a imagem praticamente equilibrada e precisa apenas ajustar uma ponta específica da exposição sem desmanchar o trabalho feito nas primárias.
+          </p>
+        </ImageAndText>
       </EditorialSection>
 
       {/* ===================================================================
@@ -223,9 +214,9 @@ export default function IntroducaoDaVinciArticle() {
         subtitle="QUANDO O AJUSTE PRECISA SER AINDA MAIS CIRÚRGICO"
       >
         <ImageAndText
+          imageSrc="/assets/artigos/introducao-davinci/HDR.webp"
           imageAlt="Painel HDR Palette com zonas zonais"
-          caption="Zonas divididas: Black, Dark, Shadow, Light, Highlight e Specular"
-          imagePosition="left"
+          imagePosition="right"
         >
           <p>
             A paleta HDR permite fatiar a escala tonal em várias zonas distintas. Se você tem um ponto estourado no céu ou um reflexo especular que está chamando atenção demais, você vai diretamente nessa faixa sem prejudicar o rosto da pessoa ou as áreas escuras.
@@ -248,25 +239,21 @@ export default function IntroducaoDaVinciArticle() {
         title="RGB MIXER"
         subtitle="ISOLANDO OS CANAIS VERMELHO, VERDE E AZUL"
       >
-        <TwoColumnText
-          left={
-            <>
-              <p>
-                O RGB Mixer permite trabalhar cada canal de cor separadamente. Se a imagem está com uma dominante amarela ou verde que está incomodando, em vez de ficar corrigindo a imagem inteira com balanço geral, você mexe diretamente no canal responsável pela contaminação.
-              </p>
-              <EditorialQuote
-                quote="Em vez de mexer na imagem inteira, você vai direto no canal que está incomodando."
-              />
-            </>
-          }
-          right={
-            <>
-              <p>
-                Ele também é excelente para criar conversões de preto e branco de alta riqueza tonal: marcando a opção <strong className="font-sans text-neutral-900">Monochrome</strong> e ativando <strong className="font-sans text-neutral-900">Preserve Luminance</strong>, você dosa a contribuição de cada canal para a luminância monocromática.
-              </p>
-            </>
-          }
-        />
+        <ImageAndText
+          imageSrc="/assets/artigos/introducao-davinci/RGB MIXER.webp"
+          imageAlt="RGB Mixer no DaVinci Resolve"
+          imagePosition="left"
+        >
+          <p>
+            O RGB Mixer permite trabalhar cada canal de cor separadamente. Se a imagem está com uma dominante amarela ou verde que está incomodando, em vez de ficar corrigindo a imagem inteira com balanço geral, você mexe diretamente no canal responsável pela contaminação.
+          </p>
+          <EditorialQuote
+            quote="Em vez de mexer na imagem inteira, você vai direto no canal que está incomodando."
+          />
+          <p>
+            Ele também é excelente para criar conversões de preto e branco de alta riqueza tonal: marcando a opção <strong className="font-sans text-neutral-900">Monochrome</strong> e ativando <strong className="font-sans text-neutral-900">Preserve Luminance</strong>, você dosa a contribuição de cada canal para a luminância monocromática.
+          </p>
+        </ImageAndText>
       </EditorialSection>
 
       {/* ===================================================================
@@ -279,8 +266,8 @@ export default function IntroducaoDaVinciArticle() {
         subtitle="CONTRASTE, MATIZ E SATURAÇÃO"
       >
         <ImageAndText
+          imageSrc="/assets/artigos/introducao-davinci/CURVES.webp"
           imageAlt="Curvas Custom e Curvas HSL no DaVinci Resolve"
-          caption="Curvas de controle visual: Hue vs Hue, Hue vs Sat e Hue vs Lum"
           imagePosition="right"
         >
           <p>
@@ -309,28 +296,21 @@ export default function IntroducaoDaVinciArticle() {
         title="QUALIFIER"
         subtitle="SELECIONANDO PELA COR DA IMAGEM"
       >
-        <TwoColumnText
-          left={
-            <>
-              <p>
-                O Qualifier é a ferramenta clássica de seleção secundária por cor. Você pega a pipeta, clica no objeto que quer isolar — como uma parede de madeira, uma camiseta ou o céu — e o Resolve separa aquela informação com base em três eixos: <strong className="font-sans text-neutral-900">Hue, Saturation e Luminance</strong>.
-              </p>
-              <EditorialQuote
-                quote="Você pega a pipeta, clica na cor e o DaVinci isola exatamente aquilo."
-              />
-            </>
-          }
-          right={
-            <>
-              <p>
-                Para visualizar exatamente o que você selecionou, use o atalho essencial <kbd className="px-2 py-0.5 rounded bg-neutral-100 border border-neutral-300 font-mono text-xs font-bold text-neutral-800">Shift + H</kbd> (Highlight).
-              </p>
-              <p>
-                Você também pode inverter a seleção com um único clique para deixar o objeto intacto e tratar apenas todo o cenário de fundo.
-              </p>
-            </>
-          }
-        />
+        <ImageAndText
+          imageSrc="/assets/artigos/introducao-davinci/QUALIFIER.webp"
+          imageAlt="Qualifier no DaVinci Resolve"
+          imagePosition="left"
+        >
+          <p>
+            O Qualifier é a ferramenta clássica de seleção secundária por cor. Você pega a pipeta, clica no objeto que quer isolar — como uma parede de madeira, uma camiseta ou o céu — e o Resolve separa aquela informação com base em três eixos: <strong className="font-sans text-neutral-900">Hue, Saturation e Luminance</strong>.
+          </p>
+          <EditorialQuote
+            quote="Você pega a pipeta, clica na cor e o DaVinci isola exatamente aquilo."
+          />
+          <p>
+            Para visualizar exatamente o que você selecionou, use o atalho essencial <kbd className="px-2 py-0.5 rounded bg-neutral-100 border border-neutral-300 font-mono text-xs font-bold text-neutral-800">Shift + H</kbd> (Highlight). Você também pode inverter a seleção com um único clique para tratar apenas o fundo.
+          </p>
+        </ImageAndText>
       </EditorialSection>
 
       {/* ===================================================================
@@ -343,9 +323,9 @@ export default function IntroducaoDaVinciArticle() {
         subtitle="MÁSCARAS GEOMÉTRICAS E VETORIAIS"
       >
         <ImageAndText
+          imageSrc="/assets/artigos/introducao-davinci/POWER WINDOWS.webp"
           imageAlt="Power Windows no DaVinci: Linear, Circular e Polígono"
-          caption="Máscaras vetoriais com controle de penas e suavidade de borda"
-          imagePosition="left"
+          imagePosition="right"
         >
           <p>
             Enquanto o Qualifier isola por cor, a Power Window cria uma seleção espacial geométrica. Você pode desenhar máscaras lineares, circulares, poligonais ou curvas livres (Curve Window) em qualquer região do quadro.
@@ -368,25 +348,21 @@ export default function IntroducaoDaVinciArticle() {
         title="TRACKER"
         subtitle="ACOMPANHANDO O MOVIMENTO DO OBJETO"
       >
-        <TwoColumnText
-          left={
-            <>
-              <p>
-                Criou uma máscara numa pessoa e ela se mexeu? O Tracker analisa os padrões da imagem e faz a máscara acompanhar o movimento ao longo de todo o plano automaticamente.
-              </p>
-              <EditorialQuote
-                quote="Fez a máscara, dá o track e o DaVinci acompanha o movimento sozinho."
-              />
-            </>
-          }
-          right={
-            <>
-              <p>
-                Ele pode rastrear Pan, Tilt, Zoom, Rotação e Perspectiva tridimensional. E se em algum momento o rastreamento escapar ou falhar por causa de uma oclusão, você muda do modo <strong className="font-sans text-neutral-900">Clip</strong> para o modo <strong className="font-sans text-neutral-900">Frame</strong> e corrige manualmente quadro a quadro.
-              </p>
-            </>
-          }
-        />
+        <ImageAndText
+          imageSrc="/assets/artigos/introducao-davinci/TRACKER.webp"
+          imageAlt="Painel Tracker no DaVinci Resolve"
+          imagePosition="left"
+        >
+          <p>
+            Criou uma máscara numa pessoa e ela se mexeu? O Tracker analisa os padrões da imagem e faz a máscara acompanhar o movimento ao longo de todo o plano automaticamente.
+          </p>
+          <EditorialQuote
+            quote="Fez a máscara, dá o track e o DaVinci acompanha o movimento sozinho."
+          />
+          <p>
+            Ele pode rastrear Pan, Tilt, Zoom, Rotação e Perspectiva tridimensional. E se em algum momento o rastreamento escapar, você muda do modo <strong className="font-sans text-neutral-900">Clip</strong> para o modo <strong className="font-sans text-neutral-900">Frame</strong> e corrige manualmente quadro a quadro.
+          </p>
+        </ImageAndText>
       </EditorialSection>
 
       {/* ===================================================================
@@ -399,8 +375,8 @@ export default function IntroducaoDaVinciArticle() {
         subtitle="SELEÇÃO AUTOMÁTICA POR INTELIGÊNCIA ARTIFICIAL"
       >
         <ImageAndText
+          imageSrc="/assets/artigos/introducao-davinci/MAGIC MASK.webp"
           imageAlt="Magic Mask com DaVinci Neural Engine"
-          caption="Isolamento de pessoas, roupas, braços e rostos com rede neural"
           imagePosition="right"
         >
           <p>
@@ -424,28 +400,24 @@ export default function IntroducaoDaVinciArticle() {
         title="BLUR E SHARPEN"
         subtitle="NITIDEZ, TEXTURA E DESFOQUE"
       >
-        <TwoColumnText
-          left={
-            <>
-              <p>
-                O <strong className="font-sans text-neutral-900">Blur</strong> permite desfocar partes do plano, muito útil para direcionar o olhar do espectador, simular profundidade de campo ou suavizar imperfeições e ruídos no fundo.
-              </p>
-              <p>
-                O <strong className="font-sans text-neutral-900">Sharpen</strong>, por sua vez, aumenta a percepção de nitidez aparente das bordas da imagem.
-              </p>
-            </>
-          }
-          right={
-            <>
-              <EditorialQuote
-                quote="Sharpen demais deixa a imagem com cara de vídeo digital barato. Menos é mais."
-              />
-              <p>
-                O cuidado aqui é crucial: o excesso de nitidez digital gera ruído pontiagudo e halos brancos ao redor das bordas. Use sempre com sutileza profissional.
-              </p>
-            </>
-          }
-        />
+        <ImageAndText
+          imageSrc="/assets/artigos/introducao-davinci/BLUR E SHARPEN.webp"
+          imageAlt="Blur e Sharpen no DaVinci Resolve"
+          imagePosition="left"
+        >
+          <p>
+            O <strong className="font-sans text-neutral-900">Blur</strong> permite desfocar partes do plano, muito útil para direcionar o olhar do espectador, simular profundidade de campo ou suavizar imperfeições e ruídos no fundo.
+          </p>
+          <p>
+            O <strong className="font-sans text-neutral-900">Sharpen</strong>, por sua vez, aumenta a percepção de nitidez aparente das bordas da imagem.
+          </p>
+          <EditorialQuote
+            quote="Sharpen demais deixa a imagem com cara de vídeo digital barato. Menos é mais."
+          />
+          <p>
+            O cuidado aqui é crucial: o excesso de nitidez digital gera ruído pontiagudo e halos brancos ao redor das bordas. Use sempre com sutileza profissional.
+          </p>
+        </ImageAndText>
       </EditorialSection>
 
       {/* ===================================================================
@@ -457,25 +429,21 @@ export default function IntroducaoDaVinciArticle() {
         title="KEY"
         subtitle="A OPACIDADE DO SEU NODE"
       >
-        <TwoColumnText
-          left={
-            <>
-              <p>
-                O painel Key controla o ganho e a intensidade da saída do node através do <strong className="font-sans text-neutral-900">Key Output</strong>. É o equivalente direto à opacidade de uma camada no Photoshop ou After Effects.
-              </p>
-              <EditorialQuote
-                quote="Fez um look que ficou forte demais? Vai no Key e diminui pela metade."
-              />
-            </>
-          }
-          right={
-            <>
-              <p>
-                Se você construiu um grade com contraste, saturação e tonalidade perfeita mas o cliente achou pesado demais, você não mexe em cada roda de cor: basta reduzir o <strong className="font-sans text-neutral-900">Key Output Gain</strong> de 1.0 para 0.5 e o efeito fica dosado com perfeição.
-              </p>
-            </>
-          }
-        />
+        <ImageAndText
+          imageSrc="/assets/artigos/introducao-davinci/KEY.webp"
+          imageAlt="Painel Key no DaVinci Resolve"
+          imagePosition="right"
+        >
+          <p>
+            O painel Key controla o ganho e a intensidade da saída do node através do <strong className="font-sans text-neutral-900">Key Output</strong>. É o equivalente direto à opacidade de uma camada no Photoshop ou After Effects.
+          </p>
+          <EditorialQuote
+            quote="Fez um look que ficou forte demais? Vai no Key e diminui pela metade."
+          />
+          <p>
+            Se você construiu um grade com contraste, saturação e tonalidade perfeita mas o cliente achou pesado demais, você não mexe em cada roda de cor: basta reduzir o <strong className="font-sans text-neutral-900">Key Output Gain</strong> de 1.0 para 0.5 e o efeito fica dosado com perfeição.
+          </p>
+        </ImageAndText>
       </EditorialSection>
 
       {/* ===================================================================
@@ -488,8 +456,8 @@ export default function IntroducaoDaVinciArticle() {
         subtitle="REPOSICIONANDO A IMAGEM"
       >
         <ImageAndText
+          imageSrc="/assets/artigos/introducao-davinci/SIZING.webp"
           imageAlt="Painel Sizing do DaVinci Resolve"
-          caption="Input Sizing vs Node Sizing: recomposição sem perda de qualidade"
           imagePosition="left"
         >
           <p>
@@ -514,8 +482,8 @@ export default function IntroducaoDaVinciArticle() {
         subtitle="NÃO CONFIE SÓ NO SEU OLHO"
       >
         <ImageAndText
+          imageSrc="/assets/artigos/introducao-davinci/SCOPES.webp"
           imageAlt="Scopes de Sinal: Waveform, Parade e Vectorscope"
-          caption="Análise de luminância e crominância objetiva sem ilusão de óptica"
           imagePosition="right"
         >
           <p>
@@ -541,25 +509,21 @@ export default function IntroducaoDaVinciArticle() {
         title="SPLIT SCREEN"
         subtitle="COMPARANDO CLIPES LADO A LADO"
       >
-        <TwoColumnText
-          left={
-            <>
-              <p>
-                O Split Screen divide a tela para comparar múltiplos clipes ao mesmo tempo. Você pode selecionar três ou quatro takes da mesma cena e visualizá-los em quadrantes simultâneos.
-              </p>
-              <EditorialQuote
-                quote="Color grading é sobre contexto. Um plano só está bom se fizer sentido com o vizinho."
-              />
-            </>
-          }
-          right={
-            <>
-              <p>
-                Isso é essencial para <strong className="font-sans text-neutral-900">Shot Matching</strong>: garante que a cena mantenha continuidade de tom de pele, brilho e saturação em todos os cortes, sem saltos visuais para quem está assistindo.
-              </p>
-            </>
-          }
-        />
+        <ImageAndText
+          imageSrc="/assets/artigos/introducao-davinci/SPLIT SCREEN.webp"
+          imageAlt="Split Screen no DaVinci Resolve"
+          imagePosition="left"
+        >
+          <p>
+            O Split Screen divide a tela para comparar múltiplos clipes ao mesmo tempo. Você pode selecionar três ou quatro takes da mesma cena e visualizá-los em quadrantes simultâneos.
+          </p>
+          <EditorialQuote
+            quote="Color grading é sobre contexto. Um plano só está bom se fizer sentido com o vizinho."
+          />
+          <p>
+            Isso é essencial para <strong className="font-sans text-neutral-900">Shot Matching</strong>: garante que a cena mantenha continuidade de tom de pele, brilho e saturação em todos os cortes, sem saltos visuais para quem está assistindo.
+          </p>
+        </ImageAndText>
       </EditorialSection>
 
       {/* ===================================================================
@@ -572,9 +536,9 @@ export default function IntroducaoDaVinciArticle() {
         subtitle="GUARDANDO REFERÊNCIAS E COPIANDO TRATAMENTOS"
       >
         <ImageAndText
+          imageSrc="/assets/artigos/introducao-davinci/GALLERY.webp"
           imageAlt="Gallery do DaVinci Resolve com Stills"
-          caption="Biblioteca de stills estáticos e cópia direta de estrutura de nodes"
-          imagePosition="left"
+          imagePosition="right"
         >
           <p>
             A Gallery serve para duas coisas fundamentais: guardar imagens de referência estética do cliente e armazenar Stills dos seus próprios planos.
@@ -597,25 +561,21 @@ export default function IntroducaoDaVinciArticle() {
         title="COLOR MATCH"
         subtitle="DEIXANDO AS CÂMERAS NO MESMO PONTO DE PARTIDA"
       >
-        <TwoColumnText
-          left={
-            <>
-              <p>
-                Quando você trabalha com duas ou três câmeras diferentes na mesma gravação, cada sensor tem uma resposta de cor particular. O Color Match utiliza cartelas de cor padronizadas (<strong className="font-sans text-neutral-900">ColorChecker</strong>) filmadas no set para fazer o alinhamento técnico inicial.
-              </p>
-              <EditorialQuote
-                quote="Primeiro você iguala todo mundo. Depois você cria o estilo do filme."
-              />
-            </>
-          }
-          right={
-            <>
-              <p>
-                Você encaixa o grid da cartela sobre o ColorChecker na tela e o Resolve calibra as cores automaticamente para um espaço cromático de referência. Com todas as câmeras equalizadas na mesma base neutra, a etapa artística do Creative Grade flui com muito mais coerência.
-              </p>
-            </>
-          }
-        />
+        <ImageAndText
+          imageSrc="/assets/artigos/introducao-davinci/COLOR MATCH.webp"
+          imageAlt="Color Match no DaVinci Resolve"
+          imagePosition="left"
+        >
+          <p>
+            Quando você trabalha com duas ou três câmeras diferentes na mesma gravação, cada sensor tem uma resposta de cor particular. O Color Match utiliza cartelas de cor padronizadas (<strong className="font-sans text-neutral-900">ColorChecker</strong>) filmadas no set para fazer o alinhamento técnico inicial.
+          </p>
+          <EditorialQuote
+            quote="Primeiro você iguala todo mundo. Depois você cria o estilo do filme."
+          />
+          <p>
+            Você encaixa o grid da cartela sobre o ColorChecker na tela e o Resolve calibra as cores automaticamente para um espaço cromático de referência. Com todas as câmeras equalizadas na mesma base neutra, a etapa artística do Creative Grade flui com muito mais coerência.
+          </p>
+        </ImageAndText>
       </EditorialSection>
 
       {/* ===================================================================

@@ -99,19 +99,26 @@ export const ImageAndText: React.FC<ImageAndTextProps> = ({
   caption,
   imagePosition = 'left',
   children,
-  aspectRatio = 'aspect-video sm:aspect-4/3',
+  aspectRatio,
   className = '',
 }) => {
   const imageElement = (
     <div className="w-full space-y-2">
-      <div className={`w-full ${aspectRatio} bg-neutral-900 rounded-2xl overflow-hidden border border-neutral-200/80 shadow-xs relative group flex items-center justify-center`}>
-        {imageSrc ? (
+      {imageSrc ? (
+        <div className="w-full bg-neutral-950/50 rounded-2xl overflow-hidden border border-neutral-200/80 shadow-xs relative group flex items-center justify-center">
           <img
             src={imageSrc}
             alt={imageAlt}
-            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+            className="w-full h-auto block transition-transform duration-500 group-hover:scale-[1.02]"
           />
-        ) : (
+          {caption && (
+            <div className="absolute bottom-3 right-3 text-[11px] font-sans text-white/90 italic backdrop-blur-md bg-black/60 px-3 py-1 rounded-full border border-white/20">
+              {caption}
+            </div>
+          )}
+        </div>
+      ) : (
+        <div className={`w-full ${aspectRatio || 'aspect-video sm:aspect-4/3'} bg-neutral-900 rounded-2xl overflow-hidden border border-neutral-200/80 shadow-xs relative flex items-center justify-center`}>
           <div className="flex flex-col items-center justify-center text-neutral-400 p-6 text-center space-y-2">
             <div className="w-12 h-12 rounded-full bg-white/10 flex items-center justify-center text-white/60 border border-white/10">
               <ImageIcon size={22} />
@@ -119,17 +126,12 @@ export const ImageAndText: React.FC<ImageAndTextProps> = ({
             <span className="font-sans text-xs text-white/80 font-medium uppercase tracking-wider">{imageAlt}</span>
             <span className="font-serif italic text-[11px] text-neutral-400">Espaço preparado para imagem editorial</span>
           </div>
-        )}
-        {caption && imageSrc && (
-          <div className="absolute bottom-3 right-3 text-[11px] font-sans text-white/90 italic backdrop-blur-md bg-black/60 px-3 py-1 rounded-full border border-white/20">
-            {caption}
-          </div>
-        )}
-      </div>
-      {caption && !imageSrc && (
-        <p className="font-sans text-[11px] text-neutral-500 italic text-center">
-          {caption}
-        </p>
+          {caption && (
+            <p className="font-sans text-[11px] text-neutral-500 italic text-center">
+              {caption}
+            </p>
+          )}
+        </div>
       )}
     </div>
   );
@@ -219,9 +221,9 @@ export const FullWidthImage: React.FC<FullWidthImageProps> = ({
   className = '',
 }) => {
   return (
-    <div className={`w-full max-h-[500px] bg-neutral-900 overflow-hidden relative rounded-2xl border border-neutral-200/80 my-6 shadow-xs ${className}`}>
+    <div className={`w-full bg-neutral-950/50 overflow-hidden relative rounded-2xl border border-neutral-200/80 my-6 shadow-xs ${className}`}>
       {src ? (
-        <img src={src} alt={alt} className="w-full h-full object-cover" />
+        <img src={src} alt={alt} className="w-full h-auto block" />
       ) : (
         <div className="h-64 flex flex-col items-center justify-center text-neutral-400 p-6 text-center space-y-2">
           <Camera size={28} className="text-white/60" />
