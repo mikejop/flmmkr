@@ -266,55 +266,6 @@ export const ColorMasterLanding: React.FC = () => {
     }
   }, [timeLeft, warningDismissed, expiredDismissed]);
 
-  useEffect(() => {
-    // YouTube IFrame API para controle de qualidade adaptativa (4K Desktop / HD Mobile)
-    const tag = document.createElement('script');
-    tag.src = 'https://www.youtube.com/iframe_api';
-    const firstScriptTag = document.getElementsByTagName('script')[0];
-    if (firstScriptTag && firstScriptTag.parentNode) {
-      firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
-    } else {
-      document.head.appendChild(tag);
-    }
-
-    const initPlayer = () => {
-      if (typeof window !== 'undefined' && (window as any).YT && (window as any).YT.Player) {
-        new (window as any).YT.Player('hero-yt-player', {
-          events: {
-            onReady: (event: any) => {
-              event.target.mute();
-              event.target.playVideo();
-              const isMobile = window.innerWidth < 768;
-              if (isMobile) {
-                // Mobile: HD (720p) para economizar dados e garantir fluidez
-                if (event.target.setPlaybackQuality) {
-                  event.target.setPlaybackQuality('hd720');
-                }
-              } else {
-                // Desktop: Preferência 4K (2160p/highres), adaptando para FHD/HD caso a conexão exija
-                if (event.target.setPlaybackQuality) {
-                  event.target.setPlaybackQuality('hd2160');
-                }
-              }
-            },
-            onStateChange: (event: any) => {
-              // Loop suave ao terminar
-              if (event.data === 0) {
-                event.target.seekTo(0);
-                event.target.playVideo();
-              }
-            }
-          }
-        });
-      }
-    };
-
-    if ((window as any).YT && (window as any).YT.Player) {
-      initPlayer();
-    } else {
-      (window as any).onYouTubeIframeAPIReady = initPlayer;
-    }
-  }, []);
 
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
@@ -583,29 +534,20 @@ export const ColorMasterLanding: React.FC = () => {
       {/* 01. HERO: APRESENTAÇÃO DO PRODUTO (PRIORIDADE MÁXIMA)                     */}
       {/* ========================================================================= */}
       <section id="hero-section" className="relative z-10 overflow-hidden min-h-[100dvh] flex flex-col justify-center pt-8 pb-14 sm:pt-16 sm:pb-20 md:pt-24 md:pb-24 px-4 sm:px-6 lg:px-8 bg-black">
-        {/* Mobile Poster Image Layer (Zero bandwidth waste, instant LCP < 1s) */}
-        <div
-          className="absolute inset-0 w-full h-full bg-cover bg-center md:hidden pointer-events-none select-none z-0"
-          style={{ backgroundImage: `url('/assets/produtos/color-master/offer/offer-1.webp')` }}
-        />
-
-        {/* Desktop / Tablet Background Video Layer with Retícula Overlay */}
-        <div className="hidden md:block absolute inset-0 w-full h-full overflow-hidden pointer-events-none select-none z-0">
-          <iframe
-            id="hero-yt-player"
-            src="https://www.youtube-nocookie.com/embed/gp75L5H0kIU?autoplay=1&mute=1&controls=0&loop=1&playlist=gp75L5H0kIU&playsinline=1&rel=0&modestbranding=1&enablejsapi=1"
-            title="Color Master Background Showcase"
-            className="absolute top-1/2 left-1/2 w-[250%] h-[250%] min-w-full min-h-full -translate-x-1/2 -translate-y-1/2 object-cover pointer-events-none opacity-90"
-            allow="autoplay; encrypted-media"
-          />
+        {/* Background Video Layer with Retícula Overlay (Carregado localmente via servidor) */}
+        <div className="absolute inset-0 w-full h-full overflow-hidden pointer-events-none select-none z-0">
+          <video
+            autoPlay
+            loop
+            muted
+            playsInline
+            preload="auto"
+            className="w-full h-full object-cover pointer-events-none opacity-90 scale-105"
+          >
+            <source src="/assets/videos/dom-dourado-av1.mp4" type="video/mp4" />
+          </video>
           <div className="absolute inset-0 z-5 pointer-events-none reticula-pattern" />
           <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-black/60 pointer-events-none z-6" />
-        </div>
-
-        {/* Mobile Retícula Overlay over Poster (Tamanho menor no mobile via .reticula-pattern) */}
-        <div className="md:hidden absolute inset-0 z-1 pointer-events-none select-none">
-          <div className="absolute inset-0 reticula-pattern" />
-          <div className="absolute inset-0 bg-gradient-to-t from-black via-black/55 to-black/75" />
         </div>
 
         <div className="relative z-10 max-w-5xl mx-auto w-full">
@@ -954,68 +896,80 @@ export const ColorMasterLanding: React.FC = () => {
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
             {/* Card 1 */}
-            <div className="p-6 sm:p-7 rounded-2xl sm:rounded-3xl bg-[#18181b] border border-white/10 shadow-sm flex flex-col justify-between hover:border-[#2997ff]/40 transition-all overflow-hidden group">
+            <div className="rounded-2xl sm:rounded-3xl bg-[#18181b] border border-white/10 shadow-sm flex flex-col justify-between hover:border-[#2997ff]/40 transition-all overflow-hidden group">
               <div>
-                <div className="w-full aspect-[16/10] rounded-xl sm:rounded-2xl overflow-hidden mb-5 bg-black/40 border border-white/10 relative">
+                <div className="w-full aspect-[16/10] overflow-hidden bg-black/40 border-b border-white/10 relative">
                   <img
                     src="/assets/produtos/color-grade-produto/editor01.jpg"
                     alt="Editores de vídeo no DaVinci Resolve"
                     className="w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-105"
                   />
                 </div>
-                <h3 className="text-[19px] sm:text-xl font-semibold text-white mb-2 leading-snug">
-                  Editores
-                </h3>
-                <p className="text-[14px] sm:text-[15px] text-white/70 leading-relaxed">
-                  Profissionais que já trabalham com edição e querem incorporar o color grading ao próprio fluxo de pós-produção. Para quem quer entender como organizar, tratar e finalizar a imagem de um projeto comercial dentro do DaVinci Resolve.
-                </p>
+                <div className="p-6 sm:p-7 pb-0">
+                  <h3 className="text-[19px] sm:text-xl font-semibold text-white mb-2 leading-snug">
+                    Editores
+                  </h3>
+                  <p className="text-[14px] sm:text-[15px] text-white/70 leading-relaxed">
+                    Profissionais que já trabalham com edição e querem incorporar o color grading ao próprio fluxo de pós-produção. Para quem quer entender como organizar, tratar e finalizar a imagem de um projeto comercial dentro do DaVinci Resolve.
+                  </p>
+                </div>
               </div>
-              <div className="mt-6 pt-4 border-t border-white/10 text-[12px] text-[#2997ff] font-medium">
-                Refinamento &amp; Workflow de Alto Nível
+              <div className="px-6 sm:px-7 pb-6 sm:pb-7 mt-6">
+                <div className="pt-4 border-t border-white/10 text-[12px] text-[#2997ff] font-medium">
+                  Refinamento &amp; Workflow de Alto Nível
+                </div>
               </div>
             </div>
 
             {/* Card 2 */}
-            <div className="p-6 sm:p-7 rounded-2xl sm:rounded-3xl bg-[#18181b] border border-white/10 shadow-sm flex flex-col justify-between hover:border-[#2997ff]/40 transition-all overflow-hidden group">
+            <div className="rounded-2xl sm:rounded-3xl bg-[#18181b] border border-white/10 shadow-sm flex flex-col justify-between hover:border-[#2997ff]/40 transition-all overflow-hidden group">
               <div>
-                <div className="w-full aspect-[16/10] rounded-xl sm:rounded-2xl overflow-hidden mb-5 bg-black/40 border border-white/10 relative">
+                <div className="w-full aspect-[16/10] overflow-hidden bg-black/40 border-b border-white/10 relative">
                   <img
                     src="/assets/produtos/color-grade-produto/videomaker01.jpg"
                     alt="Filmmakers e Videomakers operando câmeras em LOG"
                     className="w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-105"
                   />
                 </div>
-                <h3 className="text-[19px] sm:text-xl font-semibold text-white mb-2 leading-snug">
-                  Filmmakers/Videomakers
-                </h3>
-                <p className="text-[14px] sm:text-[15px] text-white/70 leading-relaxed">
-                  Profissionais que querem ter mais controle sobre o resultado final das próprias imagens. Para quem busca entender o processo de color grading e transformar um material bem captado em uma imagem consistente, precisa e esteticamente construída.
-                </p>
+                <div className="p-6 sm:p-7 pb-0">
+                  <h3 className="text-[19px] sm:text-xl font-semibold text-white mb-2 leading-snug">
+                    Filmmakers/Videomakers
+                  </h3>
+                  <p className="text-[14px] sm:text-[15px] text-white/70 leading-relaxed">
+                    Profissionais que querem ter mais controle sobre o resultado final das próprias imagens. Para quem busca entender o processo de color grading e transformar um material bem captado em uma imagem consistente, precisa e esteticamente construída.
+                  </p>
+                </div>
               </div>
-              <div className="mt-6 pt-4 border-t border-white/10 text-[12px] text-[#2997ff] font-medium">
-                Controle Autoral &amp; Valor de Produção
+              <div className="px-6 sm:px-7 pb-6 sm:pb-7 mt-6">
+                <div className="pt-4 border-t border-white/10 text-[12px] text-[#2997ff] font-medium">
+                  Controle Autoral &amp; Valor de Produção
+                </div>
               </div>
             </div>
 
             {/* Card 3 */}
-            <div className="p-6 sm:p-7 rounded-2xl sm:rounded-3xl bg-[#18181b] border border-white/10 shadow-sm flex flex-col justify-between hover:border-[#2997ff]/40 transition-all overflow-hidden group">
+            <div className="rounded-2xl sm:rounded-3xl bg-[#18181b] border border-white/10 shadow-sm flex flex-col justify-between hover:border-[#2997ff]/40 transition-all overflow-hidden group">
               <div>
-                <div className="w-full aspect-[16/10] rounded-xl sm:rounded-2xl overflow-hidden mb-5 bg-black/40 border border-white/10 relative">
+                <div className="w-full aspect-[16/10] overflow-hidden bg-black/40 border-b border-white/10 relative">
                   <img
                     src="/assets/produtos/color-grade-produto/marketing01.jpg"
                     alt="Produtoras, agências e equipes de marketing de produto"
                     className="w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-105"
                   />
                 </div>
-                <h3 className="text-[19px] sm:text-xl font-semibold text-white mb-2 leading-snug">
-                  Produtoras, Agências e Pequenas/Médias Empresas
-                </h3>
-                <p className="text-[14px] sm:text-[15px] text-white/70 leading-relaxed">
-                  Para quem produz conteúdo para apresentar produtos, próprios ou de clientes, em e-commerce, publicidade, redes sociais e outros canais de venda. O Masterclass ajuda a construir imagens mais precisas, consistentes e cuidadas, capazes de valorizar o produto sem distorcer suas características.
-                </p>
+                <div className="p-6 sm:p-7 pb-0">
+                  <h3 className="text-[19px] sm:text-xl font-semibold text-white mb-2 leading-snug">
+                    Produtoras, Agências e Pequenas/Médias Empresas
+                  </h3>
+                  <p className="text-[14px] sm:text-[15px] text-white/70 leading-relaxed">
+                    Para quem produz conteúdo para apresentar produtos, próprios ou de clientes, em e-commerce, publicidade, redes sociais e outros canais de venda. O Masterclass ajuda a construir imagens mais precisas, consistentes e cuidadas, capazes de valorizar o produto sem distorcer suas características.
+                  </p>
+                </div>
               </div>
-              <div className="mt-6 pt-4 border-t border-white/10 text-[12px] text-[#2997ff] font-medium">
-                Padrão Broadcast &amp; Escalabilidade
+              <div className="px-6 sm:px-7 pb-6 sm:pb-7 mt-6">
+                <div className="pt-4 border-t border-white/10 text-[12px] text-[#2997ff] font-medium">
+                  Padrão Broadcast &amp; Escalabilidade
+                </div>
               </div>
             </div>
           </div>
