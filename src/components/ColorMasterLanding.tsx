@@ -783,135 +783,190 @@ export const ColorMasterLanding: React.FC = () => {
       </section>
 
       {/* ========================================================================= */}
-      {/* 03.1 PROJETO PRÁTICO DO MASTERCLASS (ESTILO APPLE TV+ COM PLAYER CENTRAL)  */}
+      {/* 03.1 PROJETO PRÁTICO DO MASTERCLASS (ESTILO APPLE TV+ RIGOROSO)            */}
       {/* ========================================================================= */}
-      <section id="projeto-pratico" className="relative z-10 py-14 sm:py-20 md:py-28 bg-[#0a0a0c] text-white overflow-hidden border-t border-white/10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center max-w-3xl mx-auto mb-10 sm:mb-14">
-            <span className="text-[12px] uppercase tracking-[0.04em] text-[#2997ff] font-semibold mb-2 block">
-              PROJETO DO MASTERCLASS
-            </span>
-            <h2 className="text-[28px] leading-[1.14] sm:text-4xl md:text-5xl font-semibold tracking-[-0.015em] text-white">
-              O projeto que você vai construir do zero.
-            </h2>
-            <p className="text-[16px] sm:text-lg text-white/70 mt-3 font-normal max-w-2xl mx-auto leading-relaxed">
-              Assista a um trecho do comercial real que usaremos como base. Você fará a correção primária, equilíbrio de tons, separação de planos e a construção do look final de produto.
-            </p>
-          </div>
+      <section id="projeto-pratico" className="relative z-10 py-16 sm:py-24 bg-[#f5f5f7] text-[#1d1d1f] overflow-hidden border-t border-[#d2d2d7]/50">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center mb-10 sm:mb-14">
+          <span className="text-[12px] uppercase tracking-[0.04em] text-[#0071e3] font-semibold mb-2 block">
+            PROJETO DO MASTERCLASS
+          </span>
+          <h2 className="text-[32px] leading-[1.1] sm:text-5xl md:text-6xl font-semibold tracking-[-0.015em] text-[#1d1d1f]">
+            O projeto comercial na prática.
+          </h2>
+          <p className="text-[17px] sm:text-xl text-[#6e6e73] mt-3 font-normal max-w-2xl mx-auto leading-relaxed">
+            Assista ao vídeo do comercial real produzido para cliente. Todas as etapas de gerenciamento de cor, matching de câmeras e look final serão desenvolvidas passo a passo.
+          </p>
         </div>
 
-        {/* Layout Estilo Apple TV+: Vídeo centralizado com moldura e fotos originais saindo pelas bordas */}
-        <div className="relative w-full max-w-[1400px] mx-auto px-2 sm:px-4 flex items-center justify-center">
-          {/* Imagens decorativas da esquerda saindo da lateral */}
-          <div className="hidden lg:flex items-center gap-3 sm:gap-4 -mr-16 sm:-mr-24 z-0 pointer-events-none select-none opacity-80 shrink-0">
-            <div className="w-[180px] xl:w-[230px] aspect-[16/9] rounded-2xl overflow-hidden border border-white/15 shadow-2xl transform -rotate-3 scale-90 translate-y-6">
+        {/* CONTAINER EM LARGURA TOTAL COM TRANSBORDAMENTO NAS LATERAIS (APPLE BLEED OUT) */}
+        <div className="w-full space-y-3.5 sm:space-y-4">
+          {/* FILEIRA 1 (SUPERIOR): CARDS GRANDES (ESQUERDA SANGRANDO, VÍDEO NO CENTRO, DIREITA SANGRANDO) */}
+          <div className="flex items-center justify-center gap-3.5 sm:gap-4 overflow-hidden w-full px-2 sm:px-0">
+            {/* Card Esquerdo Sangrando (Metade fora da tela à esquerda) */}
+            <div className="w-[300px] sm:w-[420px] md:w-[500px] lg:w-[560px] aspect-[16/9] rounded-2xl sm:rounded-3xl overflow-hidden bg-black/5 border border-black/10 shadow-lg shrink-0 relative select-none">
               <img
                 src={OFFER_IMAGES[0].src}
                 alt={OFFER_IMAGES[0].alt}
                 className="w-full h-full object-cover"
               />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent pointer-events-none" />
+              <div className="absolute bottom-3 left-3 sm:bottom-5 sm:left-5 flex items-center gap-2">
+                <span className="px-3 py-1 rounded-full bg-white text-black text-[11px] sm:text-xs font-semibold shadow-md">
+                  LOG Original
+                </span>
+                <span className="text-white text-[12px] font-medium hidden sm:inline drop-shadow-md">
+                  Material de Câmera
+                </span>
+              </div>
             </div>
-            <div className="w-[210px] xl:w-[270px] aspect-[16/9] rounded-2xl overflow-hidden border border-white/15 shadow-2xl transform -rotate-1 scale-95 translate-y-1">
+
+            {/* Card Central (Vídeo Player Ativo) */}
+            <div className="w-[85vw] max-w-[760px] sm:w-[560px] md:w-[680px] lg:w-[780px] aspect-[16/9] rounded-2xl sm:rounded-3xl overflow-hidden bg-black border border-black/15 shadow-[0_20px_60px_rgba(0,0,0,0.35)] shrink-0 relative group">
+              <iframe
+                ref={projectVideoIframeRef}
+                id="project-showcase-yt-player"
+                src="https://www.youtube-nocookie.com/embed/gp75L5H0kIU?autoplay=1&mute=1&controls=0&loop=1&playlist=gp75L5H0kIU&playsinline=1&rel=0&modestbranding=1&enablejsapi=1"
+                title="Projeto Prático Comercial - Color Master"
+                className="w-full h-full object-cover pointer-events-none"
+                allow="autoplay; encrypted-media"
+              />
+
+              {/* Gradiente sutil para os controles no rodapé do player */}
+              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/20 pointer-events-none z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+
+              {/* Pílula Apple Style com Controles Integrados */}
+              <div className="absolute bottom-3 sm:bottom-5 inset-x-3 sm:inset-x-6 z-20 flex items-center justify-between gap-2">
+                <div className="flex items-center gap-2">
+                  {/* Botão Play / Pause */}
+                  <button
+                    type="button"
+                    onClick={togglePlayProjectVideo}
+                    aria-label={isPlayingProjectVideo ? 'Pausar vídeo' : 'Reproduzir vídeo'}
+                    className="h-9 sm:h-10 px-4 rounded-full bg-white text-black hover:bg-white/90 text-xs sm:text-[13px] font-semibold flex items-center gap-1.5 transition-all active:scale-95 cursor-pointer shadow-lg"
+                  >
+                    {isPlayingProjectVideo ? (
+                      <>
+                        <Pause className="w-3.5 h-3.5 fill-current" />
+                        <span>Pausar</span>
+                      </>
+                    ) : (
+                      <>
+                        <Play className="w-3.5 h-3.5 fill-current" />
+                        <span>Assistir</span>
+                      </>
+                    )}
+                  </button>
+
+                  {/* Botão de Áudio */}
+                  <button
+                    type="button"
+                    onClick={toggleMuteProjectVideo}
+                    aria-label={isMutedProjectVideo ? 'Ativar áudio' : 'Desativar áudio'}
+                    className="h-9 w-9 sm:h-10 sm:w-10 rounded-full bg-black/60 hover:bg-black/80 text-white backdrop-blur-md border border-white/20 flex items-center justify-center transition-all active:scale-95 cursor-pointer shadow-lg"
+                    title={isMutedProjectVideo ? 'Ativar som' : 'Desativar som'}
+                  >
+                    {isMutedProjectVideo ? (
+                      <VolumeX className="w-4 h-4 text-white/80" />
+                    ) : (
+                      <Volume2 className="w-4 h-4 text-emerald-400" />
+                    )}
+                  </button>
+                </div>
+
+                {/* Descrição sutil como na pílula Apple */}
+                <div className="flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-black/60 backdrop-blur-md border border-white/20 text-white text-[11px] sm:text-xs font-medium">
+                  <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                  <span className="hidden sm:inline text-white/80">Comercial de TV •</span>
+                  <span className="text-white font-semibold">Color Grading Final</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Card Direito Sangrando (Metade fora da tela à direita) */}
+            <div className="w-[300px] sm:w-[420px] md:w-[500px] lg:w-[560px] aspect-[16/9] rounded-2xl sm:rounded-3xl overflow-hidden bg-black/5 border border-black/10 shadow-lg shrink-0 relative select-none">
               <img
                 src={OFFER_IMAGES[1].src}
                 alt={OFFER_IMAGES[1].alt}
                 className="w-full h-full object-cover"
               />
-            </div>
-          </div>
-
-          {/* Player de Vídeo Central */}
-          <div className="relative z-10 w-full max-w-[720px] aspect-[16/9] rounded-2xl sm:rounded-3xl overflow-hidden bg-black border border-white/20 shadow-[0_20px_60px_rgba(0,0,0,0.8)] group">
-            <iframe
-              ref={projectVideoIframeRef}
-              id="project-showcase-yt-player"
-              src="https://www.youtube-nocookie.com/embed/gp75L5H0kIU?autoplay=1&mute=1&controls=0&loop=1&playlist=gp75L5H0kIU&playsinline=1&rel=0&modestbranding=1&enablejsapi=1"
-              title="Projeto Prático Comercial - Color Master"
-              className="w-full h-full object-cover pointer-events-none"
-              allow="autoplay; encrypted-media"
-            />
-
-            {/* Gradiente sutil para legibilidade dos controles */}
-            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/30 pointer-events-none z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-
-            {/* Barra de Controles Discretos (Play / Pause e Áudio) */}
-            <div className="absolute bottom-3 sm:bottom-4 inset-x-3 sm:inset-x-5 z-20 flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <button
-                  type="button"
-                  onClick={togglePlayProjectVideo}
-                  aria-label={isPlayingProjectVideo ? 'Pausar vídeo' : 'Reproduzir vídeo'}
-                  className="h-10 px-4 rounded-full bg-white/20 hover:bg-white/30 backdrop-blur-md border border-white/20 text-white text-xs font-semibold flex items-center gap-2 transition-all active:scale-95 cursor-pointer shadow-lg"
-                >
-                  {isPlayingProjectVideo ? (
-                    <>
-                      <Pause className="w-3.5 h-3.5 fill-current" />
-                      <span>Pausar</span>
-                    </>
-                  ) : (
-                    <>
-                      <Play className="w-3.5 h-3.5 fill-current" />
-                      <span>Assistir</span>
-                    </>
-                  )}
-                </button>
-
-                <button
-                  type="button"
-                  onClick={toggleMuteProjectVideo}
-                  aria-label={isMutedProjectVideo ? 'Ativar som' : 'Desativar som'}
-                  className="w-10 h-10 rounded-full bg-white/20 hover:bg-white/30 backdrop-blur-md border border-white/20 text-white flex items-center justify-center transition-all active:scale-95 cursor-pointer shadow-lg"
-                  title={isMutedProjectVideo ? 'Ativar som' : 'Desativar som'}
-                >
-                  {isMutedProjectVideo ? (
-                    <VolumeX className="w-4 h-4 text-white/80" />
-                  ) : (
-                    <Volume2 className="w-4 h-4 text-emerald-400" />
-                  )}
-                </button>
-              </div>
-
-              <div className="hidden sm:flex items-center gap-1.5 px-3 py-1 rounded-full bg-black/60 backdrop-blur-md border border-white/15 text-[11px] font-medium text-white/80">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                Footage Real de Produto
+              <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent pointer-events-none" />
+              <div className="absolute bottom-3 left-3 sm:bottom-5 sm:left-5 flex items-center gap-2">
+                <span className="px-3 py-1 rounded-full bg-white text-black text-[11px] sm:text-xs font-semibold shadow-md">
+                  Look de Produto
+                </span>
+                <span className="text-white text-[12px] font-medium hidden sm:inline drop-shadow-md">
+                  Contraste &amp; Matiz
+                </span>
               </div>
             </div>
           </div>
 
-          {/* Imagens decorativas da direita saindo da lateral */}
-          <div className="hidden lg:flex items-center gap-3 sm:gap-4 -ml-16 sm:-ml-24 z-0 pointer-events-none select-none opacity-80 shrink-0">
-            <div className="w-[210px] xl:w-[270px] aspect-[16/9] rounded-2xl overflow-hidden border border-white/15 shadow-2xl transform rotate-1 scale-95 translate-y-1">
+          {/* FILEIRA 2 (INFERIOR): CARDS MENORES ALINHADOS TRANSBORDANDO NAS PONTAS (APPLE STYLE) */}
+          <div className="flex items-center justify-center gap-3.5 sm:gap-4 overflow-hidden w-full px-2 sm:px-0">
+            {/* Card 1 Menor (sangrando esquerda) */}
+            <div className="w-[180px] sm:w-[240px] md:w-[280px] lg:w-[320px] aspect-[16/9] rounded-xl sm:rounded-2xl overflow-hidden bg-black/5 border border-black/10 shadow-sm shrink-0 relative">
               <img
                 src={OFFER_IMAGES[2].src}
                 alt={OFFER_IMAGES[2].alt}
                 className="w-full h-full object-cover"
               />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent pointer-events-none" />
+              <span className="absolute bottom-2.5 left-2.5 px-2.5 py-0.5 rounded-full bg-white/90 backdrop-blur-xs text-black text-[10px] font-semibold">
+                DaVinci Resolve
+              </span>
             </div>
-            <div className="w-[180px] xl:w-[230px] aspect-[16/9] rounded-2xl overflow-hidden border border-white/15 shadow-2xl transform rotate-3 scale-90 translate-y-6">
+
+            {/* Card 2 Menor */}
+            <div className="w-[180px] sm:w-[240px] md:w-[280px] lg:w-[320px] aspect-[16/9] rounded-xl sm:rounded-2xl overflow-hidden bg-black/5 border border-black/10 shadow-sm shrink-0 relative">
               <img
                 src={OFFER_IMAGES[3].src}
                 alt={OFFER_IMAGES[3].alt}
                 className="w-full h-full object-cover"
               />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent pointer-events-none" />
+              <span className="absolute bottom-2.5 left-2.5 px-2.5 py-0.5 rounded-full bg-white/90 backdrop-blur-xs text-black text-[10px] font-semibold">
+                Node Graph Real
+              </span>
             </div>
-          </div>
-        </div>
 
-        {/* Faixa de imagens para mobile e tablet (thumbnails na proporção real 16:9 que saem da lateral com scroll) */}
-        <div className="lg:hidden mt-6 px-4 overflow-x-auto no-scrollbar">
-          <div className="flex items-center gap-3 w-max mx-auto py-2">
-            {OFFER_IMAGES.slice(0, 4).map((img, idx) => (
-              <div
-                key={idx}
-                className="w-[180px] sm:w-[220px] aspect-[16/9] rounded-xl overflow-hidden border border-white/15 shadow-md shrink-0"
-              >
-                <img
-                  src={img.src}
-                  alt={img.alt}
-                  className="w-full h-full object-cover"
-                />
-              </div>
-            ))}
+            {/* Card 3 Menor */}
+            <div className="w-[180px] sm:w-[240px] md:w-[280px] lg:w-[320px] aspect-[16/9] rounded-xl sm:rounded-2xl overflow-hidden bg-black/5 border border-black/10 shadow-sm shrink-0 relative">
+              <img
+                src={OFFER_IMAGES[4].src}
+                alt={OFFER_IMAGES[4].alt}
+                className="w-full h-full object-cover"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent pointer-events-none" />
+              <span className="absolute bottom-2.5 left-2.5 px-2.5 py-0.5 rounded-full bg-white/90 backdrop-blur-xs text-black text-[10px] font-semibold">
+                Cores de Marca
+              </span>
+            </div>
+
+            {/* Card 4 Menor */}
+            <div className="w-[180px] sm:w-[240px] md:w-[280px] lg:w-[320px] aspect-[16/9] rounded-xl sm:rounded-2xl overflow-hidden bg-black/5 border border-black/10 shadow-sm shrink-0 relative">
+              <img
+                src={OFFER_IMAGES[0].src}
+                alt={OFFER_IMAGES[0].alt}
+                className="w-full h-full object-cover"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent pointer-events-none" />
+              <span className="absolute bottom-2.5 left-2.5 px-2.5 py-0.5 rounded-full bg-white/90 backdrop-blur-xs text-black text-[10px] font-semibold">
+                Gravação em LOG
+              </span>
+            </div>
+
+            {/* Card 5 Menor (sangrando direita) */}
+            <div className="w-[180px] sm:w-[240px] md:w-[280px] lg:w-[320px] aspect-[16/9] rounded-xl sm:rounded-2xl overflow-hidden bg-black/5 border border-black/10 shadow-sm shrink-0 relative">
+              <img
+                src={OFFER_IMAGES[1].src}
+                alt={OFFER_IMAGES[1].alt}
+                className="w-full h-full object-cover"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent pointer-events-none" />
+              <span className="absolute bottom-2.5 left-2.5 px-2.5 py-0.5 rounded-full bg-white/90 backdrop-blur-xs text-black text-[10px] font-semibold">
+                Entrega Comercial
+              </span>
+            </div>
           </div>
         </div>
       </section>
