@@ -72,11 +72,11 @@ export default function TermosPage() {
             <p>
               A Plataforma é operada por <strong>FLMMKR Treinamentos Audiovisuais</strong>, com sede em <strong>Rua Simões Magro, 127, São Paulo - SP, Brasil</strong>, doravante denominada “Empresa”, “nós” ou “nosso”.
             </p>
-            <div className="p-4 rounded-xl bg-neutral-100 border border-neutral-200 space-y-1">
-              <p><strong>Contato para assuntos relacionados a estes Termos e à proteção de dados (DPO):</strong></p>
-              <p>E-mail: <a href="mailto:contato@flmmkr.site" className="text-[#0071e3] underline">contato@flmmkr.site</a></p>
-              <p>Endereço: Rua Simões Magro, 127, São Paulo - SP, Brasil</p>
-            </div>
+            <p className="text-neutral-600">
+              Contato para assuntos relacionados a estes Termos e à proteção de dados (DPO):<br />
+              E-mail: <a href="mailto:contato@flmmkr.site" className="text-[#0071e3] underline">contato@flmmkr.site</a><br />
+              Endereço: Rua Simões Magro, 127, São Paulo - SP, Brasil
+            </p>
           </section>
 
           {/* Seção 2 */}

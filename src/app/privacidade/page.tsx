@@ -144,11 +144,11 @@ export default function PrivacidadePage() {
             <p>
               Para esclarecer dúvidas sobre esta Política de Privacidade ou exercer seus direitos de titular de dados, entre em contato diretamente pelo nosso canal oficial de atendimento:
             </p>
-            <div className="p-4 rounded-xl bg-neutral-100 border border-neutral-200 space-y-1">
-              <p><strong>E-mail:</strong> <a href="mailto:contato@flmmkr.site" className="text-[#0071e3] underline">contato@flmmkr.site</a></p>
-              <p><strong>Endereço:</strong> Rua Simões Magro, 127, São Paulo - SP, Brasil</p>
-              <p><strong>Responsável:</strong> Michael Oliveira · FLMMKR Treinamentos Audiovisuais</p>
-            </div>
+            <p className="text-neutral-600">
+              E-mail: <a href="mailto:contato@flmmkr.site" className="text-[#0071e3] underline">contato@flmmkr.site</a><br />
+              Endereço: Rua Simões Magro, 127, São Paulo - SP, Brasil<br />
+              Responsável: Michael Oliveira · FLMMKR Treinamentos Audiovisuais
+            </p>
           </section>
         </div>
 

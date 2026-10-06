@@ -86,11 +86,11 @@ export const TermsModal: React.FC<TermsModalProps> = ({ isOpen, onClose, onAccep
             <p>
               A Plataforma é operada por <strong>FLMMKR Treinamentos Audiovisuais</strong>, com sede em <strong>Rua Simões Magro, 127, São Paulo - SP, Brasil</strong>, doravante denominada “Empresa”, “nós” ou “nosso”.
             </p>
-            <div className="p-3 rounded-xl bg-white/[0.03] border border-white/8 text-[12px] space-y-1">
-              <p><strong>Contato &amp; DPO (Encarregado de Dados):</strong></p>
-              <p>E-mail: <a href="mailto:contato@flmmkr.site" className="text-[#2997ff] hover:underline">contato@flmmkr.site</a></p>
-              <p>Endereço: Rua Simões Magro, 127, São Paulo - SP, Brasil</p>
-            </div>
+            <p className="text-white/70">
+              Contato para assuntos relacionados a estes Termos e à proteção de dados (DPO):<br />
+              E-mail: <a href="mailto:contato@flmmkr.site" className="text-[#2997ff] hover:underline">contato@flmmkr.site</a><br />
+              Endereço: Rua Simões Magro, 127, São Paulo - SP, Brasil
+            </p>
           </section>
 
           {/* 2. Objeto */}
