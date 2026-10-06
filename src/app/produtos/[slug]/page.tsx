@@ -4,6 +4,7 @@ import { notFound } from 'next/navigation';
 import { PRODUCTS } from '@/config/products';
 import { SITE_CONFIG } from '@/config/siteConfig';
 import { ColorMasterLanding } from '@/components/ColorMasterLanding';
+import Script from 'next/script';
 import {
   CheckCircle2,
   ArrowRight,
@@ -295,6 +296,25 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(videoSchema) }}
         />
+        {/* Google Tag Manager específico do produto */}
+        <Script id="gtm-color-master-produto" strategy="afterInteractive">
+          {`
+            (function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+            new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+            j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+            'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+            })(window,document,'script','dataLayer','GTM-K4F5JBQ5');
+          `}
+        </Script>
+        {/* Google Tag Manager (noscript) */}
+        <noscript>
+          <iframe
+            src="https://www.googletagmanager.com/ns.html?id=GTM-K4F5JBQ5"
+            height="0"
+            width="0"
+            style={{ display: 'none', visibility: 'hidden' }}
+          />
+        </noscript>
         <ColorMasterLanding />
       </>
     );
