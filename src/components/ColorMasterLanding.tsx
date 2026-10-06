@@ -960,7 +960,7 @@ export const ColorMasterLanding: React.FC = () => {
                   01
                 </div>
                 <h3 className="text-[19px] sm:text-xl font-semibold text-white mb-2 leading-snug">
-                  Coloristas e Editores
+                  Editores
                 </h3>
                 <p className="text-[14px] sm:text-[15px] text-white/70 leading-relaxed">
                   Profissionais que já operam software de edição ou DaVinci Resolve e desejam dominar o workflow industrial de color grading comercial para atender clientes de maior orçamento.
@@ -978,7 +978,7 @@ export const ColorMasterLanding: React.FC = () => {
                   02
                 </div>
                 <h3 className="text-[19px] sm:text-xl font-semibold text-white mb-2 leading-snug">
-                  Filmmakers e Diretores
+                  Filmmakers/Videomakers
                 </h3>
                 <p className="text-[14px] sm:text-[15px] text-white/70 leading-relaxed">
                   Criadores que gravam em LOG e querem garantir que a estética planejada na filmagem seja traduzida com riqueza de contraste, textura e fidelidade às cores originais do produto.
@@ -996,7 +996,7 @@ export const ColorMasterLanding: React.FC = () => {
                   03
                 </div>
                 <h3 className="text-[19px] sm:text-xl font-semibold text-white mb-2 leading-snug">
-                  Produtoras e Agências
+                  Produtoras, Agências e Pequenas/Médias Empresas
                 </h3>
                 <p className="text-[14px] sm:text-[15px] text-white/70 leading-relaxed">
                   Equipes que entregam peças de publicidade, e-commerce e conteúdo de marca, precisando padronizar o pipeline de pós-produção com agilidade e consistência visual rigorosa.
