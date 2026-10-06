@@ -14,7 +14,9 @@ import {
   AlertCircle,
   ArrowRight,
   UserCheck,
-  UserPlus
+  UserPlus,
+  ChevronDown,
+  Edit2
 } from 'lucide-react';
 import { getAsaasInstallmentValue } from '@/utils/asaasPricing';
 import { PhoneInputWithDdi } from '@/components/PhoneInputWithDdi';
@@ -100,6 +102,9 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [isTermsModalOpen, setIsTermsModalOpen] = useState(false);
+
+  // Accordion / Wizard Steps: 1 = Dados de Cadastro | 2 = Endereço | 3 = Método de Pagamento
+  const [activeStep, setActiveStep] = useState<1 | 2 | 3>(1);
 
   // PIX State
   const [pixData, setPixData] = useState<{
@@ -346,6 +351,91 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
       setPixCopied(true);
       setTimeout(() => setPixCopied(false), 2500);
     }
+  };
+
+  // Helper de validação da Etapa 1: Dados de Cadastro
+  const isStep1Complete = (): boolean => {
+    const cleanCpf = cpf.replace(/\D/g, '');
+    const cleanPhone = phone.replace(/\D/g, '');
+    return Boolean(
+      name.trim().length >= 3 &&
+      email.trim().includes('@') &&
+      cleanCpf.length === 11 &&
+      cleanPhone.length >= 10 &&
+      birthDate.trim().length === 10 &&
+      profession
+    );
+  };
+
+  // Helper de validação da Etapa 2: Endereço
+  const isStep2Complete = (): boolean => {
+    const cleanCep = cep.replace(/\D/g, '');
+    return Boolean(
+      cleanCep.length === 8 &&
+      street.trim() &&
+      number.trim() &&
+      neighborhood.trim() &&
+      city.trim() &&
+      state.trim()
+    );
+  };
+
+  // Avançar para a Etapa 2 com validação
+  const handleAdvanceToAddress = () => {
+    setErrorMessage(null);
+    if (!name.trim()) {
+      setErrorMessage('Por favor, informe seu nome completo.');
+      return;
+    }
+    if (!email.trim() || !email.includes('@')) {
+      setErrorMessage('Por favor, informe um e-mail válido.');
+      return;
+    }
+    if (cpf.replace(/\D/g, '').length !== 11) {
+      setErrorMessage('Por favor, informe um CPF válido de 11 dígitos.');
+      return;
+    }
+    if (phone.replace(/\D/g, '').length < 10) {
+      setErrorMessage('Por favor, informe um número de telefone com DDD.');
+      return;
+    }
+    if (birthDate.trim().length !== 10) {
+      setErrorMessage('Por favor, informe sua data de nascimento completa.');
+      return;
+    }
+    if (!profession) {
+      setErrorMessage('Por favor, selecione sua profissão ou área de atuação.');
+      return;
+    }
+    setActiveStep(2);
+  };
+
+  // Avançar para a Etapa 3 com validação
+  const handleAdvanceToPayment = () => {
+    setErrorMessage(null);
+    if (!handleAdvanceToAddressValidationOnly()) return;
+    if (cep.replace(/\D/g, '').length !== 8) {
+      setErrorMessage('Por favor, informe um CEP válido.');
+      return;
+    }
+    if (!street.trim() || !number.trim()) {
+      setErrorMessage('Por favor, preencha o logradouro e número.');
+      return;
+    }
+    if (!neighborhood.trim() || !city.trim() || !state.trim()) {
+      setErrorMessage('Por favor, preencha bairro, cidade e estado.');
+      return;
+    }
+    setActiveStep(3);
+  };
+
+  const handleAdvanceToAddressValidationOnly = (): boolean => {
+    if (!name.trim() || !email.trim() || cpf.replace(/\D/g, '').length !== 11 || phone.replace(/\D/g, '').length < 10 || birthDate.trim().length !== 10 || !profession) {
+      setActiveStep(1);
+      setErrorMessage('Por favor, complete seus dados de cadastro primeiro.');
+      return false;
+    }
+    return true;
   };
 
   // Submit Handler
@@ -615,221 +705,403 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
 
           {/* Form */}
           <form onSubmit={handlePaymentSubmit} className="space-y-6">
-            {/* 1. DADOS DE CADASTRO DO ALUNO */}
-            <div>
-              <h3 className="text-[12px] font-semibold uppercase tracking-[0.04em] text-[#86868b] mb-3 flex items-center gap-2">
-                <span className="w-5 h-5 rounded-full bg-white/10 text-white flex items-center justify-center text-[10px] font-bold">1</span>
-                Dados de Cadastro (Aluno)
-              </h3>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div className="sm:col-span-2">
-                  <label className="block text-[12px] font-medium text-white/70 mb-1 ml-0.5 tracking-[-0.01em]">
-                    Nome Completo *
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    placeholder="Seu nome completo"
-                    className="w-full h-[44px] px-3.5 rounded-xl bg-white/[0.06] border border-white/12 text-white placeholder-white/25 text-[14px] focus:outline-none focus:border-[#0071e3] transition-all"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-[12px] font-medium text-white/70 mb-1 ml-0.5 tracking-[-0.01em]">
-                    E-mail (para login e acesso) *
-                  </label>
-                  <input
-                    type="email"
-                    required
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="seu@email.com"
-                    className="w-full h-[44px] px-3.5 rounded-xl bg-white/[0.06] border border-white/12 text-white placeholder-white/25 text-[14px] focus:outline-none focus:border-[#0071e3] transition-all"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-[12px] font-medium text-white/70 mb-1 ml-0.5 tracking-[-0.01em]">
-                    CPF (para emissão da NF) *
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    value={cpf}
-                    onChange={(e) => setCpf(formatCpf(e.target.value))}
-                    placeholder="000.000.000-00"
-                    className="w-full h-[44px] px-3.5 rounded-xl bg-white/[0.06] border border-white/12 text-white placeholder-white/25 text-[14px] focus:outline-none focus:border-[#0071e3] transition-all font-mono"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-[12px] font-medium text-white/70 mb-1 ml-0.5 tracking-[-0.01em]">
-                    WhatsApp / Telefone *
-                  </label>
-                  <PhoneInputWithDdi
-                    required
-                    value={phone}
-                    onChange={setPhone}
-                    placeholder="(00) 00000-0000"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-[12px] font-medium text-white/70 mb-1 ml-0.5 tracking-[-0.01em]">
-                    Data de Nascimento *
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    inputMode="numeric"
-                    value={birthDate}
-                    onChange={(e) => handleBirthDateChange(e.target.value)}
-                    placeholder="DD/MM/AAAA"
-                    className="w-full h-[44px] px-3.5 rounded-xl bg-white/[0.06] border border-white/12 text-white placeholder-white/25 text-[14px] focus:outline-none focus:border-[#0071e3] transition-all font-mono"
-                  />
-                </div>
-
-                <div className="sm:col-span-2">
-                  <label className="block text-[12px] font-medium text-white/70 mb-1 ml-0.5 tracking-[-0.01em]">
-                    Qual a sua profissão ou área de atuação? *
-                  </label>
-                  <select
-                    required
-                    value={profession}
-                    onChange={(e) => setProfession(e.target.value)}
-                    className="w-full h-[44px] px-3.5 rounded-xl bg-[#1d1d24] border border-white/12 text-white text-[14px] focus:outline-none focus:border-[#0071e3] transition-all cursor-pointer"
+            {/* 1. DADOS DE CADASTRO */}
+            <div className="rounded-2xl border border-white/10 bg-white/[0.03] overflow-hidden transition-all duration-500 ease-in-out">
+              <button
+                type="button"
+                onClick={() => setActiveStep(1)}
+                className="w-full p-4 flex items-center justify-between text-left hover:bg-white/[0.03] transition-colors cursor-pointer"
+              >
+                <div className="flex items-center gap-2.5">
+                  <span
+                    className={`w-6 h-6 rounded-full flex items-center justify-center text-[11px] font-bold transition-colors ${
+                      isStep1Complete()
+                        ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+                        : activeStep === 1
+                        ? 'bg-[#0071e3] text-white'
+                        : 'bg-white/10 text-white/60'
+                    }`}
                   >
-                    <option value="" disabled>
-                      Escolher
-                    </option>
-                    {PROFESSIONS.map((p) => (
-                      <option key={p.value} value={p.value}>
-                        {p.label}
+                    {isStep1Complete() && activeStep !== 1 ? <Check className="w-3.5 h-3.5" /> : '1'}
+                  </span>
+                  <div>
+                    <h3 className="text-[13px] sm:text-[14px] font-semibold text-white tracking-[-0.01em]">
+                      Dados de Cadastro
+                    </h3>
+                    {activeStep !== 1 && name && (
+                      <p className="text-[11px] text-white/50 truncate max-w-xs">
+                        {name} · {email}
+                      </p>
+                    )}
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  {activeStep !== 1 && isStep1Complete() && (
+                    <span className="text-[11px] text-[#2997ff] flex items-center gap-1 font-medium">
+                      <Edit2 className="w-3 h-3" /> Editar
+                    </span>
+                  )}
+                  <ChevronDown
+                    className={`w-4 h-4 text-white/40 transition-transform duration-500 ease-in-out ${
+                      activeStep === 1 ? 'rotate-180' : ''
+                    }`}
+                  />
+                </div>
+              </button>
+
+              {/* Conteúdo Expansível Etapa 1 */}
+              <div
+                className={`transition-all duration-500 ease-in-out overflow-hidden ${
+                  activeStep === 1 ? 'max-h-[800px] opacity-100 p-4 pt-0' : 'max-h-0 opacity-0 p-0 pointer-events-none'
+                }`}
+                style={{
+                  transitionTimingFunction: 'cubic-bezier(0.45, 0, 0.55, 1)'
+                }}
+              >
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t border-white/5">
+                  <div className="sm:col-span-2">
+                    <label className="block text-[12px] font-medium text-white/70 mb-1 ml-0.5 tracking-[-0.01em]">
+                      Nome Completo *
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                      placeholder="Seu nome completo"
+                      className="w-full h-[44px] px-3.5 rounded-xl bg-white/[0.06] border border-white/12 text-white placeholder-white/25 text-[14px] focus:outline-none focus:border-[#0071e3] transition-all"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[12px] font-medium text-white/70 mb-1 ml-0.5 tracking-[-0.01em]">
+                      E-mail (para login e acesso) *
+                    </label>
+                    <input
+                      type="email"
+                      required
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      placeholder="seu@email.com"
+                      className="w-full h-[44px] px-3.5 rounded-xl bg-white/[0.06] border border-white/12 text-white placeholder-white/25 text-[14px] focus:outline-none focus:border-[#0071e3] transition-all"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[12px] font-medium text-white/70 mb-1 ml-0.5 tracking-[-0.01em]">
+                      CPF (para emissão da NF) *
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={cpf}
+                      onChange={(e) => setCpf(formatCpf(e.target.value))}
+                      placeholder="000.000.000-00"
+                      className="w-full h-[44px] px-3.5 rounded-xl bg-white/[0.06] border border-white/12 text-white placeholder-white/25 text-[14px] focus:outline-none focus:border-[#0071e3] transition-all font-mono"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[12px] font-medium text-white/70 mb-1 ml-0.5 tracking-[-0.01em]">
+                      WhatsApp / Telefone *
+                    </label>
+                    <PhoneInputWithDdi
+                      required
+                      value={phone}
+                      onChange={setPhone}
+                      placeholder="(00) 00000-0000"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[12px] font-medium text-white/70 mb-1 ml-0.5 tracking-[-0.01em]">
+                      Data de Nascimento *
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      inputMode="numeric"
+                      value={birthDate}
+                      onChange={(e) => handleBirthDateChange(e.target.value)}
+                      placeholder="DD/MM/AAAA"
+                      className="w-full h-[44px] px-3.5 rounded-xl bg-white/[0.06] border border-white/12 text-white placeholder-white/25 text-[14px] focus:outline-none focus:border-[#0071e3] transition-all font-mono"
+                    />
+                  </div>
+
+                  <div className="sm:col-span-2">
+                    <label className="block text-[12px] font-medium text-white/70 mb-1 ml-0.5 tracking-[-0.01em]">
+                      Qual a sua profissão ou área de atuação? *
+                    </label>
+                    <select
+                      required
+                      value={profession}
+                      onChange={(e) => setProfession(e.target.value)}
+                      className="w-full h-[44px] px-3.5 rounded-xl bg-[#1d1d24] border border-white/12 text-white text-[14px] focus:outline-none focus:border-[#0071e3] transition-all cursor-pointer"
+                    >
+                      <option value="" disabled>
+                        Escolher
                       </option>
-                    ))}
-                  </select>
+                      {PROFESSIONS.map((p) => (
+                        <option key={p.value} value={p.value}>
+                          {p.label}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                {/* Botão de Avançar para Endereço */}
+                <div className="pt-4 flex justify-end">
+                  <button
+                    type="button"
+                    onClick={handleAdvanceToAddress}
+                    className="h-[44px] px-5 rounded-xl bg-[#0071e3] hover:bg-[#0077ed] text-white text-[13px] font-semibold transition-all inline-flex items-center gap-1.5 cursor-pointer shadow-md shadow-[#0071e3]/30"
+                  >
+                    <span>Continuar para Endereço</span>
+                    <ArrowRight className="w-4 h-4" />
+                  </button>
                 </div>
               </div>
             </div>
 
-            {/* 2. ENDEREÇO DO ALUNO */}
-            <div>
-              <div className="flex items-center justify-between mb-3">
-                <h3 className="text-[12px] font-semibold uppercase tracking-[0.04em] text-[#86868b] flex items-center gap-2">
-                  <span className="w-5 h-5 rounded-full bg-white/10 text-white flex items-center justify-center text-[10px] font-bold">2</span>
-                  Endereço
-                </h3>
-                {loadingCep && (
-                  <span className="text-[11px] text-[#2997ff] flex items-center gap-1">
-                    <Loader2 className="w-3 h-3 animate-spin" /> Buscando endereço (API Brasil)...
+            {/* 2. ENDEREÇO */}
+            <div className="rounded-2xl border border-white/10 bg-white/[0.03] overflow-hidden transition-all duration-500 ease-in-out">
+              <button
+                type="button"
+                onClick={() => {
+                  if (activeStep === 1) {
+                    handleAdvanceToAddress();
+                  } else {
+                    setActiveStep(2);
+                  }
+                }}
+                className="w-full p-4 flex items-center justify-between text-left hover:bg-white/[0.03] transition-colors cursor-pointer"
+              >
+                <div className="flex items-center gap-2.5">
+                  <span
+                    className={`w-6 h-6 rounded-full flex items-center justify-center text-[11px] font-bold transition-colors ${
+                      isStep2Complete()
+                        ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+                        : activeStep === 2
+                        ? 'bg-[#0071e3] text-white'
+                        : 'bg-white/10 text-white/60'
+                    }`}
+                  >
+                    {isStep2Complete() && activeStep !== 2 ? <Check className="w-3.5 h-3.5" /> : '2'}
                   </span>
-                )}
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                <div>
-                  <label className="block text-[12px] font-medium text-white/70 mb-1 ml-0.5 tracking-[-0.01em]">
-                    CEP
-                  </label>
-                  <input
-                    type="text"
-                    value={cep}
-                    onChange={(e) => handleCepChange(e.target.value)}
-                    placeholder="00000-000"
-                    className="w-full h-[44px] px-3.5 rounded-xl bg-white/[0.06] border border-white/12 text-white placeholder-white/25 text-[14px] focus:outline-none focus:border-[#0071e3] transition-all font-mono"
-                  />
+                  <div>
+                    <h3 className="text-[13px] sm:text-[14px] font-semibold text-white tracking-[-0.01em]">
+                      Endereço
+                    </h3>
+                    {activeStep !== 2 && cep && street && (
+                      <p className="text-[11px] text-white/50 truncate max-w-xs">
+                        {street}, {number} · {city}/{state}
+                      </p>
+                    )}
+                  </div>
                 </div>
 
-                <div className="sm:col-span-2">
-                  <label className="block text-[12px] font-medium text-white/70 mb-1 ml-0.5 tracking-[-0.01em]">
-                    Rua / Logradouro
-                  </label>
-                  <input
-                    type="text"
-                    value={street}
-                    onChange={(e) => setStreet(e.target.value)}
-                    placeholder="Nome da sua rua ou avenida"
-                    className="w-full h-[44px] px-3.5 rounded-xl bg-white/[0.06] border border-white/12 text-white placeholder-white/25 text-[14px] focus:outline-none focus:border-[#0071e3] transition-all"
+                <div className="flex items-center gap-2">
+                  {loadingCep && (
+                    <span className="text-[11px] text-[#2997ff] flex items-center gap-1">
+                      <Loader2 className="w-3 h-3 animate-spin" /> Buscando CEP...
+                    </span>
+                  )}
+                  {activeStep !== 2 && isStep2Complete() && (
+                    <span className="text-[11px] text-[#2997ff] flex items-center gap-1 font-medium">
+                      <Edit2 className="w-3 h-3" /> Editar
+                    </span>
+                  )}
+                  <ChevronDown
+                    className={`w-4 h-4 text-white/40 transition-transform duration-500 ease-in-out ${
+                      activeStep === 2 ? 'rotate-180' : ''
+                    }`}
                   />
                 </div>
+              </button>
 
-                <div>
-                  <label className="block text-[12px] font-medium text-white/70 mb-1 ml-0.5 tracking-[-0.01em]">
-                    Número
-                  </label>
-                  <input
-                    type="text"
-                    value={number}
-                    onChange={(e) => setNumber(e.target.value)}
-                    placeholder="123"
-                    className="w-full h-[44px] px-3.5 rounded-xl bg-white/[0.06] border border-white/12 text-white placeholder-white/25 text-[14px] focus:outline-none focus:border-[#0071e3] transition-all"
-                  />
+              {/* Conteúdo Expansível Etapa 2 */}
+              <div
+                className={`transition-all duration-500 ease-in-out overflow-hidden ${
+                  activeStep === 2 ? 'max-h-[800px] opacity-100 p-4 pt-0' : 'max-h-0 opacity-0 p-0 pointer-events-none'
+                }`}
+                style={{
+                  transitionTimingFunction: 'cubic-bezier(0.45, 0, 0.55, 1)'
+                }}
+              >
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2 border-t border-white/5">
+                  <div>
+                    <label className="block text-[12px] font-medium text-white/70 mb-1 ml-0.5 tracking-[-0.01em]">
+                      CEP *
+                    </label>
+                    <input
+                      type="text"
+                      value={cep}
+                      onChange={(e) => handleCepChange(e.target.value)}
+                      placeholder="00000-000"
+                      className="w-full h-[44px] px-3.5 rounded-xl bg-white/[0.06] border border-white/12 text-white placeholder-white/25 text-[14px] focus:outline-none focus:border-[#0071e3] transition-all font-mono"
+                    />
+                  </div>
+
+                  <div className="sm:col-span-2">
+                    <label className="block text-[12px] font-medium text-white/70 mb-1 ml-0.5 tracking-[-0.01em]">
+                      Rua / Logradouro *
+                    </label>
+                    <input
+                      type="text"
+                      value={street}
+                      onChange={(e) => setStreet(e.target.value)}
+                      placeholder="Nome da sua rua ou avenida"
+                      className="w-full h-[44px] px-3.5 rounded-xl bg-white/[0.06] border border-white/12 text-white placeholder-white/25 text-[14px] focus:outline-none focus:border-[#0071e3] transition-all"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[12px] font-medium text-white/70 mb-1 ml-0.5 tracking-[-0.01em]">
+                      Número *
+                    </label>
+                    <input
+                      type="text"
+                      value={number}
+                      onChange={(e) => setNumber(e.target.value)}
+                      placeholder="123"
+                      className="w-full h-[44px] px-3.5 rounded-xl bg-white/[0.06] border border-white/12 text-white placeholder-white/25 text-[14px] focus:outline-none focus:border-[#0071e3] transition-all"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[12px] font-medium text-white/70 mb-1 ml-0.5 tracking-[-0.01em]">
+                      Complemento
+                    </label>
+                    <input
+                      type="text"
+                      value={complement}
+                      onChange={(e) => setComplement(e.target.value)}
+                      placeholder="Apto / Bloco"
+                      className="w-full h-[44px] px-3.5 rounded-xl bg-white/[0.06] border border-white/12 text-white placeholder-white/25 text-[14px] focus:outline-none focus:border-[#0071e3] transition-all"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[12px] font-medium text-white/70 mb-1 ml-0.5 tracking-[-0.01em]">
+                      Bairro *
+                    </label>
+                    <input
+                      type="text"
+                      value={neighborhood}
+                      onChange={(e) => setNeighborhood(e.target.value)}
+                      placeholder="Bairro"
+                      className="w-full h-[44px] px-3.5 rounded-xl bg-white/[0.06] border border-white/12 text-white placeholder-white/25 text-[14px] focus:outline-none focus:border-[#0071e3] transition-all"
+                    />
+                  </div>
+
+                  <div className="sm:col-span-2">
+                    <label className="block text-[12px] font-medium text-white/70 mb-1 ml-0.5 tracking-[-0.01em]">
+                      Cidade *
+                    </label>
+                    <input
+                      type="text"
+                      value={city}
+                      onChange={(e) => setCity(e.target.value)}
+                      placeholder="Cidade"
+                      className="w-full h-[44px] px-3.5 rounded-xl bg-white/[0.06] border border-white/12 text-white placeholder-white/25 text-[14px] focus:outline-none focus:border-[#0071e3] transition-all"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[12px] font-medium text-white/70 mb-1 ml-0.5 tracking-[-0.01em]">
+                      Estado (UF) *
+                    </label>
+                    <input
+                      type="text"
+                      maxLength={2}
+                      value={state}
+                      onChange={(e) => setState(e.target.value.toUpperCase())}
+                      placeholder="SP"
+                      className="w-full h-[44px] px-3.5 rounded-xl bg-white/[0.06] border border-white/12 text-white placeholder-white/25 text-[14px] focus:outline-none focus:border-[#0071e3] transition-all font-mono"
+                    />
+                  </div>
                 </div>
 
-                <div>
-                  <label className="block text-[12px] font-medium text-white/70 mb-1 ml-0.5 tracking-[-0.01em]">
-                    Complemento
-                  </label>
-                  <input
-                    type="text"
-                    value={complement}
-                    onChange={(e) => setComplement(e.target.value)}
-                    placeholder="Apto / Bloco"
-                    className="w-full h-[44px] px-3.5 rounded-xl bg-white/[0.06] border border-white/12 text-white placeholder-white/25 text-[14px] focus:outline-none focus:border-[#0071e3] transition-all"
-                  />
-                </div>
+                {/* Botões de Ação Etapa 2 */}
+                <div className="pt-4 flex items-center justify-between">
+                  <button
+                    type="button"
+                    onClick={() => setActiveStep(1)}
+                    className="text-white/60 hover:text-white text-[12px] font-medium transition-colors cursor-pointer"
+                  >
+                    ← Voltar aos Dados
+                  </button>
 
-                <div>
-                  <label className="block text-[12px] font-medium text-white/70 mb-1 ml-0.5 tracking-[-0.01em]">
-                    Bairro
-                  </label>
-                  <input
-                    type="text"
-                    value={neighborhood}
-                    onChange={(e) => setNeighborhood(e.target.value)}
-                    placeholder="Bairro"
-                    className="w-full h-[44px] px-3.5 rounded-xl bg-white/[0.06] border border-white/12 text-white placeholder-white/25 text-[14px] focus:outline-none focus:border-[#0071e3] transition-all"
-                  />
-                </div>
-
-                <div className="sm:col-span-2">
-                  <label className="block text-[12px] font-medium text-white/70 mb-1 ml-0.5 tracking-[-0.01em]">
-                    Cidade
-                  </label>
-                  <input
-                    type="text"
-                    value={city}
-                    onChange={(e) => setCity(e.target.value)}
-                    placeholder="Cidade"
-                    className="w-full h-[44px] px-3.5 rounded-xl bg-white/[0.06] border border-white/12 text-white placeholder-white/25 text-[14px] focus:outline-none focus:border-[#0071e3] transition-all"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-[12px] font-medium text-white/70 mb-1 ml-0.5 tracking-[-0.01em]">
-                    Estado (UF)
-                  </label>
-                  <input
-                    type="text"
-                    maxLength={2}
-                    value={state}
-                    onChange={(e) => setState(e.target.value.toUpperCase())}
-                    placeholder="SP"
-                    className="w-full h-[44px] px-3.5 rounded-xl bg-white/[0.06] border border-white/12 text-white placeholder-white/25 text-[14px] focus:outline-none focus:border-[#0071e3] transition-all font-mono"
-                  />
+                  <button
+                    type="button"
+                    onClick={handleAdvanceToPayment}
+                    className="h-[44px] px-5 rounded-xl bg-[#0071e3] hover:bg-[#0077ed] text-white text-[13px] font-semibold transition-all inline-flex items-center gap-1.5 cursor-pointer shadow-md shadow-[#0071e3]/30"
+                  >
+                    <span>Ir para Pagamento</span>
+                    <ArrowRight className="w-4 h-4" />
+                  </button>
                 </div>
               </div>
             </div>
 
             {/* 3. FORMA DE PAGAMENTO */}
-            <div>
-              <h3 className="text-[12px] font-semibold uppercase tracking-[0.04em] text-[#86868b] mb-3 flex items-center gap-2">
-                <span className="w-5 h-5 rounded-full bg-white/10 text-white flex items-center justify-center text-[10px] font-bold">3</span>
-                Método de Pagamento
-              </h3>
+            <div className="rounded-2xl border border-white/10 bg-white/[0.03] overflow-hidden transition-all duration-500 ease-in-out">
+              <button
+                type="button"
+                onClick={() => {
+                  if (activeStep === 1) {
+                    handleAdvanceToAddress();
+                  } else if (activeStep === 2) {
+                    handleAdvanceToPayment();
+                  } else {
+                    setActiveStep(3);
+                  }
+                }}
+                className="w-full p-4 flex items-center justify-between text-left hover:bg-white/[0.03] transition-colors cursor-pointer"
+              >
+                <div className="flex items-center gap-2.5">
+                  <span
+                    className={`w-6 h-6 rounded-full flex items-center justify-center text-[11px] font-bold transition-colors ${
+                      activeStep === 3
+                        ? 'bg-[#0071e3] text-white'
+                        : 'bg-white/10 text-white/60'
+                    }`}
+                  >
+                    3
+                  </span>
+                  <div>
+                    <h3 className="text-[13px] sm:text-[14px] font-semibold text-white tracking-[-0.01em]">
+                      Método de Pagamento
+                    </h3>
+                    {activeStep !== 3 && paymentMethod && (
+                      <p className="text-[11px] text-white/50">
+                        {paymentMethod === 'PIX' ? 'Pix (Instantâneo)' : 'Cartão de Crédito'}
+                      </p>
+                    )}
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <ChevronDown
+                    className={`w-4 h-4 text-white/40 transition-transform duration-500 ease-in-out ${
+                      activeStep === 3 ? 'rotate-180' : ''
+                    }`}
+                  />
+                </div>
+              </button>
+
+              {/* Conteúdo Expansível Etapa 3 */}
+              <div
+                className={`transition-all duration-500 ease-in-out overflow-hidden ${
+                  activeStep === 3 ? 'max-h-[1400px] opacity-100 p-4 pt-0' : 'max-h-0 opacity-0 p-0 pointer-events-none'
+                }`}
+                style={{
+                  transitionTimingFunction: 'cubic-bezier(0.45, 0, 0.55, 1)'
+                }}
+              >
+                <div className="pt-2 border-t border-white/5">
 
               {/* Selector Buttons */}
               <div className="grid grid-cols-2 gap-3 mb-4">
@@ -1229,7 +1501,9 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                   )}
                 </div>
               )}
-            </div>
+                  </div>
+                </div>
+              </div>
 
             {/* Bottom Final Submit for Credit Card */}
             {paymentMethod === 'CREDIT_CARD' && (
