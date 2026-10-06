@@ -23,7 +23,7 @@ Seu objetivo é formar profissionais mais preparados, seguros e capazes de entre
   seo: {
     title: 'FLMMKR | Michael Oliveira',
     description: 'Aprenda Direção de Fotografia, Color Grading e produção audiovisual com Michael Oliveira.',
-    url: 'https://michaeloliveira.com.br',
+    url: 'https://flmmkr.site',
     siteName: 'FLMMKR',
     locale: 'pt_BR',
     ogImage: '/images/og-image.jpg'
