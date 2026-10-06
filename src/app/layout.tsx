@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from 'next';
 import { Suspense } from 'react';
+import Script from 'next/script';
 import './globals.css';
 import { SITE_CONFIG } from '@/config/siteConfig';
 import { PRODUCTS } from '@/config/products';
@@ -177,6 +178,20 @@ export default function RootLayout({
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
         />
+        {/* Google Analytics (gtag.js) */}
+        <Script
+          src="https://www.googletagmanager.com/gtag/js?id=G-RD157QZHM5"
+          strategy="afterInteractive"
+        />
+        <Script id="google-analytics" strategy="afterInteractive">
+          {`
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+
+            gtag('config', 'G-RD157QZHM5');
+          `}
+        </Script>
       </head>
       <body className="min-h-full bg-[#f5f5f7] text-[#1d1d1f] font-sans selection:bg-[#0071e3]/20 selection:text-[#0071e3]">
         <Suspense fallback={null}>
