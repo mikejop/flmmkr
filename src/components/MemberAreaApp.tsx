@@ -864,7 +864,7 @@ export function MemberAreaApp() {
           isMaximized 
             ? 'md:w-full md:h-full rounded-none border-none' 
             : 'md:w-[94vw] md:h-[94vh] rounded-[24px] border border-white/20 shadow-[0_30px_90px_rgba(0,0,0,0.85),inset_0_1px_0_rgba(255,255,255,0.15)]'
-        } bg-[#0c0c0f]/45 flex flex-col md:flex-row overflow-hidden relative z-10 transition-all duration-300 ease-out`} 
+        } bg-[#0c0c0f]/30 flex flex-col md:flex-row overflow-hidden relative z-10 transition-all duration-300 ease-out`} 
         id="finder-window"
       >
           
@@ -872,21 +872,23 @@ export function MemberAreaApp() {
           <aside 
             style={{
               transition: 'width 320ms cubic-bezier(0.455, 0.03, 0.515, 0.955)',
-              backdropFilter: 'blur(28px) saturate(190%) contrast(105%)',
-              WebkitBackdropFilter: 'blur(28px) saturate(190%) contrast(105%)',
+              backdropFilter: 'blur(30px) saturate(190%) contrast(105%)',
+              WebkitBackdropFilter: 'blur(30px) saturate(190%) contrast(105%)',
             }}
-            className={`${isSidebarExpanded ? 'w-64' : 'w-16'} ${isMobileMenuOpen ? 'flex' : 'hidden md:flex'} bg-[#121216]/55 border-r border-white/12 flex-col shrink-0 select-none relative will-change-[width] overflow-hidden shadow-[inset_0_1px_0_rgba(255,255,255,0.1),inset_-1px_0_0_rgba(255,255,255,0.06),0_8px_32px_rgba(0,0,0,0.3)]`} 
+            className={`${isSidebarExpanded ? 'w-64' : 'w-16'} ${isMobileMenuOpen ? 'flex' : 'hidden md:flex'} bg-[#121216]/40 backdrop-blur-2xl border-r border-white/12 flex-col shrink-0 select-none relative will-change-[width] overflow-hidden shadow-[inset_0_1px_0_rgba(255,255,255,0.1),inset_-1px_0_0_rgba(255,255,255,0.06),0_8px_32px_rgba(0,0,0,0.3)]`} 
             id="window-sidebar"
           >
             {/* Glass Sheen Gradient Overlay */}
-            <div className="absolute inset-0 bg-gradient-to-b from-white/[0.05] via-transparent to-transparent pointer-events-none" />
+            <div className="absolute inset-0 bg-gradient-to-b from-white/[0.06] via-transparent to-transparent pointer-events-none" />
             
             {/* Sidebar Header: Traffic Lights & Collapse Button */}
             <div 
               style={{
                 transitionTimingFunction: 'cubic-bezier(0.455, 0.03, 0.515, 0.955)',
+                backdropFilter: 'blur(30px) saturate(190%) contrast(105%)',
+                WebkitBackdropFilter: 'blur(30px) saturate(190%) contrast(105%)',
               }}
-              className={`h-14 border-b border-white/10 bg-white/[0.02] backdrop-blur-xl flex items-center ${isSidebarExpanded ? 'px-3 justify-between' : 'px-0 justify-center'} select-none shrink-0 relative z-10 gap-1 transition-all duration-300`}
+              className={`h-14 border-b border-white/12 bg-[#121216]/40 backdrop-blur-2xl flex items-center ${isSidebarExpanded ? 'px-3 justify-between' : 'px-0 justify-center'} select-none shrink-0 relative z-10 gap-1 transition-all duration-300 shadow-[inset_0_1px_0_rgba(255,255,255,0.12)]`}
             >
               
               {/* Traffic Lights */}
@@ -1120,13 +1122,13 @@ export function MemberAreaApp() {
             {/* Toolbar com Efeito Glassmorphism Apple */}
             <header 
               style={{
-                backdropFilter: 'blur(28px) saturate(190%) contrast(105%)',
-                WebkitBackdropFilter: 'blur(28px) saturate(190%) contrast(105%)',
+                backdropFilter: 'blur(30px) saturate(190%) contrast(105%)',
+                WebkitBackdropFilter: 'blur(30px) saturate(190%) contrast(105%)',
               }}
-              className="h-14 bg-[#121216]/55 backdrop-blur-2xl border-b border-white/12 flex items-center px-6 justify-between select-none relative z-20 shrink-0 shadow-[0_4px_24px_rgba(0,0,0,0.25),inset_0_1px_0_rgba(255,255,255,0.12)]"
+              className="h-14 bg-[#121216]/40 backdrop-blur-2xl border-b border-white/12 flex items-center px-6 justify-between select-none relative z-20 shrink-0 shadow-[0_4px_24px_rgba(0,0,0,0.25),inset_0_1px_0_rgba(255,255,255,0.12)]"
             >
               {/* Glass Sheen Gradient */}
-              <div className="absolute inset-0 bg-gradient-to-r from-white/[0.04] via-transparent to-white/[0.02] pointer-events-none" />
+              <div className="absolute inset-0 bg-gradient-to-r from-white/[0.06] via-transparent to-white/[0.02] pointer-events-none" />
               
               {/* Left Toolbar Info */}
               <div className="flex items-center gap-3 relative z-10">
