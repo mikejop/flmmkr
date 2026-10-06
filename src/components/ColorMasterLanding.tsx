@@ -803,10 +803,12 @@ export const ColorMasterLanding: React.FC = () => {
             PROJETO DO MASTERCLASS
           </span>
           <h2 className="text-[32px] leading-[1.1] sm:text-5xl md:text-6xl font-semibold tracking-[-0.015em] text-[#1d1d1f]">
-            O projeto comercial na prática.
+            O seu laboratório será um projeto real.
           </h2>
           <p className="text-[17px] sm:text-xl text-[#6e6e73] mt-3 font-normal max-w-2xl mx-auto leading-relaxed">
-            Assista ao vídeo do comercial real produzido para cliente. Todas as etapas de gerenciamento de cor, matching de câmeras e look final serão desenvolvidas passo a passo.
+            O projeto do Masterclass é um comercial produzido para um cliente real e finalizado em uma ilha de color grading profissional.
+            <br className="hidden sm:inline" />{' '}
+            Você vai receber esse material e acompanhar todo o processo a partir dele, trabalhando com as mesmas imagens, câmeras e situações que fizeram parte do projeto original.
           </p>
         </div>
 
