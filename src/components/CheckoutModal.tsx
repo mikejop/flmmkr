@@ -131,6 +131,42 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
     }
   }, [isOpen]);
 
+  // Transição automática das abas (sem botões intermediários):
+  // Ao terminar de preencher todos os dados obrigatórios da etapa ativa (em qualquer ordem),
+  // minimiza a aba atual e maximiza automaticamente a próxima etapa com animação suave.
+  const hasAutoAdvancedStep1Ref = useRef(false);
+  const hasAutoAdvancedStep2Ref = useRef(false);
+
+  // Reseta os flags de avanço automático caso o modal seja reaberto
+  useEffect(() => {
+    if (isOpen) {
+      hasAutoAdvancedStep1Ref.current = false;
+      hasAutoAdvancedStep2Ref.current = false;
+    }
+  }, [isOpen]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+
+    // Transição automática de 1 (Dados) -> 2 (Endereço)
+    if (activeStep === 1 && !hasAutoAdvancedStep1Ref.current && isStep1Complete()) {
+      hasAutoAdvancedStep1Ref.current = true;
+      const timer = setTimeout(() => {
+        setActiveStep(2);
+      }, 450);
+      return () => clearTimeout(timer);
+    }
+
+    // Transição automática de 2 (Endereço) -> 3 (Pagamento)
+    if (activeStep === 2 && !hasAutoAdvancedStep2Ref.current && isStep2Complete()) {
+      hasAutoAdvancedStep2Ref.current = true;
+      const timer = setTimeout(() => {
+        setActiveStep(3);
+      }, 450);
+      return () => clearTimeout(timer);
+    }
+  }, [isOpen, activeStep, name, email, cpf, phone, birthDate, profession, cep, street, number, neighborhood, city, state]);
+
   // Track user input for cart abandonment
   useEffect(() => {
     if (name.length > 2 || email.length > 3 || phone.length > 4) {
@@ -850,18 +886,6 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                     </select>
                   </div>
                 </div>
-
-                {/* Botão de Avançar para Endereço */}
-                <div className="pt-4 flex justify-end">
-                  <button
-                    type="button"
-                    onClick={handleAdvanceToAddress}
-                    className="h-[44px] px-5 rounded-xl bg-[#0071e3] hover:bg-[#0077ed] text-white text-[13px] font-semibold transition-all inline-flex items-center gap-1.5 cursor-pointer shadow-md shadow-[#0071e3]/30"
-                  >
-                    <span>Continuar para Endereço</span>
-                    <ArrowRight className="w-4 h-4" />
-                  </button>
-                </div>
               </div>
             </div>
 
@@ -1022,26 +1046,6 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                       className="w-full h-[44px] px-3.5 rounded-xl bg-white/[0.06] border border-white/12 text-white placeholder-white/25 text-[14px] focus:outline-none focus:border-[#0071e3] transition-all font-mono"
                     />
                   </div>
-                </div>
-
-                {/* Botões de Ação Etapa 2 */}
-                <div className="pt-4 flex items-center justify-between">
-                  <button
-                    type="button"
-                    onClick={() => setActiveStep(1)}
-                    className="text-white/60 hover:text-white text-[12px] font-medium transition-colors cursor-pointer"
-                  >
-                    ← Voltar aos Dados
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={handleAdvanceToPayment}
-                    className="h-[44px] px-5 rounded-xl bg-[#0071e3] hover:bg-[#0077ed] text-white text-[13px] font-semibold transition-all inline-flex items-center gap-1.5 cursor-pointer shadow-md shadow-[#0071e3]/30"
-                  >
-                    <span>Ir para Pagamento</span>
-                    <ArrowRight className="w-4 h-4" />
-                  </button>
                 </div>
               </div>
             </div>
