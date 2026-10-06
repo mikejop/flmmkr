@@ -831,9 +831,6 @@ export const ColorMasterLanding: React.FC = () => {
               allow="autoplay; encrypted-media"
             />
 
-            {/* Retícula Overlay Suave sobre o player */}
-            <div className="absolute inset-0 z-5 pointer-events-none reticula-pattern opacity-60" />
-
             {/* Gradiente sutil para legibilidade dos controles */}
             <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/30 pointer-events-none z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
 
