@@ -276,6 +276,13 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
 
     return (
       <>
+        <link
+          rel="preload"
+          as="image"
+          href="/assets/videos/dom-dourado-poster.webp"
+          type="image/webp"
+          fetchPriority="high"
+        />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(courseSchema) }}
@@ -315,17 +322,11 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
             style={{ display: 'none', visibility: 'hidden' }}
           />
         </noscript>
-        {/* Google Analytics específico do produto */}
-        <Script
-          src="https://www.googletagmanager.com/gtag/js?id=G-44TKSTB0X1"
-          strategy="afterInteractive"
-        />
+        {/* Google Analytics específico do produto (adiciona configuração ao dataLayer existente sem baixar segundo script) */}
         <Script id="ga-color-master-produto" strategy="afterInteractive">
           {`
             window.dataLayer = window.dataLayer || [];
             function gtag(){dataLayer.push(arguments);}
-            gtag('js', new Date());
-
             gtag('config', 'G-44TKSTB0X1');
           `}
         </Script>

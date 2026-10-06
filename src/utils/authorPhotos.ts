@@ -4,16 +4,16 @@ export interface AuthorPhotoPair {
 }
 
 export const PROFILE_PHOTOS = [
-  { id: '01', src: '/assets/mike-photos/01.jpg' },
-  { id: '02', src: '/assets/mike-photos/02.jpg' },
-  { id: '04', src: '/assets/mike-photos/04.jpg' }
+  { id: '01', src: '/assets/mike-photos/01.webp' },
+  { id: '02', src: '/assets/mike-photos/02.webp' },
+  { id: '04', src: '/assets/mike-photos/04.webp' }
 ];
 
 export const BG_PHOTOS = [
-  { id: '01', src: '/assets/bg/about-mike/01.jpg' },
-  { id: '02', src: '/assets/bg/about-mike/02.jpg' },
-  { id: '03', src: '/assets/bg/about-mike/03.jpg' },
-  { id: '04', src: '/assets/bg/about-mike/04.jpg' }
+  { id: '01', src: '/assets/bg/about-mike/01.webp' },
+  { id: '02', src: '/assets/bg/about-mike/02.webp' },
+  { id: '03', src: '/assets/bg/about-mike/03.webp' },
+  { id: '04', src: '/assets/bg/about-mike/04.webp' }
 ];
 
 export function getRandomAuthorPhotos(): AuthorPhotoPair {

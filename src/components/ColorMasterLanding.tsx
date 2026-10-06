@@ -6,13 +6,25 @@ import { SITE_CONFIG } from '@/config/siteConfig';
 import { trackProductClick, trackSocialClick } from '@/utils/analytics';
 import { ReticulaBackground } from '@/components/ReticulaBackground';
 import { getRandomAuthorPhotos, AuthorPhotoPair } from '@/utils/authorPhotos';
-import { LoginModal } from '@/components/LoginModal';
-import { PromoModals } from '@/components/PromoModals';
-import { CheckoutModal } from '@/components/CheckoutModal';
+import dynamic from 'next/dynamic';
 import { InstagramIcon, YouTubeIcon, TikTokIcon } from '@/components/SocialIcons';
 import { BrandPreloader } from '@/components/BrandPreloader';
 import { getDeviceFingerprint } from '@/utils/deviceFingerprint';
 import { formatAsaas12x, getAsaas12xInstallmentValue } from '@/utils/asaasPricing';
+
+// Dynamic Modals (Carregados sob demanda para não pesar o bundle inicial)
+const LoginModal = dynamic(
+  () => import('@/components/LoginModal').then((mod) => mod.LoginModal),
+  { ssr: false }
+);
+const PromoModals = dynamic(
+  () => import('@/components/PromoModals').then((mod) => mod.PromoModals),
+  { ssr: false }
+);
+const CheckoutModal = dynamic(
+  () => import('@/components/CheckoutModal').then((mod) => mod.CheckoutModal),
+  { ssr: false }
+);
 
 const OFFER_IMAGES = [
   { src: '/assets/produtos/color-master/offer/offer-1.webp', alt: 'Material do Masterclass - Visual 1' },
@@ -64,8 +76,8 @@ const recordExpiredModalView = (mac?: string): number => {
 
 export const ColorMasterLanding: React.FC = () => {
   const [authorPhotos, setAuthorPhotos] = useState<AuthorPhotoPair>({
-    profileSrc: '/assets/mike-photos/01.jpg',
-    bgSrc: '/assets/bg/about-mike/02.jpg'
+    profileSrc: '/assets/mike-photos/01.webp',
+    bgSrc: '/assets/bg/about-mike/02.webp'
   });
   const [logos, setLogos] = useState<{ name: string; src: string }[]>(PRODUTORAS_LOGOS);
   const [openFaq, setOpenFaq] = useState<number | null>(null);
@@ -111,10 +123,28 @@ export const ColorMasterLanding: React.FC = () => {
   const [showNavCheckout, setShowNavCheckout] = useState<boolean>(false);
   const [isPlayingProjectVideo, setIsPlayingProjectVideo] = useState<boolean>(true);
   const [isMutedProjectVideo, setIsMutedProjectVideo] = useState<boolean>(true);
+  const [isShowcaseIframeLoaded, setIsShowcaseIframeLoaded] = useState<boolean>(false);
   const projectVideoIframeRef = useRef<HTMLIFrameElement | null>(null);
   const hasWarnedRef = useRef<boolean>(false);
   const hasExpiredRef = useRef<boolean>(false);
   const prevTimeLeftRef = useRef<number>(900);
+
+  // Carrega o iframe do YouTube somente após o evento window.load da página
+  useEffect(() => {
+    const enableIframe = () => {
+      // Pequeno atraso de 800ms após o carregamento completo para não competir com TTI e TBT
+      setTimeout(() => {
+        setIsShowcaseIframeLoaded(true);
+      }, 800);
+    };
+
+    if (document.readyState === 'complete') {
+      enableIframe();
+    } else {
+      window.addEventListener('load', enableIframe, { once: true });
+      return () => window.removeEventListener('load', enableIframe);
+    }
+  }, []);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -542,6 +572,7 @@ export const ColorMasterLanding: React.FC = () => {
             muted
             playsInline
             preload="auto"
+            poster="/assets/videos/dom-dourado-poster.webp"
             className="w-full h-full object-cover pointer-events-none opacity-90 scale-105"
           >
             <source src="/assets/videos/dom-dourado-av1.mp4" type="video/mp4" />
@@ -763,20 +794,43 @@ export const ColorMasterLanding: React.FC = () => {
               <img
                 src={OFFER_IMAGES[0].src}
                 alt={OFFER_IMAGES[0].alt}
+                loading="lazy"
+                decoding="async"
+                width={1600}
+                height={899}
                 className="w-full h-full object-cover"
               />
             </div>
 
             {/* Card Central (Vídeo Player Ativo) */}
             <div className="w-[85vw] max-w-[760px] sm:w-[560px] md:w-[680px] lg:w-[780px] aspect-[16/9] overflow-hidden bg-black shadow-[0_20px_60px_rgba(0,0,0,0.35)] shrink-0 relative group">
-              <iframe
-                ref={projectVideoIframeRef}
-                id="project-showcase-yt-player"
-                src="https://www.youtube-nocookie.com/embed/gp75L5H0kIU?autoplay=1&mute=1&controls=0&loop=1&playlist=gp75L5H0kIU&playsinline=1&rel=0&modestbranding=1&enablejsapi=1"
-                title="Projeto Prático Comercial - Color Master"
-                className="w-full h-full object-cover pointer-events-none"
-                allow="autoplay; encrypted-media"
-              />
+              {isShowcaseIframeLoaded ? (
+                <iframe
+                  ref={projectVideoIframeRef}
+                  id="project-showcase-yt-player"
+                  src="https://www.youtube-nocookie.com/embed/gp75L5H0kIU?autoplay=1&mute=1&controls=0&loop=1&playlist=gp75L5H0kIU&playsinline=1&rel=0&modestbranding=1&enablejsapi=1"
+                  title="Projeto Prático Comercial - Color Master"
+                  className="w-full h-full object-cover pointer-events-none"
+                  allow="autoplay; encrypted-media"
+                />
+              ) : (
+                <div className="w-full h-full relative overflow-hidden bg-black">
+                  <img
+                    src="https://img.youtube.com/vi/gp75L5H0kIU/maxresdefault.jpg"
+                    alt="Projeto Prático Comercial - Color Master"
+                    className="w-full h-full object-cover opacity-80"
+                    loading="lazy"
+                    decoding="async"
+                    width={1280}
+                    height={720}
+                  />
+                  <div className="absolute inset-0 bg-black/20 flex items-center justify-center">
+                    <div className="w-12 h-12 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center text-white border border-white/30 animate-pulse">
+                      <Play className="w-5 h-5 fill-current ml-0.5" />
+                    </div>
+                  </div>
+                </div>
+              )}
 
               {/* Controles discretos no rodapé do player */}
               <div className="absolute bottom-3 sm:bottom-4 left-3 sm:left-4 z-20 flex items-center gap-2">
@@ -822,6 +876,10 @@ export const ColorMasterLanding: React.FC = () => {
               <img
                 src={OFFER_IMAGES[1].src}
                 alt={OFFER_IMAGES[1].alt}
+                loading="lazy"
+                decoding="async"
+                width={1600}
+                height={895}
                 className="w-full h-full object-cover"
               />
             </div>
@@ -834,6 +892,10 @@ export const ColorMasterLanding: React.FC = () => {
               <img
                 src={OFFER_IMAGES[2].src}
                 alt={OFFER_IMAGES[2].alt}
+                loading="lazy"
+                decoding="async"
+                width={1600}
+                height={895}
                 className="w-full h-full object-cover"
               />
             </div>
@@ -843,6 +905,10 @@ export const ColorMasterLanding: React.FC = () => {
               <img
                 src={OFFER_IMAGES[3].src}
                 alt={OFFER_IMAGES[3].alt}
+                loading="lazy"
+                decoding="async"
+                width={1600}
+                height={898}
                 className="w-full h-full object-cover"
               />
             </div>
@@ -852,6 +918,10 @@ export const ColorMasterLanding: React.FC = () => {
               <img
                 src={OFFER_IMAGES[4].src}
                 alt={OFFER_IMAGES[4].alt}
+                loading="lazy"
+                decoding="async"
+                width={1600}
+                height={896}
                 className="w-full h-full object-cover"
               />
             </div>
@@ -861,6 +931,10 @@ export const ColorMasterLanding: React.FC = () => {
               <img
                 src="/assets/produtos/color-grade-produto/01.jpg"
                 alt="Processo de Cor e Grading do Produto"
+                loading="lazy"
+                decoding="async"
+                width={1280}
+                height={720}
                 className="w-full h-full object-cover"
               />
             </div>
@@ -870,6 +944,10 @@ export const ColorMasterLanding: React.FC = () => {
               <img
                 src="/assets/produtos/color-grade-produto/02.jpg"
                 alt="Resultado Final Comercial"
+                loading="lazy"
+                decoding="async"
+                width={1280}
+                height={720}
                 className="w-full h-full object-cover"
               />
             </div>
@@ -902,6 +980,10 @@ export const ColorMasterLanding: React.FC = () => {
                   <img
                     src="/assets/produtos/color-grade-produto/editor01.jpg"
                     alt="Editores de vídeo no DaVinci Resolve"
+                    loading="lazy"
+                    decoding="async"
+                    width={1280}
+                    height={720}
                     className="w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-105"
                   />
                 </div>
@@ -928,6 +1010,10 @@ export const ColorMasterLanding: React.FC = () => {
                   <img
                     src="/assets/produtos/color-grade-produto/videomaker01.jpg"
                     alt="Filmmakers e Videomakers operando câmeras em LOG"
+                    loading="lazy"
+                    decoding="async"
+                    width={1280}
+                    height={720}
                     className="w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-105"
                   />
                 </div>
@@ -954,6 +1040,10 @@ export const ColorMasterLanding: React.FC = () => {
                   <img
                     src="/assets/produtos/color-grade-produto/marketing01.jpg"
                     alt="Produtoras, agências e equipes de marketing de produto"
+                    loading="lazy"
+                    decoding="async"
+                    width={1280}
+                    height={720}
                     className="w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-105"
                   />
                 </div>
@@ -1074,6 +1164,10 @@ export const ColorMasterLanding: React.FC = () => {
                   <img
                     src={authorPhotos.profileSrc}
                     alt={SITE_CONFIG.author.name}
+                    loading="lazy"
+                    decoding="async"
+                    width={720}
+                    height={1080}
                     className="w-full h-auto object-contain block rounded-2xl sm:rounded-3xl transition-transform duration-500 ease-quadratic hover:scale-[1.02]"
                   />
                 </div>
@@ -1135,6 +1229,10 @@ export const ColorMasterLanding: React.FC = () => {
                       <img
                         src={logo.src}
                         alt={logo.name}
+                        loading="lazy"
+                        decoding="async"
+                        width={170}
+                        height={72}
                         className="h-10 sm:h-14 md:h-18 w-auto max-w-[130px] sm:max-w-[170px] object-cover block"
                       />
                     </div>
@@ -1150,6 +1248,10 @@ export const ColorMasterLanding: React.FC = () => {
                       <img
                         src={logo.src}
                         alt=""
+                        loading="lazy"
+                        decoding="async"
+                        width={170}
+                        height={72}
                         className="h-10 sm:h-14 md:h-18 w-auto max-w-[130px] sm:max-w-[170px] object-cover block"
                       />
                     </div>
