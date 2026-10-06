@@ -942,7 +942,7 @@ export const ColorMasterLanding: React.FC = () => {
         <div className="max-w-5xl mx-auto">
           <div className="text-center max-w-3xl mx-auto mb-12 sm:mb-16">
             <span className="text-[12px] uppercase tracking-[0.04em] text-[#2997ff] font-semibold mb-2 block">
-              PÚBLICO-ALVO
+              PÚBLICO
             </span>
             <h2 className="text-[28px] leading-[1.14] sm:text-4xl md:text-5xl font-semibold tracking-[-0.015em] text-white">
               Para quem é este Masterclass?
