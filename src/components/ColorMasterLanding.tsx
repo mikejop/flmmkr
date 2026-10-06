@@ -954,8 +954,15 @@ export const ColorMasterLanding: React.FC = () => {
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
             {/* Card 1 */}
-            <div className="p-6 sm:p-7 rounded-2xl sm:rounded-3xl bg-[#18181b] border border-white/10 shadow-sm flex flex-col justify-between hover:border-[#2997ff]/40 transition-all">
+            <div className="p-6 sm:p-7 rounded-2xl sm:rounded-3xl bg-[#18181b] border border-white/10 shadow-sm flex flex-col justify-between hover:border-[#2997ff]/40 transition-all overflow-hidden group">
               <div>
+                <div className="w-full aspect-[16/10] rounded-xl sm:rounded-2xl overflow-hidden mb-5 bg-black/40 border border-white/10 relative">
+                  <img
+                    src="/assets/produtos/color-grade-produto/editor01.jpg"
+                    alt="Editores de vídeo no DaVinci Resolve"
+                    className="w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-105"
+                  />
+                </div>
                 <h3 className="text-[19px] sm:text-xl font-semibold text-white mb-2 leading-snug">
                   Editores
                 </h3>
@@ -969,8 +976,15 @@ export const ColorMasterLanding: React.FC = () => {
             </div>
 
             {/* Card 2 */}
-            <div className="p-6 sm:p-7 rounded-2xl sm:rounded-3xl bg-[#18181b] border border-white/10 shadow-sm flex flex-col justify-between hover:border-[#2997ff]/40 transition-all">
+            <div className="p-6 sm:p-7 rounded-2xl sm:rounded-3xl bg-[#18181b] border border-white/10 shadow-sm flex flex-col justify-between hover:border-[#2997ff]/40 transition-all overflow-hidden group">
               <div>
+                <div className="w-full aspect-[16/10] rounded-xl sm:rounded-2xl overflow-hidden mb-5 bg-black/40 border border-white/10 relative">
+                  <img
+                    src="/assets/produtos/color-grade-produto/videomaker01.jpg"
+                    alt="Filmmakers e Videomakers operando câmeras em LOG"
+                    className="w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-105"
+                  />
+                </div>
                 <h3 className="text-[19px] sm:text-xl font-semibold text-white mb-2 leading-snug">
                   Filmmakers/Videomakers
                 </h3>
@@ -984,8 +998,15 @@ export const ColorMasterLanding: React.FC = () => {
             </div>
 
             {/* Card 3 */}
-            <div className="p-6 sm:p-7 rounded-2xl sm:rounded-3xl bg-[#18181b] border border-white/10 shadow-sm flex flex-col justify-between hover:border-[#2997ff]/40 transition-all">
+            <div className="p-6 sm:p-7 rounded-2xl sm:rounded-3xl bg-[#18181b] border border-white/10 shadow-sm flex flex-col justify-between hover:border-[#2997ff]/40 transition-all overflow-hidden group">
               <div>
+                <div className="w-full aspect-[16/10] rounded-xl sm:rounded-2xl overflow-hidden mb-5 bg-black/40 border border-white/10 relative">
+                  <img
+                    src="/assets/produtos/color-grade-produto/marketing01.jpg"
+                    alt="Produtoras, agências e equipes de marketing de produto"
+                    className="w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-105"
+                  />
+                </div>
                 <h3 className="text-[19px] sm:text-xl font-semibold text-white mb-2 leading-snug">
                   Produtoras, Agências e Pequenas/Médias Empresas
                 </h3>
