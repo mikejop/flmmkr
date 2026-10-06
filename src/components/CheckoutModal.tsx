@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import { getAsaasInstallmentValue } from '@/utils/asaasPricing';
 import { PhoneInputWithDdi } from '@/components/PhoneInputWithDdi';
+import { TermsModal } from '@/components/TermsModal';
 
 interface CheckoutModalProps {
   isOpen: boolean;
@@ -97,6 +98,8 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
   // Process States
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
+  const [isTermsModalOpen, setIsTermsModalOpen] = useState(false);
 
   // PIX State
   const [pixData, setPixData] = useState<{
@@ -383,6 +386,11 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
 
     if (!paymentMethod) {
       setErrorMessage('Selecione uma forma de pagamento (Cartão de Crédito ou Pix).');
+      return;
+    }
+
+    if (!acceptedTerms) {
+      setErrorMessage('Você precisa ler e aceitar os Termos de Uso e a Política de Privacidade para continuar.');
       return;
     }
 
@@ -1133,6 +1141,33 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                 </div>
               )}
 
+              {/* CHECKBOX DE TERMOS DE USO E POLÍTICA DE PRIVACIDADE */}
+              <div className="pt-2 pb-1">
+                <label className="flex items-start gap-3 p-3 rounded-2xl bg-white/[0.04] border border-white/10 hover:border-white/20 transition-all cursor-pointer select-none">
+                  <input
+                    type="checkbox"
+                    checked={acceptedTerms}
+                    onChange={(e) => setAcceptedTerms(e.target.checked)}
+                    className="mt-0.5 w-4 h-4 rounded border-white/20 text-[#0071e3] focus:ring-[#0071e3] focus:ring-offset-0 bg-white/10 cursor-pointer shrink-0"
+                  />
+                  <span className="text-[12px] sm:text-[13px] text-white/80 leading-snug">
+                    Li e aceito os{' '}
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        setIsTermsModalOpen(true);
+                      }}
+                      className="text-[#2997ff] hover:text-[#0071e3] underline underline-offset-2 font-medium cursor-pointer"
+                    >
+                      Termos de Uso e a Política de Privacidade
+                    </button>
+                    .
+                  </span>
+                </label>
+              </div>
+
               {/* SE PIX SELECIONADO */}
               {paymentMethod === 'PIX' && (
                 <div className="p-4 sm:p-5 rounded-2xl bg-white/[0.05] border border-white/10 animate-in fade-in duration-200 text-center">
@@ -1226,6 +1261,13 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
           </form>
         </div>
       </div>
+
+      {/* Modal Autocontido de Termos de Uso e Política de Privacidade */}
+      <TermsModal
+        isOpen={isTermsModalOpen}
+        onClose={() => setIsTermsModalOpen(false)}
+        onAccept={() => setAcceptedTerms(true)}
+      />
     </div>
   );
 };
