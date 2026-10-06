@@ -10,20 +10,44 @@ export default function sitemap(): MetadataRoute.Sitemap {
     {
       url: baseUrl,
       lastModified: lastModDate,
-      changeFrequency: 'weekly',
+      changeFrequency: 'daily',
+      priority: 1.0,
+    },
+    {
+      url: `${baseUrl}/color-master-produto`,
+      lastModified: lastModDate,
+      changeFrequency: 'daily',
       priority: 1.0,
     },
     {
       url: `${baseUrl}/cursos`,
       lastModified: lastModDate,
       changeFrequency: 'weekly',
-      priority: 0.8,
+      priority: 0.9,
+    },
+    {
+      url: `${baseUrl}/conteudo`,
+      lastModified: lastModDate,
+      changeFrequency: 'daily',
+      priority: 0.9,
     },
     {
       url: `${baseUrl}/links`,
       lastModified: lastModDate,
+      changeFrequency: 'weekly',
+      priority: 0.6,
+    },
+    {
+      url: `${baseUrl}/primeiro-acesso`,
+      lastModified: lastModDate,
       changeFrequency: 'monthly',
       priority: 0.5,
+    },
+    {
+      url: `${baseUrl}/definir-senha`,
+      lastModified: lastModDate,
+      changeFrequency: 'monthly',
+      priority: 0.4,
     },
   ];
 
