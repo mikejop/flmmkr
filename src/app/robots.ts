@@ -19,9 +19,18 @@ export default function robots(): MetadataRoute.Robots {
           '/_next/',
         ],
       },
-      // 1. Buscadores Tradicionais
+      // 1. Buscadores Tradicionais (com foco explícito em Bingbot conforme Webmaster Guidelines)
       {
-        userAgent: ['Googlebot', 'Bingbot', 'Applebot', 'DuckDuckBot', 'YandexBot'],
+        userAgent: 'Bingbot',
+        allow: '/',
+        disallow: [
+          '/api/private/',
+          '/api/webhooks/',
+          '/_next/',
+        ],
+      },
+      {
+        userAgent: ['Googlebot', 'Applebot', 'DuckDuckBot', 'YandexBot'],
         allow: '/',
       },
       // 2. Assistentes e Buscadores com IA (Citação, Busca em Tempo Real e GEO)

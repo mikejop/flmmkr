@@ -79,6 +79,7 @@ export const metadata: Metadata = {
   robots: {
     index: true,
     follow: true,
+    nocache: false,
     googleBot: {
       index: true,
       follow: true,
@@ -86,6 +87,10 @@ export const metadata: Metadata = {
       'max-image-preview': 'large',
       'max-snippet': -1,
     },
+  },
+  other: {
+    'bingbot': 'index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1',
+    'msvalidate.01': process.env.NEXT_PUBLIC_BING_SITE_VERIFICATION || 'BING_VERIFICATION_PLACEHOLDER',
   },
 };
 
