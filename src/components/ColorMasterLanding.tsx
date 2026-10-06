@@ -800,10 +800,10 @@ export const ColorMasterLanding: React.FC = () => {
 
         {/* CONTAINER EM LARGURA TOTAL COM TRANSBORDAMENTO NAS LATERAIS (APPLE BLEED OUT) */}
         <div className="w-full space-y-3 sm:space-y-4">
-          {/* FILEIRA 1 (SUPERIOR): CARDS GRANDES (ESQUERDA SANGRANDO, VÍDEO NO CENTRO, DIREITA SANGRANDO) */}
-          <div className="flex items-center justify-center gap-3 sm:gap-4 overflow-hidden w-full">
-            {/* Card Esquerdo Sangrando (Metade fora da tela à esquerda) */}
-            <div className="w-[300px] sm:w-[420px] md:w-[500px] lg:w-[560px] aspect-[16/9] overflow-hidden bg-black/5 shrink-0 relative select-none">
+          {/* FILEIRA 1 (SUPERIOR): CARDS GRANDES (MESMA ALTURA VERTICAL QUE O VÍDEO CENTRAL) */}
+          <div className="flex items-stretch justify-center gap-3 sm:gap-4 overflow-hidden w-full">
+            {/* Card Esquerdo Sangrando (Mesma altura vertical do vídeo, transbordando à esquerda) */}
+            <div className="flex-1 min-w-[280px] max-w-[620px] overflow-hidden bg-black/5 shrink-0 relative select-none">
               <img
                 src={OFFER_IMAGES[0].src}
                 alt={OFFER_IMAGES[0].alt}
@@ -861,8 +861,8 @@ export const ColorMasterLanding: React.FC = () => {
               </div>
             </div>
 
-            {/* Card Direito Sangrando (Metade fora da tela à direita) */}
-            <div className="w-[300px] sm:w-[420px] md:w-[500px] lg:w-[560px] aspect-[16/9] overflow-hidden bg-black/5 shrink-0 relative select-none">
+            {/* Card Direito Sangrando (Mesma altura vertical do vídeo, transbordando à direita) */}
+            <div className="flex-1 min-w-[280px] max-w-[620px] overflow-hidden bg-black/5 shrink-0 relative select-none">
               <img
                 src={OFFER_IMAGES[1].src}
                 alt={OFFER_IMAGES[1].alt}
