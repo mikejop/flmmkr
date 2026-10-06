@@ -114,6 +114,7 @@ export const ColorMasterLanding: React.FC = () => {
   });
 
   // Modais de Alerta (1:30) e Expiração (tempo esgotado)
+  const [welcomeModalOpen, setWelcomeModalOpen] = useState<boolean>(false);
   const [warningModalOpen, setWarningModalOpen] = useState<boolean>(false);
   const [expiredModalOpen, setExpiredModalOpen] = useState<boolean>(false);
   const [warningDismissed, setWarningDismissed] = useState<boolean>(false);
@@ -128,6 +129,23 @@ export const ColorMasterLanding: React.FC = () => {
   const hasWarnedRef = useRef<boolean>(false);
   const hasExpiredRef = useRef<boolean>(false);
   const prevTimeLeftRef = useRef<number>(900);
+
+  // Disparado ao concluir o preloader: se for a primeira visita, abre o modal de boas-vindas da promoção
+  const handlePreloaderComplete = () => {
+    if (typeof window === 'undefined') return;
+    try {
+      const hasSeen = localStorage.getItem('flmmkr_seen_welcome_promo');
+      if (!hasSeen && !isExpired) {
+        localStorage.setItem('flmmkr_seen_welcome_promo', 'true');
+        // Pequeno atraso de 200ms após o fade do preloader para transição suave
+        setTimeout(() => {
+          setWelcomeModalOpen(true);
+        }, 200);
+      }
+    } catch {
+      // Ignora erro de local storage
+    }
+  };
 
   // Carrega o iframe do YouTube somente após o evento window.load da página
   useEffect(() => {
@@ -433,7 +451,7 @@ export const ColorMasterLanding: React.FC = () => {
   return (
     <div className="min-h-screen bg-[#f5f5f7] text-[#1d1d1f] font-sans antialiased selection:bg-[#0071e3]/20 selection:text-[#0071e3]">
       {/* Brand Transition Preloader */}
-      <BrandPreloader isReady={isPriceLoaded} />
+      <BrandPreloader isReady={isPriceLoaded} onComplete={handlePreloaderComplete} />
 
       {/* Login Modal */}
       <LoginModal isOpen={loginModalOpen} onClose={() => setLoginModalOpen(false)} />
@@ -450,6 +468,8 @@ export const ColorMasterLanding: React.FC = () => {
 
       {/* Modais de Alerta (1:30) e Expiração (Preço Real) */}
       <PromoModals
+        welcomeOpen={welcomeModalOpen}
+        onCloseWelcome={() => setWelcomeModalOpen(false)}
         warningOpen={warningModalOpen}
         onCloseWarning={() => {
           setWarningModalOpen(false);

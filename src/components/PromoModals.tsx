@@ -5,6 +5,8 @@ import { X, Clock, AlertTriangle, ShieldCheck } from 'lucide-react';
 import { formatAsaas12x } from '@/utils/asaasPricing';
 
 interface PromoModalsProps {
+  welcomeOpen?: boolean;
+  onCloseWelcome?: () => void;
   warningOpen: boolean;
   onCloseWarning: () => void;
   expiredOpen: boolean;
@@ -18,6 +20,8 @@ interface PromoModalsProps {
 }
 
 export const PromoModals: React.FC<PromoModalsProps> = ({
+  welcomeOpen = false,
+  onCloseWelcome,
   warningOpen,
   onCloseWarning,
   expiredOpen,
@@ -29,36 +33,164 @@ export const PromoModals: React.FC<PromoModalsProps> = ({
   formatTime,
   onOpenCheckout,
 }) => {
+  const welcomeOverlayRef = useRef<HTMLDivElement>(null);
   const warningOverlayRef = useRef<HTMLDivElement>(null);
   const expiredOverlayRef = useRef<HTMLDivElement>(null);
+
+  // Auto-close do modal de boas-vindas após 4 segundos se o usuário não fechar manualmente
+  useEffect(() => {
+    if (!welcomeOpen || !onCloseWelcome) return;
+    const autoCloseTimer = setTimeout(() => {
+      onCloseWelcome();
+    }, 4000);
+    return () => clearTimeout(autoCloseTimer);
+  }, [welcomeOpen, onCloseWelcome]);
 
   // Close on Escape key
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
+        if (welcomeOpen && onCloseWelcome) onCloseWelcome();
         if (warningOpen) onCloseWarning();
         if (expiredOpen) onCloseExpired();
       }
     };
-    if (warningOpen || expiredOpen) {
+    if (welcomeOpen || warningOpen || expiredOpen) {
       document.addEventListener('keydown', handleKeyDown);
     }
     return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [warningOpen, expiredOpen, onCloseWarning, onCloseExpired]);
+  }, [welcomeOpen, onCloseWelcome, warningOpen, expiredOpen, onCloseWarning, onCloseExpired]);
 
   // Lock body scroll when either modal is active
   useEffect(() => {
-    if (warningOpen || expiredOpen) {
+    if (welcomeOpen || warningOpen || expiredOpen) {
       const originalOverflow = document.body.style.overflow;
       document.body.style.overflow = 'hidden';
       return () => {
         document.body.style.overflow = originalOverflow;
       };
     }
-  }, [warningOpen, expiredOpen]);
+  }, [welcomeOpen, warningOpen, expiredOpen]);
 
   return (
     <>
+      {/* ========================================================================= */}
+      {/* 0. MODAL DE BOAS-VINDAS: PRIMEIRA VISITA (DESCONTO DE +50% EM 15 MINUTOS) */}
+      {/* ========================================================================= */}
+      {welcomeOpen && (
+        <div
+          ref={welcomeOverlayRef}
+          onClick={(e) => {
+            if (e.target === welcomeOverlayRef.current && onCloseWelcome) onCloseWelcome();
+          }}
+          className="fixed inset-0 z-[9999] flex items-center justify-center p-4 sm:p-6 bg-black/75 backdrop-blur-md transition-opacity duration-300 animate-in fade-in"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="welcome-modal-title"
+        >
+          <div
+            className="relative w-full max-w-lg rounded-3xl bg-[#161618]/95 backdrop-blur-2xl border border-[#0071e3]/40 shadow-[0_32px_80px_-16px_rgba(0,0,0,0.85),0_0_50px_rgba(0,113,227,0.25)] overflow-hidden transition-all duration-300 animate-in zoom-in-95"
+            style={{ WebkitBackdropFilter: 'blur(32px)' }}
+          >
+            {/* Top Specular Rim */}
+            <div className="absolute inset-x-0 top-0 h-[1px] bg-gradient-to-r from-transparent via-[#2997ff]/60 to-transparent pointer-events-none" />
+
+            {/* Close Button X */}
+            <button
+              onClick={onCloseWelcome}
+              className="absolute top-3.5 right-3.5 sm:top-4 sm:right-4 w-11 h-11 rounded-full bg-white/10 hover:bg-white/20 text-white/70 hover:text-white transition-all flex items-center justify-center cursor-pointer active:scale-95 z-20"
+              aria-label="Fechar aviso de promoção"
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            <div className="p-6 sm:p-8 text-center flex flex-col items-center">
+              {/* Status Badge */}
+              <div className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-[#0071e3]/20 border border-[#0071e3]/50 text-[#2997ff] text-[12px] font-semibold uppercase tracking-[0.04em] mb-4">
+                <span className="flex h-2 w-2 relative">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#2997ff] opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-[#2997ff]"></span>
+                </span>
+                <span>Condição Exclusiva de Abertura</span>
+              </div>
+
+              {/* Headline */}
+              <h2
+                id="welcome-modal-title"
+                className="text-[24px] sm:text-[30px] font-bold text-white tracking-[-0.015em] leading-[1.18] mb-3 max-w-md mx-auto"
+              >
+                +50% de desconto disponível por 15 minutos.
+              </h2>
+
+              {/* Description */}
+              <p className="text-[15px] sm:text-[16px] text-white/75 leading-[1.5] mb-5 max-w-md mx-auto font-normal">
+                Você acaba de liberar a promoção especial com mais de <strong className="text-white font-semibold">50% de desconto</strong> no{' '}
+                <strong className="text-white font-semibold">Color Master | Produto</strong>. Esta condição é válida exclusivamente pelos próximos 15 minutos.
+              </p>
+
+              {/* Countdown & Price Highlight Card */}
+              <div className="w-full rounded-2xl bg-black/50 border border-white/10 p-4 mb-6 flex flex-col sm:flex-row items-center justify-between gap-3">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-10 h-10 rounded-xl bg-[#0071e3]/20 text-[#2997ff] border border-[#0071e3]/30 flex items-center justify-center shrink-0">
+                    <Clock className="w-5 h-5 animate-pulse" />
+                  </div>
+                  <div className="text-left">
+                    <span className="text-[11px] uppercase tracking-wider text-white/50 block font-semibold">Tempo da Oferta</span>
+                    <span className="text-[20px] sm:text-[22px] font-mono font-bold text-[#2997ff] tracking-wider">
+                      {formatTime(timeLeft)}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="text-center sm:text-right border-t sm:border-t-0 pt-2 sm:pt-0 border-white/10 w-full sm:w-auto">
+                  <span className="text-[12px] text-white/50 line-through block">De R$ {regularPrice}</span>
+                  <span className="text-[20px] sm:text-[22px] font-extrabold text-white">
+                    Por R$ {promoPrice} <span className="text-[13px] font-normal text-white/70">no Pix</span>
+                  </span>
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="w-full flex flex-col gap-2.5">
+                {onOpenCheckout ? (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (onCloseWelcome) onCloseWelcome();
+                      onOpenCheckout();
+                    }}
+                    className="w-full py-3.5 sm:py-4 px-6 rounded-full bg-[#0071e3] hover:bg-[#0077ed] text-white font-semibold text-[15px] sm:text-base shadow-[0_4px_20px_rgba(0,113,227,0.4)] flex items-center justify-center transition-all active:scale-95 cursor-pointer"
+                  >
+                    Garantir com 50% de Desconto
+                  </button>
+                ) : (
+                  <a
+                    href={checkoutUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-full py-3.5 sm:py-4 px-6 rounded-full bg-[#0071e3] hover:bg-[#0077ed] text-white font-semibold text-[15px] sm:text-base shadow-[0_4px_20px_rgba(0,113,227,0.4)] flex items-center justify-center transition-all active:scale-95 cursor-pointer"
+                  >
+                    Garantir com 50% de Desconto
+                  </a>
+                )}
+
+                <button
+                  type="button"
+                  onClick={onCloseWelcome}
+                  className="w-full py-2.5 text-[13px] text-white/50 hover:text-white/80 transition-colors font-medium min-h-[44px] flex items-center justify-center cursor-pointer"
+                >
+                  Fechar
+                </button>
+              </div>
+
+              <div className="mt-3 flex items-center gap-1.5 text-[12px] text-white/40">
+                <ShieldCheck className="w-4 h-4 text-emerald-400" />
+                <span>Garantia incondicional de 7 dias • Acesso imediato</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
       {/* ========================================================================= */}
       {/* 1. MODAL DE AVISO: FALTANDO 1 MINUTO E 30 SEGUNDOS                        */}
       {/* ========================================================================= */}
