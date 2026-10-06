@@ -259,6 +259,7 @@ interface PhoneInputWithDdiProps {
   placeholder?: string;
   required?: boolean;
   className?: string;
+  containerClassName?: string;
   id?: string;
   autoFocus?: boolean;
 }
@@ -300,6 +301,7 @@ export const PhoneInputWithDdi: React.FC<PhoneInputWithDdiProps> = ({
   placeholder,
   required = false,
   className = '',
+  containerClassName = '',
   id,
   autoFocus = false,
 }) => {
@@ -361,17 +363,20 @@ export const PhoneInputWithDdi: React.FC<PhoneInputWithDdiProps> = ({
   );
 
   return (
-    <div className="relative flex items-center w-full" ref={dropdownRef}>
+    <div
+      className={`relative flex items-stretch w-full h-[44px] rounded-xl bg-white/[0.06] border border-white/12 transition-all focus-within:border-[#0071e3] overflow-hidden ${containerClassName}`}
+      ref={dropdownRef}
+    >
       {/* DDI Picker Button */}
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className="h-full px-3 py-2 flex items-center gap-1.5 bg-white/[0.08] hover:bg-white/[0.12] border border-white/10 rounded-l-xl text-white text-xs font-semibold cursor-pointer shrink-0 transition-all select-none focus:outline-none"
+        className="h-full px-3 flex items-center gap-1.5 bg-white/[0.04] hover:bg-white/[0.08] text-white text-xs font-semibold cursor-pointer shrink-0 transition-all select-none focus:outline-none border-r border-white/10"
         title={`Alterar país: ${selectedCountry.name} (${selectedCountry.dialCode})`}
       >
-        <span className="text-base leading-none">{selectedCountry.flag}</span>
-        <span className="font-mono text-[11px] text-neutral-200">{selectedCountry.dialCode}</span>
-        <ChevronDown size={12} className={`text-neutral-400 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+        <span className="text-sm leading-none">{selectedCountry.flag}</span>
+        <span className="font-mono text-[12px] text-white/80">{selectedCountry.dialCode}</span>
+        <ChevronDown size={12} className={`text-white/40 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
       </button>
 
       {/* Phone Number Input */}
@@ -383,7 +388,7 @@ export const PhoneInputWithDdi: React.FC<PhoneInputWithDdiProps> = ({
         value={localNumber}
         onChange={handleInputChange}
         placeholder={placeholder || selectedCountry.format('99999999999')}
-        className={`flex-1 bg-[#1e1e22] border-y border-r border-white/10 rounded-r-xl px-3 py-2 text-xs text-white placeholder-white/30 focus:outline-none focus:border-[#0071e3] transition-colors ${className}`}
+        className={`flex-1 min-w-0 h-full bg-transparent px-3 text-[14px] text-white placeholder-white/25 focus:outline-none border-0 ${className}`}
       />
 
       {/* DDI Dropdown Popover */}

@@ -674,7 +674,6 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                     value={phone}
                     onChange={setPhone}
                     placeholder="(00) 00000-0000"
-                    className="h-[44px] bg-white/[0.06] border-white/12 text-white placeholder-white/25 text-[14px]"
                   />
                 </div>
 
@@ -962,7 +961,6 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                             value={payerPhone}
                             onChange={setPayerPhone}
                             placeholder="(00) 00000-0000"
-                            className="h-[44px] bg-white/[0.06] border-white/12 text-white placeholder-white/25 text-[14px]"
                           />
                         </div>
 
