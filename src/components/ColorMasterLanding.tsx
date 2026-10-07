@@ -442,8 +442,8 @@ export const ColorMasterLanding: React.FC = () => {
     if (priceData.promoPrice === 125) {
       return 'https://www.asaas.com/000/c/nbka8c38x8ao6cl2'; // R$ 125 (Lote 2)
     }
-    if (priceData.promoPrice === 145) {
-      return 'https://www.asaas.com/000/c/8838cr0upgtyi6bp'; // R$ 145 (Lote 3)
+    if (priceData.promoPrice === 145 || priceData.promoPrice === 150) {
+      return 'https://www.asaas.com/000/c/8838cr0upgtyi6bp'; // R$ 150 / R$ 145 (Lote 3)
     }
     return 'https://www.asaas.com/000/c/iv2p2s5tkbt1qi79'; // R$ 195 (Regular)
   };

@@ -36,7 +36,7 @@ export const ASAAS_INSTALLMENT_SCHEDULES: Record<number, Record<number, number>>
     11: 11.87,
     12: 10.88,
   },
-  // Preço R$ 145 (3º Lote)
+  // Preço R$ 145 (3º Lote Legado)
   145: {
     1: 145.00,
     2: 75.37,
@@ -50,6 +50,21 @@ export const ASAAS_INSTALLMENT_SCHEDULES: Record<number, Record<number, number>>
     10: 15.14,
     11: 13.76,
     12: 12.62,
+  },
+  // Preço R$ 150 (3º Lote)
+  150: {
+    1: 150.00,
+    2: 77.96,
+    3: 51.98,
+    4: 38.98,
+    5: 31.18,
+    6: 25.98,
+    7: 22.39,
+    8: 19.58,
+    9: 17.41,
+    10: 15.66,
+    11: 14.23,
+    12: 13.05,
   },
   // Preço R$ 195 (Preço Oficial Regular)
   195: {
