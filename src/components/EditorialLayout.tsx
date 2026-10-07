@@ -24,7 +24,13 @@ export const EditorialSection: React.FC<EditorialSectionProps> = ({
   className = '',
 }) => {
   return (
-    <section className={`w-full bg-white p-6 sm:p-10 lg:p-12 border border-neutral-200/80 rounded-[28px] shadow-sm relative overflow-hidden transition-all duration-300 ${className}`}>
+    <section 
+      style={{
+        contentVisibility: 'auto',
+        containIntrinsicSize: '650px',
+      }}
+      className={`w-full bg-white p-6 sm:p-10 lg:p-12 border border-neutral-200/80 rounded-[28px] shadow-sm relative overflow-hidden transition-all duration-300 ${className}`}
+    >
       {/* Kicker Superior de Jornal / Revista */}
       <div className="font-serif text-[12px] sm:text-[13px] tracking-[0.25em] uppercase text-neutral-500 font-medium mb-4 flex items-center justify-between border-b border-neutral-300/60 pb-3">
         <span>{kickerLeft}</span>
@@ -80,6 +86,8 @@ export const TwoColumnText: React.FC<TwoColumnTextProps> = ({
   );
 };
 
+import { getImageDimensions } from '@/utils/articleImagesManifest';
+
 interface ImageAndTextProps {
   imageSrc?: string;
   imageAlt?: string;
@@ -88,6 +96,8 @@ interface ImageAndTextProps {
   children: React.ReactNode;
   aspectRatio?: string;
   className?: string;
+  loading?: 'lazy' | 'eager';
+  fetchPriority?: 'high' | 'low' | 'auto';
 }
 
 /**
@@ -101,7 +111,11 @@ export const ImageAndText: React.FC<ImageAndTextProps> = ({
   children,
   aspectRatio,
   className = '',
+  loading = 'lazy',
+  fetchPriority = 'auto',
 }) => {
+  const dims = getImageDimensions(imageSrc);
+
   const imageElement = (
     <div className="w-full space-y-2">
       {imageSrc ? (
@@ -109,10 +123,15 @@ export const ImageAndText: React.FC<ImageAndTextProps> = ({
           <img
             src={imageSrc}
             alt={imageAlt}
+            width={dims?.width}
+            height={dims?.height}
+            loading={loading}
+            decoding="async"
+            fetchPriority={fetchPriority}
             className="w-full h-auto block transition-transform duration-500 group-hover:scale-[1.02]"
           />
           {caption && (
-            <div className="absolute bottom-3 right-3 text-[11px] font-sans text-white/90 italic backdrop-blur-md bg-black/60 px-3 py-1 rounded-full border border-white/20">
+            <div className="absolute bottom-3 right-3 text-[11px] font-sans text-white/90 italic bg-black/80 px-3 py-1 rounded-full border border-white/20">
               {caption}
             </div>
           )}
@@ -209,6 +228,8 @@ interface FullWidthImageProps {
   alt: string;
   caption?: string;
   className?: string;
+  loading?: 'lazy' | 'eager';
+  fetchPriority?: 'high' | 'low' | 'auto';
 }
 
 /**
@@ -219,11 +240,24 @@ export const FullWidthImage: React.FC<FullWidthImageProps> = ({
   alt,
   caption,
   className = '',
+  loading = 'lazy',
+  fetchPriority = 'auto',
 }) => {
+  const dims = getImageDimensions(src);
+
   return (
     <div className={`w-full bg-neutral-950/50 overflow-hidden relative rounded-2xl border border-neutral-200/80 my-6 shadow-xs ${className}`}>
       {src ? (
-        <img src={src} alt={alt} className="w-full h-auto block" />
+        <img
+          src={src}
+          alt={alt}
+          width={dims?.width}
+          height={dims?.height}
+          loading={loading}
+          decoding="async"
+          fetchPriority={fetchPriority}
+          className="w-full h-auto block"
+        />
       ) : (
         <div className="h-64 flex flex-col items-center justify-center text-neutral-400 p-6 text-center space-y-2">
           <Camera size={28} className="text-white/60" />
@@ -232,7 +266,7 @@ export const FullWidthImage: React.FC<FullWidthImageProps> = ({
         </div>
       )}
       {caption && (
-        <div className="absolute bottom-3 right-4 text-[12px] font-sans text-white/90 italic backdrop-blur-md bg-black/50 px-3 py-1 rounded-full border border-white/20">
+        <div className="absolute bottom-3 right-4 text-[12px] font-sans text-white/90 italic bg-black/80 px-3 py-1 rounded-full border border-white/20">
           {caption}
         </div>
       )}

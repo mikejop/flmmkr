@@ -132,7 +132,7 @@ export function MemberAreaApp() {
   const [isMasterAdmin, setIsMasterAdmin] = useState<boolean>(false);
   
   const [copiedChallengeId, setCopiedChallengeId] = useState<string | null>(null);
-  const [scrollProgressPercent, setScrollProgressPercent] = useState<number>(0);
+  const progressBarRef = useRef<HTMLDivElement>(null);
   const [activeFlyoutModule, setActiveFlyoutModule] = useState<string | null>(null);
   const flyoutTimeoutRef = useRef<any>(null);
   const [completionTransitionData, setCompletionTransitionData] = useState<{
@@ -787,17 +787,25 @@ export function MemberAreaApp() {
     setSearchQuery('');
   };
 
-  // Throttled Scroll Progress listener with requestAnimationFrame
+  // High-Performance Zero-Rerender Scroll Progress listener with requestAnimationFrame
   useEffect(() => {
     const el = lessonContainerRef.current;
+    const bar = progressBarRef.current;
     if (!el) return;
+
+    // Reset da barra na troca de aula
+    if (bar) {
+      bar.style.transform = 'scaleX(0)';
+    }
+
     let rAF: number | null = null;
     const handleScroll = () => {
       if (rAF !== null) return;
       rAF = requestAnimationFrame(() => {
         const total = el.scrollHeight - el.clientHeight;
-        if (total > 0) {
-          setScrollProgressPercent(Math.round((el.scrollTop / total) * 100));
+        if (total > 0 && bar) {
+          const ratio = Math.min(1, Math.max(0, el.scrollTop / total));
+          bar.style.transform = `scaleX(${ratio})`;
         }
         rAF = null;
       });
@@ -833,6 +841,7 @@ export function MemberAreaApp() {
           muted
           loop={false}
           playsInline
+          preload="metadata"
           onEnded={handleBgVideoEnded}
           onLoadedMetadata={() => {
             if (isBgVideoFrozen && bgVideoRef.current) {
@@ -1122,10 +1131,10 @@ export function MemberAreaApp() {
             {/* Toolbar com Efeito Glassmorphism Apple */}
             <header 
               style={{
-                backdropFilter: 'blur(30px) saturate(190%) contrast(105%)',
-                WebkitBackdropFilter: 'blur(30px) saturate(190%) contrast(105%)',
+                backdropFilter: 'saturate(180%) blur(20px)',
+                WebkitBackdropFilter: 'saturate(180%) blur(20px)',
               }}
-              className="h-14 bg-[#121216]/40 backdrop-blur-2xl border-b border-white/12 flex items-center px-6 justify-between select-none relative z-20 shrink-0 shadow-[0_4px_24px_rgba(0,0,0,0.25),inset_0_1px_0_rgba(255,255,255,0.12)]"
+              className="h-14 bg-[#121216]/70 border-b border-white/12 flex items-center px-6 justify-between select-none relative z-20 shrink-0 shadow-[0_4px_24px_rgba(0,0,0,0.25),inset_0_1px_0_rgba(255,255,255,0.12)]"
             >
               {/* Glass Sheen Gradient */}
               <div className="absolute inset-0 bg-gradient-to-r from-white/[0.06] via-transparent to-white/[0.02] pointer-events-none" />
@@ -1270,11 +1279,12 @@ export function MemberAreaApp() {
                 )}
               </div>
 
-              {/* Scroll Progress line */}
+              {/* Scroll Progress line (Zero-re-render via transform scaleX) */}
               <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-white/[0.06] pointer-events-none">
                 <div 
-                  className="h-full bg-gradient-to-r from-[#0071e3] via-[#00c7fc] to-[#30d158] transition-[width] duration-100 ease-out" 
-                  style={{ width: `${scrollProgressPercent}%` }}
+                  ref={progressBarRef}
+                  className="h-full w-full bg-gradient-to-r from-[#0071e3] via-[#00c7fc] to-[#30d158] origin-left will-change-transform" 
+                  style={{ transform: 'scaleX(0)' }}
                 />
               </div>
             </header>

@@ -26,6 +26,8 @@ export default function IntroducaoDaVinciArticle() {
         <FullWidthImage
           src="/assets/artigos/introducao-davinci/davinci-resolve.webp"
           alt="DaVinci Resolve"
+          loading="eager"
+          fetchPriority="high"
         />
 
         <TwoColumnText
@@ -152,7 +154,10 @@ export default function IntroducaoDaVinciArticle() {
         {/* ===================================================================
             GRÁFICO REALISTA DO NODE TREE DO DAVINCI RESOLVE
             =================================================================== */}
-        <div className="my-8 rounded-2xl bg-[#141416] border border-[#2b2b30] p-5 sm:p-7 shadow-xl overflow-hidden select-none">
+        <div 
+          style={{ contain: 'layout paint' }}
+          className="my-8 rounded-2xl bg-[#141416] border border-[#2b2b30] p-5 sm:p-7 shadow-md overflow-hidden select-none"
+        >
           {/* Header estilo janela do DaVinci */}
           <div className="flex items-center justify-between pb-4 border-b border-[#232328] mb-6">
             <div className="flex items-center gap-2">
