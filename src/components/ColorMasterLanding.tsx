@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
-import { ChevronLeft, ChevronRight, Play, Pause, Volume2, VolumeX, X } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Play, Pause, Volume2, VolumeX, X, AlertTriangle } from 'lucide-react';
 import { SITE_CONFIG } from '@/config/siteConfig';
 import { trackProductClick, trackSocialClick } from '@/utils/analytics';
 import { ReticulaBackground } from '@/components/ReticulaBackground';
@@ -141,16 +141,20 @@ export const ColorMasterLanding: React.FC = () => {
   const [isPriceLoaded, setIsPriceLoaded] = useState<boolean>(false);
   const [priceData, setPriceData] = useState<{
     promoPrice: number;
+    currentBatchPrice?: number;
     regularPrice: number;
     finalPrice: number;
     batchName: string;
     nextPriceDate?: string;
+    isLaunchPhase?: boolean;
   }>({
     promoPrice: 95,
+    currentBatchPrice: 95,
     regularPrice: 195,
     finalPrice: 95,
-    batchName: 'Lote Especial de Abertura',
-    nextPriceDate: '09/10/2026'
+    batchName: 'Lote Especial de Lançamento',
+    nextPriceDate: '09/10/2026',
+    isLaunchPhase: true
   });
 
   // Tooltip de boas-vindas falando a partir do logo FLMMKR (+50% de desconto)
@@ -158,11 +162,17 @@ export const ColorMasterLanding: React.FC = () => {
   const [promoTooltipExiting, setPromoTooltipExiting] = useState<boolean>(false);
   const promoTooltipTimerRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Modais de Alerta (1:30) e Expiração (tempo esgotado)
+  // Tooltip de 'A promoção acabou' apontando para o preço (com link de 25% de desconto)
+  const [showExpiredTooltip, setShowExpiredTooltip] = useState<boolean>(false);
+  const [expiredTooltipExiting, setExpiredTooltipExiting] = useState<boolean>(false);
+  const [hasDiscount25, setHasDiscount25] = useState<boolean>(false);
+  const expiredTooltipTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const expiredTooltipDelayRef = useRef<NodeJS.Timeout | null>(null);
+  const hasTriggeredExpiredTooltipRef = useRef<boolean>(false);
+
+  // Modal de Alerta (1:30)
   const [warningModalOpen, setWarningModalOpen] = useState<boolean>(false);
-  const [expiredModalOpen, setExpiredModalOpen] = useState<boolean>(false);
   const [warningDismissed, setWarningDismissed] = useState<boolean>(false);
-  const [expiredDismissed, setExpiredDismissed] = useState<boolean>(false);
   const [deviceMac, setDeviceMac] = useState<string>('');
   const [isPastHero, setIsPastHero] = useState<boolean>(false);
   const [showNavCheckout, setShowNavCheckout] = useState<boolean>(false);
@@ -174,7 +184,7 @@ export const ColorMasterLanding: React.FC = () => {
   const hasExpiredRef = useRef<boolean>(false);
   const prevTimeLeftRef = useRef<number>(900);
 
-  // Fecha o tooltip com animação suave quadrática
+  // Fecha o tooltip do logo FLMMKR com animação suave quadrática
   const closePromoTooltip = () => {
     if (promoTooltipTimerRef.current) {
       clearTimeout(promoTooltipTimerRef.current);
@@ -206,6 +216,48 @@ export const ColorMasterLanding: React.FC = () => {
   // Retoma o timer de 4 segundos quando o mouse sai do tooltip
   const handleTooltipMouseLeave = () => {
     startTooltipAutoDismiss();
+  };
+
+  // Funções do Tooltip de Expiração apontando para o Preço
+  const closeExpiredTooltip = () => {
+    if (expiredTooltipTimerRef.current) {
+      clearTimeout(expiredTooltipTimerRef.current);
+      expiredTooltipTimerRef.current = null;
+    }
+    setExpiredTooltipExiting(true);
+    setTimeout(() => {
+      setShowExpiredTooltip(false);
+      setExpiredTooltipExiting(false);
+    }, 350);
+  };
+
+  // Some depois de 4 segundos que o tooltip apareceu
+  const startExpiredTooltipAutoDismiss = () => {
+    if (expiredTooltipTimerRef.current) clearTimeout(expiredTooltipTimerRef.current);
+    expiredTooltipTimerRef.current = setTimeout(() => {
+      closeExpiredTooltip();
+    }, 4000);
+  };
+
+  const handleExpiredTooltipMouseEnter = () => {
+    if (expiredTooltipTimerRef.current) {
+      clearTimeout(expiredTooltipTimerRef.current);
+      expiredTooltipTimerRef.current = null;
+    }
+  };
+
+  const handleExpiredTooltipMouseLeave = () => {
+    startExpiredTooltipAutoDismiss();
+  };
+
+  const handleApply25Discount = (e?: React.MouseEvent) => {
+    if (e) e.preventDefault();
+    setHasDiscount25(true);
+    try {
+      sessionStorage.setItem('flmmkr_discount_25', 'true');
+    } catch {}
+    closeExpiredTooltip();
+    setCheckoutModalOpen(true);
   };
 
   // Disparado ao concluir o preloader: se for a primeira visita, abre o tooltip no logo FLMMKR (apenas 1 vez por usuário)
@@ -313,23 +365,25 @@ export const ColorMasterLanding: React.FC = () => {
           .then((data) => {
             if (data && typeof data.remainingSeconds === 'number') {
               setTimeLeft(data.remainingSeconds);
-              setIsExpired(data.isExpired);
+              setIsExpired(Boolean(data.isExpired));
               setPriceData({
                 promoPrice: data.promoPrice,
+                currentBatchPrice: data.currentBatchPrice || data.finalPrice,
                 regularPrice: data.regularPrice,
                 finalPrice: data.finalPrice,
                 batchName: data.batchName,
-                nextPriceDate: data.nextPriceDate
+                nextPriceDate: data.nextPriceDate,
+                isLaunchPhase: Boolean(data.isLaunchPhase)
               });
 
-              // Se o cronômetro estiver zerado e o usuário acessar a página novamente,
-              // o modal dizendo que a promoção acabou só aparece no máximo 2 vezes para o mesmo usuário
-              if (data.isExpired || data.remainingSeconds <= 0) {
-                const views = getExpiredModalViews(mac);
-                if (views < MAX_EXPIRED_MODAL_VIEWS) {
-                  recordExpiredModalView(mac);
-                  setExpiredModalOpen(true);
-                }
+              // Tooltip apontando para o preço quando o tempo já estiver expirado:
+              // Só aparece depois de 1 segundo que a página abriu e some 4 segundos após aparecer
+              if (data.isExpired && !data.isLaunchPhase && !hasTriggeredExpiredTooltipRef.current) {
+                hasTriggeredExpiredTooltipRef.current = true;
+                expiredTooltipDelayRef.current = setTimeout(() => {
+                  setShowExpiredTooltip(true);
+                  startExpiredTooltipAutoDismiss();
+                }, 1000);
               }
             }
           });
@@ -348,11 +402,23 @@ export const ColorMasterLanding: React.FC = () => {
       })
       .catch(() => {});
 
-    return () => clearTimeout(safetyTimeout);
+    try {
+      if (sessionStorage.getItem('flmmkr_discount_25') === 'true') {
+        setHasDiscount25(true);
+      }
+    } catch {}
+
+    return () => {
+      clearTimeout(safetyTimeout);
+      if (expiredTooltipDelayRef.current) clearTimeout(expiredTooltipDelayRef.current);
+      if (expiredTooltipTimerRef.current) clearTimeout(expiredTooltipTimerRef.current);
+    };
   }, []);
 
-  // Intervalo local do cronômetro de 15 minutos
+  // Intervalo local do cronômetro de 15 minutos (só roda se não estiver na fase de lançamento)
   useEffect(() => {
+    if (priceData.isLaunchPhase) return;
+
     if (timeLeft <= 0) {
       setIsExpired(true);
       return;
@@ -369,10 +435,12 @@ export const ColorMasterLanding: React.FC = () => {
     }, 1000);
 
     return () => clearInterval(timer);
-  }, [timeLeft]);
+  }, [timeLeft, priceData.isLaunchPhase]);
 
-  // Monitoramento do cronômetro para os Modais de Aviso (01:30) e Expiração (tempo esgotado)
+  // Monitoramento do cronômetro para o Modal de Aviso (01:30) e Tooltip de Expiração
   useEffect(() => {
+    if (priceData.isLaunchPhase) return;
+
     const prev = prevTimeLeftRef.current;
     prevTimeLeftRef.current = timeLeft;
 
@@ -383,16 +451,19 @@ export const ColorMasterLanding: React.FC = () => {
     }
 
     // 2. Quando o tempo acabar (zerar o cronômetro)
-    if (timeLeft <= 0 && prev > 0 && !hasExpiredRef.current && !expiredDismissed) {
+    if (timeLeft <= 0 && prev > 0 && !hasExpiredRef.current) {
       hasExpiredRef.current = true;
+      setIsExpired(true);
       setWarningModalOpen(false); // Fecha o modal de aviso se ainda estivesse aberto
-      const views = getExpiredModalViews(deviceMac);
-      if (views < MAX_EXPIRED_MODAL_VIEWS) {
-        recordExpiredModalView(deviceMac);
-        setExpiredModalOpen(true); // Abre o modal de expiração com o valor real
+      if (!hasTriggeredExpiredTooltipRef.current) {
+        hasTriggeredExpiredTooltipRef.current = true;
+        expiredTooltipDelayRef.current = setTimeout(() => {
+          setShowExpiredTooltip(true);
+          startExpiredTooltipAutoDismiss();
+        }, 1000);
       }
     }
-  }, [timeLeft, warningDismissed, expiredDismissed]);
+  }, [timeLeft, warningDismissed, priceData.isLaunchPhase]);
 
 
   const formatTime = (seconds: number) => {
@@ -528,6 +599,18 @@ export const ColorMasterLanding: React.FC = () => {
     return 'https://www.asaas.com/000/c/iv2p2s5tkbt1qi79'; // R$ 195 (Regular)
   };
 
+  // Preço base do lote vigente
+  const baseBatchPrice = priceData.isLaunchPhase
+    ? 95
+    : !isExpired
+    ? 95
+    : (priceData.currentBatchPrice || priceData.regularPrice);
+
+  // Preço final (com 25% de desconto caso acionado pelo tooltip)
+  const displayPrice = hasDiscount25 && isExpired
+    ? Math.round(baseBatchPrice * 0.75)
+    : baseBatchPrice;
+
   return (
     <div className="min-h-screen bg-[#f5f5f7] text-[#1d1d1f] font-sans antialiased selection:bg-[#0071e3]/20 selection:text-[#0071e3]">
       {/* Brand Transition Preloader */}
@@ -540,24 +623,22 @@ export const ColorMasterLanding: React.FC = () => {
       <CheckoutModal
         isOpen={checkoutModalOpen}
         onClose={() => setCheckoutModalOpen(false)}
-        price={priceData.promoPrice}
+        price={displayPrice}
         regularPrice={priceData.regularPrice}
         isExpired={isExpired}
         macAddress={deviceMac}
+        hasDiscount25={hasDiscount25}
       />
 
-      {/* Modais de Alerta (1:30) e Expiração (Preço Real) */}
+      {/* Modais de Alerta (1:30) */}
       <PromoModals
         warningOpen={warningModalOpen}
         onCloseWarning={() => {
           setWarningModalOpen(false);
           setWarningDismissed(true);
         }}
-        expiredOpen={expiredModalOpen}
-        onCloseExpired={() => {
-          setExpiredModalOpen(false);
-          setExpiredDismissed(true);
-        }}
+        expiredOpen={false}
+        onCloseExpired={() => {}}
         timeLeft={timeLeft}
         promoPrice={priceData.promoPrice}
         regularPrice={priceData.regularPrice}
@@ -566,8 +647,8 @@ export const ColorMasterLanding: React.FC = () => {
         onOpenCheckout={() => setCheckoutModalOpen(true)}
       />
 
-      {/* TOP FIXED COUNTDOWN BANNER (SÓ APARECE APÓS SAIR DA HERO E ENQUANTO NÃO EXPIRADO) */}
-      {!isExpired && (
+      {/* TOP FIXED COUNTDOWN BANNER (SÓ APARECE APÓS SAIR DA HERO E SE NÃO ESTIVER NA FASE DE LANÇAMENTO NEM EXPIRADO) */}
+      {!isExpired && !priceData.isLaunchPhase && (
         <div
           className={`fixed top-0 inset-x-0 z-50 w-full transition-all duration-400 [transition-timing-function:cubic-bezier(0.45,0,0.55,1)] ${
             showStickyTimer
@@ -1513,40 +1594,151 @@ export const ColorMasterLanding: React.FC = () => {
               </div>
             </div>
 
-            {/* Dynamic Price Box with 15-min countdown condition */}
-            <div className="mb-6 sm:mb-8">
-              {!isExpired ? (
+            {/* Dynamic Price Box with 15-min countdown condition and Expired Tooltip */}
+            <div id="price-box" className="relative mb-6 sm:mb-8">
+              {/* Tooltip 'A promoção acabou' Apontando Diretamente para o Preço */}
+              {showExpiredTooltip && (
+                <aside
+                  role="status"
+                  aria-live="polite"
+                  aria-label="Aviso de promoção de lançamento encerrada com oferta de 25% de desconto"
+                  onMouseEnter={handleExpiredTooltipMouseEnter}
+                  onMouseLeave={handleExpiredTooltipMouseLeave}
+                  className={`absolute bottom-[calc(100%+14px)] left-1/2 -translate-x-1/2 z-50 w-[92vw] max-w-[360px] sm:max-w-[410px] rounded-2xl bg-[#16161a]/95 backdrop-blur-2xl border border-amber-500/40 shadow-[0_16px_40px_-8px_rgba(0,0,0,0.8),0_0_24px_rgba(245,158,11,0.2)] p-4 text-white text-left select-none ${
+                    expiredTooltipExiting ? 'animate-price-tooltip-exit' : 'animate-price-tooltip-enter'
+                  }`}
+                  style={{
+                    WebkitBackdropFilter: 'blur(24px)',
+                  }}
+                >
+                  {/* Rabicho do balão apontando para o box do preço abaixo */}
+                  <div
+                    className="absolute -bottom-2.5 left-1/2 -translate-x-1/2 w-0 h-0 border-x-[8px] border-x-transparent border-t-[10px] border-t-amber-500/50"
+                    aria-hidden="true"
+                  />
+                  <div
+                    className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-0 h-0 border-x-[7px] border-x-transparent border-t-[8px] border-t-[#16161a]"
+                    aria-hidden="true"
+                  />
+
+                  {/* Header do Tooltip com Tag e Botão Fechar */}
+                  <div className="flex items-center justify-between gap-2 mb-2">
+                    <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-amber-500/15 border border-amber-500/30 text-amber-300 text-[11px] font-semibold uppercase tracking-wider">
+                      <AlertTriangle className="w-3 h-3 text-amber-400" />
+                      <span>A promoção de R$ 95 acabou</span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={closeExpiredTooltip}
+                      className="p-1 -m-1 text-white/50 hover:text-white transition-colors rounded-full hover:bg-white/10 cursor-pointer"
+                      aria-label="Fechar aviso"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+
+                  {/* Texto lamentando pelo fato de ter perdido */}
+                  <p className="text-[13px] leading-snug text-white/90 font-normal mb-2.5">
+                    Que pena! A condição especial de lançamento encerrou e o período de 15 minutos expirou.
+                  </p>
+
+                  {/* Chamada para ganhar 25% de desconto */}
+                  <div className="p-2.5 rounded-xl bg-white/5 border border-white/10 mb-2.5 flex items-center justify-between gap-2">
+                    <span className="text-[12px] text-white/80">
+                      Quer resgatar <strong className="text-emerald-400 font-bold">25% de desconto</strong> no valor vigente?
+                    </span>
+                    <span className="text-xs font-bold text-emerald-400 shrink-0 bg-emerald-500/10 px-2 py-0.5 rounded-md border border-emerald-500/20">
+                      25% OFF
+                    </span>
+                  </div>
+
+                  {/* Link / Botão no próprio tooltip para garantir o desconto */}
+                  <button
+                    type="button"
+                    onClick={handleApply25Discount}
+                    className="w-full py-2 px-3 rounded-full bg-amber-400 hover:bg-amber-300 text-[#121214] font-bold text-[12.5px] shadow-sm transition-all active:scale-95 flex items-center justify-center gap-1 cursor-pointer"
+                  >
+                    <span>Garantir 25% de desconto agora →</span>
+                  </button>
+                </aside>
+              )}
+
+              {/* Conteúdo do Price Box */}
+              {priceData.isLaunchPhase ? (
                 <>
-                  <div className="inline-block px-3 py-1 rounded-full bg-[#0071e3]/10 text-[#0071e3] text-[12px] font-semibold uppercase tracking-[0.04em] mb-2 border border-[#0071e3]/20">
-                    Tempo Restante: {formatTime(timeLeft)}
+                  <div className="inline-block px-3.5 py-1 rounded-full bg-[#0071e3]/10 text-[#0071e3] text-[12px] font-semibold uppercase tracking-[0.04em] mb-2 border border-[#0071e3]/20">
+                    Lote Especial de Lançamento • Válido até 09/10
                   </div>
                   <span className="text-[13px] sm:text-sm text-[#86868b] block line-through">
                     De R$ 195 por apenas:
                   </span>
                   <div className="text-[39px] leading-tight sm:text-5xl md:text-6xl font-extrabold text-[#1d1d1f] tracking-tight mt-1">
-                    R$ {priceData.promoPrice} <span className="text-base sm:text-xl font-normal text-[#6e6e73]">no Pix</span>
+                    R$ 95 <span className="text-base sm:text-xl font-normal text-[#6e6e73]">no Pix</span>
                   </div>
                   <div className="text-[15px] sm:text-lg font-bold text-[#0071e3] mt-1.5 sm:mt-2">
-                    ou em {formatInstallment(priceData.promoPrice)} no cartão
+                    ou em {formatInstallment(95)} no cartão
                   </div>
                   <span className="text-[12px] sm:text-sm font-medium text-[#86868b] mt-1.5 block">
-                    {priceData.batchName} {priceData.nextPriceDate ? `(Válido até ${priceData.nextPriceDate})` : ''}
+                    {priceData.batchName} (Garantido até 09/10/2026 às 23:59)
+                  </span>
+                </>
+              ) : !isExpired ? (
+                <>
+                  <div className="inline-block px-3 py-1 rounded-full bg-[#0071e3]/10 text-[#0071e3] text-[12px] font-semibold uppercase tracking-[0.04em] mb-2 border border-[#0071e3]/20">
+                    Tempo Restante: {formatTime(timeLeft)}
+                  </div>
+                  <span className="text-[13px] sm:text-sm text-[#86868b] block line-through">
+                    De R$ {priceData.currentBatchPrice || 195} por apenas:
+                  </span>
+                  <div className="text-[39px] leading-tight sm:text-5xl md:text-6xl font-extrabold text-[#1d1d1f] tracking-tight mt-1">
+                    R$ 95 <span className="text-base sm:text-xl font-normal text-[#6e6e73]">no Pix</span>
+                  </div>
+                  <div className="text-[15px] sm:text-lg font-bold text-[#0071e3] mt-1.5 sm:mt-2">
+                    ou em {formatInstallment(95)} no cartão
+                  </div>
+                  <span className="text-[12px] sm:text-sm font-medium text-[#86868b] mt-1.5 block">
+                    Condição Especial de 15 Minutos (Promoção de Lançamento)
                   </span>
                 </>
               ) : (
                 <>
-                  <div className="inline-block px-3 py-1 rounded-full bg-red-500/10 text-red-600 text-[12px] font-semibold uppercase tracking-[0.04em] mb-2 border border-red-500/30">
-                    Tempo de 15 Minutos Expirado
-                  </div>
-                  <span className="text-[12px] text-[#86868b] uppercase font-semibold tracking-[0.04em] block mb-1">
-                    Preço Regular Oficial
-                  </span>
-                  <div className="text-[39px] leading-tight sm:text-5xl md:text-6xl font-extrabold text-[#1d1d1f] tracking-tight">
-                    R$ 195 <span className="text-base sm:text-xl font-normal text-[#6e6e73]">no Pix</span>
-                  </div>
-                  <div className="text-[15px] sm:text-lg font-bold text-[#0071e3] mt-1.5 sm:mt-2">
-                    ou em {formatInstallment(195)} no cartão
-                  </div>
+                  {hasDiscount25 ? (
+                    <>
+                      <div className="inline-block px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-600 text-[12px] font-semibold uppercase tracking-[0.04em] mb-2 border border-emerald-500/30">
+                        Desconto Especial de 25% OFF Ativado
+                      </div>
+                      <span className="text-[13px] sm:text-sm text-[#86868b] block line-through">
+                        De R$ {baseBatchPrice} por apenas:
+                      </span>
+                      <div className="text-[39px] leading-tight sm:text-5xl md:text-6xl font-extrabold text-[#1d1d1f] tracking-tight">
+                        R$ {displayPrice} <span className="text-base sm:text-xl font-normal text-[#6e6e73]">no Pix</span>
+                      </div>
+                      <div className="text-[15px] sm:text-lg font-bold text-emerald-600 mt-1.5 sm:mt-2">
+                        ou em {formatInstallment(displayPrice)} no cartão
+                      </div>
+                      <span className="text-[12px] sm:text-sm font-medium text-emerald-600 mt-1.5 block">
+                        25% de Desconto Garantido no Checkout
+                      </span>
+                    </>
+                  ) : (
+                    <>
+                      <div className="inline-block px-3 py-1 rounded-full bg-red-500/10 text-red-600 text-[12px] font-semibold uppercase tracking-[0.04em] mb-2 border border-red-500/30">
+                        Tempo de 15 Minutos Expirado
+                      </div>
+                      <span className="text-[12px] text-[#86868b] uppercase font-semibold tracking-[0.04em] block mb-1">
+                        Preço Vigente Oficial
+                      </span>
+                      <div className="text-[39px] leading-tight sm:text-5xl md:text-6xl font-extrabold text-[#1d1d1f] tracking-tight">
+                        R$ {displayPrice} <span className="text-base sm:text-xl font-normal text-[#6e6e73]">no Pix</span>
+                      </div>
+                      <div className="text-[15px] sm:text-lg font-bold text-[#0071e3] mt-1.5 sm:mt-2">
+                        ou em {formatInstallment(displayPrice)} no cartão
+                      </div>
+                      <span className="text-[12px] sm:text-sm font-medium text-[#86868b] mt-1.5 block">
+                        {priceData.batchName} {priceData.nextPriceDate ? `(Válido até ${priceData.nextPriceDate})` : ''}
+                      </span>
+                    </>
+                  )}
                 </>
               )}
             </div>
@@ -1686,7 +1878,7 @@ export const ColorMasterLanding: React.FC = () => {
           <div className="flex flex-col pl-1 min-w-0">
             <span className="text-[10px] text-white/60 uppercase font-bold tracking-wider leading-none">Acesso Completo</span>
             <span className="text-sm font-extrabold text-white mt-0.5 leading-none truncate">
-              {!isExpired ? <span className="text-[130%] inline-block font-black">R$ {priceData.promoPrice}</span> : 'R$ 195'}
+              <span className="text-[130%] inline-block font-black">R$ {displayPrice}</span>
               <span className="text-[10px] font-normal text-white/60 ml-1">no Pix</span>
             </span>
           </div>

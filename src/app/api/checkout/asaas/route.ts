@@ -41,7 +41,8 @@ export async function POST(req: NextRequest) {
       creditCardHolderInfo,
       billingInfo,
       macAddress,
-      isExpired = false
+      isExpired = false,
+      hasDiscount25 = false
     } = requestData;
 
     // 1. Validação básica de entrada
@@ -80,30 +81,51 @@ export async function POST(req: NextRequest) {
       referrer: finalReferrer || undefined
     };
 
-    let isRealExpired = isExpired;
+    const batchInfo = getCurrentBatchPrice(new Date());
+    let isRealExpired = false;
+
     if (productId !== 'color-master-completo') {
-      try {
-        const timerSession = await resolveOfferTimerSession({
-          macAddress: finalMac,
-          ip,
-          userAgent: req.headers.get('user-agent') || undefined
-        });
-        const now = Date.now();
-        const expiresAtTime = new Date(timerSession.expiresAt).getTime();
-        isRealExpired = now >= expiresAtTime || timerSession.isExpired;
-      } catch (timerErr) {
-        console.warn('Erro ao validar timer no checkout:', timerErr);
+      if (batchInfo.isLaunchPhase) {
+        // Até 09/10/2026 às 23:59:59: Preço fixo de R$ 95 sem contagem regressiva de expiração
+        isRealExpired = false;
+      } else {
+        try {
+          const timerSession = await resolveOfferTimerSession({
+            macAddress: finalMac,
+            ip,
+            userAgent: req.headers.get('user-agent') || undefined
+          });
+          const now = Date.now();
+          const expiresAtTime = new Date(timerSession.expiresAt).getTime();
+          isRealExpired = now >= expiresAtTime || timerSession.isExpired;
+        } catch (timerErr) {
+          console.warn('Erro ao validar timer no checkout:', timerErr);
+          isRealExpired = Boolean(isExpired);
+        }
       }
     }
 
     // 3. Definir valor baseado no lote promocional e expiração validada pelo servidor
-    const batchInfo = getCurrentBatchPrice(new Date());
-    let productValue = isRealExpired ? batchInfo.regularPrice : batchInfo.promoPrice;
+    let productValue = 95;
     let productDescription = `Masterclass Color Master | Produto (${batchInfo.batchName})`;
 
     if (productId === 'color-master-completo') {
       productValue = 497.0;
       productDescription = 'Color Master Completo - FLMMKR';
+    } else if (batchInfo.isLaunchPhase) {
+      // Fase de lançamento (até 09/10): valor garantido R$ 95
+      productValue = 95;
+    } else {
+      // Pós-lançamento (a partir de 10/10):
+      // Se não expirou (dentro dos 15 min): R$ 95 (promoção antiga garantida)
+      // Se expirou: preço vigente do momento (R$ 125, R$ 150 ou R$ 195)
+      productValue = isRealExpired ? batchInfo.currentBatchPrice : 95;
+
+      // Se aplicou desconto de 25% pelo link do tooltip após expirar:
+      if (hasDiscount25 && isRealExpired) {
+        productValue = Math.round(batchInfo.currentBatchPrice * 0.75);
+        productDescription += ' (Desconto Especial 25% OFF)';
+      }
     }
 
     // Determinar dados de cobrança (se foram informados dados diferentes do cadastro)

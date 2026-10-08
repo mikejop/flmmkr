@@ -19,6 +19,35 @@ export async function GET(req: NextRequest) {
   const headerMac = req.headers.get('x-device-mac');
   const macAddress = (searchParams.get('macAddress') || headerMac || cookieMac || '').trim();
 
+  const batchInfo = getCurrentBatchPrice(new Date());
+
+  // Se estiver na Fase de Lançamento (até 09/10 às 23:59:59):
+  // R$ 95 garantido sem cronômetro de 15 minutos contando/expirando
+  if (batchInfo.isLaunchPhase) {
+    const response = NextResponse.json({
+      remainingSeconds: 0,
+      isExpired: false,
+      isLaunchPhase: true,
+      promoPrice: 95,
+      currentBatchPrice: 95,
+      regularPrice: batchInfo.regularPrice,
+      finalPrice: 95,
+      batchName: batchInfo.batchName,
+      nextPriceDate: batchInfo.nextPriceDate
+    });
+
+    if (macAddress) {
+      response.cookies.set('flmmkr_device_mac', macAddress, {
+        maxAge: 36 * 60 * 60,
+        path: '/',
+        sameSite: 'lax'
+      });
+    }
+
+    return response;
+  }
+
+  // Pós-Lançamento (a partir de 10/10):
   // 3. Resolução da sessão no servidor (Prioridade 1: MAC | Prioridade 2: IP | Cooldown 36h)
   const session = await resolveOfferTimerSession({
     macAddress,
@@ -31,15 +60,17 @@ export async function GET(req: NextRequest) {
   const remainingSeconds = Math.max(0, Math.floor((expiresAtTime - now) / 1000));
   const isExpired = remainingSeconds <= 0;
 
-  // 4. Preço baseado no lote e no estado de expiração estrito do servidor
-  const batchInfo = getCurrentBatchPrice(new Date());
-  const finalPrice = isExpired ? batchInfo.regularPrice : batchInfo.promoPrice;
+  // Enquanto dentro dos 15 minutos: R$ 95 (promoção antiga de +50% OFF)
+  // Após expirar: preço vigente do momento (R$ 125 até 13/10; R$ 150 até 17/10; R$ 195 após 18/10)
+  const finalPrice = isExpired ? batchInfo.currentBatchPrice : batchInfo.promoPrice;
 
   // 5. Resposta: Omitir deliberadamente cooldownUntil e regras de reset para proteger as regras de negócio
   const response = NextResponse.json({
     remainingSeconds,
     isExpired,
+    isLaunchPhase: false,
     promoPrice: batchInfo.promoPrice,
+    currentBatchPrice: batchInfo.currentBatchPrice,
     regularPrice: batchInfo.regularPrice,
     finalPrice,
     batchName: batchInfo.batchName,

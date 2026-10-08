@@ -21,19 +21,27 @@ export const COOLDOWN_DURATION_MS = 36 * 60 * 60 * 1000; // 36 horas após expir
 const macMemoryCache = new Map<string, UserTimerRecord>();
 const ipMemoryCache = new Map<string, UserTimerRecord>();
 
-/**
- * Função para calcular o preço promocional de acordo com as datas dos lotes:
- * - Até 09/10/2026 (Sexta-feira 23:59:59): R$ 95 (Lote Especial de Abertura)
- * - De 10/10/2026 até 13/10/2026 (Terça-feira 23:59:59 - intervalo de 3 dias): R$ 125 (2º Lote)
- * - De 14/10/2026 até 17/10/2026 (Sábado 23:59:59 - intervalo de 3 dias): R$ 150 (3º Lote)
- * - A partir de 18/10/2026: R$ 195 (Preço Oficial Regular)
- */
-export function getCurrentBatchPrice(now: Date = new Date()): {
+export interface BatchPriceInfo {
   promoPrice: number;
+  currentBatchPrice: number;
   regularPrice: number;
   batchName: string;
   nextPriceDate?: string;
-} {
+  isLaunchPhase: boolean;
+}
+
+export const LOTE1_END_ISO = '2026-10-09T23:59:59-03:00';
+export const LOTE2_END_ISO = '2026-10-13T23:59:59-03:00';
+export const LOTE3_END_ISO = '2026-10-17T23:59:59-03:00';
+
+/**
+ * Função para calcular o preço promocional de acordo com as datas dos lotes:
+ * - Até 09/10/2026 (Sexta-feira 23:59:59): R$ 95 (Lote Especial de Lançamento - Sem cronômetro de 15 min)
+ * - De 10/10/2026 até 13/10/2026 (Terça-feira 23:59:59): R$ 125 (2º Lote - Cronômetro de 15 min para garantir R$ 95)
+ * - De 14/10/2026 até 17/10/2026 (Sábado 23:59:59): R$ 150 (3º Lote - Cronômetro de 15 min para garantir R$ 95)
+ * - A partir de 18/10/2026: R$ 195 (Preço Oficial Regular - Cronômetro de 15 min para garantir R$ 95)
+ */
+export function getCurrentBatchPrice(now: Date = new Date()): BatchPriceInfo {
   const regularPrice = 195;
   const currentYear = now.getFullYear();
 
@@ -42,41 +50,53 @@ export function getCurrentBatchPrice(now: Date = new Date()): {
     refDate.setFullYear(2026);
   }
 
-  const lote1End = new Date('2026-10-09T23:59:59-03:00');
-  const lote2End = new Date('2026-10-13T23:59:59-03:00');
-  const lote3End = new Date('2026-10-17T23:59:59-03:00');
+  const lote1End = new Date(LOTE1_END_ISO);
+  const lote2End = new Date(LOTE2_END_ISO);
+  const lote3End = new Date(LOTE3_END_ISO);
 
+  // 1. Fase de Lançamento: Até 09/10/2026 às 23:59:59
   if (refDate <= lote1End) {
     return {
       promoPrice: 95,
+      currentBatchPrice: 95,
       regularPrice,
-      batchName: 'Lote Especial de Abertura',
-      nextPriceDate: '09/10/2026'
+      batchName: 'Lote Especial de Lançamento',
+      nextPriceDate: '09/10/2026',
+      isLaunchPhase: true
     };
   }
 
+  // 2. 2º Lote: De 10/10/2026 até 13/10/2026 às 23:59:59
   if (refDate <= lote2End) {
     return {
-      promoPrice: 125,
+      promoPrice: 95,
+      currentBatchPrice: 125,
       regularPrice,
       batchName: '2º Lote Promocional',
-      nextPriceDate: '13/10/2026'
+      nextPriceDate: '13/10/2026',
+      isLaunchPhase: false
     };
   }
 
+  // 3. 3º Lote: De 14/10/2026 até 17/10/2026 às 23:59:59
   if (refDate <= lote3End) {
     return {
-      promoPrice: 150,
+      promoPrice: 95,
+      currentBatchPrice: 150,
       regularPrice,
       batchName: '3º Lote Promocional',
-      nextPriceDate: '17/10/2026'
+      nextPriceDate: '17/10/2026',
+      isLaunchPhase: false
     };
   }
 
+  // 4. Preço Oficial Regular: A partir de 18/10/2026
   return {
-    promoPrice: regularPrice,
+    promoPrice: 95,
+    currentBatchPrice: regularPrice,
     regularPrice,
-    batchName: 'Preço Oficial Regular'
+    batchName: 'Preço Oficial Regular',
+    isLaunchPhase: false
   };
 }
 
@@ -217,6 +237,70 @@ export async function resolveOfferTimerSession(params: {
         console.warn('[Timer] Erro na busca por IP:', err?.message || err);
       }
     }
+  }
+
+  const lote1EndTimestamp = new Date(LOTE1_END_ISO).getTime();
+
+  // Se ainda estiver na fase de lançamento (até 09/10/2026 às 23:59:59):
+  // O cronômetro de 15 minutos NÃO roda nem expira!
+  if (now <= lote1EndTimestamp) {
+    if (session) {
+      session.isExpired = false;
+      return session;
+    }
+    const firstAccessAt = new Date(now).toISOString();
+    const expiresAt = new Date(lote1EndTimestamp + TIMER_DURATION_MS).toISOString();
+    const cooldownUntil = new Date(lote1EndTimestamp + TIMER_DURATION_MS + COOLDOWN_DURATION_MS).toISOString();
+    const clientIdentifier = `${macAddress || 'dev'}_${ip.replace(/[^a-zA-Z0-9]/g, '_')}`;
+
+    const newRecord: UserTimerRecord = {
+      macAddress: macAddress || `mac_anon_${Date.now()}`,
+      ip,
+      clientIdentifier,
+      userAgent,
+      firstAccessAt,
+      expiresAt,
+      cooldownUntil,
+      isExpired: false
+    };
+    updateMemoryCache(newRecord);
+    return newRecord;
+  }
+
+  // Pós-lançamento (a partir de 10/10/2026):
+  // Se a sessão existente foi criada durante o lançamento (antes do término de lote1),
+  // o usuário ganha os 15 minutos cheios a partir do seu primeiro acesso pós-lançamento!
+  if (session && new Date(session.firstAccessAt).getTime() <= lote1EndTimestamp) {
+    const firstAccessAt = new Date(now).toISOString();
+    const expiresAt = new Date(now + TIMER_DURATION_MS).toISOString();
+    const cooldownUntil = new Date(now + TIMER_DURATION_MS + COOLDOWN_DURATION_MS).toISOString();
+
+    session = {
+      ...session,
+      firstAccessAt,
+      expiresAt,
+      cooldownUntil,
+      isExpired: false
+    };
+
+    updateMemoryCache(session);
+
+    if (supabase) {
+      try {
+        await supabase
+          .from('offer_timer_sessions')
+          .update({
+            first_access_at: firstAccessAt,
+            expires_at: expiresAt,
+            cooldown_until: cooldownUntil,
+            is_expired: false,
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', session.id);
+      } catch {}
+    }
+
+    return session;
   }
 
   // 3. SE EXISTIR SESSÃO: Verificar o Cooldown de 36 Horas para Reset Silencioso

@@ -29,6 +29,7 @@ interface CheckoutModalProps {
   regularPrice?: number;
   isExpired?: boolean;
   macAddress?: string;
+  hasDiscount25?: boolean;
 }
 
 const PROFESSIONS = [
@@ -46,7 +47,8 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
   price = 95,
   regularPrice = 195,
   isExpired = false,
-  macAddress
+  macAddress,
+  hasDiscount25 = false
 }) => {
   // Modal visibility & animation
   const [visible, setVisible] = useState(false);
@@ -580,6 +582,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
             billingInfo,
             macAddress,
             isExpired,
+            hasDiscount25,
             trafficSource: attr?.sourceName,
             utmSource: attr?.utmSource,
             referrer: attr?.referrer
@@ -633,6 +636,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
             billingInfo,
             macAddress,
             isExpired,
+            hasDiscount25,
             trafficSource: attr?.sourceName,
             utmSource: attr?.utmSource,
             referrer: attr?.referrer
