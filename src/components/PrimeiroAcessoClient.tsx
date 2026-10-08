@@ -2,7 +2,7 @@
 
 import React, { useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
-import { Eye, EyeOff, Check, X, ShieldAlert, Loader2, CheckCircle2 } from 'lucide-react';
+import { Eye, EyeOff, Check, ShieldAlert, Loader2, CheckCircle2 } from 'lucide-react';
 import { createClient } from '@/utils/supabase/client';
 import { detectSqlInjection } from '@/utils/security';
 
@@ -105,135 +105,135 @@ export function PrimeiroAcessoClient({ initialToken = '' }: PrimeiroAcessoProps)
     }
   };
 
+  const Requirement = ({ ok, label }: { ok: boolean; label: string }) => (
+    <div className={`flex items-center gap-2 transition-colors duration-300 ${ok ? 'text-[#1d1d1f]' : 'text-[#86868b]'}`}>
+      <span
+        className={`flex items-center justify-center w-4 h-4 rounded-full shrink-0 transition-all duration-300 ${
+          ok ? 'bg-[#0071e3]' : 'border border-[#d2d2d7] bg-white'
+        }`}
+      >
+        {ok && <Check className="w-2.5 h-2.5 text-white" strokeWidth={3} />}
+      </span>
+      <span>{label}</span>
+    </div>
+  );
+
+  const inputClass =
+    'w-full bg-white border border-[#d2d2d7] rounded-xl px-4 h-14 text-[17px] text-[#1d1d1f] placeholder-[#86868b] focus:outline-none focus:border-[#0071e3] focus:ring-4 focus:ring-[#0071e3]/15 transition-all pr-12';
+
   return (
-    <div className="min-h-screen bg-[#070709] text-white flex flex-col items-center justify-center px-4 py-12 selection:bg-white selection:text-black">
-      <div className="w-full max-w-sm flex flex-col items-center">
+    <div className="min-h-screen bg-white text-[#1d1d1f] flex flex-col items-center justify-center px-5 py-16 antialiased selection:bg-[#0071e3]/20 selection:text-[#1d1d1f] font-[-apple-system,BlinkMacSystemFont,'SF_Pro_Display','SF_Pro_Text','Helvetica_Neue',Helvetica,Arial,sans-serif]">
+      <div className="w-full max-w-[400px] flex flex-col items-center">
         {/* Marca Minimalista: Apenas o nome FLMMKR e embaixo o nome do produto */}
-        <div className="text-center mb-8 sm:mb-10 select-none">
-          <h1 className="text-2xl sm:text-3xl font-black tracking-[0.22em] text-white">
+        <div className="text-center mb-10 sm:mb-12 select-none">
+          <h1 className="text-[40px] sm:text-[48px] leading-none font-semibold tracking-[-0.01em] text-[#1d1d1f]">
             FLMMKR
           </h1>
-          <p className="text-[11px] sm:text-xs uppercase tracking-[0.18em] text-zinc-400 mt-1 font-mono font-medium">
+          <p className="text-[15px] sm:text-[17px] text-[#6e6e73] mt-3 font-normal tracking-[-0.01em]">
             COLOR MASTER® | PRODUTO
           </p>
         </div>
 
         {/* Mensagem de Sucesso */}
         {success ? (
-          <div className="w-full bg-emerald-500/10 border border-emerald-500/30 rounded-2xl p-6 text-center animate-fadeIn">
-            <CheckCircle2 className="w-10 h-10 text-emerald-400 mx-auto mb-3" />
-            <h3 className="text-base font-semibold text-white mb-1">Acesso Liberado!</h3>
-            <p className="text-xs text-zinc-300">
-              Sua senha foi criptografada e salva com sucesso. Entrando na Área do Aluno...
+          <div className="w-full bg-[#f5f5f7] rounded-[22px] p-8 text-center animate-fadeIn">
+            <CheckCircle2 className="w-12 h-12 text-[#0071e3] mx-auto mb-4" strokeWidth={1.5} />
+            <h3 className="text-[21px] font-semibold text-[#1d1d1f] mb-1.5 tracking-[-0.01em]">Acesso liberado.</h3>
+            <p className="text-[15px] text-[#6e6e73] leading-relaxed">
+              Sua senha foi criada com segurança. Entrando na Área do Aluno…
             </p>
           </div>
         ) : (
-          <form onSubmit={handleSubmit} className="w-full space-y-4">
+          <form onSubmit={handleSubmit} className="w-full space-y-5">
+            <h2 className="text-[24px] font-semibold text-center tracking-[-0.01em] text-[#1d1d1f] mb-1">
+              Crie sua senha
+            </h2>
+            <p className="text-[15px] text-[#6e6e73] text-center -mt-3 mb-2">
+              Defina uma senha para acessar a sua área do aluno.
+            </p>
+
             {/* Mensagem de Erro com Bloqueador */}
             {errorMessage && (
-              <div className="bg-red-500/10 border border-red-500/25 rounded-xl p-3.5 flex items-start gap-2.5 text-red-400 text-xs leading-relaxed animate-fadeIn">
+              <div className="bg-[#fff2f2] border border-[#ffd6d6] rounded-xl p-3.5 flex items-start gap-2.5 text-[#d70015] text-[13px] leading-relaxed animate-fadeIn">
                 <ShieldAlert className="w-4 h-4 shrink-0 mt-0.5" />
                 <span>{errorMessage}</span>
               </div>
             )}
 
             {/* Campo de Senha */}
-            <div className="space-y-1.5">
-              <label className="text-[11px] uppercase tracking-wider text-zinc-400 font-mono block">
-                Criar Senha
-              </label>
-              <div className="relative">
-                <input
-                  type={showPassword ? 'text' : 'password'}
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="Digite sua nova senha"
-                  required
-                  autoComplete="new-password"
-                  className="w-full bg-[#111218] border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder-zinc-500 focus:outline-none focus:border-white/40 transition-colors pr-11 font-mono"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-white transition-colors cursor-pointer"
-                  tabIndex={-1}
-                >
-                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                </button>
-              </div>
+            <div className="relative">
+              <label className="sr-only">Criar senha</label>
+              <input
+                type={showPassword ? 'text' : 'password'}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="Nova senha"
+                required
+                autoComplete="new-password"
+                aria-label="Criar senha"
+                className={inputClass}
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-[#86868b] hover:text-[#1d1d1f] transition-colors cursor-pointer"
+                tabIndex={-1}
+                aria-label={showPassword ? 'Ocultar senha' : 'Mostrar senha'}
+              >
+                {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+              </button>
             </div>
 
             {/* Campo de Confirmar Senha */}
-            <div className="space-y-1.5">
-              <label className="text-[11px] uppercase tracking-wider text-zinc-400 font-mono block">
-                Confirmar Senha
-              </label>
-              <div className="relative">
-                <input
-                  type={showConfirmPassword ? 'text' : 'password'}
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  placeholder="Repita sua nova senha"
-                  required
-                  autoComplete="new-password"
-                  className="w-full bg-[#111218] border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder-zinc-500 focus:outline-none focus:border-white/40 transition-colors pr-11 font-mono"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-white transition-colors cursor-pointer"
-                  tabIndex={-1}
-                >
-                  {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                </button>
-              </div>
+            <div className="relative">
+              <input
+                type={showConfirmPassword ? 'text' : 'password'}
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                placeholder="Confirmar senha"
+                required
+                autoComplete="new-password"
+                aria-label="Confirmar senha"
+                className={inputClass}
+              />
+              <button
+                type="button"
+                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-[#86868b] hover:text-[#1d1d1f] transition-colors cursor-pointer"
+                tabIndex={-1}
+                aria-label={showConfirmPassword ? 'Ocultar senha' : 'Mostrar senha'}
+              >
+                {showConfirmPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+              </button>
             </div>
 
             {/* Requisitos de Senha */}
-            <div className="bg-[#101117] border border-white/5 rounded-xl p-3.5 space-y-1.5 select-none">
-              <span className="text-[10px] uppercase tracking-wider text-zinc-400 font-mono block mb-2">
-                Requisitos de Segurança:
+            <div className="bg-[#f5f5f7] rounded-[18px] p-5 select-none">
+              <span className="text-[13px] font-semibold text-[#1d1d1f] block mb-3">
+                Sua senha precisa ter:
               </span>
-              <div className="grid grid-cols-2 gap-x-2 gap-y-1.5 text-[11px]">
-                <div className={`flex items-center gap-1.5 ${hasUpper ? 'text-emerald-400' : 'text-zinc-500'}`}>
-                  {hasUpper ? <Check className="w-3 h-3 shrink-0" /> : <span className="w-1.5 h-1.5 rounded-full bg-zinc-600 ml-1" />}
-                  <span>Letra maiúscula</span>
-                </div>
-                <div className={`flex items-center gap-1.5 ${hasLower ? 'text-emerald-400' : 'text-zinc-500'}`}>
-                  {hasLower ? <Check className="w-3 h-3 shrink-0" /> : <span className="w-1.5 h-1.5 rounded-full bg-zinc-600 ml-1" />}
-                  <span>Letra minúscula</span>
-                </div>
-                <div className={`flex items-center gap-1.5 ${hasNumber ? 'text-emerald-400' : 'text-zinc-500'}`}>
-                  {hasNumber ? <Check className="w-3 h-3 shrink-0" /> : <span className="w-1.5 h-1.5 rounded-full bg-zinc-600 ml-1" />}
-                  <span>Número</span>
-                </div>
-                <div className={`flex items-center gap-1.5 ${hasSpecial ? 'text-emerald-400' : 'text-zinc-500'}`}>
-                  {hasSpecial ? <Check className="w-3 h-3 shrink-0" /> : <span className="w-1.5 h-1.5 rounded-full bg-zinc-600 ml-1" />}
-                  <span>Caractere especial</span>
-                </div>
-              </div>
-              <div className="pt-1.5 border-t border-white/5 flex items-center justify-between text-[11px]">
-                <span className={hasMinLength ? 'text-emerald-400' : 'text-zinc-500'}>
-                  Mínimo 8 caracteres
-                </span>
-                <span className={passwordsMatch ? 'text-emerald-400' : 'text-zinc-500'}>
-                  {passwordsMatch ? '✓ Senhas coincidem' : 'Senhas devem coincidir'}
-                </span>
+              <div className="grid grid-cols-2 gap-x-3 gap-y-2.5 text-[13px]">
+                <Requirement ok={hasUpper} label="Letra maiúscula" />
+                <Requirement ok={hasLower} label="Letra minúscula" />
+                <Requirement ok={hasNumber} label="Número" />
+                <Requirement ok={hasSpecial} label="Caractere especial" />
+                <Requirement ok={hasMinLength} label="Mínimo 8 caracteres" />
+                <Requirement ok={passwordsMatch} label="Senhas iguais" />
               </div>
             </div>
 
             {/* O BOTÃO DE ACESSAR SÓ VAI APARECER DEPOIS QUE O USUÁRIO PREENCHER O CAMPO DE SENHA COM TODAS AS REGRAS */}
             {isFormValid && (
-              <div className="pt-2 animate-fadeIn transition-all duration-300">
+              <div className="pt-1 animate-fadeIn transition-all duration-300">
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full py-3.5 px-6 rounded-xl bg-white text-black font-bold text-sm tracking-wide hover:bg-zinc-200 transition-all shadow-lg active:scale-[0.98] cursor-pointer flex items-center justify-center gap-2"
+                  className="w-full h-12 px-6 rounded-full bg-[#0071e3] text-white font-normal text-[17px] hover:bg-[#0077ed] transition-all active:scale-[0.98] cursor-pointer flex items-center justify-center gap-2 disabled:opacity-70"
                 >
                   {loading ? (
                     <>
                       <Loader2 className="w-4 h-4 animate-spin" />
-                      <span>Validando e Criptografando...</span>
+                      <span>Validando…</span>
                     </>
                   ) : (
                     <span>Acessar</span>
@@ -243,6 +243,10 @@ export function PrimeiroAcessoClient({ initialToken = '' }: PrimeiroAcessoProps)
             )}
           </form>
         )}
+
+        <p className="mt-12 text-[12px] text-[#86868b] text-center">
+          © {new Date().getFullYear()} FLMMKR. Todos os direitos reservados.
+        </p>
       </div>
     </div>
   );
