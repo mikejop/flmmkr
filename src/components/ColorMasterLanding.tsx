@@ -377,7 +377,11 @@ export const ColorMasterLanding: React.FC = () => {
                 finalPrice: data.finalPrice,
                 batchName: data.batchName,
                 nextPriceDate: data.nextPriceDate,
-                isLaunchPhase: Boolean(data.isLaunchPhase)
+                isLaunchPhase: Boolean(data.isLaunchPhase),
+                isTestUserIp: Boolean(data.isTestUserIp),
+                testPaymentUrl: data.testPaymentUrl,
+                testPrice: data.testPrice,
+                clientIp: data.clientIp
               });
 
               // Tooltip apontando para o preço quando o tempo já estiver expirado:
@@ -594,6 +598,9 @@ export const ColorMasterLanding: React.FC = () => {
   };
 
   const getAsaasCheckoutUrl = () => {
+    if (priceData.isTestUserIp && priceData.testPaymentUrl) {
+      return priceData.testPaymentUrl;
+    }
     if (isExpired) {
       return 'https://www.asaas.com/000/c/iv2p2s5tkbt1qi79'; // R$ 195 (Regular)
     }
@@ -610,14 +617,16 @@ export const ColorMasterLanding: React.FC = () => {
   };
 
   // Preço base do lote vigente
-  const baseBatchPrice = priceData.isLaunchPhase
+  const baseBatchPrice = priceData.isTestUserIp && priceData.testPrice
+    ? priceData.testPrice
+    : priceData.isLaunchPhase
     ? 95
     : !isExpired
     ? 95
     : (priceData.currentBatchPrice || priceData.regularPrice);
 
   // Preço final (com 25% de desconto caso acionado pelo tooltip)
-  const displayPrice = hasDiscount25 && isExpired
+  const displayPrice = hasDiscount25 && isExpired && !priceData.isTestUserIp
     ? Math.round(baseBatchPrice * 0.75)
     : baseBatchPrice;
 

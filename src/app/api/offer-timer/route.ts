@@ -28,17 +28,18 @@ export async function GET(req: NextRequest) {
   const testPrice = isTestUserIp ? 5.0 : undefined;
 
   // Se estiver na Fase de Lançamento (até 09/10 às 23:59:59):
-  // R$ 95 garantido sem cronômetro de 15 minutos contando/expirando
+  // R$ 95 garantido sem cronômetro de 15 minutos contando/expirando (ou testPrice se for IP autorizado)
   if (batchInfo.isLaunchPhase) {
+    const effectivePromo = isTestUserIp && testPrice ? testPrice : 95;
     const response = NextResponse.json({
       remainingSeconds: 0,
       isExpired: false,
       isLaunchPhase: true,
-      promoPrice: 95,
-      currentBatchPrice: 95,
+      promoPrice: effectivePromo,
+      currentBatchPrice: effectivePromo,
       regularPrice: batchInfo.regularPrice,
-      finalPrice: 95,
-      batchName: batchInfo.batchName,
+      finalPrice: effectivePromo,
+      batchName: isTestUserIp ? 'Modo de Teste (IP Autorizado)' : batchInfo.batchName,
       nextPriceDate: batchInfo.nextPriceDate,
       isTestUserIp,
       testPaymentUrl,
@@ -70,20 +71,22 @@ export async function GET(req: NextRequest) {
   const remainingSeconds = Math.max(0, Math.floor((expiresAtTime - now) / 1000));
   const isExpired = remainingSeconds <= 0;
 
-  // Enquanto dentro dos 15 minutos: R$ 95 (promoção antiga de +50% OFF)
+  // Enquanto dentro dos 15 minutos: R$ 95 (ou testPrice se for IP autorizado)
   // Após expirar: preço vigente do momento (R$ 125 até 13/10; R$ 150 até 17/10; R$ 195 após 18/10)
-  const finalPrice = isExpired ? batchInfo.currentBatchPrice : batchInfo.promoPrice;
+  const effectivePromo = isTestUserIp && testPrice ? testPrice : batchInfo.promoPrice;
+  const effectiveBatch = isTestUserIp && testPrice ? testPrice : batchInfo.currentBatchPrice;
+  const finalPrice = isTestUserIp && testPrice ? testPrice : (isExpired ? batchInfo.currentBatchPrice : batchInfo.promoPrice);
 
   // 5. Resposta: Omitir deliberadamente cooldownUntil e regras de reset para proteger as regras de negócio
   const response = NextResponse.json({
     remainingSeconds,
     isExpired,
     isLaunchPhase: false,
-    promoPrice: batchInfo.promoPrice,
-    currentBatchPrice: batchInfo.currentBatchPrice,
+    promoPrice: effectivePromo,
+    currentBatchPrice: effectiveBatch,
     regularPrice: batchInfo.regularPrice,
     finalPrice,
-    batchName: batchInfo.batchName,
+    batchName: isTestUserIp ? 'Modo de Teste (IP Autorizado)' : batchInfo.batchName,
     nextPriceDate: batchInfo.nextPriceDate,
     isTestUserIp,
     testPaymentUrl,

@@ -105,13 +105,21 @@ export async function POST(req: NextRequest) {
       }
     }
 
+    // Verificação estrita de IP para modo de teste
+    const AUTHORIZED_TEST_IPS = ['168.90.209.157', '138.118.162.182', '127.0.0.1', '::1'];
+    const isTestUserIp = AUTHORIZED_TEST_IPS.includes(ip);
+
     // 3. Definir valor baseado no lote promocional e expiração validada pelo servidor
-    let productValue = 95;
-    let productDescription = `Masterclass Color Master | Produto (${batchInfo.batchName})`;
+    let productValue = isTestUserIp ? 5.0 : 95;
+    let productDescription = isTestUserIp
+      ? 'Masterclass Color Master | Produto (Teste Autorizado)'
+      : `Masterclass Color Master | Produto (${batchInfo.batchName})`;
 
     if (productId === 'color-master-completo') {
       productValue = 497.0;
       productDescription = 'Color Master Completo - FLMMKR';
+    } else if (isTestUserIp) {
+      productValue = 5.0;
     } else if (batchInfo.isLaunchPhase) {
       // Fase de lançamento (até 09/10): valor garantido R$ 95
       productValue = 95;
