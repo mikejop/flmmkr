@@ -114,6 +114,13 @@ async function asaasFetch<T>(endpoint: string, options: RequestInit = {}): Promi
 
 export const asaasService = {
   /**
+   * Obtém os detalhes de um cliente por ID
+   */
+  async getCustomer(id: string): Promise<any> {
+    return asaasFetch(`/customers/${id}`);
+  },
+
+  /**
    * Procura ou cria um cliente no Asaas
    */
   async findOrCreateCustomer(input: AsaasCustomerInput): Promise<{ id: string; name: string; email: string }> {

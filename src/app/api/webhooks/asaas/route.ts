@@ -52,7 +52,7 @@ export async function POST(req: NextRequest) {
                 .eq('payment_id', payment.id);
             } else if (!pending && payment?.customer) {
               // Pagamento realizado via link direto do Asaas (fora do pending_checkouts)
-              const { asaasService } = await import('@/services/asaasService');
+              const { asaasService } = await import('@/services/asaas');
               const customer = await asaasService.getCustomer(payment.customer);
               if (customer && customer.email) {
                 await provisionSupabaseUserAndProfile({
