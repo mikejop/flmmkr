@@ -48,6 +48,46 @@ const PRODUTORAS_LOGOS = [
 
 const MAX_EXPIRED_MODAL_VIEWS = 2;
 
+const hasSeenPromoTooltip = (mac?: string): boolean => {
+  if (typeof window === 'undefined') return false;
+  try {
+    // 1. Checa cookies
+    const cookieName = mac ? `flmmkr_promo_seen_${mac}` : 'flmmkr_promo_seen';
+    if (document.cookie.includes(`${cookieName}=1`) || document.cookie.includes('flmmkr_promo_seen=1')) {
+      return true;
+    }
+    // 2. Checa localStorage (chaves com mac e genéricas)
+    const localKey = mac ? `flmmkr_seen_welcome_promo_${mac}` : 'flmmkr_seen_welcome_promo';
+    return !!(
+      localStorage.getItem(localKey) ||
+      localStorage.getItem('flmmkr_seen_welcome_promo') ||
+      localStorage.getItem('flmmkr_seen_promo_tooltip')
+    );
+  } catch {
+    return false;
+  }
+};
+
+const markPromoTooltipSeen = (mac?: string): void => {
+  if (typeof window === 'undefined') return;
+  try {
+    // Salva no localStorage
+    localStorage.setItem('flmmkr_seen_welcome_promo', 'true');
+    localStorage.setItem('flmmkr_seen_promo_tooltip', 'true');
+    if (mac) {
+      localStorage.setItem(`flmmkr_seen_welcome_promo_${mac}`, 'true');
+    }
+    // Salva em cookie de longa duração (1 ano) para persistir mesmo se o localStorage for limpo
+    const cookieExpires = new Date();
+    cookieExpires.setFullYear(cookieExpires.getFullYear() + 1);
+    const expiresStr = cookieExpires.toUTCString();
+    document.cookie = `flmmkr_promo_seen=1; expires=${expiresStr}; path=/; SameSite=Lax`;
+    if (mac) {
+      document.cookie = `flmmkr_promo_seen_${mac}=1; expires=${expiresStr}; path=/; SameSite=Lax`;
+    }
+  } catch {}
+};
+
 const getExpiredModalViews = (mac?: string): number => {
   if (typeof window === 'undefined') return 0;
   try {
@@ -168,13 +208,14 @@ export const ColorMasterLanding: React.FC = () => {
     startTooltipAutoDismiss();
   };
 
-  // Disparado ao concluir o preloader: se for a primeira visita, abre o tooltip no logo FLMMKR
+  // Disparado ao concluir o preloader: se for a primeira visita, abre o tooltip no logo FLMMKR (apenas 1 vez por usuário)
   const handlePreloaderComplete = () => {
     if (typeof window === 'undefined') return;
     try {
-      const hasSeen = localStorage.getItem('flmmkr_seen_welcome_promo');
-      if (!hasSeen && !isExpired) {
-        localStorage.setItem('flmmkr_seen_welcome_promo', 'true');
+      const alreadySeen = hasSeenPromoTooltip(deviceMac);
+      if (!alreadySeen && !isExpired) {
+        // Marca imediatamente como visto para nunca mais exibir para este usuário
+        markPromoTooltipSeen(deviceMac);
         // Pequeno atraso de 200ms após o fade do preloader para transição suave
         setTimeout(() => {
           setShowPromoTooltip(true);
