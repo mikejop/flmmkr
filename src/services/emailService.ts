@@ -33,46 +33,48 @@ Este link é seguro, pessoal e intransferível.
 Equipe FLMMKR
 contato@flmmkr.site`;
 
-  const htmlBody = `<!DOCTYPE html>
+  // Calcular data de expiração (1 ano após ativação)
+  const expirationDate = new Date();
+  expirationDate.setFullYear(expirationDate.getFullYear() + 1);
+  const formattedExpiration = expirationDate.toLocaleDateString('pt-BR');
+
+  let htmlBody = '';
+  try {
+    const fs = await import('fs');
+    const path = await import('path');
+    const templatePath = path.resolve(process.cwd(), 'src/templates/email-boas-vindas.html');
+    if (fs.existsSync(templatePath)) {
+      const rawHtml = fs.readFileSync(templatePath, 'utf8');
+      htmlBody = rawHtml
+        .replace(/\{\{nome\}\}/g, firstName)
+        .replace(/\{\{link_acesso\}\}/g, activationUrl)
+        .replace(/\{\{data_expiracao\}\}/g, formattedExpiration)
+        .replace(/\{\{email_cliente\}\}/g, normalizedEmail);
+    }
+  } catch (readErr) {
+    console.warn('[Email Service] Falha ao ler template externo, usando fallback:', readErr);
+  }
+
+  if (!htmlBody) {
+    htmlBody = `<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Seu Acesso — COLOR MASTER®</title>
+  <title>Seu acesso ao Color Master® | Produtos</title>
 </head>
-<body style="margin: 0; padding: 32px 16px; background-color: #0c0d10; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #f5f5f7;">
-  <div style="max-width: 540px; margin: 0 auto; background-color: #121318; border: 1px solid #232530; border-radius: 12px; padding: 36px 28px; text-align: left;">
-    <div style="margin-bottom: 24px;">
-      <span style="font-size: 19px; font-weight: 800; letter-spacing: 0.14em; color: #ffffff;">FLMMKR</span>
-      <div style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.12em; color: #8e8e93; margin-top: 4px;">COLOR MASTER® | PRODUTO</div>
-    </div>
-    
-    <p style="font-size: 15px; line-height: 1.6; color: #e5e5ea; margin-bottom: 24px;">
-      Olá, <strong>${firstName}</strong>.<br />
-      Seu pagamento foi confirmado. Para acessar o curso, libere o seu primeiro acesso cadastrando a sua senha.
-    </p>
-
-    <!-- Botão de Ação Clicável -->
+<body style="margin: 0; padding: 32px 16px; background-color: #f5f5f7; font-family: -apple-system, BlinkMacSystemFont, sans-serif; color: #1d1d1f;">
+  <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 28px; padding: 40px; text-align: left;">
+    <div style="font-size: 40px; font-weight: 800; letter-spacing: 2px; color: #1d1d1f; margin-bottom: 24px; text-align: center;">FLMMKR</div>
+    <h1 style="font-size: 32px; font-weight: 600; color: #1d1d1f; margin: 0 0 16px 0;">Bem-vindo, ${firstName}.<br>Seu acesso está liberado.</h1>
+    <p style="font-size: 16px; line-height: 1.6; color: #6e6e73;">Sua compra foi confirmada com sucesso.</p>
     <div style="text-align: center; margin: 32px 0;">
-      <a href="${activationUrl}" style="display: inline-block; background-color: #ffffff; color: #000000; text-decoration: none; padding: 14px 32px; border-radius: 8px; font-size: 14px; font-weight: 700; letter-spacing: -0.01em;">
-        Liberar Meu Acesso
-      </a>
+      <a href="${activationUrl}" style="background-color: #0071e3; color: #ffffff; text-decoration: none; padding: 18px 40px; border-radius: 980px; font-size: 16px; font-weight: 700; display: inline-block;">Acessar o Color Master®</a>
     </div>
-
-    <!-- Link Textual Alternativo -->
-    <div style="border-top: 1px solid #232530; padding-top: 20px; margin-top: 32px;">
-      <p style="font-size: 12px; line-height: 1.5; color: #8e8e93; margin-bottom: 8px;">
-        Se você não conseguir clicar no botão acima, copie e cole o link a seguir no seu navegador:
-      </p>
-      <a href="${activationUrl}" style="color: #4da3ff; word-break: break-all; text-decoration: underline; font-size: 12px;">${activationUrl}</a>
-    </div>
-
-    <p style="font-size: 11px; color: #636366; margin-top: 24px; margin-bottom: 0;">
-      Este link é exclusivo para a sua conta e expira em 7 dias. Não compartilhe com terceiros.
-    </p>
+    <p style="font-size: 13px; color: #6e6e73;">Este link é pessoal e exclusivo para ${normalizedEmail}.</p>
   </div>
 </body>
 </html>`;
+  }
 
   console.log(`[Email Service] Link de ativação gerado para ${normalizedEmail}: ${activationUrl}`);
 
