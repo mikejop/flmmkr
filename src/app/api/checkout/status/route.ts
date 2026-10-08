@@ -47,13 +47,15 @@ export async function GET(req: NextRequest) {
           .eq('payment_id', paymentId);
       }
 
-      const redirectEmail = pending?.email || payment?.clientPaymentDate || '';
-      const redirectName = pending?.full_name || '';
+      const clientEmail = pending?.email || '';
+      const clientName = pending?.full_name || '';
 
       return NextResponse.json({
         confirmed: true,
         status: payment.status,
-        redirectUrl: `/definir-senha?email=${encodeURIComponent(redirectEmail)}&name=${encodeURIComponent(redirectName)}`
+        activationSent: true,
+        email: clientEmail,
+        name: clientName
       });
     }
 

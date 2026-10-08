@@ -6,13 +6,13 @@ export const metadata = {
   description: 'Libere seu acesso e configure sua senha exclusiva.'
 };
 
-export default async function PrimeiroAcessoPage({
-  searchParams
+export default async function PrimeiroAcessoDynamicPage({
+  params
 }: {
-  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+  params: Promise<{ token: string }>;
 }) {
-  const params = await searchParams;
-  const token = typeof params.token === 'string' ? params.token : '';
+  const resolvedParams = await params;
+  const token = resolvedParams.token || '';
 
   return <PrimeiroAcessoClient initialToken={token} />;
 }

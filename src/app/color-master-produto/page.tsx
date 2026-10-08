@@ -7,46 +7,69 @@ import { MemberPreloader } from '@/components/MemberPreloader';
 
 const MemberAreaApp = dynamic(
   () => import('@/components/MemberAreaApp'),
-  { 
-    ssr: false,
-    loading: () => (
-      <div className="fixed inset-0 bg-[#070709] flex items-center justify-center">
-        <MemberPreloader />
-      </div>
-    )
-  }
+  { ssr: false }
 );
 
 export default function ColorMasterProdutoPage() {
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
+  const [isReady, setIsReady] = useState<boolean>(false);
+  const [isPreloaderFinished, setIsPreloaderFinished] = useState<boolean>(false);
+  const [statusMessage, setStatusMessage] = useState<string>('Inicializando workspace...');
 
   useEffect(() => {
     let isMounted = true;
 
-    async function verifyAuth() {
+    async function verifyAndLoadEverything() {
       try {
+        setStatusMessage('Verificando sessão de login...');
         const { data: { user } } = await supabase.auth.getUser();
         if (!isMounted) return;
 
-        if (user) {
-          setIsAuthenticated(true);
-        } else {
-          setIsAuthenticated(false);
+        if (!user) {
           window.location.replace('/');
+          return;
+        }
+
+        // 1. Verificação Estrita de Pagamento (Servidor + Asaas)
+        setStatusMessage('Validando status de pagamento no Asaas...');
+        const checkRes = await fetch('/api/auth/verify-access');
+        const checkData = await checkRes.json().catch(() => ({}));
+
+        if (!checkRes.ok || !checkData.allowed) {
+          console.warn('[Acesso Bloqueado] Pagamento não confirmado:', checkData);
+          await supabase.auth.signOut();
+          if (isMounted) {
+            window.location.replace('/');
+          }
+          return;
+        }
+
+        setStatusMessage('Carregando conteúdo da Área de Membros...');
+
+        // 2. Aguarda o DOM estar 100% pronto
+        if (typeof document !== 'undefined' && document.readyState !== 'complete') {
+          await new Promise<void>((resolve) => {
+            window.addEventListener('load', () => resolve(), { once: true });
+            setTimeout(resolve, 600);
+          });
+        }
+
+        // TUDO CARREGADO E PAGAMENTO VERIFICADO COM SUCESSO!
+        if (isMounted) {
+          setStatusMessage('Acesso confirmado. Abrindo...');
+          setIsReady(true);
         }
       } catch (err) {
+        console.error('Erro na validação de pagamento e carregamento:', err);
         if (isMounted) {
-          setIsAuthenticated(false);
           window.location.replace('/');
         }
       }
     }
 
-    verifyAuth();
+    verifyAndLoadEverything();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       if (!session && isMounted) {
-        setIsAuthenticated(false);
         window.location.replace('/');
       }
     });
@@ -57,14 +80,22 @@ export default function ColorMasterProdutoPage() {
     };
   }, []);
 
-  // Enquanto valida a autenticação ou se não estiver logado, exibe apenas o preloader
-  if (isAuthenticated !== true) {
-    return (
-      <div className="fixed inset-0 bg-[#0a0a0c] text-white flex items-center justify-center z-50">
-        <MemberPreloader />
-      </div>
-    );
-  }
+  return (
+    <div className="relative w-screen h-screen bg-[#0a0a0c] overflow-hidden select-none">
+      {/* Monta a aplicação por baixo */}
+      <MemberAreaApp skipInternalPreloader={true} />
 
-  return <MemberAreaApp />;
+      {/* 
+        REGRA DO USUÁRIO: O preloader só sai da tela DEPOIS de tudo estar carregado,
+        principalmente a verificação de pagamento.
+      */}
+      {!isPreloaderFinished && (
+        <MemberPreloader
+          isReady={isReady}
+          statusText={statusMessage}
+          onComplete={() => setIsPreloaderFinished(true)}
+        />
+      )}
+    </div>
+  );
 }

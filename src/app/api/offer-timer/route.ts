@@ -21,6 +21,12 @@ export async function GET(req: NextRequest) {
 
   const batchInfo = getCurrentBatchPrice(new Date());
 
+  // Verificação estrita de IP para modo de teste
+  const AUTHORIZED_TEST_IPS = ['168.90.209.157', '138.118.162.182', '127.0.0.1', '::1'];
+  const isTestUserIp = AUTHORIZED_TEST_IPS.includes(ip);
+  const testPaymentUrl = isTestUserIp ? 'https://www.asaas.com/000/c/2lrie17dp1qnzcr3' : undefined;
+  const testPrice = isTestUserIp ? 5.0 : undefined;
+
   // Se estiver na Fase de Lançamento (até 09/10 às 23:59:59):
   // R$ 95 garantido sem cronômetro de 15 minutos contando/expirando
   if (batchInfo.isLaunchPhase) {
@@ -33,7 +39,11 @@ export async function GET(req: NextRequest) {
       regularPrice: batchInfo.regularPrice,
       finalPrice: 95,
       batchName: batchInfo.batchName,
-      nextPriceDate: batchInfo.nextPriceDate
+      nextPriceDate: batchInfo.nextPriceDate,
+      isTestUserIp,
+      testPaymentUrl,
+      testPrice,
+      clientIp: isTestUserIp ? ip : undefined
     });
 
     if (macAddress) {
@@ -74,7 +84,11 @@ export async function GET(req: NextRequest) {
     regularPrice: batchInfo.regularPrice,
     finalPrice,
     batchName: batchInfo.batchName,
-    nextPriceDate: batchInfo.nextPriceDate
+    nextPriceDate: batchInfo.nextPriceDate,
+    isTestUserIp,
+    testPaymentUrl,
+    testPrice,
+    clientIp: isTestUserIp ? ip : undefined
   });
 
   // Salvar cookie httpOnly / seguro com o MAC address para reforçar persistência

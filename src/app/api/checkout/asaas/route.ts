@@ -201,7 +201,9 @@ export async function POST(req: NextRequest) {
           return NextResponse.json({
             success: true,
             status: payment.status,
-            redirectUrl: `/definir-senha?email=${encodeURIComponent(email)}&name=${encodeURIComponent(name)}`
+            activationSent: true,
+            email: email.trim().toLowerCase(),
+            name
           });
         }
 

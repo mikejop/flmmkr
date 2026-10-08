@@ -3,6 +3,7 @@ import { supabaseAdmin } from '@/utils/supabase/admin';
 import { validateAndSanitizeBody } from '@/utils/security';
 import { getDeviceInfoFromRequest } from '@/utils/deviceDetection';
 import { sendSecurityAlertEmail } from '@/services/notificationService';
+import { verifyAndSyncPaymentAccess } from '@/services/paymentVerificationService';
 import crypto from 'crypto';
 
 export const dynamic = 'force-dynamic';
@@ -157,6 +158,25 @@ export async function POST(req: NextRequest) {
     // =========================================================================
     // CASO DE SUCESSO NA AUTENTICAÇÃO
     // =========================================================================
+    const userId = authData.user.id;
+
+    // Regra Zero-Trust: Dupla Validação de Pagamento (Servidor + Asaas)
+    // Só pode acessar se o status estiver pago no servidor e no Asaas
+    const paymentCheck = await verifyAndSyncPaymentAccess({
+      userId,
+      email: normalizedEmail
+    });
+
+    if (!paymentCheck.isAllowed) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: `Acesso bloqueado: pagamento não confirmado no Asaas (${paymentCheck.reason || 'Status não pago'}).`
+        },
+        { status: 403 }
+      );
+    }
+
     // Resetar contadores de segurança após login bem-sucedido
     if (tracking) {
       await supabaseAdmin
@@ -169,8 +189,6 @@ export async function POST(req: NextRequest) {
         })
         .eq('email', normalizedEmail);
     }
-
-    const userId = authData.user.id;
 
     // Regra de Sessão Única Concorrente:
     // Se o usuário entrar em outro dispositivo, o dispositivo anterior é desconectado.

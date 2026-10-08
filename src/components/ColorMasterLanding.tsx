@@ -147,6 +147,10 @@ export const ColorMasterLanding: React.FC = () => {
     batchName: string;
     nextPriceDate?: string;
     isLaunchPhase?: boolean;
+    isTestUserIp?: boolean;
+    testPaymentUrl?: string;
+    testPrice?: number;
+    clientIp?: string;
   }>({
     promoPrice: 95,
     currentBatchPrice: 95,
@@ -512,7 +516,9 @@ export const ColorMasterLanding: React.FC = () => {
       title: 'Creative Grade',
       subtitle: 'Desenvolvimento de identidade visual, estética autoral e emulação de película',
       lessons: [
-        'Criando um Look (com abas para Criando look sem plugins, Film Look Creator e Dehancer Pro)'
+        'Criando look sem plugin',
+        'Usando o Film Look Creator (nativo do DaVinci Resolve)',
+        'Usando o Dehancer Pro'
       ]
     },
     {
@@ -709,7 +715,11 @@ export const ColorMasterLanding: React.FC = () => {
               <aside
                 role="status"
                 aria-live="polite"
-                aria-label="Aviso de promoção: mais de 50% de desconto disponível"
+                aria-label={
+                  priceData.isLaunchPhase
+                    ? 'Aviso de preço promocional de lançamento até 09/10/2026 às 23:59'
+                    : 'Aviso de oferta especial com cronômetro regressivo de 15 minutos'
+                }
                 onMouseEnter={handleTooltipMouseEnter}
                 onMouseLeave={handleTooltipMouseLeave}
                 className={`absolute left-0 top-[calc(100%+8px)] z-50 w-[290px] sm:w-[320px] rounded-2xl bg-[#16161a]/95 backdrop-blur-xl border border-[#0071e3]/40 shadow-[0_12px_36px_-6px_rgba(0,0,0,0.7),0_0_24px_rgba(0,113,227,0.25)] p-3.5 sm:p-4 text-white select-none ${
@@ -738,7 +748,7 @@ export const ColorMasterLanding: React.FC = () => {
                       <span className="relative inline-flex rounded-full h-2 w-2 bg-[#2997ff]"></span>
                     </span>
                     <span className="text-[11px] font-bold uppercase tracking-wider text-[#2997ff]">
-                      +50% DE DESCONTO
+                      {priceData.isLaunchPhase ? 'Oferta de Lançamento' : 'Cronômetro Ativo'}
                     </span>
                   </div>
 
@@ -753,12 +763,15 @@ export const ColorMasterLanding: React.FC = () => {
                   </button>
                 </div>
 
-                <p className="text-[13px] sm:text-[13.5px] leading-snug font-medium text-white/90 mb-3">
-                  Promoção de abertura liberada por{' '}
-                  <strong className="text-white font-bold">{formatTime(timeLeft)}</strong>: de{' '}
-                  <span className="line-through text-white/50">R$ {priceData.regularPrice}</span> por apenas{' '}
-                  <strong className="text-[#2997ff] font-extrabold text-[14px]">R$ {priceData.promoPrice}</strong>.
-                </p>
+                {priceData.isLaunchPhase ? (
+                  <p className="text-[13px] sm:text-[13.5px] leading-snug font-medium text-white/90 mb-3">
+                    O preço promocional vai acabar no dia <strong className="text-white font-bold">09/10/2026 às 23:59</strong>. Aproveite antes que o valor mude!
+                  </p>
+                ) : (
+                  <p className="text-[13px] sm:text-[13.5px] leading-snug font-medium text-white/90 mb-3">
+                    Faltam <strong className="text-[#2997ff] font-extrabold text-[14px] tabular-nums">{formatTime(timeLeft)}</strong> no cronômetro de 15 minutos. Aproveite antes que o valor mude!
+                  </p>
+                )}
 
                 <div className="flex items-center gap-2">
                   <button
@@ -1668,6 +1681,32 @@ export const ColorMasterLanding: React.FC = () => {
               )}
 
               {/* Conteúdo do Price Box */}
+              {/* BLOCO EXCLUSIVO: Visível apenas para o IP do desenvolvedor/administrador */}
+              {priceData.isTestUserIp && (
+                <div className="mb-4 p-4 rounded-2xl bg-purple-500/10 border border-purple-500/30 text-left shadow-lg">
+                  <div className="flex items-center justify-between gap-2 mb-2">
+                    <span className="text-[11px] font-mono font-bold uppercase tracking-wider text-purple-400 flex items-center gap-1.5">
+                      <span className="w-2 h-2 rounded-full bg-purple-400 animate-pulse" />
+                      IP Autorizado ({priceData.clientIp || '168.90.209.157'})
+                    </span>
+                    <span className="text-[10px] font-mono bg-purple-500/20 text-purple-300 px-2 py-0.5 rounded-full border border-purple-500/30">
+                      Apenas para você
+                    </span>
+                  </div>
+                  <p className="text-[12px] text-zinc-300 leading-snug mb-3">
+                    Pagamento de teste de homologação no Asaas (R$ 5,00 - valor mínimo permitido pelo gateway):
+                  </p>
+                  <a
+                    href={priceData.testPaymentUrl || 'https://www.asaas.com/000/c/2lrie17dp1qnzcr3'}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center justify-center gap-2 w-full py-3 px-4 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs tracking-wide transition-all shadow-md active:scale-[0.98]"
+                  >
+                    Abrir Link de Pagamento Teste Asaas (R$ 5,00) →
+                  </a>
+                </div>
+              )}
+
               {priceData.isLaunchPhase ? (
                 <>
                   <div className="inline-block px-3.5 py-1 rounded-full bg-[#0071e3]/10 text-[#0071e3] text-[12px] font-semibold uppercase tracking-[0.04em] mb-2 border border-[#0071e3]/20">

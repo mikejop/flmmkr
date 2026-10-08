@@ -5,15 +5,20 @@ import React, { useEffect, useState } from 'react';
 interface MemberPreloaderProps {
   onComplete?: () => void;
   minDurationMs?: number;
+  isReady?: boolean;
+  statusText?: string;
 }
 
 export const MemberPreloader: React.FC<MemberPreloaderProps> = ({
   onComplete,
-  minDurationMs = 2000,
+  minDurationMs = 1800,
+  isReady = false,
+  statusText,
 }) => {
   // Stages: 'flmmkr' -> 'morphing' -> 'color-master' -> 'fading' -> 'done'
   const [stage, setStage] = useState<'flmmkr' | 'morphing' | 'color-master' | 'fading' | 'done'>('flmmkr');
   const [progressPercent, setProgressPercent] = useState<number>(15);
+  const [minTimeElapsed, setMinTimeElapsed] = useState<boolean>(false);
 
   useEffect(() => {
     // Stage 1 -> Progress increments
@@ -25,39 +30,61 @@ export const MemberPreloader: React.FC<MemberPreloaderProps> = ({
       setProgressPercent(75);
     }, 650);
 
-    // Stage 3: Lock in COLOR MASTER | PRODUTO at 1300ms
+    // Stage 3: Lock in COLOR MASTER | PRODUTO at 1200ms
     const revealTimer = setTimeout(() => {
       setStage('color-master');
-      setProgressPercent(100);
-    }, 1300);
+      setProgressPercent(90);
+    }, 1200);
 
-    // Stage 4: Trigger exit fade
-    const completeTimer = setTimeout(() => {
-      setStage('fading');
-      setTimeout(() => {
-        setStage('done');
-        if (onComplete) onComplete();
-      }, 600);
+    // Step 3: Marca que a animação mínima da marca foi decorrida
+    const minTimer = setTimeout(() => {
+      setMinTimeElapsed(true);
     }, minDurationMs);
 
     return () => {
       clearTimeout(p1);
       clearTimeout(morphTimer);
       clearTimeout(revealTimer);
-      clearTimeout(completeTimer);
+      clearTimeout(minTimer);
     };
-  }, [minDurationMs, onComplete]);
+  }, [minDurationMs]);
+
+  // REGRA DE OURO: O preloader só sai da tela depois de tudo estar carregado,
+  // principalmente a verificação de pagamento (isReady === true)
+  useEffect(() => {
+    if (!minTimeElapsed || !isReady || stage === 'fading' || stage === 'done') return;
+
+    // Completa a barra para 100%
+    setProgressPercent(100);
+
+    const executeFade = () => {
+      setStage('fading');
+      setTimeout(() => {
+        setStage('done');
+        if (onComplete) onComplete();
+      }, 600);
+    };
+
+    if (typeof document !== 'undefined' && document.readyState === 'complete') {
+      executeFade();
+    } else if (typeof window !== 'undefined') {
+      window.addEventListener('load', executeFade, { once: true });
+      const fallback = setTimeout(executeFade, 100);
+      return () => clearTimeout(fallback);
+    } else {
+      executeFade();
+    }
+  }, [minTimeElapsed, isReady, stage, onComplete]);
 
   if (stage === 'done') return null;
 
   const isMorphingOrBeyond = stage === 'morphing' || stage === 'color-master' || stage === 'fading';
-
   const flmmkrLetters = ['F', 'L', 'M', 'M', 'K', 'R'];
 
   return (
     <aside
       role="status"
-      aria-label="Carregando área de membros..."
+      aria-label="Carregando e verificando área de membros..."
       aria-live="polite"
       className={`fixed inset-0 z-[99999] bg-[#070709] flex flex-col items-center justify-center overflow-hidden transition-all duration-700 select-none will-change-[opacity,transform] ${
         stage === 'fading'
@@ -183,12 +210,19 @@ export const MemberPreloader: React.FC<MemberPreloaderProps> = ({
         </div>
 
         <div className="text-[11px] font-mono tracking-wider text-neutral-400 h-4 flex items-center justify-center">
-          {progressPercent < 50 && 'Inicializando workspace...'}
-          {progressPercent >= 50 && progressPercent < 100 && 'Carregando módulos & simuladores...'}
-          {progressPercent >= 100 && 'Pronto'}
+          {statusText ? (
+            statusText
+          ) : !isReady ? (
+            progressPercent < 50
+              ? 'Inicializando workspace...'
+              : 'Verificando pagamento e autenticação...'
+          ) : (
+            'Acesso confirmado. Abrindo...'
+          )}
         </div>
       </div>
     </aside>
   );
 };
+
 export default MemberPreloader;

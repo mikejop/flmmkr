@@ -1,4 +1,7 @@
 import { supabaseAdmin } from '@/utils/supabase/admin';
+import { createActivationToken } from '@/services/activationService';
+import { sendActivationEmail } from '@/services/emailService';
+
 export { supabaseAdmin };
 
 export interface ProvisionUserInput {
@@ -14,7 +17,8 @@ export interface ProvisionUserInput {
 }
 
 /**
- * Cria usuário no Supabase Auth e insere dados na tabela profiles
+ * Cria usuário no Supabase Auth e insere dados na tabela profiles,
+ * gerando o sufixo/token exclusivo de primeiro acesso e enviando o e-mail de liberação.
  * Bypassa RLS usando o client admin service-role
  */
 export async function provisionSupabaseUserAndProfile({
@@ -35,7 +39,7 @@ export async function provisionSupabaseUserAndProfile({
   let user = userList?.users?.find((u) => u.email?.toLowerCase() === normalizedEmail);
 
   if (!user) {
-    // Gerar senha provisória aleatória; o usuário definirá a senha na tela seguinte
+    // Gerar senha provisória aleatória; o usuário definirá a senha na tela de Primeiro Acesso
     const tempPassword = `Flmmkr#${Math.random().toString(36).slice(2)}${Date.now()}`;
     const { data: newUser, error: createErr } = await supabaseAdmin.auth.admin.createUser({
       email: normalizedEmail,
@@ -60,11 +64,16 @@ export async function provisionSupabaseUserAndProfile({
     user = newUser.user;
   }
 
+  let tokenResult = null;
+
   // 2. Inserir ou atualizar na tabela profiles
   if (user) {
     // Preservar role de admin se já existir
     const currentRole = user.app_metadata?.role || user.user_metadata?.role;
     const assignedRole = currentRole === 'admin' ? 'admin' : 'student';
+
+    // Gerar token/sufixo exclusivo para o primeiro acesso
+    tokenResult = await createActivationToken(user.id, normalizedEmail);
 
     const { error: profileErr } = await supabaseAdmin
       .from('profiles')
@@ -81,13 +90,30 @@ export async function provisionSupabaseUserAndProfile({
         asaas_payment_id: asaasPaymentId || null,
         role: assignedRole,
         has_access: true,
+        payment_status: 'CONFIRMED',
+        access_suffix: tokenResult.token,
         updated_at: new Date().toISOString()
       }, { onConflict: 'id' });
 
     if (profileErr) {
       console.error('Erro ao atualizar profiles no Supabase:', profileErr);
     }
+
+    // Disparar e-mail de ativação com o link e botão clicável
+    try {
+      await sendActivationEmail({
+        email: normalizedEmail,
+        name,
+        activationUrl: tokenResult.url
+      });
+    } catch (mailErr) {
+      console.error('[userService] Erro ao enviar e-mail de ativação:', mailErr);
+    }
   }
 
-  return user;
+  return {
+    user,
+    activationToken: tokenResult?.token,
+    activationUrl: tokenResult?.url
+  };
 }

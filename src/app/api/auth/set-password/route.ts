@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/utils/supabase/admin';
 import { validateAndSanitizeBody } from '@/utils/security';
+import { verifyAndSyncPaymentAccess } from '@/services/paymentVerificationService';
 
 export const dynamic = 'force-dynamic';
 
@@ -20,9 +21,16 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    if (password.length < 6) {
+    // Regras estritas de senha: maiúscula, minúscula, número e caractere especial
+    const hasUpper = /[A-Z]/.test(password);
+    const hasLower = /[a-z]/.test(password);
+    const hasNumber = /[0-9]/.test(password);
+    const hasSpecial = /[^A-Za-z0-9]/.test(password);
+    const hasMinLength = (password || '').length >= 8;
+
+    if (!hasUpper || !hasLower || !hasNumber || !hasSpecial || !hasMinLength) {
       return NextResponse.json(
-        { error: 'A senha deve ter pelo menos 6 caracteres.' },
+        { error: 'A senha deve conter no mínimo 8 caracteres, com letra maiúscula, letra minúscula, número e caractere especial.' },
         { status: 400 }
       );
     }
@@ -45,7 +53,20 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // 2. Atualizar a senha do usuário
+    // 2. Dupla validação de pagamento (Servidor + Asaas)
+    const paymentCheck = await verifyAndSyncPaymentAccess({
+      userId: user.id,
+      email: normalizedEmail
+    });
+
+    if (!paymentCheck.isAllowed) {
+      return NextResponse.json(
+        { error: `Acesso negado: pagamento não confirmado no Asaas (${paymentCheck.reason || 'Status não pago'}).` },
+        { status: 403 }
+      );
+    }
+
+    // 3. Atualizar a senha do usuário com criptografia segura
     const { error: updateErr } = await supabaseAdmin.auth.admin.updateUserById(user.id, {
       password,
       email_confirm: true
@@ -60,11 +81,8 @@ export async function POST(req: NextRequest) {
       success: true,
       message: 'Senha definida com sucesso.'
     });
-  } catch (error: any) {
-    console.error('Erro ao definir senha inicial:', error?.message || error);
-    return NextResponse.json(
-      { error: error?.message || 'Falha ao salvar senha.' },
-      { status: 500 }
-    );
+  } catch (err: any) {
+    console.error('Erro geral ao definir senha:', err);
+    return NextResponse.json({ error: 'Erro interno ao processar solicitação.' }, { status: 500 });
   }
 }

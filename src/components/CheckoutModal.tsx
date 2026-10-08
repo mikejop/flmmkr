@@ -16,7 +16,8 @@ import {
   UserCheck,
   UserPlus,
   ChevronDown,
-  Edit2
+  Edit2,
+  Mail
 } from 'lucide-react';
 import { getAsaasInstallmentValue } from '@/utils/asaasPricing';
 import { PhoneInputWithDdi } from '@/components/PhoneInputWithDdi';
@@ -117,6 +118,8 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
   } | null>(null);
   const [pixCopied, setPixCopied] = useState(false);
   const [pollingActive, setPollingActive] = useState(false);
+  const [emailActivationSent, setEmailActivationSent] = useState(false);
+  const [activationRecipientEmail, setActivationRecipientEmail] = useState('');
 
   // Abandonment tracking ref
   const hasInteractedRef = useRef(false);
@@ -369,10 +372,11 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
         const res = await fetch(`/api/checkout/status?paymentId=${pixData.paymentId}`);
         const data = await res.json();
 
-        if (data?.confirmed && data?.redirectUrl) {
+        if (data?.confirmed) {
           paymentCompletedRef.current = true;
           setPollingActive(false);
-          window.location.href = data.redirectUrl;
+          setActivationRecipientEmail(data.email || email);
+          setEmailActivationSent(true);
         }
       } catch (err) {
         console.error('Erro na checagem de status PIX:', err);
@@ -650,9 +654,8 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
         }
 
         paymentCompletedRef.current = true;
-        if (data.redirectUrl) {
-          window.location.href = data.redirectUrl;
-        }
+        setActivationRecipientEmail(data.email || email);
+        setEmailActivationSent(true);
       }
     } catch (err: any) {
       setErrorMessage(err?.message || 'Falha ao processar pagamento.');
@@ -1548,6 +1551,47 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
         onClose={() => setIsTermsModalOpen(false)}
         onAccept={() => setAcceptedTerms(true)}
       />
+
+      {/* Modal de Liberação de Acesso via E-mail */}
+      {emailActivationSent && (
+        <div className="fixed inset-0 z-[130] flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-fadeIn">
+          <div className="bg-[#121318] border border-white/15 rounded-2xl max-w-md w-full p-7 sm:p-8 text-center shadow-2xl relative">
+            <div className="w-16 h-16 mx-auto mb-5 rounded-full bg-emerald-500/10 border border-emerald-500/25 flex items-center justify-center text-emerald-400">
+              <Mail className="w-8 h-8" />
+            </div>
+
+            <span className="text-[11px] uppercase tracking-widest font-mono text-zinc-400">
+              FLMMKR • COLOR MASTER®
+            </span>
+            <h3 className="text-xl sm:text-2xl font-bold text-white mt-1.5 mb-3 tracking-tight">
+              Pagamento Confirmado!
+            </h3>
+
+            <p className="text-sm text-zinc-300 leading-relaxed mb-4">
+              Para a sua segurança, seu acesso precisa ser liberado através do link que acabamos de enviar para o seu e-mail:
+            </p>
+
+            <div className="bg-white/5 border border-white/10 rounded-xl px-4 py-3 mb-5 font-mono text-xs sm:text-sm text-white break-all select-all font-semibold">
+              {activationRecipientEmail || email}
+            </div>
+
+            <p className="text-xs text-zinc-400 leading-relaxed mb-6">
+              Abra sua caixa de entrada e clique no link de ativação para cadastrar sua senha exclusiva e entrar na Área do Aluno. Se não localizar em instantes, confira sua pasta de spam.
+            </p>
+
+            <button
+              type="button"
+              onClick={() => {
+                setEmailActivationSent(false);
+                onClose();
+              }}
+              className="w-full py-3.5 px-6 rounded-xl bg-white text-black font-semibold text-sm hover:bg-zinc-200 transition-all shadow-lg active:scale-[0.98] cursor-pointer"
+            >
+              Entendi, vou acessar meu e-mail
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

@@ -101,7 +101,7 @@ const DEFAULT_PROGRESS: UserProgress = {
   activeTab: {}
 };
 
-export function MemberAreaApp() {
+export function MemberAreaApp({ skipInternalPreloader = false }: { skipInternalPreloader?: boolean } = {}) {
   const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
   const [isAuthChecking, setIsAuthChecking] = useState<boolean>(true);
   const [progress, setProgress] = useState<UserProgress>(DEFAULT_PROGRESS);
@@ -819,9 +819,14 @@ export function MemberAreaApp() {
 
   // Se ainda estiver checando ou se não estiver autenticado, exibe apenas a tela segura do preloader
   if (isAuthChecking || !isLoggedIn) {
+    if (skipInternalPreloader) {
+      return (
+        <div className="relative w-screen h-screen bg-[#0a0a0c] text-[#f5f5f7] flex items-center justify-center overflow-hidden font-sans select-none" />
+      );
+    }
     return (
       <div className="relative w-screen h-screen bg-[#0a0a0c] text-[#f5f5f7] flex items-center justify-center overflow-hidden font-sans select-none">
-        <MemberPreloader />
+        <MemberPreloader isReady={false} />
       </div>
     );
   }
@@ -829,7 +834,7 @@ export function MemberAreaApp() {
   return (
     <div className="relative w-screen h-screen bg-[#0a0a0c] text-[#f5f5f7] flex items-center justify-center overflow-hidden font-sans select-none will-change-transform">
       {/* Brand Preloader exclusivo da Área de Membros */}
-      <MemberPreloader />
+      {!skipInternalPreloader && <MemberPreloader isReady={!isAuthChecking && isLoggedIn} />}
       
       {/* Background Geral (Vídeo WebM do YouTuber Pro com congelamento no último frame e reset de 72h) */}
       <div className="hidden md:block absolute inset-0 z-0 overflow-hidden pointer-events-none">
