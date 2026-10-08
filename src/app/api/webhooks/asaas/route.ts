@@ -50,6 +50,28 @@ export async function POST(req: NextRequest) {
                 .from('pending_checkouts')
                 .update({ status: 'CONFIRMED', updated_at: new Date().toISOString() })
                 .eq('payment_id', payment.id);
+            } else if (!pending && payment?.customer) {
+              // Pagamento realizado via link direto do Asaas (fora do pending_checkouts)
+              const { asaasService } = await import('@/services/asaasService');
+              const customer = await asaasService.getCustomer(payment.customer);
+              if (customer && customer.email) {
+                await provisionSupabaseUserAndProfile({
+                  email: customer.email,
+                  name: customer.name || 'Aluno FLMMKR',
+                  phone: customer.mobilePhone || customer.phone || null,
+                  address: customer.address ? {
+                    street: customer.address,
+                    number: customer.addressNumber,
+                    complement: customer.complement,
+                    neighborhood: customer.province,
+                    city: customer.cityName,
+                    state: customer.state,
+                    postalCode: customer.postalCode
+                  } : null,
+                  asaasCustomerId: customer.id,
+                  asaasPaymentId: payment.id
+                });
+              }
             }
           } catch (provErr) {
             console.error('[Asaas Webhook Provisioning Error]:', provErr);
