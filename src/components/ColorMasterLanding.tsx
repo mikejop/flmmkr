@@ -517,7 +517,11 @@ export const ColorMasterLanding: React.FC = () => {
       subtitle: 'Desenvolvimento de identidade visual, estética autoral e emulação de película',
       lessons: [
         'Criando look sem plugin',
-        'Usando o Film Look Creator (nativo do DaVinci Resolve)',
+        (
+          <span key="film-look-creator">
+            Usando o Film Look Creator (nativo do DaVinci Resolve <strong className="font-bold text-white">Studio</strong>)
+          </span>
+        ),
         'Usando o Dehancer Pro'
       ]
     },
