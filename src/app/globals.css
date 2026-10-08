@@ -46,6 +46,37 @@ body {
   animation: bounce-quadratic 2s infinite;
 }
 
+/* Quadratic Speech Bubble Animation for Promo Tooltip */
+@keyframes speech-bubble-enter {
+  0% {
+    opacity: 0;
+    transform: translateY(-8px) scale(0.92);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes speech-bubble-exit {
+  0% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-6px) scale(0.95);
+  }
+}
+
+.animate-speech-bubble-enter {
+  animation: speech-bubble-enter 0.42s cubic-bezier(0.45, 0, 0.55, 1) forwards;
+}
+
+.animate-speech-bubble-exit {
+  animation: speech-bubble-exit 0.35s cubic-bezier(0.45, 0, 0.55, 1) forwards;
+}
+
 /* Performance Optimized Section Containers with Content Visibility */
 .scroll-section {
   position: relative;

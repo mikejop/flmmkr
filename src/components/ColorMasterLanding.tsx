@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
-import { ChevronLeft, ChevronRight, Play, Pause, Volume2, VolumeX } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Play, Pause, Volume2, VolumeX, X } from 'lucide-react';
 import { SITE_CONFIG } from '@/config/siteConfig';
 import { trackProductClick, trackSocialClick } from '@/utils/analytics';
 import { ReticulaBackground } from '@/components/ReticulaBackground';
@@ -113,8 +113,12 @@ export const ColorMasterLanding: React.FC = () => {
     nextPriceDate: '09/10/2026'
   });
 
+  // Tooltip de boas-vindas falando a partir do logo FLMMKR (+50% de desconto)
+  const [showPromoTooltip, setShowPromoTooltip] = useState<boolean>(false);
+  const [promoTooltipExiting, setPromoTooltipExiting] = useState<boolean>(false);
+  const promoTooltipTimerRef = useRef<NodeJS.Timeout | null>(null);
+
   // Modais de Alerta (1:30) e Expiração (tempo esgotado)
-  const [welcomeModalOpen, setWelcomeModalOpen] = useState<boolean>(false);
   const [warningModalOpen, setWarningModalOpen] = useState<boolean>(false);
   const [expiredModalOpen, setExpiredModalOpen] = useState<boolean>(false);
   const [warningDismissed, setWarningDismissed] = useState<boolean>(false);
@@ -130,7 +134,41 @@ export const ColorMasterLanding: React.FC = () => {
   const hasExpiredRef = useRef<boolean>(false);
   const prevTimeLeftRef = useRef<number>(900);
 
-  // Disparado ao concluir o preloader: se for a primeira visita, abre o modal de boas-vindas da promoção
+  // Fecha o tooltip com animação suave quadrática
+  const closePromoTooltip = () => {
+    if (promoTooltipTimerRef.current) {
+      clearTimeout(promoTooltipTimerRef.current);
+      promoTooltipTimerRef.current = null;
+    }
+    setPromoTooltipExiting(true);
+    setTimeout(() => {
+      setShowPromoTooltip(false);
+      setPromoTooltipExiting(false);
+    }, 350); // Duração da animação de saída
+  };
+
+  // Inicia o timer de 4 segundos para sumir se o usuário não passar o mouse por cima
+  const startTooltipAutoDismiss = () => {
+    if (promoTooltipTimerRef.current) clearTimeout(promoTooltipTimerRef.current);
+    promoTooltipTimerRef.current = setTimeout(() => {
+      closePromoTooltip();
+    }, 4000);
+  };
+
+  // Cancela o auto-dismiss quando o mouse entra no tooltip
+  const handleTooltipMouseEnter = () => {
+    if (promoTooltipTimerRef.current) {
+      clearTimeout(promoTooltipTimerRef.current);
+      promoTooltipTimerRef.current = null;
+    }
+  };
+
+  // Retoma o timer de 4 segundos quando o mouse sai do tooltip
+  const handleTooltipMouseLeave = () => {
+    startTooltipAutoDismiss();
+  };
+
+  // Disparado ao concluir o preloader: se for a primeira visita, abre o tooltip no logo FLMMKR
   const handlePreloaderComplete = () => {
     if (typeof window === 'undefined') return;
     try {
@@ -139,7 +177,8 @@ export const ColorMasterLanding: React.FC = () => {
         localStorage.setItem('flmmkr_seen_welcome_promo', 'true');
         // Pequeno atraso de 200ms após o fade do preloader para transição suave
         setTimeout(() => {
-          setWelcomeModalOpen(true);
+          setShowPromoTooltip(true);
+          startTooltipAutoDismiss();
         }, 200);
       }
     } catch {
@@ -468,8 +507,6 @@ export const ColorMasterLanding: React.FC = () => {
 
       {/* Modais de Alerta (1:30) e Expiração (Preço Real) */}
       <PromoModals
-        welcomeOpen={welcomeModalOpen}
-        onCloseWelcome={() => setWelcomeModalOpen(false)}
         warningOpen={warningModalOpen}
         onCloseWarning={() => {
           setWarningModalOpen(false);
@@ -540,9 +577,90 @@ export const ColorMasterLanding: React.FC = () => {
         <div className="absolute inset-x-0 top-0 h-[1px] bg-gradient-to-r from-transparent via-white/20 to-transparent pointer-events-none z-20" />
 
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 h-13 flex items-center justify-between">
-          <a href="/" className="font-semibold text-sm tracking-tight text-white hover:opacity-75 transition-opacity min-h-[44px] flex items-center">
-            FLMMKR
-          </a>
+          <div className="relative flex items-center">
+            <a href="/" className="font-semibold text-sm tracking-tight text-white hover:opacity-75 transition-opacity min-h-[44px] flex items-center">
+              FLMMKR
+            </a>
+
+            {/* Tooltip em balão de fala saindo do logo FLMMKR (+50% de desconto) */}
+            {showPromoTooltip && (
+              <aside
+                role="status"
+                aria-live="polite"
+                aria-label="Aviso de promoção: mais de 50% de desconto disponível"
+                onMouseEnter={handleTooltipMouseEnter}
+                onMouseLeave={handleTooltipMouseLeave}
+                className={`absolute left-0 top-[calc(100%+8px)] z-50 w-[290px] sm:w-[320px] rounded-2xl bg-[#16161a]/95 backdrop-blur-xl border border-[#0071e3]/40 shadow-[0_12px_36px_-6px_rgba(0,0,0,0.7),0_0_24px_rgba(0,113,227,0.25)] p-3.5 sm:p-4 text-white select-none ${
+                  promoTooltipExiting ? 'animate-speech-bubble-exit' : 'animate-speech-bubble-enter'
+                }`}
+                style={{
+                  WebkitBackdropFilter: 'blur(20px)',
+                  transformOrigin: 'top left',
+                }}
+              >
+                {/* Rabicho do balão de fala apontando exatamente para o logo FLMMKR */}
+                <div
+                  className="absolute -top-2 left-5 w-0 h-0 border-x-[7px] border-x-transparent border-b-[8px] border-b-[#0071e3]/50"
+                  aria-hidden="true"
+                />
+                <div
+                  className="absolute -top-[7px] left-5 w-0 h-0 border-x-[7px] border-x-transparent border-b-[7px] border-b-[#16161a]"
+                  aria-hidden="true"
+                />
+
+                {/* Conteúdo simples, fácil e rápido de ler */}
+                <div className="flex items-start justify-between gap-2 mb-1.5">
+                  <div className="flex items-center gap-1.5">
+                    <span className="flex h-2 w-2 relative shrink-0">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#2997ff] opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-2 w-2 bg-[#2997ff]"></span>
+                    </span>
+                    <span className="text-[11px] font-bold uppercase tracking-wider text-[#2997ff]">
+                      +50% DE DESCONTO
+                    </span>
+                  </div>
+
+                  {/* Botão fechar discreto */}
+                  <button
+                    type="button"
+                    onClick={closePromoTooltip}
+                    className="p-1 -m-1 text-white/50 hover:text-white transition-colors rounded-full hover:bg-white/10 cursor-pointer"
+                    aria-label="Fechar aviso"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+
+                <p className="text-[13px] sm:text-[13.5px] leading-snug font-medium text-white/90 mb-3">
+                  Promoção de abertura liberada por{' '}
+                  <strong className="text-white font-bold">{formatTime(timeLeft)}</strong>: de{' '}
+                  <span className="line-through text-white/50">R$ {priceData.regularPrice}</span> por apenas{' '}
+                  <strong className="text-[#2997ff] font-extrabold text-[14px]">R$ {priceData.promoPrice}</strong>.
+                </p>
+
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      closePromoTooltip();
+                      setCheckoutModalOpen(true);
+                    }}
+                    className="flex-1 py-1.5 px-3 rounded-full bg-[#0071e3] hover:bg-[#0077ed] text-white text-xs font-semibold shadow-sm transition-all active:scale-95 flex items-center justify-center cursor-pointer"
+                  >
+                    Garantir Vaga
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={closePromoTooltip}
+                    className="py-1.5 px-2.5 rounded-full text-white/60 hover:text-white text-xs font-medium transition-colors cursor-pointer"
+                  >
+                    Dispensar
+                  </button>
+                </div>
+              </aside>
+            )}
+          </div>
 
           <span
             className={`hidden sm:inline-block text-xs text-white/80 font-semibold tracking-wide bg-white/10 px-3.5 py-1 rounded-full border border-white/15 transition-all duration-300 ${
