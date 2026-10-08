@@ -91,51 +91,34 @@ contato@flmmkr.site`;
     console.error('[Email Service] Falha ao registrar log:', logErr);
   }
 
-  // 1. Tentar envio por Resend se configurado
+  // 1. Envio de alta entregabilidade via Resend SDK
   const resendApiKey = process.env.RESEND_API_KEY;
   if (resendApiKey) {
     try {
-      const res = await fetch('https://api.resend.com/emails', {
-        method: 'POST',
+      const { Resend } = await import('resend');
+      const resend = new Resend(resendApiKey);
+
+      const sender = process.env.EMAIL_FROM || 'FLMMKR <contato@flmmkr.site>';
+      const { data, error } = await resend.emails.send({
+        from: sender,
+        to: [normalizedEmail],
+        subject: 'Seu acesso exclusivo ao COLOR MASTER® | FLMMKR',
+        html: htmlBody,
+        text: textBody,
         headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${resendApiKey}`
-        },
-        body: JSON.stringify({
-          from: process.env.EMAIL_FROM || 'FLMMKR <contato@flmmkr.site>',
-          to: [normalizedEmail],
-          subject: 'Seu acesso exclusivo ao COLOR MASTER® | FLMMKR',
-          html: htmlBody,
-          text: textBody,
-          headers: {
-            'X-Entity-Ref-ID': Buffer.from(activationUrl).toString('base64').slice(0, 16)
-          }
-        })
+          'X-Entity-Ref-ID': Buffer.from(activationUrl).toString('base64').slice(0, 16)
+        }
       });
 
-      if (!res.ok) {
-        const errJson = await res.json().catch(() => ({}));
-        console.warn('[Email Service] Resend error:', errJson);
+      if (error) {
+        console.error('[Email Service] Falha ao enviar via Resend:', error);
       } else {
-        console.log(`[Email Service] E-mail enviado via Resend com sucesso para ${normalizedEmail}`);
+        console.log(`[Email Service] E-mail de ativação enviado com sucesso via Resend para ${normalizedEmail}. ID: ${data?.id}`);
         return true;
       }
     } catch (resendErr) {
-      console.error('[Email Service] Falha ao enviar via Resend:', resendErr);
+      console.error('[Email Service] Exceção ao enviar via Resend SDK:', resendErr);
     }
-  }
-
-  // 2. Disparo de fallback via Supabase Auth Invite/MagicLink caso aplicável
-  try {
-    await supabaseAdmin.auth.admin.generateLink({
-      type: 'invite',
-      email: normalizedEmail,
-      options: {
-        redirectTo: activationUrl
-      }
-    });
-  } catch (supErr) {
-    console.warn('[Email Service] Supabase generateLink fallback notice:', supErr);
   }
 
   return true;
