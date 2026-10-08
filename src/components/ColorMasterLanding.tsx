@@ -692,14 +692,14 @@ export const ColorMasterLanding: React.FC = () => {
       {/* Glassmorphism Header Navigation */}
       <header
         className={`sticky z-40 w-full border-b border-white/10 shadow-[0_8px_32px_-4px_rgba(0,0,0,0.5)] transition-all duration-300 ${
-          showStickyTimer && !isExpired ? 'top-[39px] sm:top-[42px]' : 'top-0'
+          showStickyTimer && !isExpired && !priceData.isLaunchPhase ? 'top-[39px] sm:top-[42px]' : 'top-0'
         }`}
         style={{ background: 'rgba(14,14,18,0.85)', backdropFilter: 'blur(28px) saturate(180%)', WebkitBackdropFilter: 'blur(28px) saturate(180%)' }}
       >
         <div className="absolute inset-x-0 top-0 h-[1px] bg-gradient-to-r from-transparent via-white/20 to-transparent pointer-events-none z-20" />
 
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 h-13 flex items-center justify-between">
-          <div className="relative flex items-center">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 h-13 flex items-center justify-between relative">
+          <div className="relative flex items-center shrink-0 z-10">
             <a href="/" className="font-semibold text-sm tracking-tight text-white hover:opacity-75 transition-opacity min-h-[44px] flex items-center">
               FLMMKR
             </a>
@@ -784,17 +784,21 @@ export const ColorMasterLanding: React.FC = () => {
             )}
           </div>
 
-          <span
-            className={`hidden sm:inline-block text-xs text-white/80 font-semibold tracking-wide bg-white/10 px-3.5 py-1 rounded-full border border-white/15 transition-all duration-300 ${
-              isPastHero
-                ? 'opacity-100 scale-100 translate-y-0 pointer-events-auto'
-                : 'opacity-0 scale-95 -translate-y-1 pointer-events-none'
-            }`}
-          >
-            COLOR MASTER® | PRODUTOS
-          </span>
+          {/* Centro Absoluto: Perfeitamente alinhado ao centro geométrico da barra, imune a botões laterais */}
+          <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none z-10">
+            <span
+              className={`hidden sm:inline-block text-xs text-white/80 font-semibold tracking-wide bg-white/10 px-3.5 py-1 rounded-full border border-white/15 pointer-events-auto transition-all duration-300 ${
+                isPastHero
+                  ? 'opacity-100 scale-100 translate-y-0'
+                  : 'opacity-0 scale-95 -translate-y-1 pointer-events-none'
+              }`}
+            >
+              COLOR MASTER® | PRODUTOS
+            </span>
+          </div>
 
-          <div className="flex items-center">
+          {/* Lado Direito: Acessar + Garantir Acesso */}
+          <div className="flex items-center justify-end shrink-0 z-10">
             <button
               onClick={() => setLoginModalOpen(true)}
               className="px-3.5 sm:px-4 py-2 sm:py-1.5 rounded-full bg-white/10 hover:bg-white/20 text-white text-xs font-semibold border border-white/15 hover:border-white/30 transition-all active:scale-95 min-h-[44px] sm:min-h-0 flex items-center justify-center cursor-pointer shrink-0"
