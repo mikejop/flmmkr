@@ -2,11 +2,10 @@
 
 import React from 'react';
 import { Subtopic, LessonSubtab } from '../types/course';
-import { CheckCircle2, Sparkles, Lightbulb } from 'lucide-react';
+import { Sparkles } from 'lucide-react';
 import {
   EditorialSection,
   TwoColumnText,
-  ImageAndText,
   EditorialQuote,
 } from './EditorialLayout';
 
@@ -81,17 +80,10 @@ export default function GenericLessonArticle({
           title="FLUXO DE TRABALHO E EXECUÇÃO"
           subtitle="PASSO A PASSO SEQUENCIAL DE COLOR GRADING"
         >
-          <ImageAndText
-            imageAlt={`Fluxo Prático: ${lesson.title}`}
-            caption={`Aplicação prática de ${lesson.title} no DaVinci Resolve`}
-            imagePosition="left"
-          >
-            <div className="space-y-4 font-sans">
-              <h4 className="font-sans font-bold text-sm text-neutral-900 uppercase tracking-wider mb-2">
-                Sequência de Ajustes
-              </h4>
+          <h3 className="font-sans font-bold text-sm text-neutral-900 uppercase tracking-wider mb-3">Sequência de ajustes</h3>
+          <ol className="space-y-4 font-sans list-none max-w-3xl">
               {steps.map((step, idx) => (
-                <div
+                <li
                   key={idx}
                   className="flex items-start gap-3.5 p-3.5 rounded-xl bg-neutral-50 border border-neutral-200/80 hover:bg-neutral-100/80 transition-colors shadow-2xs"
                 >
@@ -101,10 +93,10 @@ export default function GenericLessonArticle({
                   <p className="font-serif text-base text-neutral-800 leading-snug pt-0.5">
                     {step}
                   </p>
-                </div>
+                </li>
               ))}
-            </div>
-          </ImageAndText>
+            </ol>
+
 
           {tips.length > 1 && (
             <div className="mt-6 p-5 bg-amber-500/10 border border-amber-500/20 rounded-2xl text-amber-900 text-sm font-sans flex items-start gap-3">
@@ -118,12 +110,7 @@ export default function GenericLessonArticle({
             </div>
           )}
 
-          <div className="mt-8 pt-6 border-t border-neutral-200/80 flex items-center justify-between text-xs font-sans text-neutral-500">
-            <span>COLOR MASTER® · DA VINCI RESOLVE</span>
-            <span className="flex items-center gap-1.5 text-emerald-600 font-semibold">
-              <CheckCircle2 size={14} /> Aula Concluível
-            </span>
-          </div>
+
         </EditorialSection>
       )}
 

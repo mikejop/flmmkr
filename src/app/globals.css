@@ -200,3 +200,126 @@ body {
     background-size: 5px 5px;
   }
 }
+
+/* Família de Fonte Molde para FLMMKR */
+@font-face {
+  font-family: 'Molde';
+  src: url('/fonts/molde/Molde-Expanded-Black.ttf') format('truetype');
+  font-weight: 950;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Molde';
+  src: url('/fonts/molde/Molde-Expanded-Heavy.ttf') format('truetype');
+  font-weight: 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Molde';
+  src: url('/fonts/molde/Molde-Expanded-Bold.ttf') format('truetype');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Molde';
+  src: url('/fonts/molde/Molde-Expanded-Semibold.ttf') format('truetype');
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Molde';
+  src: url('/fonts/molde/Molde-Expanded-Medium.ttf') format('truetype');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Molde';
+  src: url('/fonts/molde/Molde-Expanded-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Molde';
+  src: url('/fonts/molde/Molde-Expanded-Light.ttf') format('truetype');
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Molde';
+  src: url('/fonts/molde/Molde-Expanded-Ultralight.ttf') format('truetype');
+  font-weight: 200;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Molde';
+  src: url('/fonts/molde/Molde-Expanded-Thin.ttf') format('truetype');
+  font-weight: 100;
+  font-style: normal;
+  font-display: swap;
+}
+
+.font-molde-heavy {
+  font-family: 'Molde', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-weight: 900;
+}
+
+.font-molde-bold {
+  font-family: 'Molde', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-weight: 700;
+}
+
+.font-molde-medium {
+  font-family: 'Molde', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-weight: 500;
+}
+
+.font-molde-regular {
+  font-family: 'Molde', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-weight: 400;
+}
+
+/* ---------------------------------------------------------------------------
+   Área de membros — acessibilidade
+   --------------------------------------------------------------------------- */
+
+/* Foco visível para quem navega por teclado (não aparece no clique do mouse). */
+:where(a, button, input, select, textarea, summary, [role='tab'], [role='menuitem'], [tabindex]):focus-visible {
+  outline: 2px solid #0071e3;
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+/* Em fundos escuros o azul perde contraste: anel claro duplo. */
+#window-sidebar :focus-visible,
+header :focus-visible {
+  outline-color: #ffffff;
+  box-shadow: 0 0 0 4px rgba(0, 113, 227, 0.9);
+}
+
+/* "Reduzir movimento": remove animações e transições decorativas da área de membros. */
+@media (prefers-reduced-motion: reduce) {
+  #finder-window *,
+  #finder-window *::before,
+  #finder-window *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}

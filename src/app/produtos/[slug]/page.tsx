@@ -13,6 +13,7 @@ import {
   Award
 } from 'lucide-react';
 import Link from 'next/link';
+import { getMediaUrl } from '@/lib/storage';
 
 interface ProductPageProps {
   params: Promise<{
@@ -44,8 +45,8 @@ export async function generateMetadata({ params }: ProductPageProps): Promise<Me
     : product.description;
 
   const ogImage = isColorMaster
-    ? `${baseUrl}/assets/produtos/color-grade-produto/opengraph.jpg`
-    : (product.imageUrl ? `${baseUrl}${product.imageUrl}` : `${baseUrl}${SITE_CONFIG.seo.ogImage}`);
+    ? getMediaUrl('assets/produtos/color-grade-produto/opengraph.jpg')
+    : (product.imageUrl || SITE_CONFIG.seo.ogImage);
 
   return {
     title: isColorMaster ? { absolute: 'Color Master® | Produtos' } : title,
@@ -147,7 +148,7 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
       '@type': 'Product',
       '@id': `${canonicalUrl}#product`,
       name: 'Color Master® | Produtos',
-      image: `${baseUrl}/assets/produtos/color-grade-produto/opengraph.jpg`,
+      image: getMediaUrl('assets/produtos/color-grade-produto/opengraph.jpg'),
       description:
         'Treinamento especializado em Color Grading para vídeos de produto e comerciais no DaVinci Resolve com Michael Oliveira.',
       brand: {
@@ -279,7 +280,7 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
         <link
           rel="preload"
           as="image"
-          href="/assets/videos/dom-dourado-poster.webp"
+          href={getMediaUrl('assets/videos/dom-dourado-poster.webp')}
           type="image/webp"
           fetchPriority="high"
         />

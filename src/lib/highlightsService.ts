@@ -1,7 +1,8 @@
 import { supabase } from './supabase';
 import { HighlightItem } from '../types';
 
-const LOCAL_STORAGE_PREFIX = 'youtuber_pro_highlights_';
+const LOCAL_STORAGE_PREFIX = 'color_master_highlights_';
+const COURSE_ID = 'color-master-produto';
 
 /**
  * Fetch highlights for a specific lesson for the logged in user, with local fallback
@@ -29,6 +30,7 @@ export async function fetchUserHighlights(lessonId: string): Promise<HighlightIt
       .from('user_highlights')
       .select('*')
       .eq('user_id', session.user.id)
+      .eq('course_id', COURSE_ID)
       .eq('lesson_id', lessonId)
       .order('created_at', { ascending: true });
 
@@ -108,6 +110,7 @@ export async function saveUserHighlight(
         .upsert({
           id: generatedId.startsWith('hl_') ? undefined : generatedId,
           user_id: session.user.id,
+          course_id: COURSE_ID,
           lesson_id: item.lesson_id,
           section_title: item.section_title || '',
           text_content: item.text_content,
@@ -156,7 +159,8 @@ export async function deleteUserHighlight(highlightId: string, lessonId: string)
         .from('user_highlights')
         .delete()
         .eq('id', highlightId)
-        .eq('user_id', session.user.id);
+        .eq('user_id', session.user.id)
+        .eq('course_id', COURSE_ID);
 
       if (error) {
         console.warn('Error deleting highlight from Supabase:', error);
@@ -205,7 +209,8 @@ export async function updateUserHighlight(
           ...(updates.color !== undefined && { color: updates.color })
         })
         .eq('id', highlightId)
-        .eq('user_id', session.user.id);
+        .eq('user_id', session.user.id)
+        .eq('course_id', COURSE_ID);
 
       if (error) {
         console.warn('Error updating highlight in Supabase:', error);

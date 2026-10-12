@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { readCache, writeCache } from '@/lib/clientCache';
 import {
   MessageSquare,
   Heart,
@@ -88,6 +89,8 @@ export default function LessonComments({
 
   // Lista de alunos para menções @
   const [students, setStudents] = useState<StudentItem[]>([]);
+  const [studentCursor, setStudentCursor] = useState<string | null>(null);
+  const studentsLoadingRef = useRef(false);
   const [mentionQuery, setMentionQuery] = useState('');
   const [showMentionMenu, setShowMentionMenu] = useState(false);
   const [mentionTarget, setMentionTarget] = useState<'comment' | 'reply'>('comment');
@@ -124,19 +127,38 @@ export default function LessonComments({
     }
   }, [lessonId, userId]);
 
-  // Carregar lista de alunos cadastrados para menções
-  useEffect(() => {
-    async function loadStudents() {
-      try {
-        const res = await fetch('/api/students/list');
-        if (res.ok) {
-          const data = await res.json();
-          setStudents(data.students || []);
-        }
-      } catch (_) {}
+  async function loadStudentsPage(cursor?: string) {
+    if (studentsLoadingRef.current) return;
+    studentsLoadingRef.current = true;
+    try {
+      const url = cursor ? `/api/students/list?cursor=${encodeURIComponent(cursor)}` : '/api/students/list';
+      // A lista de menções muda pouco: a 1ª página fica 12 h no navegador.
+      const cacheKey = cursor ? null : 'students-list-first-page';
+      let data: any = cacheKey ? readCache<any>(cacheKey)?.value : null;
+      if (cacheKey && data && (readCache<any>(cacheKey)?.ageMs ?? Infinity) > 12 * 60 * 60 * 1000) data = null;
+      if (!data) {
+        const res = await fetch(url);
+        if (!res.ok) return;
+        data = await res.json();
+        if (cacheKey) writeCache(cacheKey, data);
+      }
+      setStudents((current) => cursor ? [...current, ...(data.students || [])] : (data.students || []));
+      setStudentCursor(data.nextCursor || null);
+    } catch {
+      // The mention list is optional; comments remain available if it fails.
+    } finally {
+      studentsLoadingRef.current = false;
     }
-    loadStudents();
+  }
+
+  // Carregar lista paginada de alunos para menções.
+  useEffect(() => {
+    loadStudentsPage();
   }, []);
+
+  const loadNextStudentsPage = () => {
+    if (studentCursor) void loadStudentsPage(studentCursor);
+  };
 
   useEffect(() => {
     loadComments();
@@ -587,12 +609,12 @@ export default function LessonComments({
 
               {/* AUTOCOMPLETE POPUP PARA @MENÇÕES */}
               {showMentionMenu && mentionTarget === 'comment' && filteredStudents.length > 0 && (
-                <div className="absolute left-0 bottom-full mb-1 w-64 max-h-48 overflow-y-auto bg-[#1f1f23] border border-white/15 rounded-xl shadow-2xl z-30 divide-y divide-white/10 text-white">
+                <div onScroll={(event) => { const el = event.currentTarget; if (el.scrollTop + el.clientHeight >= el.scrollHeight - 16) loadNextStudentsPage(); }} className="absolute left-0 bottom-full mb-1 w-64 max-h-48 overflow-y-auto bg-[#1f1f23] border border-white/15 rounded-xl shadow-2xl z-30 divide-y divide-white/10 text-white">
                   <div className="p-2 bg-white/5 text-[11px] font-bold text-neutral-300 uppercase tracking-wider flex items-center gap-1.5">
                     <AtSign size={12} className="text-[#00c7fc]" />
                     <span>Mencionar Aluno</span>
                   </div>
-                  {filteredStudents.slice(0, 6).map((student) => (
+                  {filteredStudents.map((student) => (
                     <div
                       key={student.id}
                       onClick={() => handleSelectMention(student)}
@@ -833,12 +855,12 @@ export default function LessonComments({
 
                             {/* AUTOCOMPLETE POPUP PARA @MENÇÕES NA RESPOSTA */}
                             {showMentionMenu && mentionTarget === 'reply' && filteredStudents.length > 0 && (
-                              <div className="absolute left-4 bottom-full mb-1 w-64 max-h-48 overflow-y-auto bg-[#1f1f23] border border-white/15 rounded-xl shadow-2xl z-30 divide-y divide-white/10 text-white">
+                              <div onScroll={(event) => { const el = event.currentTarget; if (el.scrollTop + el.clientHeight >= el.scrollHeight - 16) loadNextStudentsPage(); }} className="absolute left-4 bottom-full mb-1 w-64 max-h-48 overflow-y-auto bg-[#1f1f23] border border-white/15 rounded-xl shadow-2xl z-30 divide-y divide-white/10 text-white">
                                 <div className="p-2 bg-white/5 text-[11px] font-bold text-neutral-300 uppercase tracking-wider flex items-center gap-1.5">
                                   <AtSign size={12} className="text-[#00c7fc]" />
                                   <span>Mencionar Aluno</span>
                                 </div>
-                                {filteredStudents.slice(0, 6).map((student) => (
+                                {filteredStudents.map((student) => (
                                   <div
                                     key={student.id}
                                     onClick={() => handleSelectMention(student)}

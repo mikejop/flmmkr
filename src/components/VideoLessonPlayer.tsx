@@ -32,6 +32,7 @@ interface VideoQualityLevel {
 
 interface VideoLessonPlayerProps {
   videoUrl?: string;
+  lessonId?: string;
   title: string;
   poster?: string;
   studentName?: string;
@@ -42,6 +43,7 @@ export const VideoLessonPlayer = forwardRef<VideoLessonPlayerHandle, VideoLesson
   function VideoLessonPlayer(
     {
       videoUrl,
+      lessonId,
       title,
       poster,
       studentName = 'Aluno',
@@ -66,7 +68,31 @@ export const VideoLessonPlayer = forwardRef<VideoLessonPlayerHandle, VideoLesson
     const [isBuffering, setIsBuffering] = useState(false);
     const [showControls, setShowControls] = useState(true);
     const [hasStarted, setHasStarted] = useState(false);
-    const [videoAspectRatio, setVideoAspectRatio] = useState<number | null>(null);
+    const [protectedVideoUrl, setProtectedVideoUrl] = useState('');
+    const [isResolvingVideo, setIsResolvingVideo] = useState(false);
+    const resolvedVideoUrl = videoUrl || protectedVideoUrl;
+
+    useEffect(() => {
+      setProtectedVideoUrl('');
+      if (videoUrl || !lessonId) {
+        setIsResolvingVideo(false);
+        return;
+      }
+
+      let cancelled = false;
+      setIsResolvingVideo(true);
+      fetch(`/api/content/lesson-video?lessonId=${encodeURIComponent(lessonId)}`)
+        .then(async (response) => {
+          const data = await response.json().catch(() => ({}));
+          if (!response.ok) throw new Error(data.error || 'Vídeo indisponível.');
+          return data.videoUrl as string;
+        })
+        .then((url) => { if (!cancelled && url) setProtectedVideoUrl(url); })
+        .catch(() => {})
+        .finally(() => { if (!cancelled) setIsResolvingVideo(false); });
+
+      return () => { cancelled = true; };
+    }, [lessonId, videoUrl]);
 
     // Sistema de Resolução de Vídeo
     const [qualityLevels, setQualityLevels] = useState<VideoQualityLevel[]>([]);
@@ -97,9 +123,8 @@ export const VideoLessonPlayer = forwardRef<VideoLessonPlayerHandle, VideoLesson
     // Initialize HLS / Native video source
     useEffect(() => {
       const video = videoRef.current;
-      if (!video || !videoUrl) return;
+      if (!video || !resolvedVideoUrl) return;
 
-      setVideoAspectRatio(null);
       setIsBuffering(true);
       setQualityLevels([]);
       setSelectedQuality(-1);
@@ -110,14 +135,14 @@ export const VideoLessonPlayer = forwardRef<VideoLessonPlayerHandle, VideoLesson
         hlsRef.current = null;
       }
 
-      if (Hls.isSupported() && videoUrl.includes('.m3u8')) {
+      if (Hls.isSupported() && resolvedVideoUrl.includes('.m3u8')) {
         const hls = new Hls({
           enableWorker: true,
           lowLatencyMode: true,
           backBufferLength: 90,
         });
 
-        hls.loadSource(videoUrl);
+        hls.loadSource(resolvedVideoUrl);
         hls.attachMedia(video);
 
         hls.on(Hls.Events.MANIFEST_PARSED, (_event, data) => {
@@ -184,13 +209,12 @@ export const VideoLessonPlayer = forwardRef<VideoLessonPlayerHandle, VideoLesson
         });
 
         hlsRef.current = hls;
-      } else if (video.canPlayType('application/vnd.apple.mpegurl') || !videoUrl.includes('.m3u8')) {
-        video.src = videoUrl;
+      } else if (video.canPlayType('application/vnd.apple.mpegurl') || !resolvedVideoUrl.includes('.m3u8')) {
+        video.src = resolvedVideoUrl;
         video.addEventListener('loadedmetadata', () => {
           setIsBuffering(false);
           setDuration(video.duration || 0);
           if (video.videoWidth && video.videoHeight && video.videoHeight > 0) {
-            setVideoAspectRatio(video.videoWidth / video.videoHeight);
             // Para MP4 nativo direto ou Safari HLS nativo sem hls.js, registra a resolução detectada
             setQualityLevels([{
               id: 0,
@@ -208,7 +232,7 @@ export const VideoLessonPlayer = forwardRef<VideoLessonPlayerHandle, VideoLesson
           hlsRef.current = null;
         }
       };
-    }, [videoUrl]);
+    }, [resolvedVideoUrl]);
 
     // Troca de resolução de vídeo
     const handleQualitySelect = (qualityId: number) => {
@@ -244,9 +268,6 @@ export const VideoLessonPlayer = forwardRef<VideoLessonPlayerHandle, VideoLesson
       if (!video) return;
       setDuration(video.duration || 0);
       setIsBuffering(false);
-      if (video.videoWidth && video.videoHeight && video.videoHeight > 0) {
-        setVideoAspectRatio(video.videoWidth / video.videoHeight);
-      }
     };
 
     const handleWaiting = () => setIsBuffering(true);
@@ -406,9 +427,9 @@ export const VideoLessonPlayer = forwardRef<VideoLessonPlayerHandle, VideoLesson
     };
 
     // Fallback if no video URL is provided
-    if (!videoUrl) {
+    if (!resolvedVideoUrl) {
       return (
-        <div className="relative w-full aspect-video rounded-[22px] sm:rounded-[26px] bg-[#141416] border border-white/10 flex flex-col items-center justify-center p-8 text-center overflow-hidden shadow-2xl select-none">
+        <div className="relative w-full aspect-[1.54] rounded-[22px] sm:rounded-[26px] bg-[#141416] border border-white/10 flex flex-col items-center justify-center p-8 text-center overflow-hidden shadow-2xl select-none">
           <div className="absolute inset-0 bg-radial from-[#0071e3]/10 to-transparent pointer-events-none" />
           
           <div className="relative z-10 max-w-md space-y-4">
@@ -423,7 +444,7 @@ export const VideoLessonPlayer = forwardRef<VideoLessonPlayerHandle, VideoLesson
                 {title}
               </h3>
               <p className="text-xs sm:text-sm text-neutral-400 font-sans leading-relaxed">
-                Esta aula em vídeo está sendo processada em alta definição. Consulte o manual prático e os fundamentos abaixo.
+                {isResolvingVideo ? 'Validando seu acesso ao vídeo...' : 'Esta aula em vídeo está sendo processada em alta definição. Consulte o manual prático e os fundamentos abaixo.'}
               </p>
             </div>
           </div>
@@ -444,8 +465,7 @@ export const VideoLessonPlayer = forwardRef<VideoLessonPlayerHandle, VideoLesson
         ref={containerRef}
         onMouseMove={handleMouseMove}
         onMouseLeave={() => isPlaying && setShowControls(false)}
-        style={videoAspectRatio ? { aspectRatio: `${videoAspectRatio}` } : undefined}
-        className={`group relative w-full ${!videoAspectRatio ? 'aspect-video' : ''} rounded-[22px] sm:rounded-[26px] bg-black overflow-hidden shadow-2xl border border-white/10 select-none transition-all duration-300`}
+        className="group relative w-full aspect-[1.54] rounded-[22px] sm:rounded-[26px] bg-black overflow-hidden shadow-2xl border border-white/10 select-none transition-all duration-300"
       >
         {/* Video Element */}
         <video
@@ -460,7 +480,7 @@ export const VideoLessonPlayer = forwardRef<VideoLessonPlayerHandle, VideoLesson
           onPause={handlePause}
           onEnded={handleEnded}
           onClick={togglePlay}
-          className="w-full h-full object-cover cursor-pointer"
+          className="w-full h-full object-contain cursor-pointer"
         />
 
         {/* Buffering Indicator */}
@@ -527,6 +547,7 @@ export const VideoLessonPlayer = forwardRef<VideoLessonPlayerHandle, VideoLesson
                 onClick={togglePlay}
                 className="p-1.5 sm:p-2 rounded-full hover:bg-white/10 transition-colors text-white cursor-pointer"
                 title={isPlaying ? 'Pausar (Espaço)' : 'Reproduzir (Espaço)'}
+                aria-label={isPlaying ? 'Pausar (Espaço)' : 'Reproduzir (Espaço)'}
               >
                 {isPlaying ? <Pause size={17} /> : <Play size={17} fill="currentColor" />}
               </button>
@@ -535,6 +556,7 @@ export const VideoLessonPlayer = forwardRef<VideoLessonPlayerHandle, VideoLesson
                 onClick={() => skipTime(-10)}
                 className="p-1.5 sm:p-2 rounded-full hover:bg-white/10 transition-colors text-neutral-300 hover:text-white cursor-pointer"
                 title="Voltar 10s (←)"
+                aria-label="Voltar 10s (←)"
               >
                 <RotateCcw size={16} />
               </button>
@@ -543,6 +565,7 @@ export const VideoLessonPlayer = forwardRef<VideoLessonPlayerHandle, VideoLesson
                 onClick={() => skipTime(10)}
                 className="p-1.5 sm:p-2 rounded-full hover:bg-white/10 transition-colors text-neutral-300 hover:text-white cursor-pointer"
                 title="Avançar 10s (→)"
+                aria-label="Avançar 10s (→)"
               >
                 <FastForward size={16} />
               </button>
@@ -553,6 +576,7 @@ export const VideoLessonPlayer = forwardRef<VideoLessonPlayerHandle, VideoLesson
                   onClick={toggleMute}
                   className="p-1.5 sm:p-2 rounded-full hover:bg-white/10 transition-colors text-neutral-300 hover:text-white cursor-pointer"
                   title={isMuted ? 'Ativar Som (M)' : 'Silenciar (M)'}
+                  aria-label={isMuted ? 'Ativar Som (M)' : 'Silenciar (M)'}
                 >
                   {isMuted || volume === 0 ? <VolumeX size={17} /> : <Volume2 size={17} />}
                 </button>
@@ -595,6 +619,7 @@ export const VideoLessonPlayer = forwardRef<VideoLessonPlayerHandle, VideoLesson
                         : 'bg-white/5 hover:bg-white/15 text-neutral-300 hover:text-white border-white/10'
                     }`}
                     title="Qualidade / Resolução do Vídeo"
+                    aria-label="Qualidade / Resolução do Vídeo"
                   >
                     <Settings size={13} className={showQualityMenu ? 'animate-spin' : ''} />
                     <span>
@@ -671,6 +696,7 @@ export const VideoLessonPlayer = forwardRef<VideoLessonPlayerHandle, VideoLesson
                   }}
                   className="px-2 py-1 rounded-md text-[11px] font-mono font-bold bg-white/5 hover:bg-white/15 border border-white/10 transition-colors cursor-pointer"
                   title="Velocidade de Reprodução"
+                  aria-label="Velocidade de Reprodução"
                 >
                   {playbackSpeed}x
                 </button>
@@ -703,6 +729,7 @@ export const VideoLessonPlayer = forwardRef<VideoLessonPlayerHandle, VideoLesson
                 onClick={togglePiP}
                 className="p-1.5 sm:p-2 rounded-full hover:bg-white/10 transition-colors text-neutral-300 hover:text-white cursor-pointer hidden sm:block"
                 title="Picture in Picture"
+                aria-label="Picture in Picture"
               >
                 <PictureInPicture2 size={16} />
               </button>
@@ -712,6 +739,7 @@ export const VideoLessonPlayer = forwardRef<VideoLessonPlayerHandle, VideoLesson
                 onClick={toggleFullscreen}
                 className="p-1.5 sm:p-2 rounded-full hover:bg-white/10 transition-colors text-neutral-300 hover:text-white cursor-pointer"
                 title={isFullscreen ? 'Sair da Tela Cheia (F)' : 'Tela Cheia (F)'}
+                aria-label={isFullscreen ? 'Sair da Tela Cheia (F)' : 'Tela Cheia (F)'}
               >
                 {isFullscreen ? <Minimize size={17} /> : <Maximize size={17} />}
               </button>

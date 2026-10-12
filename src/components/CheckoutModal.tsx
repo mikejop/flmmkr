@@ -372,7 +372,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
         const res = await fetch(`/api/checkout/status?paymentId=${pixData.paymentId}`);
         const data = await res.json();
 
-        if (data?.confirmed) {
+        if (data?.confirmed && data?.activationSent) {
           paymentCompletedRef.current = true;
           setPollingActive(false);
           setActivationRecipientEmail(data.email || email);
@@ -1576,7 +1576,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
             </div>
 
             <p className="text-xs text-zinc-400 leading-relaxed mb-6">
-              Abra sua caixa de entrada e clique no link de ativação para cadastrar sua senha exclusiva e entrar na Área do Aluno. Se não localizar em instantes, confira sua pasta de spam.
+              Abra sua caixa de entrada e clique no link de ativação para cadastrar sua senha exclusiva e entrar na Área do Aluno. Caso não encontre a mensagem na sua caixa de entrada principal em instantes, confira também a sua pasta de Spam ou Lixo Eletrônico, pois talvez ela tenha sido direcionada para lá pelo seu provedor.
             </p>
 
             <button

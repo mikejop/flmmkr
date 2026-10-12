@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { getMediaUrl } from '@/lib/storage';
 
 export default function ColorwheelsGrading() {
   const [profile, setProfile] = useState<'log' | 'rec709'>('log');
@@ -233,7 +234,7 @@ export default function ColorwheelsGrading() {
             <div 
               className="absolute inset-0 w-full h-full bg-cover bg-center"
               style={{
-                backgroundImage: 'url("/img/bg/bg_studio.webp")',
+                backgroundImage: `url("${getMediaUrl('hero-lighting.webp')}")`,
                 ...getImageStyle()
               }}
               id="clip-image-layer"

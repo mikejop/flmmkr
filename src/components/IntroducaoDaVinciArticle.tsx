@@ -1,7 +1,9 @@
 'use client';
 
+import { getMediaUrl } from '@/lib/storage';
+
 import React from 'react';
-import { CheckCircle2, Command } from 'lucide-react';
+import Image from 'next/image';
 import {
   EditorialSection,
   TwoColumnText,
@@ -9,6 +11,23 @@ import {
   EditorialQuote,
   FullWidthImage,
 } from './EditorialLayout';
+
+type NodeDiagram = { src: string; alt: string; width: number; height: number };
+
+function NodeTypeCard({ title, children, use, images = [] }: { title: string; children: React.ReactNode; use: string; images?: NodeDiagram[] }) {
+  return (
+    <section className="space-y-3 rounded-2xl border border-neutral-200 bg-white p-5 sm:p-6">
+      <h4 className="font-sans text-lg font-bold text-neutral-900">{title}</h4>
+      {images.length > 0 && <div className={`grid gap-3 ${images.length > 1 ? 'grid-cols-2' : 'grid-cols-1'}`}>
+        {images.map((image) => <div key={image.src} className="flex aspect-[3/2] items-center justify-center overflow-hidden rounded-xl border border-neutral-200 bg-neutral-50 p-2">
+          <Image src={image.src} alt={image.alt} width={image.width} height={image.height} sizes="(max-width: 1024px) 90vw, 44vw" className="h-full w-full object-contain" />
+        </div>)}
+      </div>}
+      <div className="space-y-3 font-serif text-[15px] leading-[1.65] text-neutral-800 [&_p]:text-justify">{children}</div>
+      <p className="border-t border-neutral-200 pt-3 font-serif text-sm leading-relaxed text-neutral-700"><strong className="font-sans text-neutral-900">Quando usar:</strong> {use}</p>
+    </section>
+  );
+}
 
 export default function IntroducaoDaVinciArticle() {
   return (
@@ -24,7 +43,7 @@ export default function IntroducaoDaVinciArticle() {
         subtitle="COMO O PROGRAMA ESTÁ ORGANIZADO E ONDE VOCÊ VAI TRABALHAR"
       >
         <FullWidthImage
-          src="/assets/artigos/introducao-davinci/davinci-resolve.webp"
+          src={getMediaUrl('assets/artigos/introducao-davinci/davinci-resolve.webp')}
           alt="DaVinci Resolve"
           loading="eager"
           fetchPriority="high"
@@ -74,7 +93,7 @@ export default function IntroducaoDaVinciArticle() {
         subtitle="É AQUI QUE A IMAGEM COMEÇA A TOMAR FORMA"
       >
         <ImageAndText
-          imageSrc="/assets/artigos/introducao-davinci/color-page.webp"
+          imageSrc={getMediaUrl('assets/artigos/introducao-davinci/color-page.webp')}
           imageAlt="Interface Principal da Página Color"
           imagePosition="left"
         >
@@ -100,7 +119,7 @@ export default function IntroducaoDaVinciArticle() {
         subtitle="A IMAGEM PASSA POR AQUI"
       >
         <ImageAndText
-          imageSrc="/assets/artigos/introducao-davinci/NODES.webp"
+          imageSrc={getMediaUrl('assets/artigos/introducao-davinci/NODES.webp')}
           imageAlt="Node Graph no DaVinci Resolve"
           imagePosition="right"
         >
@@ -130,187 +149,71 @@ export default function IntroducaoDaVinciArticle() {
           </div>
         </ImageAndText>
 
-        <TwoColumnText
-          className="pt-2"
-          left={
-            <>
-              <h4 className="font-sans font-bold text-lg text-neutral-900 tracking-tight not-italic">
-                Nodes seriais
-              </h4>
-              <p>
-                O node serial é a estrutura mais básica e também a mais utilizada. O sinal passa por um node e segue diretamente para o próximo, formando uma cadeia contínua de processamento. É comum utilizar nodes seriais para separar funções do grading:
-              </p>
-            </>
-          }
-          right={
-            <>
-              <p>
-                Também torna mais simples revisar uma correção, comparar versões, ajustar uma etapa específica e manter consistência entre os planos de uma sequência ao longo de todo o trabalho.
-              </p>
-            </>
-          }
-        />
-
-        {/* ===================================================================
-            GRÁFICO REALISTA DO NODE TREE DO DAVINCI RESOLVE
-            =================================================================== */}
-        <div 
-          style={{ contain: 'layout paint' }}
-          className="my-8 rounded-2xl bg-[#141416] border border-[#2b2b30] p-5 sm:p-7 shadow-md overflow-hidden select-none"
-        >
-          {/* Header estilo janela do DaVinci */}
-          <div className="flex items-center justify-between pb-4 border-b border-[#232328] mb-6">
-            <div className="flex items-center gap-2">
-              <span className="w-2.5 h-2.5 rounded-full bg-[#10b981]" />
-              <span className="font-mono text-xs font-semibold tracking-wider text-[#a1a1aa] uppercase">
-                Node Graph · Serial Workflow
-              </span>
-            </div>
+        <div className="space-y-5 border-t border-neutral-200 pt-7">
+          <div className="space-y-3 font-serif text-[16px] leading-relaxed text-neutral-800 [&_p]:text-justify">
+            <h4 className="font-sans text-xl font-bold text-neutral-900">Tipos de nodes no DaVinci Resolve</h4>
+            <p>Na página Color, os nodes são a estrutura usada para organizar e executar correções e tratamentos da imagem. Cada node funciona como uma etapa do processamento e pode conter ajustes primários, correções seletivas, máscaras, efeitos e outras operações.</p>
+            <p>Separar o tratamento em etapas independentes ajuda a organizar a ordem das operações e facilita a revisão. Você pode, por exemplo, dedicar nodes diferentes ao balanço de cor, contraste, ajustes de pele e criação do look. As conexões formam a <em>node tree</em> (árvore de nodes): a saída de um node pode alimentar outro, dividir-se em ramificações ou ser combinada com outras operações.</p>
+            <p>As estruturas abaixo têm comportamentos diferentes. Entendê-las ajuda a montar árvores de nodes organizadas e escolher o fluxo adequado sem adicionar complexidade desnecessária.</p>
           </div>
 
-          {/* Canvas interativo/scroll horizontal em telas menores */}
-          <div className="overflow-x-auto pb-4 pt-2 -mx-2 px-2 scrollbar-thin">
-            <div className="flex items-center gap-3 sm:gap-4 min-w-[780px] justify-between py-2">
-              
-              {/* SOURCE / IN */}
-              <div className="flex flex-col items-center">
-                <span className="text-[10px] font-mono text-[#71717a] mb-1 tracking-wider uppercase font-semibold">Source</span>
-                <div className="w-9 h-9 rounded-xl bg-[#1e1e22] border-2 border-[#10b981] flex items-center justify-center shadow-lg relative group">
-                  <div className="w-3 h-3 bg-[#10b981] rounded-xs rotate-45" />
-                  <span className="absolute -top-7 opacity-0 group-hover:opacity-100 transition-opacity bg-black/90 text-[10px] font-mono text-[#a1a1aa] px-2 py-0.5 rounded whitespace-nowrap border border-white/10 pointer-events-none">
-                    RGB Input
-                  </span>
-                </div>
-              </div>
+          <div className="grid gap-5 lg:grid-cols-2">
+            <NodeTypeCard title="1. Serial Node · Nó serial" use="correções primárias, balanço de branco, exposição, contraste, saturação, criação de looks e ajustes finais. É uma boa estrutura principal para começar." images={[{ src: getMediaUrl('assets/artigos/introducao-davinci/nodes/serial.png'), alt: 'Diagrama de nodes conectados em série', width: 664, height: 388 }]}>
+              <p>É a estrutura mais comum e o ponto de partida da maioria dos trabalhos. Os nodes são conectados em sequência: a imagem passa pelo primeiro, cuja saída alimenta o segundo, e assim por diante.</p>
+              <p>Cada node recebe a imagem já processada pelas etapas anteriores, por isso a ordem importa. Se o primeiro node ajusta o balanço de branco, o segundo trabalha o contraste sobre essa imagem balanceada, e o terceiro ajusta a saturação depois das duas operações anteriores.</p>
+              <p>Separar o tratamento em etapas lógicas facilita localizar problemas, comparar ajustes e revisar o trabalho.</p>
+            </NodeTypeCard>
 
-              {/* CONEXÃO IN -> NODE 01 COM FLECHA */}
-              <div className="flex-1 flex items-center">
-                <div className="h-[2px] w-full bg-[#10b981] relative flex items-center justify-end">
-                  <span className="border-t-[4px] border-t-transparent border-b-[4px] border-b-transparent border-l-[6px] border-l-[#10b981] translate-x-[1px]" />
-                </div>
-              </div>
+            <NodeTypeCard title="2. Parallel Node · Node paralelo" use="correções seletivas de pele, céu, vegetação, objetos e outras áreas que precisam de ajustes independentes." images={[{ src: getMediaUrl('assets/artigos/introducao-davinci/nodes/paralelo.png'), alt: 'Diagrama de nodes paralelos conectados a um mixer', width: 624, height: 444 }]}>
+              <p>Os nodes paralelos partem de uma mesma imagem de origem e têm seus resultados combinados por um Parallel Mixer. Cada node faz sua própria correção sem receber diretamente a saída corrigida dos outros.</p>
+              <p>Por exemplo, você pode ajustar a pele, controlar a saturação do céu e modificar a vegetação em ramificações separadas. Isso facilita controlar cada intervenção e reduz a interferência em cadeia entre elas.</p>
+              <p>O resultado ainda depende de como o Parallel Mixer combina as correções e as respectivas informações de chaveamento.</p>
+            </NodeTypeCard>
 
-              {/* LISTA DE NODES SERIAIS */}
-              {[
-                { num: '01', title: 'Transformação', sub: 'de cor', desc: 'CST / IDT' },
-                { num: '02', title: 'Exposição', sub: 'e balanço', desc: 'Primaries' },
-                { num: '03', title: 'Contraste', sub: 'e saturação', desc: 'Curves' },
-                { num: '04', title: 'Correções', sub: 'secundárias', desc: 'Qualifier / HSL' },
-                { num: '05', title: 'Look', sub: 'criativo', desc: 'Tone & Palette' },
-                { num: '06', title: 'Output', sub: 'final', desc: 'ODT / Rec.709' },
-              ].map((node, index, arr) => (
-                <React.Fragment key={node.num}>
-                  {/* CARD DO NODE ESTILO DAVINCI */}
-                  <div className="w-[110px] shrink-0 flex flex-col items-center group">
-                    <div className="w-full bg-[#1e1e22] hover:bg-[#25252b] transition-all duration-200 rounded-xl border border-[#323238] hover:border-[#3b82f6] shadow-md p-2 relative">
-                      {/* Portas de Entrada (Verde RGB / Azul Alpha) */}
-                      <div className="absolute -left-1.5 top-3 w-2.5 h-2.5 bg-[#10b981] rounded-xs rotate-45 border border-[#141416]" title="RGB In" />
-                      <div className="absolute -left-1.5 bottom-3 w-2 h-2 bg-[#3b82f6] rounded-full border border-[#141416]" title="Key/Alpha In" />
+            <NodeTypeCard title="3. Layer Mixer · Mixer de camadas" use="compor correções com máscaras e combinar regiões que tenham prioridades diferentes." images={[{ src: getMediaUrl('assets/artigos/introducao-davinci/nodes/layer.png'), alt: 'Diagrama de nodes combinados em camadas', width: 716, height: 464 }]}>
+              <p>O Layer Mixer combina ramificações com uma lógica de sobreposição: entradas de maior prioridade podem aparecer sobre as anteriores, conforme as informações de chaveamento e transparência.</p>
+              <p>Imagine uma correção para o fundo e outra para um objeto em primeiro plano. Cada ramificação pode ter seus próprios ajustes e uma máscara para definir onde aparece; o mixer combina as camadas respeitando essa prioridade.</p>
+              <p>Ele é indicado quando o tratamento depende da sobreposição de regiões corrigidas separadamente.</p>
+            </NodeTypeCard>
 
-                      {/* Header do Node com Número */}
-                      <div className="flex items-center justify-between pb-1 mb-1.5 border-b border-[#28282e]">
-                        <span className="font-mono text-[11px] font-bold text-amber-400/90 tracking-wide">
-                          {node.num}
-                        </span>
-                        <span className="w-1.5 h-1.5 rounded-full bg-[#10b981]" />
-                      </div>
+            <NodeTypeCard title="4. Outside Node · Node externo" use="tratar o fundo ou o entorno de uma área selecionada, como reduzir a saturação fora da pele ou ajustar o contraste fora de uma janela." images={[{ src: getMediaUrl('assets/artigos/introducao-davinci/nodes/outside.png'), alt: 'Diagrama de Outside Node aplicado após uma seleção', width: 712, height: 322 }]}>
+              <p>Aplica uma correção à região oposta à seleção criada no node anterior. Ele inverte as informações de chaveamento, ou <em>key</em>, para direcionar o ajuste à área externa.</p>
+              <p>Se um Qualifier seleciona a pele, você pode corrigir essa seleção no node original e usar o Outside Node para tratar o restante da imagem. O mesmo princípio vale para uma Power Window que isola um rosto.</p>
+              <p>O Outside Node não encontra automaticamente o fundo ou o objeto: ele inverte a seleção anterior, então a qualidade dessa seleção continua sendo essencial.</p>
+            </NodeTypeCard>
 
-                      {/* Thumbnail / Área central do Node */}
-                      <div className="w-full h-10 rounded-md bg-[#161619] border border-[#26262b] flex flex-col items-center justify-center p-1 text-center mb-1.5">
-                        <span className="font-sans text-[11px] font-semibold text-white leading-tight line-clamp-1">
-                          {node.title}
-                        </span>
-                        <span className="font-sans text-[10px] text-[#9ca3af] leading-tight line-clamp-1">
-                          {node.sub}
-                        </span>
-                      </div>
+            <NodeTypeCard title="5. Splitter/Combiner · Separação e combinação de canais" use="tratamentos avançados por canal RGB, correção de dominantes e efeitos cromáticos específicos." images={[{ src: getMediaUrl('assets/artigos/introducao-davinci/nodes/spliter.png'), alt: 'Diagrama de Splitter separando os canais da imagem', width: 1824, height: 964 }, { src: getMediaUrl('assets/artigos/introducao-davinci/nodes/combiner.png'), alt: 'Diagrama de Combiner reunindo os canais da imagem', width: 1134, height: 878 }]}>
+              <p>O Splitter separa os componentes vermelho, verde e azul para que cada canal seja processado de forma independente. O Combiner reúne os canais tratados em uma única imagem.</p>
+              <p>Essa estrutura permite atuar diretamente nos componentes RGB. Por exemplo, você pode alterar a contribuição de um canal para corrigir uma dominante ou criar um efeito cromático particular.</p>
+              <p>É uma abordagem avançada e pouco necessária nas correções primárias comuns. Em muitos casos, o RGB Mixer e as curvas oferecem um caminho mais direto.</p>
+            </NodeTypeCard>
 
-                      {/* Tag inferior */}
-                      <div className="text-center">
-                        <span className="font-mono text-[9px] text-[#71717a] uppercase tracking-wider block truncate">
-                          {node.desc}
-                        </span>
-                      </div>
+            <NodeTypeCard title="6. Key Mixer · Mixer de chaves" use="combinar vários Qualifiers ou máscaras para formar uma seleção mais complexa." images={[{ src: getMediaUrl('assets/artigos/introducao-davinci/nodes/key%20mixer.png'), alt: 'Diagrama de nodes conectados a um Key Mixer', width: 944, height: 480 }]}>
+              <p>O Key Mixer combina informações de chaveamento — as seleções que definem onde uma correção pode atuar. Sua função principal é reunir seleções, não combinar as imagens corrigidas.</p>
+              <p>Um Qualifier pode selecionar parte de um objeto e outro completar as áreas que ficaram de fora. As duas chaves podem ser combinadas para criar uma seleção mais útil; o mesmo vale para máscaras diferentes.</p>
+              <p>Não confunda os mixers: o Parallel Mixer combina resultados de correções paralelas, o Layer Mixer combina imagens em camadas e o Key Mixer combina seleções.</p>
+            </NodeTypeCard>
 
-                      {/* Portas de Saída (Verde RGB / Azul Alpha) */}
-                      <div className="absolute -right-1.5 top-3 w-2.5 h-2.5 bg-[#10b981] rounded-xs rotate-45 border border-[#141416]" title="RGB Out" />
-                      <div className="absolute -right-1.5 bottom-3 w-2 h-2 bg-[#3b82f6] rounded-full border border-[#141416]" title="Key/Alpha Out" />
-                    </div>
+            <NodeTypeCard title="7. Shared Node · Node compartilhado" use="aplicar a mesma correção a vários clipes, como uma transformação de cor ou ajuste comum a planos da mesma produção.">
+              <p>Compartilha uma correção entre diferentes nodes ou clipes. Quando você altera o Shared Node, a mudança aparece em todas as instâncias vinculadas.</p>
+              <p>Em uma entrevista com várias câmeras, por exemplo, ele permite manter um ajuste comum sem repeti-lo manualmente em cada clipe. Isso ajuda a preservar a consistência visual e agiliza revisões.</p>
+              <p>Use com critério: se os planos precisarem de ajustes diferentes, uma mudança no node compartilhado afetará todas as instâncias conectadas.</p>
+            </NodeTypeCard>
 
-                    {/* Rótulo inferior */}
-                    <span className="font-mono text-[10px] text-[#71717a] mt-2 font-medium">
-                      Node {node.num}
-                    </span>
-                  </div>
-
-                  {/* CABO DE LIGAÇÃO SERIAL COM FLECHA */}
-                  {index < arr.length - 1 && (
-                    <div className="flex-1 flex items-center">
-                      <div className="h-[2px] w-full bg-[#10b981] relative flex items-center justify-end">
-                        <span className="border-t-[4px] border-t-transparent border-b-[4px] border-b-transparent border-l-[6px] border-l-[#10b981] translate-x-[1px]" />
-                      </div>
-                    </div>
-                  )}
-                </React.Fragment>
-              ))}
-
-              {/* CONEXÃO NODE 06 -> OUT COM FLECHA */}
-              <div className="flex-1 flex items-center">
-                <div className="h-[2px] w-full bg-[#10b981] relative flex items-center justify-end">
-                  <span className="border-t-[4px] border-t-transparent border-b-[4px] border-b-transparent border-l-[6px] border-l-[#10b981] translate-x-[1px]" />
-                </div>
-              </div>
-
-              {/* DESTINATION / OUT */}
-              <div className="flex flex-col items-center">
-                <span className="text-[10px] font-mono text-[#71717a] mb-1 tracking-wider uppercase font-semibold">Output</span>
-                <div className="w-9 h-9 rounded-xl bg-[#1e1e22] border-2 border-[#10b981] flex items-center justify-center shadow-lg relative group">
-                  <div className="w-3 h-3 bg-[#10b981] rounded-xs rotate-45" />
-                  <span className="absolute -top-7 opacity-0 group-hover:opacity-100 transition-opacity bg-black/90 text-[10px] font-mono text-[#a1a1aa] px-2 py-0.5 rounded whitespace-nowrap border border-white/10 pointer-events-none">
-                    RGB Output
-                  </span>
-                </div>
-              </div>
-
-            </div>
+            <NodeTypeCard title="8. Compound Node · Node composto" use="agrupar correções complexas e deixar mais limpo um node tree extenso.">
+              <p>Reúne vários nodes em uma única estrutura visual no node tree principal. A estrutura interna continua existindo, mas fica agrupada em uma unidade mais compacta.</p>
+              <p>Uma correção de pele, por exemplo, pode incluir Qualifier, Power Window, ajustes de cor, redução de saturação e controle de contraste. Agrupá-los facilita a leitura do fluxo principal.</p>
+              <p>Não confunda com Shared Node: o Compound organiza várias operações em um grupo; o Shared reutiliza uma correção em diferentes instâncias.</p>
+            </NodeTypeCard>
           </div>
 
-          {/* Legenda técnica estilo DaVinci */}
-          <div className="mt-4 pt-3 border-t border-[#232328] flex items-center gap-4 text-[11px] font-mono text-[#71717a]">
-            <span className="flex items-center gap-1.5">
-              <span className="w-2 h-2 bg-[#10b981] rounded-xs rotate-45" />
-              Linha Verde: Sinal RGB de Imagem
-            </span>
-            <span className="flex items-center gap-1.5">
-              <span className="w-2 h-2 bg-[#3b82f6] rounded-full" />
-              Ponto Azul: Key / Alpha Mask
-            </span>
+          <div className="rounded-2xl border border-neutral-200 bg-[#f5f5f7] p-5 sm:p-6">
+            <h4 className="font-sans text-lg font-bold text-neutral-900">Como organizar os nodes em um trabalho real</h4>
+            <p className="mt-2 font-serif text-[16px] leading-relaxed text-neutral-800">Um fluxo serial simples pode começar pelo tratamento técnico da imagem, seguir para balanço de branco e exposição, avançar para contraste e saturação e terminar com a criação do look e os ajustes finais.</p>
+            <p className="mt-3 font-serif text-[16px] leading-relaxed text-neutral-800">Quando precisar de correções seletivas independentes, use uma estrutura paralela. Para tratar a região externa de uma seleção, considere o Outside Node; para unir máscaras, o Key Mixer; para sobrepor regiões corrigidas, o Layer Mixer.</p>
+            <p className="mt-3 font-serif text-[16px] leading-relaxed text-neutral-800">Não existe uma única árvore ideal para todas as cenas. A melhor estrutura é a que permite fazer os ajustes necessários com clareza, controle e flexibilidade, sem tornar o processo mais complexo do que o projeto exige.</p>
           </div>
         </div>
-
-        <TwoColumnText
-          className="pt-2"
-          left={
-            <>
-              <p>
-                Essa separação permite que cada etapa seja analisada individualmente e ajuda a manter o trabalho organizado durante todo o processo.
-              </p>
-              <EditorialQuote
-                quote="O node tree é a estrutura que organiza o tratamento da imagem."
-              />
-            </>
-          }
-          right={
-            <>
-              <p>
-                À medida que o trabalho se torna mais complexo, o Resolve oferece outras estruturas, como nodes paralelos, Layer Mixer, Splitter e Combiner. Cada uma delas altera a maneira como o sinal é distribuído e combinado dentro do node tree.
-              </p>
-              <p>
-                O domínio dos nodes começa pela compreensão desse fluxo. Quando você sabe de onde o sinal vem, quais transformações já foram aplicadas e o que acontecerá nas etapas seguintes, o node tree deixa de ser apenas uma representação visual e passa a funcionar como o mapa do seu grading.
-              </p>
-            </>
-          }
-        />
       </EditorialSection>
 
       {/* ===================================================================
@@ -318,12 +221,13 @@ export default function IntroducaoDaVinciArticle() {
           =================================================================== */}
       <EditorialSection
         kickerLeft="FUNDAMENTOS"
-        kickerRight="AJUSTE DE BASE"
-        title="PRIMARIES"
-        subtitle="ONDE A GENTE COMEÇA A CORRIGIR A IMAGEM"
+        kickerRight="AJUSTE DE BASE · FERRAMENTAS PRIMÁRIAS"
+        title="PRIMÁRIAS"
+        subtitle="PRIMARIES, COLOR WHEELS E LOG WHEELS"
       >
+        <h4 className="border-t border-neutral-200 pt-6 font-sans text-xl font-bold text-neutral-900">Primaries</h4>
         <ImageAndText
-          imageSrc="/assets/artigos/introducao-davinci/PRIMARIES.webp"
+          imageSrc={getMediaUrl('assets/artigos/introducao-davinci/PRIMARIES.webp')}
           imageAlt="Painel Primaries no DaVinci Resolve"
           imagePosition="left"
         >
@@ -346,26 +250,15 @@ export default function IntroducaoDaVinciArticle() {
             </div>
           </div>
         </ImageAndText>
-      </EditorialSection>
 
-      {/* ===================================================================
-          SEÇÃO 5 — COLOR WHEELS
-          =================================================================== */}
-      <EditorialSection
-        kickerLeft="PRIMÁRIAS"
-        kickerRight="RODAS CROMÁTICAS"
-        title="COLOR WHEELS"
-        subtitle="LIFT, GAMMA, GAIN E OFFSET"
-      >
-        <FullWidthImage
-          src="/assets/artigos/introducao-davinci/COLOR WHEELS.webp"
-          alt="Painel das Color Wheels no DaVinci Resolve"
-        />
-
-        <TwoColumnText
-          className="pt-2"
-          left={
-            <>
+        <h4 className="border-t border-neutral-200 pt-6 font-sans text-xl font-bold text-neutral-900">Color Wheels <span className="font-normal text-neutral-600">· Lift, Gamma, Gain e Offset</span></h4>
+        <ImageAndText
+          imageSrc={getMediaUrl('assets/artigos/introducao-davinci/COLOR WHEELS.webp')}
+          imageAlt="Painel das Color Wheels no DaVinci Resolve"
+          imagePosition="left"
+        >
+          <div className="grid grid-cols-1 gap-6 font-serif text-[16px] leading-[1.6] text-neutral-800 sm:grid-cols-2 lg:gap-8 sm:text-[17px]">
+            <div className="space-y-3.5">
               <p>
                 As Color Wheels são uma das principais interfaces de controle das Primaries no DaVinci Resolve. Elas permitem trabalhar simultaneamente a luminância e a crominância de diferentes regiões da escala tonal, oferecendo uma forma visual e intuitiva de construir o equilíbrio da imagem.
               </p>
@@ -375,32 +268,21 @@ export default function IntroducaoDaVinciArticle() {
               <p>
                 O valor das Color Wheels está justamente na possibilidade de trabalhar cor e luminância de forma relacionada, observando como uma alteração em uma região da escala tonal afeta a percepção geral da imagem.
               </p>
-            </>
-          }
-          right={
-            <>
+            </div>
+            <div className="space-y-3.5">
               <p>
                 Esse comportamento torna as Color Wheels especialmente úteis para estabelecer o balanço cromático e a estrutura tonal de um plano. Uma pequena alteração nas sombras, por exemplo, pode mudar a sensação de temperatura da cena sem interferir da mesma maneira nas altas luzes. Da mesma forma, um ajuste nos tons médios pode modificar a reprodução de pele e outros elementos importantes sem necessariamente alterar todo o quadro.
               </p>
               <p>
                 No processo de grading, elas são usadas tanto para correções técnicas quanto para decisões estéticas. O mesmo controle que pode neutralizar uma dominante de cor também pode ser utilizado para criar relações cromáticas deliberadas entre sombras, médios e altas luzes.
               </p>
-            </>
-          }
-        />
-      </EditorialSection>
+            </div>
+          </div>
+        </ImageAndText>
 
-      {/* ===================================================================
-          SEÇÃO 6 — LOG WHEELS
-          =================================================================== */}
-      <EditorialSection
-        kickerLeft="PRIMÁRIAS"
-        kickerRight="CONTROLE CIRÚRGICO"
-        title="LOG WHEELS"
-        subtitle="SHADOW, MIDTONE E HIGHLIGHT"
-      >
+        <h4 className="border-t border-neutral-200 pt-6 font-sans text-xl font-bold text-neutral-900">Log Wheels <span className="font-normal text-neutral-600">· Shadow, Midtone e Highlight</span></h4>
         <ImageAndText
-          imageSrc="/assets/artigos/introducao-davinci/LOG WHEELS.webp"
+          imageSrc={getMediaUrl('assets/artigos/introducao-davinci/LOG WHEELS.webp')}
           imageAlt="Painel das Log Wheels no DaVinci Resolve"
           imagePosition="left"
         >
@@ -426,16 +308,17 @@ export default function IntroducaoDaVinciArticle() {
       </EditorialSection>
 
       {/* ===================================================================
-          SEÇÃO 7 — HDR
+          SEÇÃO 5 — FERRAMENTAS ESPECÍFICAS
           =================================================================== */}
       <EditorialSection
-        kickerLeft="FERRAMENTAS ESPECÍFICAS"
-        kickerRight="ALTA PRECISÃO"
-        title="HDR"
-        subtitle="QUANDO O AJUSTE PRECISA SER AINDA MAIS CIRÚRGICO"
+        kickerLeft="PÁGINA COLOR"
+        kickerRight="RECURSOS DE AJUSTE"
+        title="FERRAMENTAS ESPECÍFICAS"
+        subtitle="HDR, RGB MIXER E CURVES"
       >
+        <h4 className="border-t border-neutral-200 pt-6 font-sans text-xl font-bold text-neutral-900">HDR <span className="font-normal text-neutral-600">· Ajustes precisos por faixa tonal</span></h4>
         <ImageAndText
-          imageSrc="/assets/artigos/introducao-davinci/HDR.webp"
+          imageSrc={getMediaUrl('assets/artigos/introducao-davinci/HDR.webp')}
           imageAlt="Painel HDR Palette com zonas zonais"
           imagePosition="right"
         >
@@ -461,19 +344,9 @@ export default function IntroducaoDaVinciArticle() {
             </div>
           </div>
         </ImageAndText>
-      </EditorialSection>
-
-      {/* ===================================================================
-          SEÇÃO 8 — RGB MIXER
-          =================================================================== */}
-      <EditorialSection
-        kickerLeft="FERRAMENTAS ESPECÍFICAS"
-        kickerRight="CANAIS DE COR"
-        title="RGB MIXER"
-        subtitle="ISOLANDO OS CANAIS VERMELHO, VERDE E AZUL"
-      >
+        <h4 className="border-t border-neutral-200 pt-6 font-sans text-xl font-bold text-neutral-900">RGB Mixer <span className="font-normal text-neutral-600">· Canais de cor</span></h4>
         <ImageAndText
-          imageSrc="/assets/artigos/introducao-davinci/RGB MIXER.webp"
+          imageSrc={getMediaUrl('assets/artigos/introducao-davinci/RGB MIXER.webp')}
           imageAlt="RGB Mixer no DaVinci Resolve"
           imagePosition="left"
         >
@@ -496,19 +369,9 @@ export default function IntroducaoDaVinciArticle() {
             </div>
           </div>
         </ImageAndText>
-      </EditorialSection>
-
-      {/* ===================================================================
-          SEÇÃO 9 — CURVES
-          =================================================================== */}
-      <EditorialSection
-        kickerLeft="FERRAMENTAS ESPECÍFICAS"
-        kickerRight="CURVAS DE CORREÇÃO"
-        title="CURVES"
-        subtitle="CONTRASTE, MATIZ E SATURAÇÃO"
-      >
+        <h4 className="border-t border-neutral-200 pt-6 font-sans text-xl font-bold text-neutral-900">Curves <span className="font-normal text-neutral-600">· Contraste, matiz e saturação</span></h4>
         <ImageAndText
-          imageSrc="/assets/artigos/introducao-davinci/CURVES.webp"
+          imageSrc={getMediaUrl('assets/artigos/introducao-davinci/CURVES.webp')}
           imageAlt="Curvas Custom e Curvas HSL no DaVinci Resolve"
           imagePosition="right"
         >
@@ -537,16 +400,17 @@ export default function IntroducaoDaVinciArticle() {
       </EditorialSection>
 
       {/* ===================================================================
-          SEÇÃO 10 — QUALIFIER
+          SEÇÃO 6 — ISOLAMENTO
           =================================================================== */}
       <EditorialSection
-        kickerLeft="ISOLAMENTO"
-        kickerRight="SELEÇÃO POR COR"
-        title="QUALIFIER"
-        subtitle="SELECIONANDO PELA COR DA IMAGEM"
+        kickerLeft="CORREÇÕES SECUNDÁRIAS"
+        kickerRight="SELEÇÃO DE ÁREAS"
+        title="ISOLAMENTO"
+        subtitle="QUALIFIER E POWER WINDOWS"
       >
+        <h4 className="border-t border-neutral-200 pt-6 font-sans text-xl font-bold text-neutral-900">Qualifier <span className="font-normal text-neutral-600">· Seleção por cor</span></h4>
         <ImageAndText
-          imageSrc="/assets/artigos/introducao-davinci/QUALIFIER.webp"
+          imageSrc={getMediaUrl('assets/artigos/introducao-davinci/QUALIFIER.webp')}
           imageAlt="Qualifier no DaVinci Resolve"
           imagePosition="left"
         >
@@ -575,19 +439,9 @@ export default function IntroducaoDaVinciArticle() {
             </div>
           </div>
         </ImageAndText>
-      </EditorialSection>
-
-      {/* ===================================================================
-          SEÇÃO 11 — POWER WINDOWS
-          =================================================================== */}
-      <EditorialSection
-        kickerLeft="ISOLAMENTO"
-        kickerRight="MÁSCARAS VETORIAIS"
-        title="POWER WINDOWS"
-        subtitle="MÁSCARAS GEOMÉTRICAS E VETORIAIS"
-      >
+        <h4 className="border-t border-neutral-200 pt-6 font-sans text-xl font-bold text-neutral-900">Power Windows <span className="font-normal text-neutral-600">· Máscaras geométricas e vetoriais</span></h4>
         <ImageAndText
-          imageSrc="/assets/artigos/introducao-davinci/POWER WINDOWS.webp"
+          imageSrc={getMediaUrl('assets/artigos/introducao-davinci/POWER WINDOWS.webp')}
           imageAlt="Power Windows no DaVinci: Linear, Circular e Polígono"
           imagePosition="right"
         >
@@ -613,7 +467,7 @@ export default function IntroducaoDaVinciArticle() {
       </EditorialSection>
 
       {/* ===================================================================
-          SEÇÃO 12 — TRACKER
+          SEÇÃO 7 — TRACKER
           =================================================================== */}
       <EditorialSection
         kickerLeft="AUTOMAÇÃO"
@@ -622,7 +476,7 @@ export default function IntroducaoDaVinciArticle() {
         subtitle="ACOMPANHANDO O MOVIMENTO DO OBJETO"
       >
         <ImageAndText
-          imageSrc="/assets/artigos/introducao-davinci/TRACKER.webp"
+          imageSrc={getMediaUrl('assets/artigos/introducao-davinci/TRACKER.webp')}
           imageAlt="Painel Tracker no DaVinci Resolve"
           imagePosition="left"
         >
@@ -648,7 +502,7 @@ export default function IntroducaoDaVinciArticle() {
       </EditorialSection>
 
       {/* ===================================================================
-          SEÇÃO 13 — MAGIC MASK
+          SEÇÃO 8 — MAGIC MASK
           =================================================================== */}
       <EditorialSection
         kickerLeft="RECURSO STUDIO"
@@ -657,7 +511,7 @@ export default function IntroducaoDaVinciArticle() {
         subtitle="SELEÇÃO AUTOMÁTICA POR INTELIGÊNCIA ARTIFICIAL"
       >
         <ImageAndText
-          imageSrc="/assets/artigos/introducao-davinci/MAGIC MASK.webp"
+          imageSrc={getMediaUrl('assets/artigos/introducao-davinci/MAGIC MASK.webp')}
           imageAlt="Magic Mask com DaVinci Neural Engine"
           imagePosition="right"
         >
@@ -683,7 +537,7 @@ export default function IntroducaoDaVinciArticle() {
       </EditorialSection>
 
       {/* ===================================================================
-          SEÇÃO 14 — BLUR E SHARPEN
+          SEÇÃO 9 — BLUR E SHARPEN
           =================================================================== */}
       <EditorialSection
         kickerLeft="TRATAMENTO ÓPTICO"
@@ -692,7 +546,7 @@ export default function IntroducaoDaVinciArticle() {
         subtitle="NITIDEZ, TEXTURA E DESFOQUE"
       >
         <ImageAndText
-          imageSrc="/assets/artigos/introducao-davinci/BLUR E SHARPEN.webp"
+          imageSrc={getMediaUrl('assets/artigos/introducao-davinci/BLUR E SHARPEN.webp')}
           imageAlt="Blur e Sharpen no DaVinci Resolve"
           imagePosition="left"
         >
@@ -718,7 +572,7 @@ export default function IntroducaoDaVinciArticle() {
       </EditorialSection>
 
       {/* ===================================================================
-          SEÇÃO 15 — KEY
+          SEÇÃO 10 — KEY
           =================================================================== */}
       <EditorialSection
         kickerLeft="CONTROLE DE FLUXO"
@@ -727,7 +581,7 @@ export default function IntroducaoDaVinciArticle() {
         subtitle="A OPACIDADE DO SEU NODE"
       >
         <ImageAndText
-          imageSrc="/assets/artigos/introducao-davinci/KEY.webp"
+          imageSrc={getMediaUrl('assets/artigos/introducao-davinci/KEY.webp')}
           imageAlt="Painel Key no DaVinci Resolve"
           imagePosition="right"
         >
@@ -753,7 +607,7 @@ export default function IntroducaoDaVinciArticle() {
       </EditorialSection>
 
       {/* ===================================================================
-          SEÇÃO 16 — SIZING
+          SEÇÃO 11 — SIZING
           =================================================================== */}
       <EditorialSection
         kickerLeft="ENQUADRAMENTO"
@@ -762,7 +616,7 @@ export default function IntroducaoDaVinciArticle() {
         subtitle="REPOSICIONANDO A IMAGEM"
       >
         <ImageAndText
-          imageSrc="/assets/artigos/introducao-davinci/SIZING.webp"
+          imageSrc={getMediaUrl('assets/artigos/introducao-davinci/SIZING.webp')}
           imageAlt="Painel Sizing do DaVinci Resolve"
           imagePosition="left"
         >
@@ -788,16 +642,16 @@ export default function IntroducaoDaVinciArticle() {
       </EditorialSection>
 
       {/* ===================================================================
-          SEÇÃO 17 — SCOPES
+          SEÇÃO 12 — SCOPES
           =================================================================== */}
       <EditorialSection
         kickerLeft="CALIBRAÇÃO E TÉCNICA"
         kickerRight="MONITORAMENTO DO SINAL"
         title="SCOPES"
-        subtitle="NÃO CONFIE SÓ NO SEU OLHO"
+        subtitle="NÃO CONFIE SÓ NO SEU MONITOR"
       >
         <ImageAndText
-          imageSrc="/assets/artigos/introducao-davinci/SCOPES.webp"
+          imageSrc={getMediaUrl('assets/artigos/introducao-davinci/SCOPES.webp')}
           imageAlt="Scopes de Sinal: Waveform, Parade e Vectorscope"
           imagePosition="right"
         >
@@ -823,16 +677,16 @@ export default function IntroducaoDaVinciArticle() {
       </EditorialSection>
 
       {/* ===================================================================
-          SEÇÃO 18 — SPLIT SCREEN
+          SEÇÃO 13 — SPLIT SCREEN
           =================================================================== */}
       <EditorialSection
-        kickerLeft="CONSISTÊNCIA CROMÁTICA"
+        kickerLeft="CONSISTÊNCIA"
         kickerRight="COMPARAÇÃO DIRETA"
         title="SPLIT SCREEN"
         subtitle="COMPARANDO CLIPES LADO A LADO"
       >
         <ImageAndText
-          imageSrc="/assets/artigos/introducao-davinci/SPLIT SCREEN.webp"
+          imageSrc={getMediaUrl('assets/artigos/introducao-davinci/SPLIT SCREEN.webp')}
           imageAlt="Split Screen no DaVinci Resolve"
           imagePosition="left"
         >
@@ -858,7 +712,7 @@ export default function IntroducaoDaVinciArticle() {
       </EditorialSection>
 
       {/* ===================================================================
-          SEÇÃO 19 — GALLERY
+          SEÇÃO 14 — GALLERY
           =================================================================== */}
       <EditorialSection
         kickerLeft="MEMÓRIA VISUAL"
@@ -867,7 +721,7 @@ export default function IntroducaoDaVinciArticle() {
         subtitle="GUARDANDO REFERÊNCIAS E COPIANDO TRATAMENTOS"
       >
         <ImageAndText
-          imageSrc="/assets/artigos/introducao-davinci/GALLERY.webp"
+          imageSrc={getMediaUrl('assets/artigos/introducao-davinci/GALLERY.webp')}
           imageAlt="Gallery do DaVinci Resolve com Stills"
           imagePosition="right"
         >
@@ -893,7 +747,7 @@ export default function IntroducaoDaVinciArticle() {
       </EditorialSection>
 
       {/* ===================================================================
-          SEÇÃO 20 — COLOR MATCH
+          SEÇÃO 15 — COLOR MATCH
           =================================================================== */}
       <EditorialSection
         kickerLeft="TÉCNICA DE CALIBRAÇÃO"
@@ -902,7 +756,7 @@ export default function IntroducaoDaVinciArticle() {
         subtitle="DEIXANDO AS CÂMERAS NO MESMO PONTO DE PARTIDA"
       >
         <ImageAndText
-          imageSrc="/assets/artigos/introducao-davinci/COLOR MATCH.webp"
+          imageSrc={getMediaUrl('assets/artigos/introducao-davinci/COLOR MATCH.webp')}
           imageAlt="Color Match no DaVinci Resolve"
           imagePosition="left"
         >
@@ -919,7 +773,7 @@ export default function IntroducaoDaVinciArticle() {
       </EditorialSection>
 
       {/* ===================================================================
-          SEÇÃO 21 — ATALHOS QUE VOCÊ PRECISA COMEÇAR A USAR
+          SEÇÃO 16 — ATALHOS QUE VOCÊ PRECISA COMEÇAR A USAR
           =================================================================== */}
       <EditorialSection
         kickerLeft="PRODUTIVIDADE"

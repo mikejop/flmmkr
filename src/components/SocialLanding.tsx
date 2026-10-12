@@ -1,5 +1,7 @@
 'use client';
 
+import { getMediaUrl } from '@/lib/storage';
+
 import React, { useEffect, useState } from 'react';
 import { PRODUCTS, Product } from '@/config/products';
 import { SITE_CONFIG } from '@/config/siteConfig';
@@ -33,21 +35,21 @@ const ICON_MAP = {
 
 // Slideshow images for Color Master - Produtos thumbnail
 const PRODUTO_SLIDES = [
-  '/assets/produtos/color-grade-produto/01.jpg',
-  '/assets/produtos/color-grade-produto/02.jpg',
-  '/assets/produtos/color-grade-produto/03.jpg',
+  getMediaUrl('assets/produtos/color-grade-produto/01.jpg'),
+  getMediaUrl('assets/produtos/color-grade-produto/02.jpg'),
+  getMediaUrl('assets/produtos/color-grade-produto/03.jpg'),
 ];
 
 // Slideshow images for Produção de Vídeo para Empreendedores thumbnail
 const EMPREENDEDORES_SLIDES = [
-  '/assets/produtos/empreendedores/01.jpg',
-  '/assets/produtos/empreendedores/02.jpg',
-  '/assets/produtos/empreendedores/03.jpg',
-  '/assets/produtos/empreendedores/04.jpg',
-  '/assets/produtos/empreendedores/06.jpg',
-  '/assets/produtos/empreendedores/07.jpg',
-  '/assets/produtos/empreendedores/08.jpg',
-  '/assets/produtos/empreendedores/09.jpg',
+  getMediaUrl('assets/produtos/empreendedores/01.jpg'),
+  getMediaUrl('assets/produtos/empreendedores/02.jpg'),
+  getMediaUrl('assets/produtos/empreendedores/03.jpg'),
+  getMediaUrl('assets/produtos/empreendedores/04.jpg'),
+  getMediaUrl('assets/produtos/empreendedores/06.jpg'),
+  getMediaUrl('assets/produtos/empreendedores/07.jpg'),
+  getMediaUrl('assets/produtos/empreendedores/08.jpg'),
+  getMediaUrl('assets/produtos/empreendedores/09.jpg'),
 ];
 
 export const SocialLanding: React.FC<SocialLandingProps> = ({
@@ -55,8 +57,8 @@ export const SocialLanding: React.FC<SocialLandingProps> = ({
   onSwitchToOfficial
 }) => {
   const [authorPhotos, setAuthorPhotos] = useState<AuthorPhotoPair>({
-    profileSrc: '/assets/mike-photos/01.jpg',
-    bgSrc: '/assets/bg/about-mike/02.jpg'
+    profileSrc: getMediaUrl('assets/mike-photos/01.jpg'),
+    bgSrc: getMediaUrl('assets/bg/about-mike/02.jpg')
   });
 
   // Crossfade slideshows — randomized initial image on mount/refresh + 60s cycle

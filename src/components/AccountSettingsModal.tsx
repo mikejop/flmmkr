@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
+import { useDialogA11y } from '@/hooks/useDialogA11y';
 import { X, Camera, Lock, User, Mail, Phone, Eye, EyeOff, CheckCircle2, AlertCircle, Loader2, ShieldCheck, ShieldAlert } from 'lucide-react';
 import { getMediaUrl } from '@/lib/storage';
 import { PhoneInputWithDdi } from '@/components/PhoneInputWithDdi';
@@ -77,6 +78,9 @@ export const AccountSettingsModal: React.FC<AccountSettingsModalProps> = ({
   const [feedback, setFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const dialogRef = useRef<HTMLDivElement>(null);
+  useDialogA11y(dialogRef, isOpen, onClose);
 
   if (!isOpen) return null;
 
@@ -160,13 +164,18 @@ export const AccountSettingsModal: React.FC<AccountSettingsModalProps> = ({
       onProfileUpdated({
         firstName: firstName.trim(),
         lastName: lastName.trim(),
-        email: email.trim(),
+        email: data.user?.email || email.trim(),
         phone: phone.trim(),
         nickname: nickname.trim().replace(/^@+/, '').toLowerCase(),
         avatar,
       });
-
-      setFeedback({ type: 'success', message: 'Dados cadastrais salvos com sucesso no Supabase!' });
+      if (data.user?.email) setEmail(data.user.email);
+      setFeedback({
+        type: 'success',
+        message: data.user?.emailChangeRequested
+          ? `Enviamos um link de confirmação para ${data.user.pendingEmail}. O e-mail de acesso só muda após a confirmação.`
+          : 'Dados cadastrais salvos com sucesso no Supabase!'
+      });
     } catch (err: any) {
       setFeedback({ type: 'error', message: err?.message || 'Erro ao salvar alterações.' });
     } finally {
@@ -184,8 +193,8 @@ export const AccountSettingsModal: React.FC<AccountSettingsModalProps> = ({
       return;
     }
 
-    if (!newPassword || newPassword.length < 6) {
-      setFeedback({ type: 'error', message: 'A nova senha deve ter no mínimo 6 caracteres.' });
+    if (!newPassword || newPassword.length < 8) {
+      setFeedback({ type: 'error', message: 'A nova senha deve ter no mínimo 8 caracteres.' });
       return;
     }
 
@@ -230,7 +239,11 @@ export const AccountSettingsModal: React.FC<AccountSettingsModalProps> = ({
       onClick={onClose}
     >
       <div 
-        className="w-full max-w-lg bg-[#141416] border border-white/15 rounded-3xl p-6 shadow-2xl text-white space-y-6 relative overflow-hidden"
+        ref={dialogRef}
+        role="dialog"
+        aria-modal="true"
+        aria-label="Minha conta"
+        className="w-full max-w-lg bg-[#141416] border border-white/15 rounded-3xl p-6 shadow-2xl text-white space-y-6 relative overflow-hidden max-h-[92dvh] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Specular Top Rim */}

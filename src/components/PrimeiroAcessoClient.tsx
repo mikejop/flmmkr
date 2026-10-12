@@ -3,7 +3,6 @@
 import React, { useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { Eye, EyeOff, Check, ShieldAlert, Loader2, CheckCircle2 } from 'lucide-react';
-import { createClient } from '@/utils/supabase/client';
 import { detectSqlInjection } from '@/utils/security';
 
 interface PrimeiroAcessoProps {
@@ -12,7 +11,6 @@ interface PrimeiroAcessoProps {
 
 export function PrimeiroAcessoClient({ initialToken = '' }: PrimeiroAcessoProps) {
   const router = useRouter();
-  const supabase = createClient();
 
   const [token, setToken] = useState(initialToken);
   const [password, setPassword] = useState('');
@@ -86,14 +84,6 @@ export function PrimeiroAcessoClient({ initialToken = '' }: PrimeiroAcessoProps)
 
       setSuccess(true);
 
-      // Se retornou sessão do Supabase, definir no cliente local
-      if (data.session) {
-        await supabase.auth.setSession({
-          access_token: data.session.access_token,
-          refresh_token: data.session.refresh_token
-        });
-      }
-
       // Redireciona diretamente para a área do aluno
       setTimeout(() => {
         window.location.href = '/color-master-produto';
@@ -126,7 +116,7 @@ export function PrimeiroAcessoClient({ initialToken = '' }: PrimeiroAcessoProps)
       <div className="w-full max-w-[400px] flex flex-col items-center">
         {/* Marca Minimalista: Apenas o nome FLMMKR e embaixo o nome do produto */}
         <div className="text-center mb-10 sm:mb-12 select-none">
-          <h1 className="text-[40px] sm:text-[48px] leading-none font-semibold tracking-[-0.01em] text-[#1d1d1f]">
+          <h1 className="font-molde-heavy text-[42px] sm:text-[50px] leading-none text-[#1d1d1f] tracking-tight">
             FLMMKR
           </h1>
           <p className="text-[15px] sm:text-[17px] text-[#6e6e73] mt-3 font-normal tracking-[-0.01em]">
@@ -145,7 +135,7 @@ export function PrimeiroAcessoClient({ initialToken = '' }: PrimeiroAcessoProps)
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="w-full space-y-5">
-            <h2 className="text-[24px] font-semibold text-center tracking-[-0.01em] text-[#1d1d1f] mb-1">
+            <h2 className="text-[24px] font-semibold text-center tracking-[-0.01em] text-[#0071e3] mb-1">
               Crie sua senha
             </h2>
             <p className="text-[15px] text-[#6e6e73] text-center -mt-3 mb-2">

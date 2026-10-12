@@ -13,7 +13,6 @@ export const modulesData: CourseModule[] = [
         id: 'mod1-1',
         title: 'Introdução ao DaVinci Resolve',
         isFree: true,
-        videoUrl: 'https://b-vz-5bb7b1c1-d28.tv.pandavideo.com.br/e559c1ae-4471-4c85-84ab-62154cb40b9f/playlist.m3u8',
         concept: `O DaVinci Resolve é o padrão global da indústria cinematográfica e publicitária para pós-produção e tratamento de cor. Compreender a interface da página Color, a navegação ágil e a lógica de nós (nodes) cria o alicerce indispensável para trabalhar com velocidade e consistência técnica.`,
         steps: [
           'Conheça a interface da página Color (Node Graph, Scopes, Paletas Primárias e Galeria).',
@@ -22,6 +21,19 @@ export const modulesData: CourseModule[] = [
           'Memorize os atalhos de navegação essenciais da página Color para acelerar seu fluxo diário.'
         ],
         tips: ['Mantenha sempre os Scopes visíveis em uma janela flutuante para monitorar os níveis com precisão matemática.']
+      },
+      {
+        id: 'mod1-analise-tecnica',
+        title: 'Análise Técnica',
+        isFree: true,
+        concept: `Antes de iniciar o tratamento de cor, faça uma leitura técnica do material para entender como a imagem foi capturada e identificar possíveis limitações. Verifique o perfil e o espaço de cor da câmera, a exposição, o balanço de branco, o nível de ruído e a presença de áreas sem detalhe nas sombras ou nas altas luzes.`,
+        steps: [
+          'Confirme a câmera, o perfil de gravação e as informações disponíveis sobre o material.',
+          'Observe a exposição e o balanço de branco na imagem e nos scopes.',
+          'Verifique se há ruído, clipping ou perda de detalhe nas sombras e nas altas luzes.',
+          'Registre os problemas que precisam ser corrigidos antes de definir o look.'
+        ],
+        tips: ['Faça essa análise antes de escolher a transformação de entrada e começar as correções.']
       },
       {
         id: 'mod1-2',

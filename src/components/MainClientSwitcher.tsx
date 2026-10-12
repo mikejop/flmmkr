@@ -44,6 +44,17 @@ export const MainClientSwitcher: React.FC<MainClientSwitcherProps> = ({
     }
   }, [viewParam]);
 
+  // Se o usuário solicitou login pela URL (?login=true), direciona para a visualização oficial com modal
+  const isLoginRequested = searchParams.get('login') === 'true';
+  if (isLoginRequested) {
+    return (
+      <OfficialLanding
+        platform={platform}
+        onSwitchToSocial={() => setOverrideView('social')}
+      />
+    );
+  }
+
   // Se o usuário passou um parâmetro explícito na URL, obedece essa escolha
   if (overrideView === 'social') {
     return (

@@ -1,238 +1,260 @@
 'use client';
 
-import React, { useState, useEffect, Suspense } from 'react';
-import { useSearchParams, useRouter } from 'next/navigation';
-import { Lock, Eye, EyeOff, CheckCircle2, ArrowRight, Loader2, AlertCircle } from 'lucide-react';
+import React, { useState, useEffect, useMemo, Suspense } from 'react';
+import { useRouter } from 'next/navigation';
+import { Eye, EyeOff, Check, ShieldAlert, Loader2, CheckCircle2 } from 'lucide-react';
 import { createClient } from '@/utils/supabase/client';
+import { detectSqlInjection } from '@/utils/security';
 
 function DefinirSenhaContent() {
-  const searchParams = useSearchParams();
   const router = useRouter();
+  const supabase = createClient();
 
-  const [email, setEmail] = useState('');
-  const [name, setName] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [sessionChecking, setSessionChecking] = useState(true);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
 
-  const supabase = createClient();
-
+  // Escuta alteração de auth state para garantir que a sessão de recuperação foi inicializada
   useEffect(() => {
-    const qEmail = searchParams.get('email');
-    const qName = searchParams.get('name');
+    let mounted = true;
 
-    if (qEmail) setEmail(qEmail);
-    if (qName) setName(qName);
-  }, [searchParams]);
+    async function checkAuth() {
+      try {
+        const { data } = await supabase.auth.getSession();
+        if (mounted) {
+          setSessionChecking(false);
+        }
+      } catch {
+        if (mounted) {
+          setSessionChecking(false);
+        }
+      }
+    }
+
+    const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
+      if (mounted) {
+        setSessionChecking(false);
+      }
+    });
+
+    checkAuth();
+
+    return () => {
+      mounted = false;
+      authListener.subscription.unsubscribe();
+    };
+  }, [supabase]);
+
+  // Validação em tempo real dos requisitos de senha
+  const hasUpper = useMemo(() => /[A-Z]/.test(password), [password]);
+  const hasLower = useMemo(() => /[a-z]/.test(password), [password]);
+  const hasNumber = useMemo(() => /[0-9]/.test(password), [password]);
+  const hasSpecial = useMemo(() => /[^A-Za-z0-9]/.test(password), [password]);
+  const hasMinLength = useMemo(() => password.length >= 8, [password]);
+  const passwordsMatch = useMemo(
+    () => password.length > 0 && password === confirmPassword,
+    [password, confirmPassword]
+  );
+
+  // O botão de salvar só vai aparecer após preencher todos os requisitos
+  const isFormValid =
+    hasUpper && hasLower && hasNumber && hasSpecial && hasMinLength && passwordsMatch;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError(null);
+    setErrorMessage(null);
 
-    if (!email) {
-      setError('Por favor, informe seu e-mail cadastrado na compra.');
+    // 1. Bloqueador de SQL Injection no frontend
+    const passCheck = detectSqlInjection(password);
+    const confirmCheck = detectSqlInjection(confirmPassword);
+
+    if (passCheck.isSuspicious || confirmCheck.isSuspicious) {
+      setErrorMessage('Padrão suspeito ou caractere inválido detectado pelo bloqueador de segurança.');
       return;
     }
 
-    if (password.length < 6) {
-      setError('A senha deve ter no mínimo 6 caracteres.');
-      return;
-    }
-
-    if (password !== confirmPassword) {
-      setError('As senhas não coincidem. Digite novamente.');
+    if (!isFormValid) {
+      setErrorMessage('Por favor, atenda a todas as regras de segurança da senha.');
       return;
     }
 
     setLoading(true);
 
     try {
-      // 1. Atualizar a senha pelo backend
-      const res = await fetch('/api/auth/set-password', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: email.trim(), password })
-      });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        throw new Error(data?.error || 'Erro ao definir senha.');
+      // Verifica sessão do Supabase (criada automaticamente pelo link de recuperação)
+      const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+      if (sessionError || !sessionData.session) {
+        throw new Error('O link de recuperação expirou ou é inválido. Por favor, solicite um novo link de recuperação.');
       }
 
-      // 2. Realizar login automático com a nova senha
-      const { error: signInErr } = await supabase.auth.signInWithPassword({
-        email: email.trim(),
-        password
-      });
-
-      if (signInErr) {
-        console.warn('Login automático falhou, redirecionando para tela com login:', signInErr);
+      const { error: updateError } = await supabase.auth.updateUser({ password });
+      if (updateError) {
+        throw updateError;
       }
 
       setSuccess(true);
 
-      // 3. Redirecionar para o conteúdo da área de membros
+      // Redireciona para a página de login
       setTimeout(() => {
-        router.push('/color-master-produto');
+        window.location.href = '/?login=true';
       }, 1200);
     } catch (err: any) {
-      setError(err?.message || 'Falha ao salvar senha. Tente novamente.');
+      setErrorMessage(err?.message || 'Falha ao redefinir senha. Tente novamente.');
     } finally {
       setLoading(false);
     }
   };
 
-  return (
-    <div className="min-h-screen bg-white text-zinc-900 flex flex-col justify-between selection:bg-black selection:text-white">
-      {/* Top minimal bar */}
-      <header className="w-full border-b border-zinc-200/80 px-6 sm:px-10 py-5 flex items-center justify-between">
-        <span className="text-base font-semibold tracking-tight text-zinc-950">
-          FLMMKR
-        </span>
-        <span className="text-xs uppercase tracking-widest font-mono text-zinc-400">
-          ContentsPlace
-        </span>
-      </header>
+  const Requirement = ({ ok, label }: { ok: boolean; label: string }) => (
+    <div className={`flex items-center gap-2 transition-colors duration-300 ${ok ? 'text-[#1d1d1f]' : 'text-[#86868b]'}`}>
+      <span
+        className={`flex items-center justify-center w-4 h-4 rounded-full shrink-0 transition-all duration-300 ${
+          ok ? 'bg-[#0071e3]' : 'border border-[#d2d2d7] bg-white'
+        }`}
+      >
+        {ok && <Check className="w-2.5 h-2.5 text-white" strokeWidth={3} />}
+      </span>
+      <span>{label}</span>
+    </div>
+  );
 
-      {/* Main card */}
-      <main className="w-full max-w-md mx-auto px-6 py-12 sm:py-16 my-auto">
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-zinc-100 text-zinc-900 mb-4 border border-zinc-200">
-            <Lock className="w-5 h-5 stroke-[2]" />
-          </div>
-          <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight text-zinc-900">
-            Crie sua senha de acesso
+  const inputClass =
+    'w-full bg-white border border-[#d2d2d7] rounded-xl px-4 h-14 text-[17px] text-[#1d1d1f] placeholder-[#86868b] focus:outline-none focus:border-[#0071e3] focus:ring-4 focus:ring-[#0071e3]/15 transition-all pr-12';
+
+  return (
+    <div className="min-h-screen bg-white text-[#1d1d1f] flex flex-col items-center justify-center px-5 py-16 antialiased selection:bg-[#0071e3]/20 selection:text-[#1d1d1f] font-[-apple-system,BlinkMacSystemFont,'SF_Pro_Display','SF_Pro_Text','Helvetica_Neue',Helvetica,Arial,sans-serif]">
+      <div className="w-full max-w-[400px] flex flex-col items-center">
+        {/* Marca Minimalista: Apenas o nome FLMMKR e embaixo o nome do produto */}
+        <div className="text-center mb-10 sm:mb-12 select-none">
+          <h1 className="font-molde-heavy text-[42px] sm:text-[50px] leading-none text-[#1d1d1f] tracking-tight">
+            FLMMKR
           </h1>
-          <p className="text-sm text-zinc-500 mt-2">
-            Seu pagamento foi confirmado com sucesso. Defina sua senha pessoal para acessar todos os conteúdos.
+          <p className="text-[15px] sm:text-[17px] text-[#6e6e73] mt-3 font-normal tracking-[-0.01em]">
+            COLOR MASTER® | PRODUTO
           </p>
         </div>
 
-        {/* User identification info */}
-        {(name || email) && (
-          <div className="mb-6 p-4 rounded-2xl bg-zinc-50 border border-zinc-200/80">
-            {name && (
-              <div className="text-sm font-medium text-zinc-900">
-                <span className="text-xs uppercase tracking-wider text-zinc-400 block mb-0.5">Aluno</span>
-                {name}
+        {/* Mensagem de Sucesso */}
+        {success ? (
+          <div className="w-full bg-[#f5f5f7] rounded-[22px] p-8 text-center animate-fadeIn">
+            <CheckCircle2 className="w-12 h-12 text-[#0071e3] mx-auto mb-4" strokeWidth={1.5} />
+            <h3 className="text-[21px] font-semibold text-[#1d1d1f] mb-1.5 tracking-[-0.01em]">Senha atualizada!</h3>
+            <p className="text-[15px] text-[#6e6e73] leading-relaxed">
+              Sua nova senha foi salva com segurança. Redirecionando para o login…
+            </p>
+          </div>
+        ) : (
+          <form onSubmit={handleSubmit} className="w-full space-y-5">
+            <h2 className="text-[24px] font-semibold text-center tracking-[-0.01em] text-[#0071e3] mb-1">
+              Crie sua senha
+            </h2>
+            <p className="text-[15px] text-[#6e6e73] text-center -mt-3 mb-2">
+              Defina uma nova senha para recuperar o acesso à sua conta.
+            </p>
+
+            {/* Mensagem de Erro com Bloqueador */}
+            {errorMessage && (
+              <div className="bg-[#fff2f2] border border-[#ffd6d6] rounded-xl p-3.5 flex items-start gap-2.5 text-[#d70015] text-[13px] leading-relaxed animate-fadeIn">
+                <ShieldAlert className="w-4 h-4 shrink-0 mt-0.5" />
+                <span>{errorMessage}</span>
               </div>
             )}
-            {email && (
-              <div className="text-sm text-zinc-600 mt-2">
-                <span className="text-xs uppercase tracking-wider text-zinc-400 block mb-0.5">E-mail de Acesso</span>
-                {email}
-              </div>
-            )}
-          </div>
-        )}
 
-        {/* Error Alert */}
-        {error && (
-          <div className="mb-5 p-3.5 rounded-xl bg-red-50 border border-red-200 flex items-start gap-2.5 text-xs text-red-700 animate-in fade-in">
-            <AlertCircle className="w-4 h-4 text-red-500 shrink-0 mt-0.5" />
-            <span>{error}</span>
-          </div>
-        )}
-
-        {/* Success Alert */}
-        {success && (
-          <div className="mb-5 p-3.5 rounded-xl bg-emerald-50 border border-emerald-200 flex items-start gap-2.5 text-xs text-emerald-800 animate-in fade-in">
-            <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
-            <span>Senha criada com sucesso! Redirecionando para a área de membros...</span>
-          </div>
-        )}
-
-        <form onSubmit={handleSubmit} className="space-y-4">
-          {!email && (
-            <div>
-              <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-500 mb-1.5 ml-0.5">
-                E-mail Cadastrado
-              </label>
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-                placeholder="seu@email.com"
-                className="w-full px-4 py-3 rounded-xl bg-white border border-zinc-300 text-zinc-900 placeholder-zinc-400 text-sm focus:outline-none focus:ring-2 focus:ring-zinc-900 focus:border-transparent transition-all"
-              />
-            </div>
-          )}
-
-          <div>
-            <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-500 mb-1.5 ml-0.5">
-              Nova Senha
-            </label>
+            {/* Campo de Nova Senha */}
             <div className="relative">
+              <label className="sr-only">Nova senha</label>
               <input
                 type={showPassword ? 'text' : 'password'}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
+                placeholder="Nova senha"
                 required
-                placeholder="Mínimo de 6 caracteres"
-                className="w-full pl-4 pr-11 py-3 rounded-xl bg-white border border-zinc-300 text-zinc-900 placeholder-zinc-400 text-sm focus:outline-none focus:ring-2 focus:ring-zinc-900 focus:border-transparent transition-all"
+                autoComplete="new-password"
+                aria-label="Nova senha"
+                className={inputClass}
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-1 top-1/2 -translate-y-1/2 w-9 h-9 flex items-center justify-center text-zinc-400 hover:text-zinc-700 transition-colors"
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-[#86868b] hover:text-[#1d1d1f] transition-colors cursor-pointer"
                 tabIndex={-1}
+                aria-label={showPassword ? 'Ocultar senha' : 'Mostrar senha'}
               >
-                {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
               </button>
             </div>
-          </div>
 
-          <div>
-            <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-500 mb-1.5 ml-0.5">
-              Confirmar Nova Senha
-            </label>
+            {/* Campo de Confirmar Nova Senha */}
             <div className="relative">
+              <label className="sr-only">Confirmar nova senha</label>
               <input
                 type={showConfirmPassword ? 'text' : 'password'}
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
+                placeholder="Confirmar nova senha"
                 required
-                placeholder="Repita a senha"
-                className="w-full pl-4 pr-11 py-3 rounded-xl bg-white border border-zinc-300 text-zinc-900 placeholder-zinc-400 text-sm focus:outline-none focus:ring-2 focus:ring-zinc-900 focus:border-transparent transition-all"
+                autoComplete="new-password"
+                aria-label="Confirmar nova senha"
+                className={inputClass}
               />
               <button
                 type="button"
                 onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                className="absolute right-1 top-1/2 -translate-y-1/2 w-9 h-9 flex items-center justify-center text-zinc-400 hover:text-zinc-700 transition-colors"
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-[#86868b] hover:text-[#1d1d1f] transition-colors cursor-pointer"
                 tabIndex={-1}
+                aria-label={showConfirmPassword ? 'Ocultar senha' : 'Mostrar senha'}
               >
-                {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                {showConfirmPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
               </button>
             </div>
-          </div>
 
-          <button
-            type="submit"
-            disabled={loading || success}
-            className="w-full min-h-[48px] py-3.5 mt-2 rounded-xl bg-zinc-950 hover:bg-zinc-800 disabled:opacity-50 text-white text-sm font-semibold transition-all active:scale-[0.99] cursor-pointer flex items-center justify-center gap-2 shadow-sm"
-          >
-            {loading ? (
-              <Loader2 className="w-4 h-4 animate-spin text-white" />
-            ) : (
-              <>
-                <span>Salvar Senha e Acessar Conteúdo</span>
-                <ArrowRight className="w-4 h-4" />
-              </>
+            {/* Requisitos de Senha */}
+            <div className="bg-[#f5f5f7] rounded-[18px] p-5 select-none">
+              <span className="text-[13px] font-semibold text-[#1d1d1f] block mb-3">
+                Sua senha precisa ter:
+              </span>
+              <div className="grid grid-cols-2 gap-x-3 gap-y-2.5 text-[13px]">
+                <Requirement ok={hasUpper} label="Letra maiúscula" />
+                <Requirement ok={hasLower} label="Letra minúscula" />
+                <Requirement ok={hasNumber} label="Número" />
+                <Requirement ok={hasSpecial} label="Caractere especial" />
+                <Requirement ok={hasMinLength} label="Mínimo 8 caracteres" />
+                <Requirement ok={passwordsMatch} label="Senhas iguais" />
+              </div>
+            </div>
+
+            {/* O BOTÃO SALVAR SENHA NOVA SÓ APARECE APÓS ATENDER TODAS AS REGRAS */}
+            {isFormValid && (
+              <div className="pt-1 animate-fadeIn transition-all duration-300">
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="w-full h-12 px-6 rounded-full bg-[#0071e3] text-white font-normal text-[17px] hover:bg-[#0077ed] transition-all active:scale-[0.98] cursor-pointer flex items-center justify-center gap-2 disabled:opacity-70"
+                >
+                  {loading ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      <span>Salvando…</span>
+                    </>
+                  ) : (
+                    <span>Salvar senha nova</span>
+                  )}
+                </button>
+              </div>
             )}
-          </button>
-        </form>
-      </main>
+          </form>
+        )}
 
-      {/* Footer */}
-      <footer className="w-full border-t border-zinc-200/80 px-6 py-4 text-center text-xs text-zinc-400">
-        FLMMKR • Acesso exclusivo e protegido
-      </footer>
+        <p className="mt-12 text-[12px] text-[#86868b] text-center">
+          © {new Date().getFullYear()} FLMMKR. Todos os direitos reservados.
+        </p>
+      </div>
     </div>
   );
 }
@@ -242,7 +264,7 @@ export default function DefinirSenhaPage() {
     <Suspense
       fallback={
         <div className="min-h-screen bg-white flex items-center justify-center">
-          <Loader2 className="w-6 h-6 animate-spin text-zinc-900" />
+          <Loader2 className="w-6 h-6 animate-spin text-[#0071e3]" />
         </div>
       }
     >

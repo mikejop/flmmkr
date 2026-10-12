@@ -1,5 +1,7 @@
 'use client';
 
+import { getLegacyPublicVideoUrl, getMediaUrl } from '@/lib/storage';
+
 import React, { useState, useEffect, useRef } from 'react';
 import { ChevronLeft, ChevronRight, Play, Pause, Volume2, VolumeX, X, AlertTriangle } from 'lucide-react';
 import { SITE_CONFIG } from '@/config/siteConfig';
@@ -27,23 +29,23 @@ const CheckoutModal = dynamic(
 );
 
 const OFFER_IMAGES = [
-  { src: '/assets/produtos/color-master/offer/offer-1.webp', alt: 'Material do Masterclass - Visual 1' },
-  { src: '/assets/produtos/color-master/offer/offer-2.webp', alt: 'Material do Masterclass - Visual 2' },
-  { src: '/assets/produtos/color-master/offer/offer-3.webp', alt: 'Material do Masterclass - Visual 3' },
-  { src: '/assets/produtos/color-master/offer/offer-4.webp', alt: 'Material do Masterclass - Visual 4' },
-  { src: '/assets/produtos/color-master/offer/offer-5.webp', alt: 'Material do Masterclass - Visual 5' },
+  { src: getMediaUrl('assets/produtos/color-master/offer/offer-1.webp'), alt: 'Material do Masterclass - Visual 1' },
+  { src: getMediaUrl('assets/produtos/color-master/offer/offer-2.webp'), alt: 'Material do Masterclass - Visual 2' },
+  { src: getMediaUrl('assets/produtos/color-master/offer/offer-3.webp'), alt: 'Material do Masterclass - Visual 3' },
+  { src: getMediaUrl('assets/produtos/color-master/offer/offer-4.webp'), alt: 'Material do Masterclass - Visual 4' },
+  { src: getMediaUrl('assets/produtos/color-master/offer/offer-5.webp'), alt: 'Material do Masterclass - Visual 5' },
 ];
 
 const PRODUTORAS_LOGOS = [
-  { name: 'Astronautas Filmes', src: '/assets/empresas/astronautas-filmes.jpg' },
-  { name: 'At Work', src: '/assets/empresas/at-work.jpg' },
-  { name: 'Embratur', src: '/assets/empresas/embratur.png' },
-  { name: 'Malala Filmes', src: '/assets/empresas/malala-filmes.jpg' },
-  { name: 'Mandrill', src: '/assets/empresas/mandrill.png' },
-  { name: 'Maria Quitéria', src: '/assets/empresas/maria-quiteria.jpg' },
-  { name: 'Mariposa Filmes', src: '/assets/empresas/mariposa-filmes.jpg' },
-  { name: 'Pantanal Filmes', src: '/assets/empresas/pantanal-filmes.jpg' },
-  { name: 'Plano B', src: '/assets/empresas/plano-b.jpg' },
+  { name: 'Astronautas Filmes', src: getMediaUrl('assets/empresas/astronautas-filmes.jpg') },
+  { name: 'At Work', src: getMediaUrl('assets/empresas/at-work.jpg') },
+  { name: 'Embratur', src: getMediaUrl('assets/empresas/embratur.png') },
+  { name: 'Malala Filmes', src: getMediaUrl('assets/empresas/malala-filmes.jpg') },
+  { name: 'Mandrill', src: getMediaUrl('assets/empresas/mandrill.png') },
+  { name: 'Maria Quitéria', src: getMediaUrl('assets/empresas/maria-quiteria.jpg') },
+  { name: 'Mariposa Filmes', src: getMediaUrl('assets/empresas/mariposa-filmes.jpg') },
+  { name: 'Pantanal Filmes', src: getMediaUrl('assets/empresas/pantanal-filmes.jpg') },
+  { name: 'Plano B', src: getMediaUrl('assets/empresas/plano-b.jpg') },
 ];
 
 const MAX_EXPIRED_MODAL_VIEWS = 2;
@@ -116,8 +118,8 @@ const recordExpiredModalView = (mac?: string): number => {
 
 export const ColorMasterLanding: React.FC = () => {
   const [authorPhotos, setAuthorPhotos] = useState<AuthorPhotoPair>({
-    profileSrc: '/assets/mike-photos/01.webp',
-    bgSrc: '/assets/bg/about-mike/02.webp'
+    profileSrc: getMediaUrl('assets/mike-photos/01.webp'),
+    bgSrc: getMediaUrl('assets/bg/about-mike/02.webp')
   });
   const [logos, setLogos] = useState<{ name: string; src: string }[]>(PRODUTORAS_LOGOS);
   const [openFaq, setOpenFaq] = useState<number | null>(null);
@@ -147,10 +149,6 @@ export const ColorMasterLanding: React.FC = () => {
     batchName: string;
     nextPriceDate?: string;
     isLaunchPhase?: boolean;
-    isTestUserIp?: boolean;
-    testPaymentUrl?: string;
-    testPrice?: number;
-    clientIp?: string;
   }>({
     promoPrice: 95,
     currentBatchPrice: 95,
@@ -378,10 +376,6 @@ export const ColorMasterLanding: React.FC = () => {
                 batchName: data.batchName,
                 nextPriceDate: data.nextPriceDate,
                 isLaunchPhase: Boolean(data.isLaunchPhase),
-                isTestUserIp: Boolean(data.isTestUserIp),
-                testPaymentUrl: data.testPaymentUrl,
-                testPrice: data.testPrice,
-                clientIp: data.clientIp
               });
 
               // Tooltip apontando para o preço quando o tempo já estiver expirado:
@@ -416,6 +410,11 @@ export const ColorMasterLanding: React.FC = () => {
       }
     } catch {}
 
+    // Abre o modal de login automaticamente se solicitado via URL (?login=true)
+    if (typeof window !== 'undefined' && window.location.search.includes('login=true')) {
+      setLoginModalOpen(true);
+    }
+
     return () => {
       clearTimeout(safetyTimeout);
       if (expiredTooltipDelayRef.current) clearTimeout(expiredTooltipDelayRef.current);
@@ -429,6 +428,7 @@ export const ColorMasterLanding: React.FC = () => {
 
     if (timeLeft <= 0) {
       setIsExpired(true);
+      fetch('/api/offer-timer').catch(() => {});
       return;
     }
 
@@ -436,6 +436,7 @@ export const ColorMasterLanding: React.FC = () => {
       setTimeLeft((prev) => {
         if (prev <= 1) {
           setIsExpired(true);
+          fetch('/api/offer-timer').catch(() => {});
           return 0;
         }
         return prev - 1;
@@ -598,9 +599,6 @@ export const ColorMasterLanding: React.FC = () => {
   };
 
   const getAsaasCheckoutUrl = () => {
-    if (priceData.isTestUserIp && priceData.testPaymentUrl) {
-      return priceData.testPaymentUrl;
-    }
     if (isExpired) {
       return 'https://www.asaas.com/000/c/iv2p2s5tkbt1qi79'; // R$ 195 (Regular)
     }
@@ -617,16 +615,14 @@ export const ColorMasterLanding: React.FC = () => {
   };
 
   // Preço base do lote vigente
-  const baseBatchPrice = priceData.isTestUserIp && priceData.testPrice
-    ? priceData.testPrice
-    : priceData.isLaunchPhase
+  const baseBatchPrice = priceData.isLaunchPhase
     ? 95
     : !isExpired
     ? 95
     : (priceData.currentBatchPrice || priceData.regularPrice);
 
   // Preço final (com 25% de desconto caso acionado pelo tooltip)
-  const displayPrice = hasDiscount25 && isExpired && !priceData.isTestUserIp
+  const displayPrice = hasDiscount25 && isExpired
     ? Math.round(baseBatchPrice * 0.75)
     : baseBatchPrice;
 
@@ -862,12 +858,12 @@ export const ColorMasterLanding: React.FC = () => {
             muted
             playsInline
             preload="auto"
-            poster="/assets/videos/dom-dourado-poster.webp"
+            poster={getMediaUrl('assets/videos/dom-dourado-poster.webp')}
             className="w-full h-full object-cover pointer-events-none opacity-90 scale-105"
           >
-            <source src="/assets/videos/dom-dourado.webm" type="video/webm" />
+            <source src={getLegacyPublicVideoUrl('assets/videos/dom-dourado.webm')} type="video/webm" />
             {/* AV1 desativado estaticamente para contingência: */}
-            {/* <source src="/assets/videos/dom-dourado-av1.mp4" type="video/mp4" /> */}
+            {/* <source src={getLegacyPublicVideoUrl('assets/videos/dom-dourado-av1.mp4')} type="video/mp4" /> */}
           </video>
           <div className="absolute inset-0 z-5 pointer-events-none reticula-pattern" />
           <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-black/60 pointer-events-none z-6" />
@@ -1221,7 +1217,7 @@ export const ColorMasterLanding: React.FC = () => {
             {/* Imagem 4 (Color Grading 01) */}
             <div className="w-[180px] sm:w-[240px] md:w-[280px] lg:w-[320px] aspect-[16/9] overflow-hidden bg-black/5 shrink-0 relative select-none">
               <img
-                src="/assets/produtos/color-grade-produto/01.jpg"
+                src={getMediaUrl('assets/produtos/color-grade-produto/01.jpg')}
                 alt="Processo de Cor e Grading do Produto"
                 loading="lazy"
                 decoding="async"
@@ -1234,7 +1230,7 @@ export const ColorMasterLanding: React.FC = () => {
             {/* Imagem 5 (Color Grading 02) */}
             <div className="w-[180px] sm:w-[240px] md:w-[280px] lg:w-[320px] aspect-[16/9] overflow-hidden bg-black/5 shrink-0 relative select-none">
               <img
-                src="/assets/produtos/color-grade-produto/02.jpg"
+                src={getMediaUrl('assets/produtos/color-grade-produto/02.jpg')}
                 alt="Resultado Final Comercial"
                 loading="lazy"
                 decoding="async"
@@ -1270,7 +1266,7 @@ export const ColorMasterLanding: React.FC = () => {
               <div>
                 <div className="w-full aspect-[16/10] overflow-hidden bg-black/40 border-b border-white/10 relative">
                   <img
-                    src="/assets/produtos/color-grade-produto/editor01.jpg"
+                    src={getMediaUrl('assets/produtos/color-grade-produto/editor01.jpg')}
                     alt="Editores de vídeo no DaVinci Resolve"
                     loading="lazy"
                     decoding="async"
@@ -1300,7 +1296,7 @@ export const ColorMasterLanding: React.FC = () => {
               <div>
                 <div className="w-full aspect-[16/10] overflow-hidden bg-black/40 border-b border-white/10 relative">
                   <img
-                    src="/assets/produtos/color-grade-produto/videomaker01.jpg"
+                    src={getMediaUrl('assets/produtos/color-grade-produto/videomaker01.jpg')}
                     alt="Filmmakers e Videomakers operando câmeras em LOG"
                     loading="lazy"
                     decoding="async"
@@ -1330,7 +1326,7 @@ export const ColorMasterLanding: React.FC = () => {
               <div>
                 <div className="w-full aspect-[16/10] overflow-hidden bg-black/40 border-b border-white/10 relative">
                   <img
-                    src="/assets/produtos/color-grade-produto/marketing01.jpg"
+                    src={getMediaUrl('assets/produtos/color-grade-produto/marketing01.jpg')}
                     alt="Produtoras, agências e equipes de marketing de produto"
                     loading="lazy"
                     decoding="async"
@@ -1694,32 +1690,6 @@ export const ColorMasterLanding: React.FC = () => {
               )}
 
               {/* Conteúdo do Price Box */}
-              {/* BLOCO EXCLUSIVO: Visível apenas para o IP do desenvolvedor/administrador */}
-              {priceData.isTestUserIp && (
-                <div className="mb-4 p-4 rounded-2xl bg-purple-500/10 border border-purple-500/30 text-left shadow-lg">
-                  <div className="flex items-center justify-between gap-2 mb-2">
-                    <span className="text-[11px] font-mono font-bold uppercase tracking-wider text-purple-400 flex items-center gap-1.5">
-                      <span className="w-2 h-2 rounded-full bg-purple-400 animate-pulse" />
-                      IP Autorizado ({priceData.clientIp || '168.90.209.157'})
-                    </span>
-                    <span className="text-[10px] font-mono bg-purple-500/20 text-purple-300 px-2 py-0.5 rounded-full border border-purple-500/30">
-                      Apenas para você
-                    </span>
-                  </div>
-                  <p className="text-[12px] text-zinc-300 leading-snug mb-3">
-                    Pagamento de teste de homologação no Asaas (R$ 5,00 - valor mínimo permitido pelo gateway):
-                  </p>
-                  <a
-                    href={priceData.testPaymentUrl || 'https://www.asaas.com/000/c/2lrie17dp1qnzcr3'}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center justify-center gap-2 w-full py-3 px-4 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs tracking-wide transition-all shadow-md active:scale-[0.98]"
-                  >
-                    Abrir Link de Pagamento Teste Asaas (R$ 5,00) →
-                  </a>
-                </div>
-              )}
-
               {priceData.isLaunchPhase ? (
                 <>
                   <div className="inline-block px-3.5 py-1 rounded-full bg-[#0071e3]/10 text-[#0071e3] text-[12px] font-semibold uppercase tracking-[0.04em] mb-2 border border-[#0071e3]/20">

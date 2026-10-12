@@ -82,7 +82,7 @@ export default function WelcomeScreen({ userName, userEmail, userAvatar, onConti
               transition={{ delay: 0.5, duration: 0.4 }}
               className="text-sm text-neutral-400 leading-relaxed max-w-md mx-auto"
             >
-              Seu acesso ao <strong className="text-white font-semibold">YouTuber Pro</strong> foi ativado com sucesso. Todo o Playbook Visual e Ferramentas 3D estão prontos para você.
+              Seu acesso ao <strong className="text-white font-semibold">Color Master | Produto</strong> foi ativado com sucesso. As aulas e ferramentas de color grading estão prontas para você.
             </motion.p>
           </div>
 
@@ -102,7 +102,7 @@ export default function WelcomeScreen({ userName, userEmail, userAvatar, onConti
             </div>
             <div className="p-3 bg-neutral-950/60 border border-neutral-800 rounded-xl space-y-1">
               <span className="text-neutral-500 text-[10px] uppercase font-bold tracking-wider block">Modalidade</span>
-              <span className="text-white font-bold truncate block">Acesso Vitalício</span>
+              <span className="text-white font-bold truncate block">Aluno ativo</span>
             </div>
           </motion.div>
 
@@ -117,7 +117,7 @@ export default function WelcomeScreen({ userName, userEmail, userAvatar, onConti
               onClick={onContinue}
               className="w-full py-4 bg-[#0071e3] hover:bg-[#0077ed] active:scale-[0.99] text-white font-bold text-sm md:text-base rounded-2xl transition-all shadow-xl shadow-blue-500/25 cursor-pointer flex items-center justify-center space-x-2"
             >
-              <span>Acessar o YouTuber Pro</span>
+              <span>Acessar o Color Master</span>
               <ArrowRight className="w-5 h-5" />
             </button>
           </motion.div>

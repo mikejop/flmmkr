@@ -1,4 +1,4 @@
-export type ModuleId = 'mod0' | 'mod1' | 'mod2' | 'mod3' | 'mod4' | 'mod5' | 'mod6' | 'mod7' | 'mod8';
+export type ModuleId = 'mod1' | 'mod2' | 'mod3' | 'mod4';
 
 export interface Subtopic {
   id: string;

@@ -1,23 +1,24 @@
 'use client';
 
 import React, { useState, useEffect, useRef, useMemo, Suspense, lazy } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion, AnimatePresence, MotionConfig } from 'motion/react';
 import { 
-  Folder, ChevronRight, ChevronDown, ChevronLeft,
+  Folder, ChevronRight, ChevronLeft,
   CheckCircle2, Lock, PanelLeftClose, PanelLeft, X, Search, Menu,
-  Camera, Sun, SunMedium, Lamp, Contrast, Users, Wand2,
-  Palette, Plus, User, LogIn, LogOut, Copy, Star, Compass
+  Wand2, Palette, User, LogIn, LogOut, Star, Compass
 } from 'lucide-react';
 import { modulesData } from '@/data/data';
-import { UserProgress, CourseModule, ModuleId, Subtopic } from '@/types/course';
+import { UserProgress, CourseModule, ModuleId, Subtopic, Challenge } from '@/types/course';
 import { TextHighlighterTool } from '@/components/TextHighlighterTool';
 import { fetchReadingState, saveReadingState, getLocalReadingState } from '@/lib/readingStateService';
+import { readCache, writeCache, removeCache, purgeClientCache } from '@/lib/clientCache';
+import { purgePrivateCache } from '@/lib/swBridge';
+import { useDialogA11y } from '@/hooks/useDialogA11y';
 import { AccessibilityWidget } from '@/components/AccessibilityWidget';
 import { LoginModal } from '@/components/LoginModal';
 import { CheckoutModal } from '@/components/CheckoutModal';
 import { supabase } from '@/lib/supabase';
 import { getMediaUrl } from '@/lib/storage';
-import { getDeviceFingerprint } from '@/utils/deviceFingerprint';
 import { MemberPreloader } from '@/components/MemberPreloader';
 import { AccountSettingsModal } from '@/components/AccountSettingsModal';
 import { DeviceSessionKickedModal } from '@/components/DeviceSessionKickedModal';
@@ -26,28 +27,26 @@ import LessonComments from '@/components/LessonComments';
 import NotificationsDropdown from '@/components/NotificationsDropdown';
 import LessonCompletionTransition from '@/components/LessonCompletionTransition';
 import IntroducaoDaVinciArticle from '@/components/IntroducaoDaVinciArticle';
+import NodeWorkflowGraph from '@/components/NodeWorkflowGraph';
+import AnaliseTecnicaArticle from '@/components/AnaliseTecnicaArticle';
+import AnaliseTecnicaVideo from '@/components/AnaliseTecnicaVideo';
 import GenericLessonArticle from '@/components/GenericLessonArticle';
+import PandaPlaylistPlayer from '@/components/PandaPlaylistPlayer';
 
 // Lazy load heavy interactive tools for instant initial render and 0 lag
-const AceleracaoManager = lazy(() => import('@/components/AceleracaoManager'));
-const Iluminacao3Pontos = lazy(() => import('@/components/Iluminacao3Pontos'));
 const ExposureCalculator = lazy(() => import('@/components/ExposureCalculator'));
-const CenarioPlanner = lazy(() => import('@/components/CenarioPlanner'));
-const PudovkinSequencer = lazy(() => import('@/components/PudovkinSequencer'));
 const ColorwheelsGrading = lazy(() => import('@/components/ColorwheelsGrading'));
-const AudioMixer = lazy(() => import('@/components/AudioMixer'));
 const DeliverExporter = lazy(() => import('@/components/DeliverExporter'));
-const CtrSimulator = lazy(() => import('@/components/CtrSimulator'));
 
 const ToolFallback = () => (
-  <div className="w-full h-48 flex items-center justify-center text-xs text-neutral-400 animate-pulse">
+  <div role="status" className="w-full h-48 flex items-center justify-center text-sm text-neutral-600 animate-pulse motion-reduce:animate-none">
     Carregando ferramenta...
   </div>
 );
 
 // Helper to render Apple-style module icons
 const getModuleIcon = (modId: ModuleId, isCurrent: boolean) => {
-  const colorClass = isCurrent ? 'text-[#0071e3]' : 'text-[#86868b]';
+  const colorClass = isCurrent ? 'text-[#0071e3]' : 'text-[#a1a1a6]';
   const size = 18;
   switch (modId) {
     case 'mod1': return <Compass size={size} className={colorClass} />;
@@ -69,7 +68,23 @@ const getModuleName = (title: string | undefined): string => {
     .trim();
 };
 
-const STORAGE_KEY = 'flmmkr_member_progress';
+const STORAGE_KEY = 'color_master_member_progress';
+const PROFILE_FRESH_MS = 6 * 60 * 60 * 1000;      // perfil só é rebuscado no banco a cada 6 h
+const HEARTBEAT_INTERVAL_MS = 60 * 1000;           // sessão única: checagem a cada 60 s (antes 10 s)
+
+interface ProfileRow {
+  id?: string;
+  role?: string;
+  has_access?: boolean;
+  has_full_access?: boolean;
+  full_name?: string;
+  first_name?: string;
+  last_name?: string;
+  email?: string;
+  phone?: string;
+  avatar_url?: string;
+  nickname?: string;
+}
 
 interface UserProfile {
   firstName: string;
@@ -118,11 +133,13 @@ export function MemberAreaApp({ skipInternalPreloader = false }: { skipInternalP
     return saved?.lastTab || 'teoria';
   });
   
-  const [isSidebarExpanded, setIsSidebarExpanded] = useState<boolean>(true);
+  // Preferência de largura no desktop; no celular a barra lateral é uma gaveta sempre expandida.
+  const [sidebarPref, setIsSidebarExpanded] = useState<boolean>(true);
   const [isMaximized, setIsMaximized] = useState<boolean>(false);
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [isSearchOpen, setIsSearchOpen] = useState<boolean>(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState<boolean>(false);
+  const isSidebarExpanded = sidebarPref || isMobileMenuOpen;
   const lessonContainerRef = useRef<HTMLDivElement>(null);
   
   const [isLoginModalOpen, setIsLoginModalOpen] = useState<boolean>(false);
@@ -132,9 +149,8 @@ export function MemberAreaApp({ skipInternalPreloader = false }: { skipInternalP
   const [isMasterAdmin, setIsMasterAdmin] = useState<boolean>(false);
   
   const [copiedChallengeId, setCopiedChallengeId] = useState<string | null>(null);
-  const progressBarRef = useRef<HTMLDivElement>(null);
   const [activeFlyoutModule, setActiveFlyoutModule] = useState<string | null>(null);
-  const flyoutTimeoutRef = useRef<any>(null);
+  const flyoutTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [completionTransitionData, setCompletionTransitionData] = useState<{
     completedLessonTitle: string;
     nextLesson: {
@@ -151,7 +167,6 @@ export function MemberAreaApp({ skipInternalPreloader = false }: { skipInternalP
 
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState<boolean>(false);
   const [isAccountModalOpen, setIsAccountModalOpen] = useState<boolean>(false);
-  const [isAccessibilityOpen, setIsAccessibilityOpen] = useState<boolean>(false);
   
   const [userProfile, setUserProfile] = useState<UserProfile>(DEFAULT_PROFILE);
 
@@ -169,117 +184,14 @@ export function MemberAreaApp({ skipInternalPreloader = false }: { skipInternalP
   }, [userProfile.firstName, userProfile.lastName]);
 
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  const currentUserIdRef = useRef<string | null>(null);
+  const searchDialogRef = useRef<HTMLDivElement>(null);
+  const profileMenuRef = useRef<HTMLDivElement>(null);
+  const progressKey = (uid: string | null) => (uid ? `${STORAGE_KEY}:${uid}` : STORAGE_KEY);
   const [kickedModalOpen, setKickedModalOpen] = useState<boolean>(false);
   const [kickedDeviceName, setKickedDeviceName] = useState<string>('Outro Dispositivo');
   const [kickedDeviceLocation, setKickedDeviceLocation] = useState<string>('Brasil');
   const [kickedAt, setKickedAt] = useState<string>('');
-
-  // Controle de congelamento no último frame e reset de 72h do vídeo de fundo
-  const bgVideoRef = useRef<HTMLVideoElement>(null);
-  const [isBgVideoFrozen, setIsBgVideoFrozen] = useState<boolean>(() => {
-    if (typeof window === 'undefined') return false;
-    try {
-      const stored = localStorage.getItem('flmmkr_member_bg_video_frozen_v1');
-      if (stored) {
-        const parsed = JSON.parse(stored);
-        if (parsed.resetAt && Date.now() < parsed.resetAt) {
-          return true;
-        }
-      }
-    } catch (_) {}
-    return false;
-  });
-
-  // Sincronizar com o backend (MAC/IP/userId) o status de 72h do vídeo de fundo
-  useEffect(() => {
-    let isCancelled = false;
-
-    async function checkBgVideoStatus() {
-      try {
-        const mac = await getDeviceFingerprint();
-        const url = `/api/member/bg-video?macAddress=${encodeURIComponent(mac)}${currentUserId ? `&userId=${encodeURIComponent(currentUserId)}` : ''}`;
-        const res = await fetch(url);
-        if (!res.ok) return;
-        const data = await res.json();
-
-        if (isCancelled) return;
-
-        if (data.isFrozen && data.resetAt) {
-          const resetTime = new Date(data.resetAt).getTime();
-          if (Date.now() < resetTime) {
-            setIsBgVideoFrozen(true);
-            try {
-              localStorage.setItem('flmmkr_member_bg_video_frozen_v1', JSON.stringify({ resetAt: resetTime }));
-            } catch (_) {}
-
-            // Congelar no último frame se o vídeo já estiver montado
-            const vid = bgVideoRef.current;
-            if (vid) {
-              vid.pause();
-              if (vid.duration && !isNaN(vid.duration)) {
-                vid.currentTime = Math.max(0, vid.duration - 0.05);
-              }
-            }
-          } else {
-            // Já expirou as 72h -> reseta o vídeo
-            setIsBgVideoFrozen(false);
-            try {
-              localStorage.removeItem('flmmkr_member_bg_video_frozen_v1');
-            } catch (_) {}
-            const vid = bgVideoRef.current;
-            if (vid) {
-              vid.currentTime = 0;
-              vid.play().catch(() => {});
-            }
-          }
-        } else {
-          setIsBgVideoFrozen(false);
-          try {
-            localStorage.removeItem('flmmkr_member_bg_video_frozen_v1');
-          } catch (_) {}
-        }
-      } catch (err) {
-        console.warn('[BgVideo] Erro checagem 72h:', err);
-      }
-    }
-
-    checkBgVideoStatus();
-
-    return () => {
-      isCancelled = true;
-    };
-  }, [currentUserId]);
-
-  // Handler disparado quando o vídeo de background chega ao fim
-  const handleBgVideoEnded = async () => {
-    const vid = bgVideoRef.current;
-    if (vid) {
-      vid.pause();
-      if (vid.duration && !isNaN(vid.duration)) {
-        vid.currentTime = Math.max(0, vid.duration - 0.05);
-      }
-    }
-    setIsBgVideoFrozen(true);
-
-    const resetTime = Date.now() + 72 * 60 * 60 * 1000;
-    try {
-      localStorage.setItem('flmmkr_member_bg_video_frozen_v1', JSON.stringify({ resetAt: resetTime }));
-    } catch (_) {}
-
-    try {
-      const mac = await getDeviceFingerprint();
-      await fetch('/api/member/bg-video', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          macAddress: mac,
-          userId: currentUserId || null
-        })
-      });
-    } catch (err) {
-      console.warn('[BgVideo] Erro ao registrar término:', err);
-    }
-  };
 
   const [expandedEmenta, setExpandedEmenta] = useState<Record<string, boolean>>(() => {
     const saved = getLocalReadingState();
@@ -334,29 +246,58 @@ export function MemberAreaApp({ skipInternalPreloader = false }: { skipInternalP
 
   // 1. Initial Load & Auth State
   useEffect(() => {
-    try {
-      const savedProg = localStorage.getItem(STORAGE_KEY);
-      if (savedProg) setProgress(JSON.parse(savedProg));
-    } catch (_) {}
+    let cancelled = false;
+
+    // Carrega o progresso local do aluno (por usuário; migra a chave antiga única).
+    const loadProgress = (uid: string | null) => {
+      try {
+        const scoped = uid ? localStorage.getItem(progressKey(uid)) : null;
+        const legacy = localStorage.getItem(STORAGE_KEY);
+        const raw = scoped ?? legacy;
+        if (raw) setProgress({ ...DEFAULT_PROGRESS, ...JSON.parse(raw) });
+        if (uid && !scoped && legacy) localStorage.setItem(progressKey(uid), legacy);
+      } catch (_) {}
+    };
 
     async function checkAuth() {
       try {
-        const { data: { user } } = await supabase.auth.getUser();
+        // A página já validou o usuário no servidor antes de montar esta tela: aqui basta a sessão
+        // local (sem ida ao servidor de auth).
+        const { data: { session } } = await supabase.auth.getSession();
+        const user = session?.user;
+        if (cancelled) return;
         if (user) {
+          currentUserIdRef.current = user.id;
           setIsLoggedIn(true);
           setIsAuthChecking(false);
           setCurrentUserId(user.id);
-          const metaRole = user.app_metadata?.role || user.user_metadata?.role;
-          const metaAccess = user.app_metadata?.has_full_access || user.user_metadata?.has_full_access;
+          loadProgress(user.id);
+          const metaRole = user.app_metadata?.role;
+          const metaAccess = user.app_metadata?.has_full_access;
 
-          const { data: prof } = await supabase
-            .from('profiles')
-            .select('*')
-            .eq('id', user.id)
-            .maybeSingle();
+          // Perfil: 1 consulta ao banco a cada 6 h por aparelho (cache de até 7 dias, limpo no logout).
+          const profileKey = `profile:${user.id}`;
+          let prof: ProfileRow | null = null;
+          const cachedProfile = readCache<ProfileRow>(profileKey);
+          if (cachedProfile && cachedProfile.ageMs < PROFILE_FRESH_MS) {
+            prof = cachedProfile.value;
+          } else {
+            const { data, error } = await supabase
+              .from('profiles')
+              .select('*')
+              .eq('id', user.id)
+              .maybeSingle();
+            if (!error && data) {
+              prof = data;
+              writeCache(profileKey, data);
+            } else {
+              prof = cachedProfile?.value ?? null;
+            }
+          }
+          if (cancelled) return;
 
           const isAdmin = metaRole === 'admin' || metaAccess === true || prof?.role === 'admin' || prof?.has_full_access === true;
-          const isStudent = isAdmin || prof?.has_access === true || prof?.role === 'student' || user.user_metadata?.has_access === true;
+          const isStudent = isAdmin || prof?.has_access === true || prof?.role === 'student';
 
           setIsMasterAdmin(isAdmin);
           setIsPaidUser(isAdmin || isStudent);
@@ -376,16 +317,21 @@ export function MemberAreaApp({ skipInternalPreloader = false }: { skipInternalP
             isAdmin
           });
 
-          // Garante um @nickname para quem ainda não tem
+          // Garante um @nickname para quem ainda não tem (só chama o servidor se faltar)
           if (!prof?.nickname) {
             fetch(`/api/user/ensure-nickname?userId=${encodeURIComponent(user.id)}`)
               .then(r => r.json())
-              .then(d => { if (d?.nickname) setUserProfile(prev => ({ ...prev, nickname: d.nickname })); })
+              .then(d => {
+                if (d?.nickname) {
+                  setUserProfile(prev => ({ ...prev, nickname: d.nickname }));
+                  removeCache(profileKey);
+                }
+              })
               .catch(() => {});
           }
 
           // Registrar / sincronizar sessão para controle de dispositivo único
-          let sessionToken = localStorage.getItem('flmmkr_session_token');
+          const sessionToken = localStorage.getItem('flmmkr_session_token');
           if (!sessionToken) {
             try {
               const regRes = await fetch('/api/auth/register-session', {
@@ -400,10 +346,10 @@ export function MemberAreaApp({ skipInternalPreloader = false }: { skipInternalP
             } catch (_) {}
           }
 
-          // Recuperar última página/aula onde o aluno parou (memória em nuvem do Supabase)
+          // Recuperar última aula (nuvem no máximo 1x/hora por aparelho; senão usa o estado local)
           try {
             const remoteState = await fetchReadingState(user.id);
-            if (remoteState && remoteState.lastLessonId) {
+            if (!cancelled && remoteState && remoteState.lastLessonId) {
               setActiveModuleId(remoteState.lastModuleId);
               setActiveLessonId(remoteState.lastLessonId);
               if (remoteState.lastSubtabId) {
@@ -431,10 +377,13 @@ export function MemberAreaApp({ skipInternalPreloader = false }: { skipInternalP
 
     checkAuth();
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    // Só reage a login de outra conta e a logout. TOKEN_REFRESHED / INITIAL_SESSION / USER_UPDATED
+    // não refazem a carga (antes cada um disparava perfil + sessão + estado de leitura de novo).
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (session?.user) {
-        checkAuth();
-      } else {
+        if (event === 'SIGNED_IN' && session.user.id !== currentUserIdRef.current) checkAuth();
+      } else if (event === 'SIGNED_OUT') {
+        currentUserIdRef.current = null;
         setIsLoggedIn(false);
         setIsPaidUser(false);
         setIsMasterAdmin(false);
@@ -443,17 +392,8 @@ export function MemberAreaApp({ skipInternalPreloader = false }: { skipInternalP
       }
     });
 
-    fetchReadingState().then(state => {
-      if (state && state.lastLessonId) {
-        setActiveModuleId(state.lastModuleId);
-        setActiveLessonId(state.lastLessonId);
-        if (state.lastSubtabId) setActiveSubtabId(state.lastSubtabId);
-        if (state.lastTab) setActiveTab(state.lastTab);
-        setExpandedEmenta(prev => ({ ...prev, [state.lastModuleId]: true }));
-      }
-    });
-
     return () => {
+      cancelled = true;
       subscription?.unsubscribe();
     };
   }, []);
@@ -478,6 +418,7 @@ export function MemberAreaApp({ skipInternalPreloader = false }: { skipInternalP
     if (!isLoggedIn || !currentUserId) return;
 
     const checkSessionHeartbeat = async () => {
+      if (document.visibilityState === 'hidden') return; // aba em segundo plano não consome servidor
       const sessionToken = localStorage.getItem('flmmkr_session_token');
       if (!sessionToken) return;
 
@@ -503,7 +444,7 @@ export function MemberAreaApp({ skipInternalPreloader = false }: { skipInternalP
       }
     };
 
-    const interval = setInterval(checkSessionHeartbeat, 10000);
+    const interval = setInterval(checkSessionHeartbeat, HEARTBEAT_INTERVAL_MS);
     const onVisibilityChange = () => {
       if (document.visibilityState === 'visible') checkSessionHeartbeat();
     };
@@ -520,7 +461,9 @@ export function MemberAreaApp({ skipInternalPreloader = false }: { skipInternalP
   // Save progress helper
   const saveProgress = (newProgress: UserProgress) => {
     setProgress(newProgress);
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(newProgress));
+    try {
+      localStorage.setItem(progressKey(currentUserIdRef.current), JSON.stringify(newProgress));
+    } catch (_) {}
   };
 
   const handleLogout = async () => {
@@ -528,6 +471,10 @@ export function MemberAreaApp({ skipInternalPreloader = false }: { skipInternalP
       await supabase.auth.signOut();
     } catch (_) {}
     localStorage.removeItem('flmmkr_session_token');
+    // Computador compartilhado: apaga dados e arquivos privados guardados por este sistema.
+    purgeClientCache();
+    purgePrivateCache();
+    currentUserIdRef.current = null;
     setIsLoggedIn(false);
     setIsPaidUser(false);
     setIsMasterAdmin(false);
@@ -640,7 +587,7 @@ export function MemberAreaApp({ skipInternalPreloader = false }: { skipInternalP
     }
     setCompletionTransitionData(null);
     if (lessonContainerRef.current) {
-      lessonContainerRef.current.scrollTo({ top: 0, behavior: 'smooth' });
+      lessonContainerRef.current.scrollTo({ top: 0, behavior: 'instant' });
     }
   };
 
@@ -660,11 +607,11 @@ export function MemberAreaApp({ skipInternalPreloader = false }: { skipInternalP
     saveProgress({ ...progress, challengeDrafts: drafts });
   };
 
-  const handleCopyChallenge = (challengeId: string, fields: any[]) => {
+  const handleCopyChallenge = (challengeId: string, fields: Challenge['fields']) => {
     let copyText = `📋 PLANO DE ESTUDO & EXERCÍCIO\n==============================================\n\n`;
     const draft = progress.challengeDrafts[challengeId] || {};
     fields.forEach(field => {
-      const fieldKey = field.fieldId || field.key;
+      const fieldKey = field.fieldId || field.key || "";
       const val = draft[fieldKey] || '';
       copyText += `👉 ${field.label}:\n   ${val || 'Não preenchido.'}\n\n`;
     });
@@ -747,15 +694,10 @@ export function MemberAreaApp({ skipInternalPreloader = false }: { skipInternalP
   // Render the interactive tools inside 'Na Prática' tab
   const renderInteractiveTool = (moduleId: ModuleId) => {
     switch (moduleId) {
-      case 'mod0': return <AceleracaoManager />;
-      case 'mod1': return <Iluminacao3Pontos />;
-      case 'mod2': return <ExposureCalculator />;
-      case 'mod3': return <CenarioPlanner />;
-      case 'mod4': return <PudovkinSequencer />;
-      case 'mod5': return <ColorwheelsGrading />;
-      case 'mod6': return <AudioMixer />;
-      case 'mod7': return <DeliverExporter />;
-      case 'mod8': return <CtrSimulator />;
+      case 'mod1': return <ExposureCalculator />;
+      case 'mod2': return <ColorwheelsGrading />;
+      case 'mod3': return <ColorwheelsGrading />;
+      case 'mod4': return <DeliverExporter />;
       default: return null;
     }
   };
@@ -784,96 +726,76 @@ export function MemberAreaApp({ skipInternalPreloader = false }: { skipInternalP
     setActiveLessonId(lessonId);
     setExpandedEmenta({ [modId]: true });
     setIsSearchOpen(false);
+    setIsMobileMenuOpen(false);
     setSearchQuery('');
   };
 
-  // High-Performance Zero-Rerender Scroll Progress listener with requestAnimationFrame
+  const closeSearch = () => {
+    setIsSearchOpen(false);
+    setSearchQuery('');
+  };
+
+  // Busca: Esc fecha, Tab fica no diálogo, foco volta ao botão de busca.
+  useDialogA11y(searchDialogRef, isSearchOpen, closeSearch);
+  // Menu da conta: Esc fecha e devolve o foco ao botão do perfil.
+  useDialogA11y(profileMenuRef, isProfileMenuOpen, () => setIsProfileMenuOpen(false), { trapFocus: false });
+
+  // Clique fora fecha o menu da conta.
   useEffect(() => {
-    const el = lessonContainerRef.current;
-    const bar = progressBarRef.current;
-    if (!el) return;
-
-    // Reset da barra na troca de aula
-    if (bar) {
-      bar.style.transform = 'scaleX(0)';
-    }
-
-    let rAF: number | null = null;
-    const handleScroll = () => {
-      if (rAF !== null) return;
-      rAF = requestAnimationFrame(() => {
-        const total = el.scrollHeight - el.clientHeight;
-        if (total > 0 && bar) {
-          const ratio = Math.min(1, Math.max(0, el.scrollTop / total));
-          bar.style.transform = `scaleX(${ratio})`;
-        }
-        rAF = null;
-      });
+    if (!isProfileMenuOpen) return;
+    const onDown = (e: MouseEvent) => {
+      const wrap = profileMenuRef.current?.parentElement;
+      if (wrap && !wrap.contains(e.target as Node)) setIsProfileMenuOpen(false);
     };
-    el.addEventListener('scroll', handleScroll, { passive: true });
-    return () => {
-      el.removeEventListener('scroll', handleScroll);
-      if (rAF !== null) cancelAnimationFrame(rAF);
-    };
-  }, [activeLessonId]);
+    document.addEventListener('mousedown', onDown);
+    return () => document.removeEventListener('mousedown', onDown);
+  }, [isProfileMenuOpen]);
+
 
   // Se ainda estiver checando ou se não estiver autenticado, exibe apenas a tela segura do preloader
   if (isAuthChecking || !isLoggedIn) {
     if (skipInternalPreloader) {
       return (
-        <div className="relative w-screen h-screen bg-[#0a0a0c] text-[#f5f5f7] flex items-center justify-center overflow-hidden font-sans select-none" />
+        <div className="relative w-screen h-dvh bg-[#0a0a0c] text-[#f5f5f7] flex items-center justify-center overflow-hidden font-sans select-none" />
       );
     }
     return (
-      <div className="relative w-screen h-screen bg-[#0a0a0c] text-[#f5f5f7] flex items-center justify-center overflow-hidden font-sans select-none">
+      <div className="relative w-screen h-dvh bg-[#0a0a0c] text-[#f5f5f7] flex items-center justify-center overflow-hidden font-sans select-none">
         <MemberPreloader isReady={false} />
       </div>
     );
   }
 
   return (
-    <div className="relative w-screen h-screen bg-[#0a0a0c] text-[#f5f5f7] flex items-center justify-center overflow-hidden font-sans select-none will-change-transform">
+    <MotionConfig reducedMotion="user">
+    <div className="relative w-screen h-dvh bg-[#0a0a0c] text-[#f5f5f7] flex items-center justify-center overflow-hidden font-sans">
+      {/* Atalho de teclado: pula a navegação e vai direto à aula */}
+      <a
+        href="#lesson-view-container"
+        onClick={(e) => { e.preventDefault(); lessonContainerRef.current?.focus(); }}
+        className="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-[100] focus:bg-white focus:text-[#1d1d1f] focus:px-4 focus:py-2 focus:rounded-full focus:text-sm focus:font-semibold"
+      >
+        Pular para o conteúdo da aula
+      </a>
       {/* Brand Preloader exclusivo da Área de Membros */}
       {!skipInternalPreloader && <MemberPreloader isReady={!isAuthChecking && isLoggedIn} />}
       
-      {/* Background Geral (Vídeo WebM do YouTuber Pro com congelamento no último frame e reset de 72h) */}
+      {/* Background geral da área de membros */}
       <div className="hidden md:block absolute inset-0 z-0 overflow-hidden pointer-events-none">
-        <video
-          ref={bgVideoRef}
-          src={getMediaUrl('bg/02.webm')}
-          poster={getMediaUrl('bg/02.webp')}
-          autoPlay={!isBgVideoFrozen}
-          muted
-          loop={false}
-          playsInline
-          preload="metadata"
-          onEnded={handleBgVideoEnded}
-          onLoadedMetadata={() => {
-            if (isBgVideoFrozen && bgVideoRef.current) {
-              const vid = bgVideoRef.current;
-              vid.pause();
-              if (vid.duration && !isNaN(vid.duration)) {
-                vid.currentTime = Math.max(0, vid.duration - 0.05);
-              }
-            }
-          }}
+        {/* Fundo estático (último quadro do vídeo antigo): sem vídeo, sem animação, sem chamadas ao servidor */}
+        <img
+          src="/images/member-bg.webp"
+          alt=""
+          aria-hidden="true"
+          decoding="async"
           className="absolute inset-0 w-full h-full object-cover"
         />
         {/* Subtle Dark Contrast Overlay */}
-        <div className="absolute inset-0 bg-black/40 backdrop-blur-[2px]" />
-        
-        {/* Ambient Color Nodes for Glassmorphism Refraction */}
-        <div className="absolute -top-32 -left-32 w-96 h-96 bg-[#0071e3]/18 rounded-full blur-[100px] pointer-events-none" />
-        <div className="absolute top-1/4 -right-24 w-80 h-80 bg-[#00c7fc]/12 rounded-full blur-[120px] pointer-events-none" />
-        <div className="absolute -bottom-32 -right-32 w-96 h-96 bg-[#5856d6]/15 rounded-full blur-[120px] pointer-events-none" />
+        <div className="absolute inset-0 bg-black/40" />
       </div>
 
       {/* FINDER WINDOW CONTAINER (Glassmorphism Frame) */}
       <div 
-        style={{
-          backdropFilter: 'blur(30px) saturate(180%)',
-          WebkitBackdropFilter: 'blur(30px) saturate(180%)'
-        }}
         className={`w-full h-full ${
           isMaximized 
             ? 'md:w-full md:h-full rounded-none border-none' 
@@ -882,27 +804,31 @@ export function MemberAreaApp({ skipInternalPreloader = false }: { skipInternalP
         id="finder-window"
       >
           
-          {/* SIDEBAR com Glassmorphism Apple */}
+          {/* Fundo da gaveta no celular: toque fora fecha o menu */}
+          {isMobileMenuOpen && (
+            <button
+              type="button"
+              aria-label="Fechar menu de aulas"
+              onClick={() => setIsMobileMenuOpen(false)}
+              className="md:hidden fixed inset-0 z-30 bg-black/60 backdrop-blur-sm cursor-default"
+            />
+          )}
+
+          {/* SIDEBAR com Glassmorphism Apple (gaveta sobreposta no celular) */}
           <aside 
             style={{
               transition: 'width 320ms cubic-bezier(0.455, 0.03, 0.515, 0.955)',
-              backdropFilter: 'blur(30px) saturate(190%) contrast(105%)',
-              WebkitBackdropFilter: 'blur(30px) saturate(190%) contrast(105%)',
             }}
-            className={`${isSidebarExpanded ? 'w-64' : 'w-16'} ${isMobileMenuOpen ? 'flex' : 'hidden md:flex'} bg-[#121216]/40 backdrop-blur-2xl border-r border-white/12 flex-col shrink-0 select-none relative will-change-[width] overflow-hidden shadow-[inset_0_1px_0_rgba(255,255,255,0.1),inset_-1px_0_0_rgba(255,255,255,0.06),0_8px_32px_rgba(0,0,0,0.3)]`} 
+            aria-label="Módulos e aulas"
+            className={`${isSidebarExpanded ? 'w-72 max-w-[85vw] md:max-w-none' : 'w-16'} ${isMobileMenuOpen ? 'flex fixed inset-y-0 left-0 z-40 md:relative md:z-auto' : 'hidden md:flex'} bg-[#121216] border-r border-white/12 flex-col shrink-0 select-none relative will-change-[width] overflow-hidden`}
             id="window-sidebar"
           >
-            {/* Glass Sheen Gradient Overlay */}
-            <div className="absolute inset-0 bg-gradient-to-b from-white/[0.06] via-transparent to-transparent pointer-events-none" />
-            
             {/* Sidebar Header: Traffic Lights & Collapse Button */}
             <div 
               style={{
                 transitionTimingFunction: 'cubic-bezier(0.455, 0.03, 0.515, 0.955)',
-                backdropFilter: 'blur(30px) saturate(190%) contrast(105%)',
-                WebkitBackdropFilter: 'blur(30px) saturate(190%) contrast(105%)',
               }}
-              className={`h-14 border-b border-white/12 bg-[#121216]/40 backdrop-blur-2xl flex items-center ${isSidebarExpanded ? 'px-3 justify-between' : 'px-0 justify-center'} select-none shrink-0 relative z-10 gap-1 transition-all duration-300 shadow-[inset_0_1px_0_rgba(255,255,255,0.12)]`}
+              className={`h-14 border-b border-white/12 bg-[#121216] flex items-center ${isSidebarExpanded ? 'px-3 justify-between' : 'px-0 justify-center'} select-none shrink-0 relative z-10 gap-1 transition-all duration-300`}
             >
               
               {/* Traffic Lights */}
@@ -910,17 +836,31 @@ export function MemberAreaApp({ skipInternalPreloader = false }: { skipInternalP
                 <div className="flex items-center gap-1.5 shrink-0 pl-1">
                   <button 
                     onClick={() => setIsMaximized(!isMaximized)}
+                    aria-label={isMaximized ? 'Restaurar janela' : 'Maximizar janela'}
+                    aria-pressed={isMaximized}
                     className={`w-3 h-3 rounded-full ${isMaximized ? 'bg-[#27c93f]' : 'bg-[#8e8e93]'} hover:brightness-110 active:brightness-90 flex items-center justify-center cursor-pointer border border-black/15 shrink-0 transition-colors`}
                     title={isMaximized ? "Restaurar Janela" : "Maximizar na Janela"}
                   />
                 </div>
               )}
 
+              {isMobileMenuOpen && (
+                <button
+                  type="button"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  aria-label="Fechar menu de aulas"
+                  className="md:hidden ml-auto text-[#a1a1a6] hover:text-white p-2.5 rounded-md hover:bg-white/10 cursor-pointer"
+                >
+                  <X size={18} />
+                </button>
+              )}
+
               {/* Collapse Trigger Button */}
               {isSidebarExpanded ? (
                 <button 
                   onClick={() => setIsSidebarExpanded(false)}
-                  className="text-[#86868b] hover:text-white transition-colors p-1.5 rounded-md hover:bg-white/5 cursor-pointer shrink-0"
+                  aria-label="Recolher barra lateral"
+                  className="text-[#a1a1a6] hover:text-white transition-colors p-2.5 rounded-md hover:bg-white/5 cursor-pointer shrink-0 hidden md:block"
                   title="Recolher Barra"
                 >
                   <PanelLeftClose size={15} />
@@ -928,7 +868,8 @@ export function MemberAreaApp({ skipInternalPreloader = false }: { skipInternalP
               ) : (
                 <button 
                   onClick={() => setIsSidebarExpanded(true)}
-                  className="text-[#86868b] hover:text-white transition-colors p-2 rounded-md hover:bg-white/10 cursor-pointer shrink-0 flex items-center justify-center"
+                  aria-label="Expandir barra lateral"
+                  className="text-[#a1a1a6] hover:text-white transition-colors p-2.5 rounded-md hover:bg-white/10 cursor-pointer shrink-0 flex items-center justify-center"
                   title="Expandir Barra"
                 >
                   <PanelLeft size={16} />
@@ -941,7 +882,7 @@ export function MemberAreaApp({ skipInternalPreloader = false }: { skipInternalP
               <div className="space-y-3 w-full">
                 <div className="space-y-1">
                   {isSidebarExpanded && (
-                    <span className="text-[9px] font-bold text-[#86868b] tracking-widest uppercase block px-3 mb-1.5">MÓDULOS</span>
+                    <span className="text-xs font-bold text-[#a1a1a6] tracking-widest uppercase block px-3 mb-1.5">MÓDULOS</span>
                   )}
                   
                   {modulesData.map((mod) => {
@@ -956,6 +897,8 @@ export function MemberAreaApp({ skipInternalPreloader = false }: { skipInternalP
                         className="space-y-0.5 w-full"
                         onMouseEnter={() => handleModuleMouseEnter(mod.id)}
                         onMouseLeave={handleModuleMouseLeave}
+                        onFocus={() => handleModuleMouseEnter(mod.id)}
+                        onBlur={handleModuleMouseLeave}
                       >
                         
                         {/* Module Button com aceleração CSS leve */}
@@ -981,6 +924,8 @@ export function MemberAreaApp({ skipInternalPreloader = false }: { skipInternalP
                               : 'text-neutral-300 hover:text-white hover:bg-white/[0.08] border border-transparent hover:border-white/10'
                           }`}
                           title={!isSidebarExpanded ? getModuleName(mod.title) : undefined}
+                          aria-expanded={isSidebarExpanded ? !!expandedEmenta[mod.id] : undefined}
+                          aria-label={!isSidebarExpanded ? `${getModuleName(mod.title)}${isLockedModule ? ' (bloqueado)' : ''}` : undefined}
                         >
                           <div className={`flex items-center ${isSidebarExpanded ? 'gap-2.5 truncate min-w-0' : 'justify-center w-full'}`}>
                             <div className="shrink-0 flex items-center justify-center">
@@ -994,13 +939,13 @@ export function MemberAreaApp({ skipInternalPreloader = false }: { skipInternalP
                           {isSidebarExpanded && (
                             <div className="shrink-0 flex items-center gap-1 pl-1">
                               {isLockedModule ? (
-                                <Lock size={11} className="text-neutral-400 shrink-0" />
+                                <Lock size={11} className="text-neutral-300 shrink-0" />
                               ) : (
                                 <>
                                   {isAllCompleted && <CheckCircle2 size={11} className="text-[#30d158] shrink-0 mr-1" />}
                                   <ChevronRight 
                                     size={12} 
-                                    className={`text-neutral-400 transition-transform duration-300 ${
+                                    className={`text-neutral-300 transition-transform duration-300 ${
                                       expandedEmenta[mod.id] ? 'rotate-90 text-white' : 'rotate-0'
                                     }`}
                                     style={{
@@ -1045,6 +990,7 @@ export function MemberAreaApp({ skipInternalPreloader = false }: { skipInternalP
                                 return (
                                   <button
                                     key={sub.id}
+                                    aria-current={isCurrentLesson ? 'page' : undefined}
                                     onClick={() => {
                                       if (isLockedLesson) {
                                         setIsCheckoutModalOpen(true);
@@ -1052,6 +998,7 @@ export function MemberAreaApp({ skipInternalPreloader = false }: { skipInternalP
                                       }
                                       setActiveModuleId(mod.id);
                                       setActiveLessonId(sub.id);
+                                      setIsMobileMenuOpen(false);
                                       saveReadingState({
                                         lastModuleId: mod.id,
                                         lastLessonId: sub.id,
@@ -1059,18 +1006,18 @@ export function MemberAreaApp({ skipInternalPreloader = false }: { skipInternalP
                                         scrollTop: 0
                                       });
                                     }}
-                                    className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-[8px] text-[11px] transition-colors text-left cursor-pointer ${
+                                    className={`w-full flex items-center justify-between gap-2 px-3 py-2.5 min-h-10 rounded-[8px] text-[13px] transition-colors text-left cursor-pointer ${
                                       isCurrentLesson
                                         ? 'bg-[#0071e3] text-white font-medium shadow-sm'
-                                        : 'text-[#a1a1a6] hover:text-[#f5f5f7] hover:bg-white/5'
+                                        : 'text-[#c7c7cc] hover:text-white hover:bg-white/10'
                                     }`}
                                   >
                                     <span className="truncate pr-1">{sub.title.replace(/^\d+\.\s*/, '')}</span>
                                     {isLockedLesson ? (
-                                      <Lock size={10} className="text-[#a1a1a6] shrink-0 ml-1" />
+                                      <Lock size={13} aria-label="Bloqueada" className="text-[#c7c7cc] shrink-0 ml-1" />
                                     ) : (
                                       isCompleted && (
-                                        <CheckCircle2 size={10} className={isCurrentLesson ? 'text-white' : 'text-[#30d158]'} />
+                                        <CheckCircle2 size={14} aria-label="Concluída" className={isCurrentLesson ? 'text-white' : 'text-[#30d158]'} />
                                       )
                                     )}
                                   </button>
@@ -1096,13 +1043,15 @@ export function MemberAreaApp({ skipInternalPreloader = false }: { skipInternalP
                   backdropFilter: 'blur(28px) saturate(190%)',
                   WebkitBackdropFilter: 'blur(28px) saturate(190%)',
                 }}
-                className="absolute left-[68px] z-50 w-56 bg-[#16161a]/85 backdrop-blur-2xl border border-white/15 rounded-2xl p-2 shadow-[0_20px_50px_rgba(0,0,0,0.6),inset_0_1px_0_rgba(255,255,255,0.15)] space-y-1"
+                role="group"
+                aria-label="Aulas do módulo"
+                className="absolute left-[68px] z-50 w-64 bg-[#16161a]/95 backdrop-blur-2xl border border-white/15 rounded-2xl p-2 shadow-[0_20px_50px_rgba(0,0,0,0.6),inset_0_1px_0_rgba(255,255,255,0.15)] space-y-1"
                 onMouseEnter={() => {
                   if (flyoutTimeoutRef.current) clearTimeout(flyoutTimeoutRef.current);
                 }}
                 onMouseLeave={handleModuleMouseLeave}
               >
-                <p className="text-[11px] font-bold text-white truncate border-b border-white/10 pb-1 mb-1 px-1">
+                <p className="text-xs font-bold text-white truncate border-b border-white/10 pb-1 mb-1 px-1">
                   {getModuleName(modulesData.find(m => m.id === activeFlyoutModule)?.title)}
                 </p>
                 {modulesData.find(m => m.id === activeFlyoutModule)?.subtopics.map(sub => (
@@ -1119,7 +1068,7 @@ export function MemberAreaApp({ skipInternalPreloader = false }: { skipInternalP
                       setActiveLessonId(sub.id);
                       setActiveFlyoutModule(null);
                     }}
-                    className="w-full text-left px-2 py-1 rounded text-[11px] text-neutral-300 hover:text-white hover:bg-white/10 flex justify-between items-center transition-colors"
+                    className="w-full text-left px-2.5 py-2 rounded text-[13px] text-neutral-200 hover:text-white hover:bg-white/10 flex justify-between items-center transition-colors"
                   >
                     <span className="truncate">{sub.title}</span>
                     {progress.completedLessons.includes(sub.id) && <CheckCircle2 size={10} className="text-[#30d158]" />}
@@ -1133,38 +1082,37 @@ export function MemberAreaApp({ skipInternalPreloader = false }: { skipInternalP
           {/* MAIN SPACE (TOOLBAR + CONTENT) */}
           <main className="flex-1 flex flex-col overflow-hidden relative">
             
-            {/* Toolbar com Efeito Glassmorphism Apple */}
-            <header 
-              style={{
-                backdropFilter: 'saturate(180%) blur(20px)',
-                WebkitBackdropFilter: 'saturate(180%) blur(20px)',
-              }}
-              className="h-14 bg-[#121216]/70 border-b border-white/12 flex items-center px-6 justify-between select-none relative z-20 shrink-0 shadow-[0_4px_24px_rgba(0,0,0,0.25),inset_0_1px_0_rgba(255,255,255,0.12)]"
+            {/* Toolbar com o mesmo fundo sólido do menu lateral */}
+            <header
+              className="h-14 bg-[#121216] border-b border-white/12 flex items-center px-3 sm:px-6 justify-between gap-2 select-none relative z-20 shrink-0"
             >
-              {/* Glass Sheen Gradient */}
-              <div className="absolute inset-0 bg-gradient-to-r from-white/[0.06] via-transparent to-white/[0.02] pointer-events-none" />
               
               {/* Left Toolbar Info */}
               <div className="flex items-center gap-3 relative z-10">
                 <button 
                   onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                  className="md:hidden text-white hover:text-neutral-300 p-1 rounded-md"
+                  aria-label={isMobileMenuOpen ? 'Fechar menu de aulas' : 'Abrir menu de aulas'}
+                  aria-expanded={isMobileMenuOpen}
+                  aria-controls="window-sidebar"
+                  className="md:hidden text-white hover:text-neutral-300 p-2.5 -ml-1 rounded-md"
                 >
-                  {isMobileMenuOpen ? <X size={18} /> : <Menu size={18} />}
+                  {isMobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
                 </button>
 
                 <div className="flex items-center gap-3">
                   <div className="flex gap-1">
                     <button 
                       onClick={handlePrevLesson}
-                      className="p-1.5 rounded-full bg-white/[0.08] hover:bg-white/[0.15] text-[#f5f5f7] border border-white/10 backdrop-blur-md shadow-xs transition-all active:scale-95 cursor-pointer"
+                      aria-label="Aula anterior"
+                      className="p-2 rounded-full bg-white/[0.08] hover:bg-white/[0.15] text-[#f5f5f7] border border-white/10 backdrop-blur-md shadow-xs transition-all active:scale-95 cursor-pointer"
                       title="Aula Anterior"
                     >
                       <ChevronLeft size={14} />
                     </button>
                     <button 
                       onClick={handleNextLesson}
-                      className="p-1.5 rounded-full bg-white/[0.08] hover:bg-white/[0.15] text-[#f5f5f7] border border-white/10 backdrop-blur-md shadow-xs transition-all active:scale-95 cursor-pointer"
+                      aria-label="Próxima aula"
+                      className="p-2 rounded-full bg-white/[0.08] hover:bg-white/[0.15] text-[#f5f5f7] border border-white/10 backdrop-blur-md shadow-xs transition-all active:scale-95 cursor-pointer"
                       title="Próxima Aula"
                     >
                       <ChevronRight size={14} />
@@ -1179,29 +1127,39 @@ export function MemberAreaApp({ skipInternalPreloader = false }: { skipInternalP
 
               {/* Center Progress Meter */}
               {isLoggedIn && (
-                <div className="hidden lg:flex items-center gap-3 bg-white/[0.05] hover:bg-white/[0.08] px-3.5 py-1.5 rounded-full border border-white/10 backdrop-blur-md shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] relative z-10 transition-colors">
-                  <span className="text-[10px] font-bold tracking-wider text-[#86868b] uppercase leading-none">Progresso</span>
+                <div role="progressbar" aria-label="Progresso do curso" aria-valuemin={0} aria-valuemax={100} aria-valuenow={percentComplete} className="hidden lg:flex items-center gap-3 bg-white/[0.05] hover:bg-white/[0.08] px-3.5 py-1.5 rounded-full border border-white/10 backdrop-blur-md shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] relative z-10 transition-colors">
+                  <span className="text-xs font-bold tracking-wider text-[#a1a1a6] uppercase leading-none">Progresso</span>
                   <div className="w-32 h-1.5 rounded-full bg-white/10 overflow-hidden">
                     <div 
                       className="h-full bg-gradient-to-r from-[#0071e3] to-[#00c7fc] transition-all duration-300 shadow-[0_0_8px_rgba(0,199,252,0.5)]"
                       style={{ width: `${percentComplete}%` }}
                     />
                   </div>
-                  <span className="text-[10px] font-bold text-[#00c7fc] font-mono leading-none">{percentComplete}%</span>
+                  <span className="text-xs font-bold text-[#00c7fc] font-mono leading-none">{percentComplete}%</span>
                 </div>
+              )}
+
+              {/* Progresso compacto (celular e tablet) */}
+              {isLoggedIn && (
+                <span className="lg:hidden text-xs font-bold text-[#00c7fc] font-mono tabular-nums bg-white/[0.06] border border-white/10 rounded-full px-2.5 py-1">
+                  {percentComplete}%<span className="sr-only"> do curso concluído</span>
+                </span>
               )}
 
               {/* Right Search, Accessibility & Profile */}
               <div className="flex items-center gap-2.5 relative z-10">
                 
                 {/* Search Bar Trigger */}
-                <div 
+                <button
+                  type="button"
                   onClick={() => setIsSearchOpen(true)}
-                  className="hidden md:flex items-center bg-white/[0.06] hover:bg-white/[0.12] border border-white/10 rounded-full px-3 py-1.5 w-28 cursor-pointer backdrop-blur-md shadow-xs transition-all"
+                  aria-label="Buscar aulas"
+                  aria-haspopup="dialog"
+                  className="flex items-center justify-center md:justify-start bg-white/[0.06] hover:bg-white/[0.12] border border-white/10 rounded-full p-2.5 md:px-3.5 md:py-2 md:w-32 cursor-pointer backdrop-blur-md shadow-xs transition-all"
                 >
-                  <Search size={11} className="text-[#86868b] mr-1.5" />
-                  <span className="text-[11px] text-[#86868b] select-none">Buscar...</span>
-                </div>
+                  <Search size={15} className="text-[#a1a1a6] md:mr-1.5" aria-hidden="true" />
+                  <span className="hidden md:inline text-xs text-[#a1a1a6] select-none">Buscar...</span>
+                </button>
 
                 {/* Notifications Button & Dropdown */}
                 <NotificationsDropdown
@@ -1219,18 +1177,21 @@ export function MemberAreaApp({ skipInternalPreloader = false }: { skipInternalP
                   <div className="relative">
                     <button
                       onClick={() => setIsProfileMenuOpen(!isProfileMenuOpen)}
-                      className="flex items-center gap-2 p-1 pl-2.5 rounded-full bg-white/[0.08] hover:bg-white/[0.15] border border-white/15 backdrop-blur-md shadow-xs cursor-pointer transition-all"
+                      aria-label={`Menu da conta de ${userProfile.firstName}`}
+                      aria-haspopup="menu"
+                      aria-expanded={isProfileMenuOpen}
+                      className="flex items-center gap-2 p-1 sm:pl-2.5 rounded-full bg-white/[0.08] hover:bg-white/[0.15] border border-white/15 backdrop-blur-md shadow-xs cursor-pointer transition-all"
                     >
                       <div className="text-right hidden sm:block">
                         <span className="text-xs font-bold text-white block leading-none">{userProfile.firstName}</span>
-                        <span className="text-[9px] text-[#00c7fc] font-semibold block leading-none mt-0.5">
+                        <span className="text-xs text-[#00c7fc] font-semibold block leading-none mt-1">
                           {isMasterAdmin ? 'ADMIN' : 'ALUNO'}
                         </span>
                       </div>
                       <img 
                         src={userProfile.avatar} 
-                        alt="Avatar" 
-                        className="w-7 h-7 rounded-full object-cover border border-[#0071e3] shadow-xs"
+                        alt="" 
+                        className="w-8 h-8 rounded-full object-cover border border-[#0071e3] shadow-xs"
                       />
                     </button>
 
@@ -1238,6 +1199,9 @@ export function MemberAreaApp({ skipInternalPreloader = false }: { skipInternalP
                     <AnimatePresence>
                       {isProfileMenuOpen && (
                         <motion.div
+                          ref={profileMenuRef}
+                          role="menu"
+                          aria-label="Conta"
                           initial={{ opacity: 0, scale: 0.95, y: -8 }}
                           animate={{ opacity: 1, scale: 1, y: 0 }}
                           exit={{ opacity: 0, scale: 0.95, y: -8 }}
@@ -1246,25 +1210,27 @@ export function MemberAreaApp({ skipInternalPreloader = false }: { skipInternalP
                             backdropFilter: 'blur(28px) saturate(190%)',
                             WebkitBackdropFilter: 'blur(28px) saturate(190%)',
                           }}
-                          className="absolute right-0 top-11 w-52 z-50 overflow-hidden bg-[#16161a]/90 backdrop-blur-2xl border border-white/15 rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.6),inset_0_1px_0_rgba(255,255,255,0.12)] p-2 space-y-1"
+                          className="absolute right-0 top-11 w-60 max-w-[90vw] z-50 overflow-hidden bg-[#16161a]/90 backdrop-blur-2xl border border-white/15 rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.6),inset_0_1px_0_rgba(255,255,255,0.12)] p-2 space-y-1"
                         >
                           <div className="px-3 py-2 border-b border-white/10">
                             <p className="text-xs font-bold text-white truncate">{userProfile.firstName} {userProfile.lastName}</p>
-                            <p className="text-[11px] text-neutral-400 truncate">{userProfile.email}</p>
+                            <p className="text-xs text-neutral-300 truncate">{userProfile.email}</p>
                           </div>
                           <button
+                            role="menuitem"
                             onClick={() => {
                               setIsProfileMenuOpen(false);
                               setIsAccountModalOpen(true);
                             }}
-                            className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-xs text-neutral-200 hover:text-white hover:bg-white/10 text-left font-medium transition-colors"
+                            className="w-full flex items-center gap-2 px-3 py-2.5 rounded-xl text-xs text-neutral-200 hover:text-white hover:bg-white/10 text-left font-medium transition-colors"
                           >
                             <User size={14} />
                             <span>Minha Conta</span>
                           </button>
                           <button
+                            role="menuitem"
                             onClick={handleLogout}
-                            className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-xs text-red-400 hover:text-red-300 hover:bg-red-500/10 text-left font-medium transition-colors"
+                            className="w-full flex items-center gap-2 px-3 py-2.5 rounded-xl text-xs text-red-400 hover:text-red-300 hover:bg-red-500/10 text-left font-medium transition-colors"
                           >
                             <LogOut size={14} />
                             <span>Sair</span>
@@ -1284,21 +1250,14 @@ export function MemberAreaApp({ skipInternalPreloader = false }: { skipInternalP
                 )}
               </div>
 
-              {/* Scroll Progress line (Zero-re-render via transform scaleX) */}
-              <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-white/[0.06] pointer-events-none">
-                <div 
-                  ref={progressBarRef}
-                  className="h-full w-full bg-gradient-to-r from-[#0071e3] via-[#00c7fc] to-[#30d158] origin-left will-change-transform" 
-                  style={{ transform: 'scaleX(0)' }}
-                />
-              </div>
             </header>
 
             {/* LESSON CANVAS */}
             <div 
-              className={`flex-1 ${completionTransitionData ? 'overflow-hidden' : 'overflow-y-auto'} bg-[#f5f5f7] pb-24 relative select-text custom-scrollbar flex flex-col text-[#1d1d1f]`} 
+              className={`flex-1 ${completionTransitionData ? 'overflow-hidden' : 'overflow-y-auto'} bg-[#f5f5f7] pb-24 relative select-text custom-scrollbar flex flex-col text-[#1d1d1f] focus:outline-none [scroll-behavior:auto]`} 
               id="lesson-view-container" 
               ref={lessonContainerRef}
+              tabIndex={-1}
             >
               {/* Tela de Transição com Confetes coloridos ao finalizar a aula */}
               {completionTransitionData && (
@@ -1318,7 +1277,7 @@ export function MemberAreaApp({ skipInternalPreloader = false }: { skipInternalP
                 {/* Lesson Header */}
                 <div className="space-y-3 border-b border-neutral-200/80 pb-5">
                   <div className="flex flex-wrap items-center justify-between gap-3">
-                    <span className="text-[11px] font-bold tracking-widest text-[#0071e3] uppercase">
+                    <span className="text-xs font-bold tracking-widest text-[#0071e3] uppercase">
                       {activeModule.badge ? `${activeModule.badge} · ` : ''}{activeModule.title}
                     </span>
                     
@@ -1343,7 +1302,8 @@ export function MemberAreaApp({ skipInternalPreloader = false }: { skipInternalP
                             <button
                               key={tab.id}
                               onClick={() => setActiveSubtabId(tab.id)}
-                              className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                              aria-pressed={isSelected}
+                              className={`px-4 py-2.5 min-h-11 rounded-xl text-sm font-bold transition-all cursor-pointer ${
                                 isSelected
                                     ? 'bg-[#0071e3] text-white shadow-xs'
                                   : 'text-neutral-700 hover:text-neutral-900 hover:bg-white/60'
@@ -1362,13 +1322,24 @@ export function MemberAreaApp({ skipInternalPreloader = false }: { skipInternalP
                 <div className="space-y-8">
                   {/* Video Player on Top */}
                   <div className="w-full">
-                    <VideoLessonPlayer
-                      ref={playerRef}
-                      videoUrl={currentSubtab?.videoUrl || activeLesson.videoUrl}
-                      title={currentSubtab ? `${activeLesson.title} — ${currentSubtab.label}` : activeLesson.title}
-                      studentName={studentDisplayName}
-                      onLessonEnded={() => handleLessonFinished(activeLessonId)}
-                    />
+                    {activeLessonId === 'mod1-1' ? (
+                      <PandaPlaylistPlayer
+                        lessonId={activeLessonId}
+                        studentName={studentDisplayName}
+                        onLessonEnded={() => handleLessonFinished(activeLessonId)}
+                      />
+                    ) : activeLessonId === 'mod1-analise-tecnica' ? (
+                      <AnaliseTecnicaVideo onLessonEnded={() => handleLessonFinished(activeLessonId)} />
+                    ) : (
+                      <VideoLessonPlayer
+                        ref={playerRef}
+                        videoUrl={currentSubtab?.videoUrl || activeLesson.videoUrl}
+                        lessonId={activeLessonId}
+                        title={currentSubtab ? `${activeLesson.title} — ${currentSubtab.label}` : activeLesson.title}
+                        studentName={studentDisplayName}
+                        onLessonEnded={() => handleLessonFinished(activeLessonId)}
+                      />
+                    )}
                   </div>
 
                   {/* Campo de Comentários da Aula */}
@@ -1386,6 +1357,8 @@ export function MemberAreaApp({ skipInternalPreloader = false }: { skipInternalP
                   <Suspense fallback={<ToolFallback />}>
                     {activeLessonId === 'mod1-1' ? (
                       <IntroducaoDaVinciArticle />
+                    ) : activeLessonId === 'mod1-analise-tecnica' ? (
+                      <AnaliseTecnicaArticle />
                     ) : (
                       <GenericLessonArticle
                         moduleTitle={activeModule.title}
@@ -1394,15 +1367,23 @@ export function MemberAreaApp({ skipInternalPreloader = false }: { skipInternalP
                       />
                     )}
                   </Suspense>
+                  {activeLessonId === 'mod1-4' && <NodeWorkflowGraph />}
 
                   {/* Botão de Conclusão e Avanço no final da aula */}
-                  <div className="flex justify-center pt-8 pb-4">
+                  <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-center gap-3 pt-8 pb-4">
+                    <button
+                      onClick={handlePrevLesson}
+                      className="min-h-12 px-6 rounded-full border border-neutral-300 bg-white hover:bg-neutral-100 text-neutral-800 font-semibold text-sm cursor-pointer flex items-center justify-center gap-2"
+                    >
+                      <ChevronLeft size={16} aria-hidden="true" />
+                      <span>Aula anterior</span>
+                    </button>
                     <button
                       onClick={() => handleCompleteAndNext(activeLessonId)}
-                      className="bg-[#0071e3] hover:bg-[#147ce5] text-white rounded-full px-8 py-3.5 font-bold text-sm shadow-md hover:scale-105 active:scale-95 transition-all cursor-pointer select-none flex items-center gap-2"
+                      className="min-h-12 bg-[#0071e3] hover:bg-[#0077ed] text-white rounded-full px-8 font-bold text-sm shadow-md active:scale-[0.98] transition-colors cursor-pointer select-none flex items-center justify-center gap-2"
                     >
-                      <CheckCircle2 size={16} />
-                      <span>{progress.completedLessons.includes(activeLessonId) ? 'Próxima Aula' : 'Marcar como concluída'}</span>
+                      <CheckCircle2 size={16} aria-hidden="true" />
+                      <span>{progress.completedLessons.includes(activeLessonId) ? 'Concluir de novo e avançar' : 'Concluir e avançar'}</span>
                     </button>
                   </div>
                 </div>
@@ -1417,50 +1398,63 @@ export function MemberAreaApp({ skipInternalPreloader = false }: { skipInternalP
 
       {/* SEARCH MODAL */}
       {isSearchOpen && (
-        <div className="absolute inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-start justify-center pt-[10vh] p-4">
-          <div className="bg-[#1c1c1e]/95 border border-white/10 rounded-2xl max-w-lg w-full shadow-2xl max-h-[70vh] flex flex-col overflow-hidden">
+        <div
+          className="absolute inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-start justify-center pt-[10vh] p-4"
+          onMouseDown={(e) => { if (e.target === e.currentTarget) closeSearch(); }}
+        >
+          <div
+            ref={searchDialogRef}
+            role="dialog"
+            aria-modal="true"
+            aria-label="Buscar aulas"
+            className="bg-[#1c1c1e]/95 border border-white/10 rounded-2xl max-w-lg w-full shadow-2xl max-h-[70vh] flex flex-col overflow-hidden"
+          >
             <div className="flex items-center gap-2.5 p-4 border-b border-white/10 shrink-0">
-              <Search size={16} className="text-[#86868b]" />
+              <Search size={18} className="text-[#a1a1a6]" aria-hidden="true" />
               <input 
-                type="text" 
+                type="search" 
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="flex-1 bg-transparent text-white text-xs focus:outline-none placeholder:text-[#86868b]"
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && searchResults[0]) {
+                    handleSelectSearchResult(searchResults[0].module.id, searchResults[0].lesson.id);
+                  }
+                }}
+                aria-label="Buscar por tópicos, conceitos, equipamentos"
+                className="flex-1 bg-transparent text-white text-base focus:outline-none placeholder:text-[#a1a1a6]"
                 placeholder="Busque por tópicos, conceitos, equipamentos..."
                 autoFocus
               />
               <button 
-                onClick={() => {
-                  setIsSearchOpen(false);
-                  setSearchQuery('');
-                }}
-                className="text-xs font-semibold text-[#0071e3] cursor-pointer"
+                onClick={closeSearch}
+                className="text-sm font-semibold text-[#4da3ff] cursor-pointer px-2 py-1"
               >
                 Cancelar
               </button>
             </div>
 
-            <div className="flex-1 overflow-y-auto p-2 custom-scrollbar">
+            <div className="flex-1 overflow-y-auto p-2 custom-scrollbar" aria-live="polite">
               {searchResults.length === 0 ? (
-                <div className="p-8 text-center text-xs text-[#86868b]">
+                <div className="p-8 text-center text-sm text-[#a1a1a6]">
                   {searchQuery ? `Nenhum resultado para "${searchQuery}"` : 'Digite para buscar...'}
                 </div>
               ) : (
-                <div className="space-y-1">
+                <ul className="space-y-1">
                   {searchResults.map(({ module, lesson }) => (
-                    <button
-                      key={lesson.id}
-                      onClick={() => handleSelectSearchResult(module.id, lesson.id)}
-                      className="w-full text-left p-2.5 rounded-xl hover:bg-white/5 transition-colors flex justify-between items-center text-white"
-                    >
-                      <div>
-                        <span className="text-[10px] font-bold text-[#00c7fc] uppercase">{module.title}</span>
-                        <h4 className="text-xs font-semibold">{lesson.title}</h4>
-                      </div>
-                      <ChevronRight size={13} className="text-neutral-500" />
-                    </button>
+                    <li key={lesson.id}>
+                      <button
+                        onClick={() => handleSelectSearchResult(module.id, lesson.id)}
+                        className="w-full text-left p-3 rounded-xl hover:bg-white/10 transition-colors flex justify-between items-center text-white min-h-12"
+                      >
+                        <div>
+                          <span className="text-xs font-bold text-[#00c7fc] uppercase">{module.title}</span>
+                          <h4 className="text-sm font-semibold">{lesson.title}</h4>
+                        </div>
+                        <ChevronRight size={16} className="text-neutral-300" aria-hidden="true" />
+                      </button>
+                    </li>
                   ))}
-                </div>
+                </ul>
               )}
             </div>
           </div>
@@ -1474,6 +1468,7 @@ export function MemberAreaApp({ skipInternalPreloader = false }: { skipInternalP
         userProfile={userProfile}
         userId={currentUserId || undefined}
         onProfileUpdated={(updated) => {
+          if (currentUserId) removeCache(`profile:${currentUserId}`);
           setUserProfile((prev) => ({
             ...prev,
             ...updated,
@@ -1496,9 +1491,7 @@ export function MemberAreaApp({ skipInternalPreloader = false }: { skipInternalP
 
 
       {/* ACCESSIBILITY WIDGET */}
-      {isAccessibilityOpen && (
-        <AccessibilityWidget />
-      )}
+      <AccessibilityWidget />
 
       {/* LOGIN MODAL */}
       <LoginModal 
@@ -1514,6 +1507,7 @@ export function MemberAreaApp({ skipInternalPreloader = false }: { skipInternalP
       />
 
     </div>
+    </MotionConfig>
   );
 }
 export default MemberAreaApp;

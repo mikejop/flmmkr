@@ -1,3 +1,4 @@
+import { getMediaUrl } from '@/lib/storage';
 export interface Product {
   id: string;
   slug: string;
@@ -34,7 +35,7 @@ export const PRODUCTS: Product[] = [
     ],
     iconName: 'play',
     ctaText: 'Fila de Espera',
-    imageUrl: '/assets/produtos/color-youtuber/01.jpg'
+    imageUrl: getMediaUrl('assets/produtos/color-youtuber/01.jpg')
   },
   {
     id: 'color-master-completo',
@@ -54,7 +55,7 @@ export const PRODUCTS: Product[] = [
     ],
     iconName: 'film',
     ctaText: 'Fila de Espera',
-    imageUrl: '/assets/produtos/color-master/01.jpg'
+    imageUrl: getMediaUrl('assets/produtos/color-master/01.jpg')
   },
   {
     id: 'color-master-produto',
@@ -75,7 +76,7 @@ export const PRODUCTS: Product[] = [
     ],
     iconName: 'sliders',
     ctaText: 'Garantir Acesso Agora',
-    imageUrl: '/images/products/color-master.jpg'
+    imageUrl: getMediaUrl('assets/produtos/color-master/01.jpg')
   },
   {
     id: 'direcao-de-fotografia',
@@ -95,7 +96,7 @@ export const PRODUCTS: Product[] = [
     ],
     iconName: 'camera',
     ctaText: 'Fila de Espera',
-    imageUrl: '/assets/produtos/direcao-fotografia/01.jpg'
+    imageUrl: getMediaUrl('assets/produtos/direcao-fotografia/01.jpg')
   },
   {
     id: 'producao-de-video-para-empreendedores',
@@ -115,7 +116,7 @@ export const PRODUCTS: Product[] = [
     ],
     iconName: 'smartphone',
     ctaText: 'Fila de Espera',
-    imageUrl: '/images/products/empreendedores.jpg'
+    imageUrl: getMediaUrl('assets/produtos/empreendedores/01.jpg')
   },
   {
     id: 'videomaker-premium',

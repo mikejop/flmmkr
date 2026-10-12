@@ -59,9 +59,15 @@ export default function NotificationsDropdown({
 
   useEffect(() => {
     loadNotifications();
-    // Polling sutil a cada 45 segundos para checar novas menções e conteúdos
-    const interval = setInterval(loadNotifications, 45000);
-    return () => clearInterval(interval);
+    // Polling a cada 3 min, só com a aba visível (economiza banco e invocações do servidor);
+    // ao voltar para a aba, atualiza na hora.
+    const tick = () => { if (document.visibilityState === 'visible') loadNotifications(); };
+    const interval = setInterval(tick, 180000);
+    document.addEventListener('visibilitychange', tick);
+    return () => {
+      clearInterval(interval);
+      document.removeEventListener('visibilitychange', tick);
+    };
   }, [loadNotifications]);
 
   // Fechar dropdown ao clicar fora

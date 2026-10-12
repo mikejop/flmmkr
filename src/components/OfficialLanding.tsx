@@ -1,5 +1,7 @@
 'use client';
 
+import { getMediaUrl } from '@/lib/storage';
+
 import React, { useEffect, useState } from 'react';
 import { PRODUCTS, Product } from '@/config/products';
 import { SITE_CONFIG } from '@/config/siteConfig';
@@ -32,15 +34,15 @@ interface OfficialLandingProps {
 }
 
 const PRODUTORAS_LOGOS = [
-  { name: 'Astronautas Filmes', src: '/assets/empresas/astronautas-filmes.jpg' },
-  { name: 'At Work', src: '/assets/empresas/at-work.jpg' },
-  { name: 'Embratur', src: '/assets/empresas/embratur.png' },
-  { name: 'Malala Filmes', src: '/assets/empresas/malala-filmes.jpg' },
-  { name: 'Mandrill', src: '/assets/empresas/mandrill.png' },
-  { name: 'Maria Quitéria', src: '/assets/empresas/maria-quiteria.jpg' },
-  { name: 'Mariposa Filmes', src: '/assets/empresas/mariposa-filmes.jpg' },
-  { name: 'Pantanal Filmes', src: '/assets/empresas/pantanal-filmes.jpg' },
-  { name: 'Plano B', src: '/assets/empresas/plano-b.jpg' },
+  { name: 'Astronautas Filmes', src: getMediaUrl('assets/empresas/astronautas-filmes.jpg') },
+  { name: 'At Work', src: getMediaUrl('assets/empresas/at-work.jpg') },
+  { name: 'Embratur', src: getMediaUrl('assets/empresas/embratur.png') },
+  { name: 'Malala Filmes', src: getMediaUrl('assets/empresas/malala-filmes.jpg') },
+  { name: 'Mandrill', src: getMediaUrl('assets/empresas/mandrill.png') },
+  { name: 'Maria Quitéria', src: getMediaUrl('assets/empresas/maria-quiteria.jpg') },
+  { name: 'Mariposa Filmes', src: getMediaUrl('assets/empresas/mariposa-filmes.jpg') },
+  { name: 'Pantanal Filmes', src: getMediaUrl('assets/empresas/pantanal-filmes.jpg') },
+  { name: 'Plano B', src: getMediaUrl('assets/empresas/plano-b.jpg') },
 ];
 
 export const OfficialLanding: React.FC<OfficialLandingProps> = ({
@@ -48,8 +50,8 @@ export const OfficialLanding: React.FC<OfficialLandingProps> = ({
   onSwitchToSocial
 }) => {
   const [authorPhotos, setAuthorPhotos] = useState<AuthorPhotoPair>({
-    profileSrc: '/assets/mike-photos/01.jpg',
-    bgSrc: '/assets/bg/about-mike/02.jpg'
+    profileSrc: getMediaUrl('assets/mike-photos/01.jpg'),
+    bgSrc: getMediaUrl('assets/bg/about-mike/02.jpg')
   });
   const [logos, setLogos] = useState<{ name: string; src: string }[]>(PRODUTORAS_LOGOS);
   const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(null);
@@ -68,6 +70,11 @@ export const OfficialLanding: React.FC<OfficialLandingProps> = ({
         }
       })
       .catch(() => {});
+
+    // Abre o modal de login automaticamente se solicitado via URL
+    if (typeof window !== 'undefined' && window.location.search.includes('login=true')) {
+      setLoginModalOpen(true);
+    }
   }, []);
 
   const toggleFaq = (index: number) => {

@@ -4,6 +4,9 @@ import React, { useEffect, useState } from 'react';
 import dynamic from 'next/dynamic';
 import { supabase } from '@/lib/supabase';
 import { MemberPreloader } from '@/components/MemberPreloader';
+import { readCache, writeCache, removeCache } from '@/lib/clientCache';
+
+const ACCESS_FRESH_MS = 6 * 60 * 60 * 1000;
 
 const MemberAreaApp = dynamic(
   () => import('@/components/MemberAreaApp'),
@@ -29,18 +32,27 @@ export default function ColorMasterProdutoPage() {
           return;
         }
 
-        // 1. Verificação Estrita de Pagamento (Servidor + Asaas)
-        setStatusMessage('Validando status de pagamento no Asaas...');
-        const checkRes = await fetch('/api/auth/verify-access');
-        const checkData = await checkRes.json().catch(() => ({}));
+        // 1. Verificação de Pagamento (Servidor + Asaas).
+        // Aprovação fica 6 h neste aparelho: abrir a área de novo não repete a consulta ao
+        // banco/Asaas. Arquivos e vídeos continuam sendo validados no servidor a cada pedido, e um
+        // estorno derruba a sessão (webhook) — a checagem acima só poupa a abertura da tela.
+        const accessKey = `access-ok:${user.id}`;
+        const approved = readCache<boolean>(accessKey);
+        if (!(approved && approved.value === true && approved.ageMs < ACCESS_FRESH_MS)) {
+          setStatusMessage('Validando status de pagamento...');
+          const checkRes = await fetch('/api/auth/verify-access');
+          const checkData = await checkRes.json().catch(() => ({}));
 
-        if (!checkRes.ok || !checkData.allowed) {
-          console.warn('[Acesso Bloqueado] Pagamento não confirmado:', checkData);
-          await supabase.auth.signOut();
-          if (isMounted) {
-            window.location.replace('/');
+          if (!checkRes.ok || !checkData.allowed) {
+            console.warn('[Acesso Bloqueado] Pagamento não confirmado:', checkData);
+            removeCache(accessKey);
+            await supabase.auth.signOut();
+            if (isMounted) {
+              window.location.replace('/');
+            }
+            return;
           }
-          return;
+          writeCache(accessKey, true);
         }
 
         setStatusMessage('Carregando conteúdo da Área de Membros...');
@@ -82,8 +94,8 @@ export default function ColorMasterProdutoPage() {
 
   return (
     <div className="relative w-screen h-screen bg-[#0a0a0c] overflow-hidden select-none">
-      {/* Monta a aplicação por baixo */}
-      <MemberAreaApp skipInternalPreloader={true} />
+      {/* Carrega a área e o bundle das aulas somente após a validação do servidor. */}
+      {isReady && <MemberAreaApp skipInternalPreloader={true} />}
 
       {/* 
         REGRA DO USUÁRIO: O preloader só sai da tela DEPOIS de tudo estar carregado,

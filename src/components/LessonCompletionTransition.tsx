@@ -154,7 +154,7 @@ export default function LessonCompletionTransition({
   }, [secondsLeft, nextLesson, onProceed]);
 
   return (
-    <div className="absolute inset-0 bg-white/95 backdrop-blur-md z-40 flex flex-col items-center justify-center p-6 select-none overflow-hidden animate-fadeIn">
+    <div role="dialog" aria-modal="true" aria-label="Aula concluída" aria-live="polite" className="absolute inset-0 bg-white/95 backdrop-blur-md z-40 flex flex-col items-center justify-center p-6 select-none overflow-hidden animate-fadeIn motion-reduce:animate-none">
       {/* CANVAS DE CONFETES COLORIDOS CAINDO */}
       <canvas
         ref={canvasRef}
@@ -193,7 +193,7 @@ export default function LessonCompletionTransition({
               <span className="font-bold uppercase tracking-wider text-[#0071e3]">
                 Próxima Aula ({secondsLeft}s)
               </span>
-              <span className="text-[11px] font-mono text-neutral-500">
+              <span className="text-xs font-mono text-neutral-600">
                 {nextLesson.moduleTitle}
               </span>
             </div>
@@ -228,7 +228,7 @@ export default function LessonCompletionTransition({
             <button
               type="button"
               onClick={onProceed}
-              className="w-full sm:w-auto flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl bg-[#0071e3] hover:bg-[#0077ed] text-white font-bold text-sm shadow-lg shadow-blue-500/25 transition-all cursor-pointer hover:scale-105 active:scale-95"
+              className="w-full sm:w-auto flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl bg-[#0071e3] hover:bg-[#0077ed] text-white font-bold text-sm shadow-lg shadow-blue-500/25 transition-all cursor-pointer active:scale-[0.98]"
             >
               <span>Ir para a próxima aula agora</span>
               <ArrowRight size={16} />

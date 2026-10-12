@@ -1,3 +1,5 @@
+import { getMediaUrl } from '@/lib/storage';
+
 export const SITE_CONFIG = {
   name: 'FLMMKR',
   author: {
@@ -17,7 +19,7 @@ Seu objetivo é formar profissionais mais preparados, seguros e capazes de entre
       'Hoje, além de atuar no mercado, Michael dedica parte do seu trabalho ao ensino. Nos seus treinamentos, transforma a experiência adquirida em projetos reais em conhecimento aplicável, ensinando técnica, fundamentos e, principalmente, como tomar decisões diante dos desafios que aparecem em uma produção.',
       'Seu objetivo é formar profissionais mais preparados, seguros e capazes de entregar trabalhos melhores no mercado.'
     ],
-    avatarUrl: '/images/michael-oliveira.jpg',
+    avatarUrl: getMediaUrl('michael-oliveira.webp'),
     initials: 'MO'
   },
   seo: {
@@ -26,7 +28,7 @@ Seu objetivo é formar profissionais mais preparados, seguros e capazes de entre
     url: 'https://flmmkr.site',
     siteName: 'FLMMKR',
     locale: 'pt_BR',
-    ogImage: '/images/og-image.jpg'
+    ogImage: getMediaUrl('assets/produtos/color-grade-produto/opengraph.jpg')
   },
   social: [
     {

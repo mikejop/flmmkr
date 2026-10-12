@@ -119,23 +119,10 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, redirec
           return;
         }
 
-        if (data.session) {
-          // 1. Sincronizar sessão no cliente Supabase
-          if (data.session.access_token && data.session.refresh_token) {
-            await supabase.auth.setSession({
-              access_token: data.session.access_token,
-              refresh_token: data.session.refresh_token,
-            });
-          }
-
-          // 2. Salvar token de sessão para verificação de concorrência de dispositivo único
-          if (data.sessionToken) {
-            localStorage.setItem('flmmkr_session_token', data.sessionToken);
-          }
-
-          // 3. Redirecionar para a área do aluno
-          window.location.href = redirectUrl;
-        }
+        // A sessão veio em cookies SSR; apenas a chave de controle de sessão
+        // (não é token de autenticação) segue para o armazenamento local.
+        if (data.sessionToken) localStorage.setItem('flmmkr_session_token', data.sessionToken);
+        window.location.href = redirectUrl;
       }
     } catch (err: any) {
       setErrorMessage(err?.message || 'Ocorreu um erro inesperado ao conectar.');
