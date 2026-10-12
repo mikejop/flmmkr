@@ -6,6 +6,8 @@ import { SITE_CONFIG } from '@/config/siteConfig';
 import { PRODUCTS } from '@/config/products';
 import { GENERAL_FAQ } from '@/config/faq';
 import { TrafficTelemetryTracker } from '@/components/TrafficTelemetryTracker';
+import { Analytics } from '@vercel/analytics/next';
+import { CacheProxyRegister } from '@/components/CacheProxyRegister';
 
 export const viewport: Viewport = {
   themeColor: '#ffffff',
@@ -232,6 +234,8 @@ export default function RootLayout({
           <TrafficTelemetryTracker />
         </Suspense>
         {children}
+        <CacheProxyRegister />
+        <Analytics />
       </body>
     </html>
   );

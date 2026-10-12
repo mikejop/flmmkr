@@ -1,5 +1,6 @@
 import { supabase } from './supabase';
 import { ModuleId } from '../types';
+import { readCache, writeCache } from './clientCache';
 
 export interface UserReadingState {
   lastModuleId: ModuleId;
@@ -10,8 +11,10 @@ export interface UserReadingState {
   updatedAt?: string;
 }
 
-const STORAGE_KEY = 'flmmkr_last_reading_state';
-const LEGACY_STORAGE_KEY = 'youtuber_pro_last_reading_state';
+const STORAGE_KEY = 'color_master_last_reading_state';
+const COURSE_ID = 'color-master-produto';
+// Consulta a nuvem no máximo 1x por hora por aparelho (login novo sempre limpa isso).
+const REMOTE_SYNC_FRESH_MS = 60 * 60 * 1000;
 
 /**
  * Lê o estado armazenado localmente de forma síncrona
@@ -19,7 +22,7 @@ const LEGACY_STORAGE_KEY = 'youtuber_pro_last_reading_state';
 export function getLocalReadingState(): UserReadingState | null {
   if (typeof window === 'undefined') return null;
   try {
-    const raw = localStorage.getItem(STORAGE_KEY) || localStorage.getItem(LEGACY_STORAGE_KEY);
+    const raw = localStorage.getItem(STORAGE_KEY);
     if (raw) {
       return JSON.parse(raw);
     }
@@ -47,9 +50,15 @@ export async function fetchReadingState(explicitUserId?: string): Promise<UserRe
       return localState;
     }
 
+    // Já buscou há pouco? Confia no estado local (quem navega grava nele a cada passo).
+    const lastSync = readCache<number>(`reading-state-sync:${userId}`);
+    if (localState && lastSync && lastSync.ageMs < REMOTE_SYNC_FRESH_MS) {
+      return localState;
+    }
+
     // 1. Tentar buscar via endpoint robusto
     try {
-      const res = await fetch(`/api/user/reading-state?userId=${encodeURIComponent(userId)}`);
+      const res = await fetch('/api/user/reading-state');
       if (res.ok) {
         const body = await res.json();
         if (body?.state) {
@@ -66,6 +75,7 @@ export async function fetchReadingState(explicitUserId?: string): Promise<UserRe
           try {
             localStorage.setItem(STORAGE_KEY, JSON.stringify(remoteState));
           } catch (_) {}
+          writeCache(`reading-state-sync:${userId}`, Date.now());
 
           return remoteState;
         }
@@ -77,6 +87,7 @@ export async function fetchReadingState(explicitUserId?: string): Promise<UserRe
       .from('user_reading_state')
       .select('*')
       .eq('user_id', userId)
+      .eq('course_id', COURSE_ID)
       .maybeSingle();
 
     if (!error && data) {
@@ -120,30 +131,71 @@ export async function saveReadingState(state: UserReadingState, explicitUserId?:
     }
   }
 
-  // 2. Persiste remotamente na nuvem se autenticado
+  // 2. Persiste remotamente na nuvem (agrupado): navegar rápido gera 1 gravação, não várias.
   try {
     let userId = explicitUserId;
     if (!userId) {
       const { data: { session } } = await supabase.auth.getSession();
       userId = session?.user?.id;
     }
-
-    if (userId) {
-      // API call (usando supabaseAdmin internamente, contornando qualquer problema de token)
-      fetch('/api/user/reading-state', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          userId,
-          lastModuleId: stateToSave.lastModuleId,
-          lastLessonId: stateToSave.lastLessonId,
-          lastSubtabId: stateToSave.lastSubtabId || null,
-          lastTab: stateToSave.lastTab || 'teoria',
-          scrollTop: stateToSave.scrollTop || 0
-        })
-      }).catch((err) => console.warn('Erro fetch reading-state:', err));
-    }
+    if (userId) scheduleRemoteSave(stateToSave);
   } catch (e) {
     console.warn('Exceção ao salvar reading state:', e);
   }
+}
+
+const REMOTE_SAVE_DEBOUNCE_MS = 5000;
+let pendingRemoteState: UserReadingState | null = null;
+let lastSentSignature = '';
+let remoteSaveTimer: ReturnType<typeof setTimeout> | null = null;
+
+function signatureOf(state: UserReadingState): string {
+  return [state.lastModuleId, state.lastLessonId, state.lastSubtabId || '', state.lastTab || 'teoria'].join('|');
+}
+
+function scheduleRemoteSave(state: UserReadingState): void {
+  pendingRemoteState = state;
+  if (remoteSaveTimer) clearTimeout(remoteSaveTimer);
+  remoteSaveTimer = setTimeout(flushRemoteSave, REMOTE_SAVE_DEBOUNCE_MS);
+  if (typeof window !== 'undefined' && !flushHooksInstalled) {
+    flushHooksInstalled = true;
+    window.addEventListener('pagehide', flushRemoteSave);
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'hidden') flushRemoteSave();
+    });
+  }
+}
+
+let flushHooksInstalled = false;
+
+function flushRemoteSave(): void {
+  if (remoteSaveTimer) {
+    clearTimeout(remoteSaveTimer);
+    remoteSaveTimer = null;
+  }
+  const state = pendingRemoteState;
+  pendingRemoteState = null;
+  if (!state) return;
+  const signature = signatureOf(state);
+  if (signature === lastSentSignature) return; // nada mudou desde o último envio
+
+  lastSentSignature = signature;
+  fetch('/api/user/reading-state', {
+    method: 'POST',
+    keepalive: true,
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      courseId: COURSE_ID,
+      lastModuleId: state.lastModuleId,
+      lastLessonId: state.lastLessonId,
+      lastSubtabId: state.lastSubtabId || null,
+      lastTab: state.lastTab || 'teoria',
+      scrollTop: state.scrollTop || 0
+    })
+  }).then((res) => {
+    if (!res.ok) lastSentSignature = '';
+  }).catch((err) => {
+    lastSentSignature = '';
+    console.warn('Erro fetch reading-state:', err);
+  });
 }
