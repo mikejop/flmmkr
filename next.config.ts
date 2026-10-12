@@ -1,6 +1,29 @@
 import type { NextConfig } from 'next';
 
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://gnqqaskurjkrllnhjygt.supabase.co';
+const supabaseHostname = new URL(supabaseUrl).hostname;
+
+// Versão do sistema: muda a cada deploy e invalida os caches de 7 dias no navegador do aluno.
+const appVersion =
+  process.env.VERCEL_GIT_COMMIT_SHA?.slice(0, 12) ||
+  process.env.NEXT_PUBLIC_APP_VERSION ||
+  'local';
+
+const SEVEN_DAYS = 60 * 60 * 24 * 7;
+
 const nextConfig: NextConfig = {
+  env: {
+    NEXT_PUBLIC_APP_VERSION: appVersion,
+  },
+  images: {
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: supabaseHostname,
+        pathname: '/storage/v1/object/public/**',
+      },
+    ],
+  },
   async redirects() {
     return [
       {
@@ -62,12 +85,19 @@ const nextConfig: NextConfig = {
         ],
       },
       {
-        source: '/assets/:path*',
+        // O proxy de cache nunca pode ficar preso: o navegador revalida o sw.js a cada visita.
+        source: '/sw.js',
         headers: [
-          {
-            key: 'Cache-Control',
-            value: 'public, max-age=31536000, immutable',
-          },
+          { key: 'Content-Type', value: 'application/javascript; charset=utf-8' },
+          { key: 'Cache-Control', value: 'no-cache, no-store, must-revalidate' },
+          { key: 'Service-Worker-Allowed', value: '/' },
+        ],
+      },
+      {
+        // Fontes e imagens estáticas ficam 7 dias no navegador; depois revalidam sem bloquear.
+        source: '/:dir(fonts|images)/:path*',
+        headers: [
+          { key: 'Cache-Control', value: `public, max-age=${SEVEN_DAYS}, stale-while-revalidate=86400` },
         ],
       },
     ];

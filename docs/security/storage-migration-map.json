@@ -1,0 +1,1156 @@
+{
+  "generatedAt": "2026-10-12T20:36:35.923Z",
+  "copiedBytes": 23695298,
+  "objects": [
+    {
+      "sourceBucket": "media",
+      "sourcePath": "1 ponto de luz.webp",
+      "destinationBucket": "members-private",
+      "destinationPath": "migrated/e941160a-5f8f-46fd-862a-cbb2afaefec7.webp",
+      "classification": "members-private-review",
+      "size": 161200,
+      "mimeType": "image/webp",
+      "verified": true
+    },
+    {
+      "sourceBucket": "media",
+      "sourcePath": "1 ponto.webp",
+      "destinationBucket": "members-private",
+      "destinationPath": "migrated/f37278dd-5722-44f1-9f58-2fe456190180.webp",
+      "classification": "members-private-review",
+      "size": 553058,
+      "mimeType": "image/webp",
+      "verified": true
+    },
+    {
+      "sourceBucket": "media",
+      "sourcePath": "assets/artigos/introducao-davinci/BLUR E SHARPEN.webp",
+      "destinationBucket": "site-public",
+      "destinationPath": "migrated/914ed631-07bc-4125-b232-2c82ce71dbb5.webp",
+      "classification": "site-public",
+      "size": 16602,
+      "mimeType": "image/webp",
+      "verified": true
+    },
+    {
+      "sourceBucket": "media",
+      "sourcePath": "assets/artigos/introducao-davinci/COLOR MATCH.webp",
+      "destinationBucket": "site-public",
+      "destinationPath": "migrated/e593ca0f-3dc0-4c3f-be55-d1f115b7bb2a.webp",
+      "classification": "site-public",
+      "size": 18682,
+      "mimeType": "image/webp",
+      "verified": true
+    },
+    {
+      "sourceBucket": "media",
+      "sourcePath": "assets/artigos/introducao-davinci/COLOR WHEELS.webp",
+      "destinationBucket": "site-public",
+      "destinationPath": "migrated/68dfb534-6a60-41c2-8e76-f044534ebd0f.webp",
+      "classification": "site-public",
+      "size": 26422,
+      "mimeType": "image/webp",
+      "verified": true
+    },
+    {
+      "sourceBucket": "media",
+      "sourcePath": "assets/artigos/introducao-davinci/color-page.webp",
+      "destinationBucket": "site-public",
+      "destinationPath": "migrated/a0235811-9cbb-49f5-88e8-e26baf8dfe87.webp",
+      "classification": "site-public",
+      "size": 261458,
+      "mimeType": "image/webp",
+      "verified": true
+    },
+    {
+      "sourceBucket": "media",
+      "sourcePath": "assets/artigos/introducao-davinci/CURVES.webp",
+      "destinationBucket": "site-public",
+      "destinationPath": "migrated/357ed204-100e-4c25-9e56-90cb069f8679.webp",
+      "classification": "site-public",
+      "size": 21252,
+      "mimeType": "image/webp",
+      "verified": true
+    },
+    {
+      "sourceBucket": "media",
+      "sourcePath": "assets/artigos/introducao-davinci/davinci-resolve.webp",
+      "destinationBucket": "site-public",
+      "destinationPath": "migrated/1500315d-9c8a-437d-b919-3c85ffacc77f.webp",
+      "classification": "site-public",
+      "size": 98148,
+      "mimeType": "image/webp",
+      "verified": true
+    },
+    {
+      "sourceBucket": "media",
+      "sourcePath": "assets/artigos/introducao-davinci/GALLERY.webp",
+      "destinationBucket": "site-public",
+      "destinationPath": "migrated/a2f2c220-dc54-45bf-9afe-8fbce9b87375.webp",
+      "classification": "site-public",
+      "size": 9854,
+      "mimeType": "image/webp",
+      "verified": true
+    },
+    {
+      "sourceBucket": "media",
+      "sourcePath": "assets/artigos/introducao-davinci/HDR.webp",
+      "destinationBucket": "site-public",
+      "destinationPath": "migrated/9d050e02-bbf3-42da-a63e-64da20412c54.webp",
+      "classification": "site-public",
+      "size": 42144,
+      "mimeType": "image/webp",
+      "verified": true
+    },
+    {
+      "sourceBucket": "media",
+      "sourcePath": "assets/artigos/introducao-davinci/KEY.webp",
+      "destinationBucket": "site-public",
+      "destinationPath": "migrated/32c9a60c-3dbf-4fbd-819b-96197ee834fc.webp",
+      "classification": "site-public",
+      "size": 42934,
+      "mimeType": "image/webp",
+      "verified": true
+    },
+    {
+      "sourceBucket": "media",
+      "sourcePath": "assets/artigos/introducao-davinci/LOG WHEELS.webp",
+      "destinationBucket": "site-public",
+      "destinationPath": "migrated/0d3e7d0e-cb25-45f5-a9de-6c035e50c4d3.webp",
+      "classification": "site-public",
+      "size": 39174,
+      "mimeType": "image/webp",
+      "verified": true
+    },
+    {
+      "sourceBucket": "media",
+      "sourcePath": "assets/artigos/introducao-davinci/MAGIC MASK.webp",
+      "destinationBucket": "site-public",
+      "destinationPath": "migrated/6b5d80b4-cde3-457c-ad3a-3ecc2ac8ecaf.webp",
+      "classification": "site-public",
+      "size": 21994,
+      "mimeType": "image/webp",
+      "verified": true
+    },
+    {
+      "sourceBucket": "media",
+      "sourcePath": "assets/artigos/introducao-davinci/NODES.webp",
+      "destinationBucket": "site-public",
+      "destinationPath": "migrated/02e04944-9c71-42a6-a9a2-ebc40e6755ca.webp",
+      "classification": "site-public",
+      "size": 22570,
+      "mimeType": "image/webp",
+      "verified": true
+    },
+    {
+      "sourceBucket": "media",
+      "sourcePath": "assets/artigos/introducao-davinci/nodes/combiner.png",
+      "destinationBucket": "site-public",
+      "destinationPath": "migrated/8ac2be2c-f849-4790-8bc1-2fc00f3eacab.png",
+      "classification": "site-public",
+      "size": 110978,
+      "mimeType": "image/png",
+      "verified": true
+    },
+    {
+      "sourceBucket": "media",
+      "sourcePath": "assets/artigos/introducao-davinci/nodes/key mixer.png",
+      "destinationBucket": "site-public",
+      "destinationPath": "migrated/e8e884e0-8c34-4e71-957c-26b421a9f129.png",
+      "classification": "site-public",
+      "size": 79807,
+      "mimeType": "image/png",
+      "verified": true
+    },
+    {
+      "sourceBucket": "media",
+      "sourcePath": "assets/artigos/introducao-davinci/nodes/layer.png",
+      "destinationBucket": "site-public",
+      "destinationPath": "migrated/ba2ef7f1-eabf-437c-8e96-c1e4afbb0eb1.png",
+      "classification": "site-public",
+      "size": 51842,
+      "mimeType": "image/png",
+      "verified": true
+    },
+    {
+      "sourceBucket": "media",
+      "sourcePath": "assets/artigos/introducao-davinci/nodes/outside.png",
+      "destinationBucket": "site-public",
+      "destinationPath": "migrated/f2f248d6-dead-4efb-a144-3c64ce42b32e.png",
+      "classification": "site-public",
+      "size": 30584,
+      "mimeType": "image/png",
+      "verified": true
+    },
+    {
+      "sourceBucket": "media",
+      "sourcePath": "assets/artigos/introducao-davinci/nodes/paralelo.png",
+      "destinationBucket": "site-public",
+      "destinationPath": "migrated/3df6ac81-e3ef-4173-ad0d-476d0c7eb53c.png",
+      "classification": "site-public",
+      "size": 46324,
+      "mimeType": "image/png",
+      "verified": true
+    },
+    {
+      "sourceBucket": "media",
+      "sourcePath": "assets/artigos/introducao-davinci/nodes/serial.png",
+      "destinationBucket": "site-public",
+      "destinationPath": "migrated/86847909-ca19-469a-9f42-f125f0775b89.png",
+      "classification": "site-public",
+      "size": 33448,
+      "mimeType": "image/png",
+      "verified": true
+    },
+    {
+      "sourceBucket": "media",
+      "sourcePath": "assets/artigos/introducao-davinci/nodes/spliter.png",
+      "destinationBucket": "site-public",
+      "destinationPath": "migrated/42ffd44f-238e-4d5a-9e6e-3da1dc92581f.png",
+      "classification": "site-public",
+      "size": 170755,
+      "mimeType": "image/png",
+      "verified": true
+    },
+    {
+      "sourceBucket": "media",
+      "sourcePath": "assets/artigos/introducao-davinci/POWER WINDOWS.webp",
+      "destinationBucket": "site-public",
+      "destinationPath": "migrated/ebcaed3e-9fd4-45da-8b6a-03f3bb6ffeae.webp",
+      "classification": "site-public",
+      "size": 14886,
+      "mimeType": "image/webp",
+      "verified": true
+    },
+    {
+      "sourceBucket": "media",
+      "sourcePath": "assets/artigos/introducao-davinci/PRIMARIES.webp",
+      "destinationBucket": "site-public",
+      "destinationPath": "migrated/d9b9d9fc-3089-43f7-a5b4-6cd722adcb37.webp",
+      "classification": "site-public",
+      "size": 39714,
+      "mimeType": "image/webp",
+      "verified": true
+    },
+    {
+      "sourceBucket": "media",
+      "sourcePath": "assets/artigos/introducao-davinci/QUALIFIER.webp",
+      "destinationBucket": "site-public",
+      "destinationPath": "migrated/bb357b16-e8f8-4989-962c-4189716a11d4.webp",
+      "classification": "site-public",
+      "size": 30190,
+      "mimeType": "image/webp",
+      "verified": true
+    },
+    {
+      "sourceBucket": "media",
+      "sourcePath": "assets/artigos/introducao-davinci/RGB MIXER.webp",
+      "destinationBucket": "site-public",
+      "destinationPath": "migrated/55b6bb85-4c98-4e1f-bdd6-de18388e749d.webp",
+      "classification": "site-public",
+      "size": 18910,
+      "mimeType": "image/webp",
+      "verified": true
+    },
+    {
+      "sourceBucket": "media",
+      "sourcePath": "assets/artigos/introducao-davinci/SCOPES.webp",
+      "destinationBucket": "site-public",
+      "destinationPath": "migrated/93c75308-c06c-43d0-b8d7-af0cbb040f69.webp",
+      "classification": "site-public",
+      "size": 127362,
+      "mimeType": "image/webp",
+      "verified": true
+    },
+    {
+      "sourceBucket": "media",
+      "sourcePath": "assets/artigos/introducao-davinci/SIZING.webp",
+      "destinationBucket": "site-public",
+      "destinationPath": "migrated/de5f5347-a673-47c8-b72e-f42360a80d6f.webp",
+      "classification": "site-public",
+      "size": 16292,
+      "mimeType": "image/webp",
+      "verified": true
+    },
+    {
+      "sourceBucket": "media",
+      "sourcePath": "assets/artigos/introducao-davinci/SPLIT SCREEN.webp",
+      "destinationBucket": "site-public",
+      "destinationPath": "migrated/b25c50c9-4c82-4c64-b430-47dfece554a4.webp",
+      "classification": "site-public",
+      "size": 44748,
+      "mimeType": "image/webp",
+      "verified": true
+    },
+    {
+      "sourceBucket": "media",
+      "sourcePath": "assets/artigos/introducao-davinci/TRACKER.webp",
+      "destinationBucket": "site-public",
+      "destinationPath": "migrated/b279a326-6c59-45fc-9baf-83b4c3c72fe3.webp",
+      "classification": "site-public",
+      "size": 16268,
+      "mimeType": "image/webp",
+      "verified": true
+    },
+    {
+      "sourceBucket": "media",
+      "sourcePath": "assets/bg/about-mike/01.jpg",
+      "destinationBucket": "members-private",
+      "destinationPath": "migrated/d66336bd-519d-4e1e-a23c-365d767d9f38.jpg",
+      "classification": "members-private-review",
+      "size": 140510,
+      "mimeType": "image/jpeg",
+      "verified": true
+    },
+    {
+      "sourceBucket": "media",
+      "sourcePath": "assets/bg/about-mike/01.webp",
+      "destinationBucket": "site-public",
+      "destinationPath": "migrated/e9c4ea51-03b9-4b46-ba6c-726ee79d6eb5.webp",
+      "classification": "site-public",
+      "size": 72684,
+      "mimeType": "image/webp",
+      "verified": true
+    },
+    {
+      "sourceBucket": "media",
+      "sourcePath": "assets/bg/about-mike/02.jpg",
+      "destinationBucket": "site-public",
+      "destinationPath": "migrated/773dd718-fbec-403d-9e45-4d2dd57d7b4f.jpg",
+      "classification": "site-public",
+      "size": 186406,
+      "mimeType": "image/jpeg",
+      "verified": true
+    },
+    {
+      "sourceBucket": "media",
+      "sourcePath": "assets/bg/about-mike/02.webp",
+      "destinationBucket": "site-public",
+      "destinationPath": "migrated/c3d6aa2f-4975-43ad-9f6c-384c4894641b.webp",
+      "classification": "site-public",
+      "size": 107170,
+      "mimeType": "image/webp",
+      "verified": true
+    },
+    {
+      "sourceBucket": "media",
+      "sourcePath": "assets/bg/about-mike/03.jpg",
+      "destinationBucket": "members-private",
+      "destinationPath": "migrated/78f3b0bd-e4ca-415d-b61c-e1e8108ecfc8.jpg",
+      "classification": "members-private-review",
+      "size": 123286,
+      "mimeType": "image/jpeg",
+      "verified": true
+    },
+    {
+      "sourceBucket": "media",
+      "sourcePath": "assets/bg/about-mike/03.webp",
+      "destinationBucket": "site-public",
+      "destinationPath": "migrated/7bb1fa9d-f66d-4378-91a3-30a90a8444be.webp",
+      "classification": "site-public",
+      "size": 56114,
+      "mimeType": "image/webp",
+      "verified": true
+    },
+    {
+      "sourceBucket": "media",
+      "sourcePath": "assets/bg/about-mike/04.jpg",
+      "destinationBucket": "members-private",
+      "destinationPath": "migrated/cd5db64c-566a-476d-a52d-e4f400bdfde6.jpg",
+      "classification": "members-private-review",
+      "size": 111969,
+      "mimeType": "image/jpeg",
+      "verified": true
+    },
+    {
+      "sourceBucket": "media",
+      "sourcePath": "assets/bg/about-mike/04.webp",
+      "destinationBucket": "site-public",
+      "destinationPath": "migrated/c0083e8d-82a9-4d06-ae3c-7e49f9b175ad.webp",
+      "classification": "site-public",
+      "size": 95994,
+      "mimeType": "image/webp",
+      "verified": true
+    },
+    {
+      "sourceBucket": "media",
+      "sourcePath": "assets/bg/about-mike/orig/02.jpg",
+      "destinationBucket": "members-private",
+      "destinationPath": "migrated/adfa025d-5f0a-41d0-a45f-ebfddaa9edd7.jpg",
+      "classification": "members-private-review",
+      "size": 186406,
+      "mimeType": "image/jpeg",
+      "verified": true
+    },
+    {
+      "sourceBucket": "media",
+      "sourcePath": "assets/empresas/astronautas-filmes.jpg",
+      "destinationBucket": "site-public",
+      "destinationPath": "migrated/b3d1496c-0bfa-40bd-a64a-8b93ee8a0f03.jpg",
+      "classification": "site-public",
+      "size": 26532,
+      "mimeType": "image/jpeg",
+      "verified": true
+    },
+    {
+      "sourceBucket": "media",
+      "sourcePath": "assets/empresas/at-work.jpg",
+      "destinationBucket": "site-public",
+      "destinationPath": "migrated/c997b85a-bd91-49e6-ae98-c9330fd263b3.jpg",
+      "classification": "site-public",
+      "size": 14932,
+      "mimeType": "image/jpeg",
+      "verified": true
+    },
+    {
+      "sourceBucket": "media",
+      "sourcePath": "assets/empresas/embratur.png",
+      "destinationBucket": "site-public",
+      "destinationPath": "migrated/ed295833-d2b4-4691-a481-dabd6b177328.png",
+      "classification": "site-public",
+      "size": 25081,
+      "mimeType": "image/png",
+      "verified": true
+    },
+    {
+      "sourceBucket": "media",
+      "sourcePath": "assets/empresas/malala-filmes.jpg",
+      "destinationBucket": "site-public",
+      "destinationPath": "migrated/44f3b94d-446c-4d77-89da-22279a9544d4.jpg",
+      "classification": "site-public",
+      "size": 24397,
+      "mimeType": "image/jpeg",
+      "verified": true
+    },
+    {
+      "sourceBucket": "media",
+      "sourcePath": "assets/empresas/mandrill.png",
+      "destinationBucket": "site-public",
+      "destinationPath": "migrated/c00b1e77-aafa-4418-b644-6f93281522f4.png",
+      "classification": "site-public",
+      "size": 46307,
+      "mimeType": "image/png",
+      "verified": true
+    },
+    {
+      "sourceBucket": "media",
+      "sourcePath": "assets/empresas/maria-quiteria.jpg",
+      "destinationBucket": "site-public",
+      "destinationPath": "migrated/fa4bcfea-a55c-4298-98c2-df456fedd352.jpg",
+      "classification": "site-public",
+      "size": 27616,
+      "mimeType": "image/jpeg",
+      "verified": true
+    },
+    {
+      "sourceBucket": "media",
+      "sourcePath": "assets/empresas/mariposa-filmes.jpg",
+      "destinationBucket": "site-public",
+      "destinationPath": "migrated/5e2cd589-3371-4932-8aac-d23515a4e1f1.jpg",
+      "classification": "site-public",
+      "size": 17480,
+      "mimeType": "image/jpeg",
+      "verified": true
+    },
+    {
+      "sourceBucket": "media",
+      "sourcePath": "assets/empresas/pantanal-filmes.jpg",
+      "destinationBucket": "site-public",
+      "destinationPath": "migrated/edaf606e-fdaf-418d-aca2-d37010ae61f8.jpg",
+      "classification": "site-public",
+      "size": 28062,
+      "mimeType": "image/jpeg",
+      "verified": true
+    },
+    {
+      "sourceBucket": "media",
+      "sourcePath": "assets/empresas/plano-b.jpg",
+      "destinationBucket": "site-public",
+      "destinationPath": "migrated/c957b265-0bc7-4e02-984d-e8055fd3495a.jpg",
+      "classification": "site-public",
+      "size": 19529,
+      "mimeType": "image/jpeg",
+      "verified": true
+    },
+    {
+      "sourceBucket": "media",
+      "sourcePath": "assets/mike-photos/01.jpg",
+      "destinationBucket": "site-public",
+      "destinationPath": "migrated/8e94bb77-abd7-451b-b866-d830b93cb0a6.jpg",
+      "classification": "site-public",
+      "size": 58488,
+      "mimeType": "image/jpeg",
+      "verified": true
+    },
+    {
+      "sourceBucket": "media",
+      "sourcePath": "assets/mike-photos/01.webp",
+      "destinationBucket": "site-public",
+      "destinationPath": "migrated/25b1dc33-896a-4452-8c89-02fdfc4457d7.webp",
+      "classification": "site-public",
+      "size": 41438,
+      "mimeType": "image/webp",
+      "verified": true
+    },
+    {
+      "sourceBucket": "media",
+      "sourcePath": "assets/mike-photos/02.jpg",
+      "destinationBucket": "members-private",
+      "destinationPath": "migrated/22f8697b-7c10-46b9-af06-754399ec0acd.jpg",
+      "classification": "members-private-review",
+      "size": 61732,
+      "mimeType": "image/jpeg",
+      "verified": true
+    },
+    {
+      "sourceBucket": "media",
+      "sourcePath": "assets/mike-photos/02.webp",
+      "destinationBucket": "site-public",
+      "destinationPath": "migrated/327b60e7-8783-477e-a5fc-1a545190696d.webp",
+      "classification": "site-public",
+      "size": 46034,
+      "mimeType": "image/webp",
+      "verified": true
+    },
+    {
+      "sourceBucket": "media",
+      "sourcePath": "assets/mike-photos/04.jpg",
+      "destinationBucket": "members-private",
+      "destinationPath": "migrated/c5e47735-5c2f-4640-b866-fc57347d2b41.jpg",
+      "classification": "members-private-review",
+      "size": 86263,
+      "mimeType": "image/jpeg",
+      "verified": true
+    },
+    {
+      "sourceBucket": "media",
+      "sourcePath": "assets/mike-photos/04.webp",
+      "destinationBucket": "site-public",
+      "destinationPath": "migrated/4f6a3adf-8e89-4960-a16c-3621c4e53a1f.webp",
+      "classification": "site-public",
+      "size": 73522,
+      "mimeType": "image/webp",
+      "verified": true
+    },
+    {
+      "sourceBucket": "media",
+      "sourcePath": "assets/produtos/color-grade-produto/01.jpg",
+      "destinationBucket": "site-public",
+      "destinationPath": "migrated/caa18199-55e2-4cb5-9350-2a1db41b52c8.jpg",
+      "classification": "site-public",
+      "size": 87207,
+      "mimeType": "image/jpeg",
+      "verified": true
+    },
+    {
+      "sourceBucket": "media",
+      "sourcePath": "assets/produtos/color-grade-produto/02.jpg",
+      "destinationBucket": "site-public",
+      "destinationPath": "migrated/28d212ff-ec3a-4bd2-98ea-c9fd862e4e05.jpg",
+      "classification": "site-public",
+      "size": 73165,
+      "mimeType": "image/jpeg",
+      "verified": true
+    },
+    {
+      "sourceBucket": "media",
+      "sourcePath": "assets/produtos/color-grade-produto/03.jpg",
+      "destinationBucket": "site-public",
+      "destinationPath": "migrated/e6c81ff2-4448-4c9f-a300-2c4848575c3d.jpg",
+      "classification": "site-public",
+      "size": 40747,
+      "mimeType": "image/jpeg",
+      "verified": true
+    },
+    {
+      "sourceBucket": "media",
+      "sourcePath": "assets/produtos/color-grade-produto/editor01.jpg",
+      "destinationBucket": "site-public",
+      "destinationPath": "migrated/f327e194-829d-47ed-bf56-976c692bc11a.jpg",
+      "classification": "site-public",
+      "size": 47451,
+      "mimeType": "image/jpeg",
+      "verified": true
+    },
+    {
+      "sourceBucket": "media",
+      "sourcePath": "assets/produtos/color-grade-produto/marketing01.jpg",
+      "destinationBucket": "site-public",
+      "destinationPath": "migrated/358d30e0-1c7a-424f-b57f-a9f25b575e99.jpg",
+      "classification": "site-public",
+      "size": 33194,
+      "mimeType": "image/jpeg",
+      "verified": true
+    },
+    {
+      "sourceBucket": "media",
+      "sourcePath": "assets/produtos/color-grade-produto/marketing02.jpg",
+      "destinationBucket": "site-public",
+      "destinationPath": "migrated/73e2f202-860b-40f1-830e-a2f82b913308.jpg",
+      "classification": "site-public",
+      "size": 40821,
+      "mimeType": "image/jpeg",
+      "verified": true
+    },
+    {
+      "sourceBucket": "media",
+      "sourcePath": "assets/produtos/color-grade-produto/opengraph.jpg",
+      "destinationBucket": "site-public",
+      "destinationPath": "migrated/e50c8e65-09b2-4663-8f05-4a4fe8b7405a.jpg",
+      "classification": "site-public",
+      "size": 268654,
+      "mimeType": "image/jpeg",
+      "verified": true
+    },
+    {
+      "sourceBucket": "media",
+      "sourcePath": "assets/produtos/color-grade-produto/videomaker01.jpg",
+      "destinationBucket": "site-public",
+      "destinationPath": "migrated/808395fc-60d9-4370-af59-26c3f9cb5316.jpg",
+      "classification": "site-public",
+      "size": 24871,
+      "mimeType": "image/jpeg",
+      "verified": true
+    },
+    {
+      "sourceBucket": "media",
+      "sourcePath": "assets/produtos/color-grade-produto/videomaker02.jpg",
+      "destinationBucket": "site-public",
+      "destinationPath": "migrated/f8fdfb3b-bb8c-4354-9710-e3ec5337b449.jpg",
+      "classification": "site-public",
+      "size": 27719,
+      "mimeType": "image/jpeg",
+      "verified": true
+    },
+    {
+      "sourceBucket": "media",
+      "sourcePath": "assets/produtos/color-grade-produto/videomaker03.jpg",
+      "destinationBucket": "site-public",
+      "destinationPath": "migrated/d338ba46-d22c-48c9-8ea4-90ccff63469d.jpg",
+      "classification": "site-public",
+      "size": 33549,
+      "mimeType": "image/jpeg",
+      "verified": true
+    },
+    {
+      "sourceBucket": "media",
+      "sourcePath": "assets/produtos/color-master-produto/opengraph.jpg",
+      "destinationBucket": "site-public",
+      "destinationPath": "migrated/2a5a84e1-a01e-441b-be83-0899a4da932d.jpg",
+      "classification": "site-public",
+      "size": 268654,
+      "mimeType": "image/jpeg",
+      "verified": true
+    },
+    {
+      "sourceBucket": "media",
+      "sourcePath": "assets/produtos/color-master/01.jpg",
+      "destinationBucket": "site-public",
+      "destinationPath": "migrated/f3908519-c39b-403f-8cd7-c1e3006df7bc.jpg",
+      "classification": "site-public",
+      "size": 80114,
+      "mimeType": "image/jpeg",
+      "verified": true
+    },
+    {
+      "sourceBucket": "media",
+      "sourcePath": "assets/produtos/color-master/offer/offer-1.webp",
+      "destinationBucket": "site-public",
+      "destinationPath": "migrated/f05bb7d5-3b90-40b9-ada6-053190511dcb.webp",
+      "classification": "site-public",
+      "size": 38000,
+      "mimeType": "image/webp",
+      "verified": true
+    },
+    {
+      "sourceBucket": "media",
+      "sourcePath": "assets/produtos/color-master/offer/offer-2.webp",
+      "destinationBucket": "site-public",
+      "destinationPath": "migrated/a315a788-a801-4f43-80f4-76d16a1febd8.webp",
+      "classification": "site-public",
+      "size": 92270,
+      "mimeType": "image/webp",
+      "verified": true
+    },
+    {
+      "sourceBucket": "media",
+      "sourcePath": "assets/produtos/color-master/offer/offer-3.webp",
+      "destinationBucket": "site-public",
+      "destinationPath": "migrated/624fe9d7-697e-4740-a431-fb5328a58dd0.webp",
+      "classification": "site-public",
+      "size": 101036,
+      "mimeType": "image/webp",
+      "verified": true
+    },
+    {
+      "sourceBucket": "media",
+      "sourcePath": "assets/produtos/color-master/offer/offer-4.webp",
+      "destinationBucket": "site-public",
+      "destinationPath": "migrated/60be8b90-24d8-45ef-8589-9a362f6f284f.webp",
+      "classification": "site-public",
+      "size": 51250,
+      "mimeType": "image/webp",
+      "verified": true
+    },
+    {
+      "sourceBucket": "media",
+      "sourcePath": "assets/produtos/color-master/offer/offer-5.webp",
+      "destinationBucket": "site-public",
+      "destinationPath": "migrated/468abc76-17af-4e90-94c0-f09cef42fa36.webp",
+      "classification": "site-public",
+      "size": 64220,
+      "mimeType": "image/webp",
+      "verified": true
+    },
+    {
+      "sourceBucket": "media",
+      "sourcePath": "assets/produtos/color-master/offer/orig/offer-1.webp",
+      "destinationBucket": "members-private",
+      "destinationPath": "migrated/ed271a84-2800-49c0-9a1d-979cfeda3066.webp",
+      "classification": "members-private-review",
+      "size": 168448,
+      "mimeType": "image/webp",
+      "verified": true
+    },
+    {
+      "sourceBucket": "media",
+      "sourcePath": "assets/produtos/color-master/offer/orig/offer-2.webp",
+      "destinationBucket": "members-private",
+      "destinationPath": "migrated/09341c13-b283-4636-a6ed-b377a685c0c5.webp",
+      "classification": "members-private-review",
+      "size": 473976,
+      "mimeType": "image/webp",
+      "verified": true
+    },
+    {
+      "sourceBucket": "media",
+      "sourcePath": "assets/produtos/color-master/offer/orig/offer-3.webp",
+      "destinationBucket": "members-private",
+      "destinationPath": "migrated/65beda8c-f43c-46e7-a734-199a55c169e0.webp",
+      "classification": "members-private-review",
+      "size": 323954,
+      "mimeType": "image/webp",
+      "verified": true
+    },
+    {
+      "sourceBucket": "media",
+      "sourcePath": "assets/produtos/color-master/offer/orig/offer-4.webp",
+      "destinationBucket": "members-private",
+      "destinationPath": "migrated/66f6a5db-0cce-421e-b0e9-b6ccca19ccbd.webp",
+      "classification": "members-private-review",
+      "size": 200282,
+      "mimeType": "image/webp",
+      "verified": true
+    },
+    {
+      "sourceBucket": "media",
+      "sourcePath": "assets/produtos/color-master/offer/orig/offer-5.webp",
+      "destinationBucket": "members-private",
+      "destinationPath": "migrated/f0e98f43-e498-467b-a138-0ead41ab2061.webp",
+      "classification": "members-private-review",
+      "size": 276980,
+      "mimeType": "image/webp",
+      "verified": true
+    },
+    {
+      "sourceBucket": "media",
+      "sourcePath": "assets/produtos/color-master/offer/Screenshot 2026-10-03 at 22.05.47.webp",
+      "destinationBucket": "members-private",
+      "destinationPath": "migrated/449bbe46-6065-4538-83ab-c72bf7652b21.webp",
+      "classification": "members-private-review",
+      "size": 168448,
+      "mimeType": "image/webp",
+      "verified": true
+    },
+    {
+      "sourceBucket": "media",
+      "sourcePath": "assets/produtos/color-master/offer/Screenshot 2026-10-03 at 22.06.04.webp",
+      "destinationBucket": "members-private",
+      "destinationPath": "migrated/c46a834f-be5c-412e-aa55-e9abcab8826c.webp",
+      "classification": "members-private-review",
+      "size": 473976,
+      "mimeType": "image/webp",
+      "verified": true
+    },
+    {
+      "sourceBucket": "media",
+      "sourcePath": "assets/produtos/color-master/offer/Screenshot 2026-10-03 at 22.06.19.webp",
+      "destinationBucket": "members-private",
+      "destinationPath": "migrated/036ebc6c-3a9b-4353-8284-e891b7789322.webp",
+      "classification": "members-private-review",
+      "size": 323954,
+      "mimeType": "image/webp",
+      "verified": true
+    },
+    {
+      "sourceBucket": "media",
+      "sourcePath": "assets/produtos/color-master/offer/Screenshot 2026-10-03 at 22.06.43.webp",
+      "destinationBucket": "members-private",
+      "destinationPath": "migrated/20a35902-c343-480a-a681-86989ebf779a.webp",
+      "classification": "members-private-review",
+      "size": 200282,
+      "mimeType": "image/webp",
+      "verified": true
+    },
+    {
+      "sourceBucket": "media",
+      "sourcePath": "assets/produtos/color-master/offer/Screenshot 2026-10-03 at 22.07.01.webp",
+      "destinationBucket": "members-private",
+      "destinationPath": "migrated/44a44b23-915e-4799-a71a-c8287062613a.webp",
+      "classification": "members-private-review",
+      "size": 276980,
+      "mimeType": "image/webp",
+      "verified": true
+    },
+    {
+      "sourceBucket": "media",
+      "sourcePath": "assets/produtos/color-master/opengraph.jpg",
+      "destinationBucket": "members-private",
+      "destinationPath": "migrated/a9b07c22-cc44-4741-9857-5ecaa73a9d56.jpg",
+      "classification": "members-private-review",
+      "size": 268654,
+      "mimeType": "image/jpeg",
+      "verified": true
+    },
+    {
+      "sourceBucket": "media",
+      "sourcePath": "assets/produtos/color-youtuber/01.jpg",
+      "destinationBucket": "site-public",
+      "destinationPath": "migrated/b1d0906d-98ff-49e2-9063-ec31c75a758a.jpg",
+      "classification": "site-public",
+      "size": 133163,
+      "mimeType": "image/jpeg",
+      "verified": true
+    },
+    {
+      "sourceBucket": "media",
+      "sourcePath": "assets/produtos/direcao-fotografia/01.jpg",
+      "destinationBucket": "site-public",
+      "destinationPath": "migrated/520255b6-448a-4b04-9c44-3f0d2a69ef08.jpg",
+      "classification": "site-public",
+      "size": 107159,
+      "mimeType": "image/jpeg",
+      "verified": true
+    },
+    {
+      "sourceBucket": "media",
+      "sourcePath": "assets/produtos/empreendedores/01.jpg",
+      "destinationBucket": "site-public",
+      "destinationPath": "migrated/0daa2438-4c9f-4a5f-855e-8eec6cce824d.jpg",
+      "classification": "site-public",
+      "size": 97315,
+      "mimeType": "image/jpeg",
+      "verified": true
+    },
+    {
+      "sourceBucket": "media",
+      "sourcePath": "assets/produtos/empreendedores/02.jpg",
+      "destinationBucket": "site-public",
+      "destinationPath": "migrated/e254aaed-4d28-4a6a-b0d7-0a2d00e538fa.jpg",
+      "classification": "site-public",
+      "size": 82793,
+      "mimeType": "image/jpeg",
+      "verified": true
+    },
+    {
+      "sourceBucket": "media",
+      "sourcePath": "assets/produtos/empreendedores/03.jpg",
+      "destinationBucket": "site-public",
+      "destinationPath": "migrated/ae8a42a3-6370-4056-9808-202a6d3ca42a.jpg",
+      "classification": "site-public",
+      "size": 80676,
+      "mimeType": "image/jpeg",
+      "verified": true
+    },
+    {
+      "sourceBucket": "media",
+      "sourcePath": "assets/produtos/empreendedores/04.jpg",
+      "destinationBucket": "site-public",
+      "destinationPath": "migrated/75a2205a-0e68-4c4b-8102-e287568b320e.jpg",
+      "classification": "site-public",
+      "size": 108125,
+      "mimeType": "image/jpeg",
+      "verified": true
+    },
+    {
+      "sourceBucket": "media",
+      "sourcePath": "assets/produtos/empreendedores/06.jpg",
+      "destinationBucket": "site-public",
+      "destinationPath": "migrated/7ac5dbec-d260-47a2-a977-9176733f96ff.jpg",
+      "classification": "site-public",
+      "size": 95004,
+      "mimeType": "image/jpeg",
+      "verified": true
+    },
+    {
+      "sourceBucket": "media",
+      "sourcePath": "assets/produtos/empreendedores/07.jpg",
+      "destinationBucket": "site-public",
+      "destinationPath": "migrated/89e77ac7-bbd1-475d-a687-65551793e2e9.jpg",
+      "classification": "site-public",
+      "size": 102556,
+      "mimeType": "image/jpeg",
+      "verified": true
+    },
+    {
+      "sourceBucket": "media",
+      "sourcePath": "assets/produtos/empreendedores/08.jpg",
+      "destinationBucket": "site-public",
+      "destinationPath": "migrated/2e57952a-3a88-4853-b838-3d7fdf2cf358.jpg",
+      "classification": "site-public",
+      "size": 103581,
+      "mimeType": "image/jpeg",
+      "verified": true
+    },
+    {
+      "sourceBucket": "media",
+      "sourcePath": "assets/produtos/empreendedores/09.jpg",
+      "destinationBucket": "site-public",
+      "destinationPath": "migrated/e9fd16cd-bad4-4fe4-9293-bc0d196ac4c0.jpg",
+      "classification": "site-public",
+      "size": 91119,
+      "mimeType": "image/jpeg",
+      "verified": true
+    },
+    {
+      "sourceBucket": "media",
+      "sourcePath": "assets/videos/dom-dourado-poster.webp",
+      "destinationBucket": "site-public",
+      "destinationPath": "migrated/83fbd035-9b11-477f-be45-83a7e0998d72.webp",
+      "classification": "site-public",
+      "size": 18370,
+      "mimeType": "image/webp",
+      "verified": true
+    },
+    {
+      "sourceBucket": "media",
+      "sourcePath": "banners/banner01.webp",
+      "destinationBucket": "members-private",
+      "destinationPath": "migrated/50a89870-6fa8-46b1-a790-490a641446f9.webp",
+      "classification": "members-private-review",
+      "size": 67480,
+      "mimeType": "image/webp",
+      "verified": true
+    },
+    {
+      "sourceBucket": "media",
+      "sourcePath": "banners/banner02.webp",
+      "destinationBucket": "members-private",
+      "destinationPath": "migrated/b1c52483-789a-41c8-86d2-3eb9b47b8837.webp",
+      "classification": "members-private-review",
+      "size": 74100,
+      "mimeType": "image/webp",
+      "verified": true
+    },
+    {
+      "sourceBucket": "media",
+      "sourcePath": "banners/hero_01.webp",
+      "destinationBucket": "site-public",
+      "destinationPath": "migrated/9e0cc0b0-dd0c-433a-a020-30ae29e9ebe3.webp",
+      "classification": "site-public",
+      "size": 85766,
+      "mimeType": "image/webp",
+      "verified": true
+    },
+    {
+      "sourceBucket": "media",
+      "sourcePath": "banners/hero_02.webp",
+      "destinationBucket": "site-public",
+      "destinationPath": "migrated/0ff26c62-886b-421c-9114-e8e2d1d596f8.webp",
+      "classification": "site-public",
+      "size": 117308,
+      "mimeType": "image/webp",
+      "verified": true
+    },
+    {
+      "sourceBucket": "media",
+      "sourcePath": "banners/hero_03.webp",
+      "destinationBucket": "site-public",
+      "destinationPath": "migrated/a980e86d-5a37-4c13-a367-7db246d384db.webp",
+      "classification": "site-public",
+      "size": 124602,
+      "mimeType": "image/webp",
+      "verified": true
+    },
+    {
+      "sourceBucket": "media",
+      "sourcePath": "banners/hero_04.webp",
+      "destinationBucket": "site-public",
+      "destinationPath": "migrated/f060c657-805e-4a56-8cf9-38fbcbf2d881.webp",
+      "classification": "site-public",
+      "size": 72256,
+      "mimeType": "image/webp",
+      "verified": true
+    },
+    {
+      "sourceBucket": "media",
+      "sourcePath": "bg/02.webm",
+      "destinationBucket": "members-private",
+      "destinationPath": "member-assets/bg/2e3f243c2f59a450b701c41e4d6d7256.webm",
+      "classification": "members-private",
+      "size": 3327577,
+      "mimeType": "video/webm",
+      "verified": true
+    },
+    {
+      "sourceBucket": "media",
+      "sourcePath": "bg/02.webp",
+      "destinationBucket": "members-private",
+      "destinationPath": "member-assets/bg/1bbfbfd533d2c667cde531daebbadf39.webp",
+      "classification": "members-private",
+      "size": 365528,
+      "mimeType": "image/webp",
+      "verified": true
+    },
+    {
+      "sourceBucket": "media",
+      "sourcePath": "celulares.webp",
+      "destinationBucket": "members-private",
+      "destinationPath": "migrated/d8643bbd-826a-4d6b-b4c4-7d47efd61547.webp",
+      "classification": "members-private-review",
+      "size": 20876,
+      "mimeType": "image/webp",
+      "verified": true
+    },
+    {
+      "sourceBucket": "media",
+      "sourcePath": "dois pontos de luz.webp",
+      "destinationBucket": "members-private",
+      "destinationPath": "migrated/bc1f18e1-4863-4f7b-aa9f-7896f8c34c6b.webp",
+      "classification": "members-private-review",
+      "size": 242826,
+      "mimeType": "image/webp",
+      "verified": true
+    },
+    {
+      "sourceBucket": "media",
+      "sourcePath": "hero-lighting.webp",
+      "destinationBucket": "site-public",
+      "destinationPath": "migrated/805fb67d-ddf2-40b8-8712-c124f0c8f193.webp",
+      "classification": "site-public",
+      "size": 60906,
+      "mimeType": "image/webp",
+      "verified": true
+    },
+    {
+      "sourceBucket": "media",
+      "sourcePath": "hero.webp",
+      "destinationBucket": "members-private",
+      "destinationPath": "migrated/83d4f9fe-1cac-45d3-8c64-abb704c81ce4.webp",
+      "classification": "members-private-review",
+      "size": 1579288,
+      "mimeType": "image/webp",
+      "verified": true
+    },
+    {
+      "sourceBucket": "media",
+      "sourcePath": "luz colorida rgb.webp",
+      "destinationBucket": "members-private",
+      "destinationPath": "migrated/16eab52c-0b85-4279-92ec-47dc56315fa1.webp",
+      "classification": "members-private-review",
+      "size": 258068,
+      "mimeType": "image/webp",
+      "verified": true
+    },
+    {
+      "sourceBucket": "media",
+      "sourcePath": "michael-oliveira.webp",
+      "destinationBucket": "site-public",
+      "destinationPath": "migrated/e7633e98-b7c8-4219-8d6b-6b949220c446.webp",
+      "classification": "site-public",
+      "size": 140064,
+      "mimeType": "image/webp",
+      "verified": true
+    },
+    {
+      "sourceBucket": "media",
+      "sourcePath": "o que importa.webp",
+      "destinationBucket": "members-private",
+      "destinationPath": "migrated/b1ecbffb-9d94-4359-84a2-33365c8f65ba.webp",
+      "classification": "members-private-review",
+      "size": 595484,
+      "mimeType": "image/webp",
+      "verified": true
+    },
+    {
+      "sourceBucket": "media",
+      "sourcePath": "Photo-Album-1---001.webp",
+      "destinationBucket": "members-private",
+      "destinationPath": "migrated/1e54f875-cd18-4c24-886f-249afd5253d9.webp",
+      "classification": "members-private-review",
+      "size": 217016,
+      "mimeType": "image/webp",
+      "verified": true
+    },
+    {
+      "sourceBucket": "media",
+      "sourcePath": "Photo-Album-1---002.webp",
+      "destinationBucket": "members-private",
+      "destinationPath": "migrated/d39b39fb-c3fb-4be8-9d33-db9b3d388367.webp",
+      "classification": "members-private-review",
+      "size": 2360216,
+      "mimeType": "image/webp",
+      "verified": true
+    },
+    {
+      "sourceBucket": "media",
+      "sourcePath": "Photo-Album-1---003.webp",
+      "destinationBucket": "members-private",
+      "destinationPath": "migrated/591621b8-98b2-4b63-993d-eec2e3a2085e.webp",
+      "classification": "members-private-review",
+      "size": 622402,
+      "mimeType": "image/webp",
+      "verified": true
+    },
+    {
+      "sourceBucket": "media",
+      "sourcePath": "Photo-Album-1---005.webp",
+      "destinationBucket": "members-private",
+      "destinationPath": "migrated/3ea33cae-ef1a-498d-a7ff-90a7b3ceffce.webp",
+      "classification": "members-private-review",
+      "size": 605350,
+      "mimeType": "image/webp",
+      "verified": true
+    },
+    {
+      "sourceBucket": "media",
+      "sourcePath": "Photo-Album-1---008.webp",
+      "destinationBucket": "members-private",
+      "destinationPath": "migrated/30867272-a177-4e5c-a09c-1a5b178eae4d.webp",
+      "classification": "members-private-review",
+      "size": 375970,
+      "mimeType": "image/webp",
+      "verified": true
+    },
+    {
+      "sourceBucket": "media",
+      "sourcePath": "Photo-Album-1---009.webp",
+      "destinationBucket": "members-private",
+      "destinationPath": "migrated/2fb0323c-5e8c-456d-83f5-007e67f50549.webp",
+      "classification": "members-private-review",
+      "size": 1476430,
+      "mimeType": "image/webp",
+      "verified": true
+    },
+    {
+      "sourceBucket": "media",
+      "sourcePath": "Photo-Album-1---015.webp",
+      "destinationBucket": "members-private",
+      "destinationPath": "migrated/72dd2bef-5de8-4149-86d1-ddcd3afc6984.webp",
+      "classification": "members-private-review",
+      "size": 903928,
+      "mimeType": "image/webp",
+      "verified": true
+    },
+    {
+      "sourceBucket": "media",
+      "sourcePath": "setup entrevista.webp",
+      "destinationBucket": "members-private",
+      "destinationPath": "migrated/ce7fbd86-12d7-42f4-9354-9b8b8e91c702.webp",
+      "classification": "members-private-review",
+      "size": 607588,
+      "mimeType": "image/webp",
+      "verified": true
+    }
+  ]
+}
