@@ -158,3 +158,35 @@ export async function verifyAndSyncPaymentAccess({
     };
   }
 }
+
+// Cache curto (por instância do servidor) só de acessos APROVADOS. Evita repetir 2 consultas ao
+// banco + 1 chamada ao Asaas a cada arquivo/abertura da área de membros. Negativas nunca são
+// guardadas, então um pagamento recém-confirmado libera na hora; um estorno vale em até 5 min.
+const ACCESS_CACHE_TTL_MS = 5 * 60 * 1000;
+const ACCESS_CACHE_MAX_ENTRIES = 500;
+const approvedAccessCache = new Map<string, { result: PaymentVerificationResult; expiresAt: number }>();
+
+export async function verifyAccessCached(params: {
+  userId: string;
+  email?: string;
+}): Promise<PaymentVerificationResult> {
+  const now = Date.now();
+  const hit = approvedAccessCache.get(params.userId);
+  if (hit && hit.expiresAt > now) return hit.result;
+  approvedAccessCache.delete(params.userId);
+
+  const result = await verifyAndSyncPaymentAccess(params);
+  if (result.isAllowed) {
+    if (approvedAccessCache.size >= ACCESS_CACHE_MAX_ENTRIES) {
+      const oldest = approvedAccessCache.keys().next().value;
+      if (oldest) approvedAccessCache.delete(oldest);
+    }
+    approvedAccessCache.set(params.userId, { result, expiresAt: now + ACCESS_CACHE_TTL_MS });
+  }
+  return result;
+}
+
+/** Esquece a aprovação em cache (use ao receber estorno/cancelamento pelo webhook). */
+export function invalidateAccessCache(userId: string): void {
+  approvedAccessCache.delete(userId);
+}

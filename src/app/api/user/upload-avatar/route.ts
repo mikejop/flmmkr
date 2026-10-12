@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/utils/supabase/admin';
+import { getAuthenticatedUser } from '@/utils/supabase/authenticated';
 
 export const dynamic = 'force-dynamic';
 
@@ -7,17 +8,16 @@ export async function POST(req: NextRequest) {
   try {
     const formData = await req.formData();
     const file = formData.get('file') as File | null;
-    const userId = formData.get('userId') as string | null;
-
-    if (!userId) {
-      return NextResponse.json({ error: 'ID do usuário não fornecido.' }, { status: 400 });
-    }
+    const { user } = await getAuthenticatedUser();
+    if (!user) return NextResponse.json({ error: 'Não autenticado.' }, { status: 401 });
+    const userId = user.id;
 
     if (!file) {
       return NextResponse.json({ error: 'Nenhum arquivo enviado.' }, { status: 400 });
     }
 
-    if (!file.type.startsWith('image/')) {
+    const allowedTypes = new Set(['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'image/avif']);
+    if (!allowedTypes.has(file.type)) {
       return NextResponse.json({ error: 'O arquivo enviado deve ser uma imagem válida.' }, { status: 400 });
     }
 
@@ -29,10 +29,18 @@ export async function POST(req: NextRequest) {
     const arrayBuffer = await file.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
 
+    const isPng = buffer.length >= 8 && buffer.subarray(0, 8).equals(Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]));
+    const isJpeg = buffer.length >= 3 && buffer[0] === 0xff && buffer[1] === 0xd8 && buffer[2] === 0xff;
+    const isGif = buffer.length >= 6 && ['GIF87a', 'GIF89a'].includes(buffer.subarray(0, 6).toString('ascii'));
+    const isWebp = buffer.length >= 12 && buffer.toString('ascii', 0, 4) === 'RIFF' && buffer.toString('ascii', 8, 12) === 'WEBP';
+    const isAvif = buffer.length >= 12 && buffer.toString('ascii', 4, 8) === 'ftyp' && buffer.toString('ascii', 8, 12).startsWith('avif');
+    const validImage = (file.type === 'image/png' && isPng) || (file.type === 'image/jpeg' && isJpeg) ||
+      (file.type === 'image/gif' && isGif) || (file.type === 'image/webp' && isWebp) || (file.type === 'image/avif' && isAvif);
+    if (!validImage) return NextResponse.json({ error: 'O conteúdo enviado não corresponde ao formato da imagem.' }, { status: 400 });
+
     // 2. Definir caminho do arquivo no bucket 'avatars'
-    const ext = file.name.split('.').pop()?.toLowerCase() || 'webp';
-    const cleanExt = ['jpg', 'jpeg', 'png', 'webp', 'gif', 'avif'].includes(ext) ? ext : 'webp';
-    const fileName = `${userId}-${Date.now()}.${cleanExt}`;
+    const cleanExt = ({ 'image/jpeg': 'jpg', 'image/png': 'png', 'image/webp': 'webp', 'image/gif': 'gif', 'image/avif': 'avif' } as Record<string, string>)[file.type];
+    const fileName = `${userId}/avatar.${cleanExt}`;
 
     // 3. Upload para o bucket 'avatars' no Supabase Storage
     const { data: uploadData, error: uploadError } = await supabaseAdmin.storage

@@ -1,12 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/utils/supabase/admin';
+import { getAuthenticatedUser } from '@/utils/supabase/authenticated';
 
 export const dynamic = 'force-dynamic';
 
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { commentId, userId } = body;
+    const { commentId } = body;
+    const { user } = await getAuthenticatedUser();
+    const userId = user?.id;
 
     if (!commentId || !userId) {
       return NextResponse.json(

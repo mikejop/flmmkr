@@ -4,6 +4,8 @@
  */
 
 import { supabaseAdmin } from '@/utils/supabase/admin';
+import { getServerSecret } from '@/utils/serverSecrets';
+import { z } from 'zod';
 
 interface SecurityAlertOptions {
   email: string;
@@ -15,9 +17,18 @@ interface SecurityAlertOptions {
 }
 
 export async function sendSecurityAlertEmail(options: SecurityAlertOptions): Promise<boolean> {
-  const { email, ipAddress, lockDurationMinutes, deviceInfo, location } = options;
+  const emailValue = z.string().trim().email().max(254).safeParse(options.email.replace(/[\r\n]/g, ''));
+  if (!emailValue.success) return false;
+  const email = emailValue.data.toLowerCase();
+  const { ipAddress, lockDurationMinutes, deviceInfo, location } = options;
+  const htmlEntities: Record<string, string> = {
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
+  };
+  const escapeHtml = (value: string) => value.replace(/[&<>"']/g, (char) => htmlEntities[char]);
+  const safeIp = escapeHtml((ipAddress || 'Não identificado').replace(/[\r\n]/g, '').slice(0, 100));
+  const safeLocation = escapeHtml((location || 'Brasil').replace(/[\r\n]/g, '').slice(0, 200));
 
-  console.warn(`[SECURITY ALERT] Tentativas excessivas de login detectadas para: ${email} a partir de ${ipAddress || 'IP desconhecido'}`);
+  console.warn('[SECURITY ALERT] Tentativas excessivas de login detectadas.');
 
   try {
     // 1. Registrar na tabela de auditoria de segurança
@@ -33,10 +44,9 @@ export async function sendSecurityAlertEmail(options: SecurityAlertOptions): Pro
       },
     });
 
-    // 2. Se houver provedor de e-mail (Resend ou Supabase Auth), enviar notificação por e-mail
-    // Verificamos se há RESEND_API_KEY ou usamos template de segurança
-    const resendApiKey = process.env.RESEND_API_KEY;
-    if (resendApiKey) {
+    // 2. Enviar a notificação pelo provedor de e-mail configurado no Vault.
+    try {
+      const resendApiKey = await getServerSecret('resendApiKey');
       await fetch('https://api.resend.com/emails', {
         method: 'POST',
         headers: {
@@ -61,8 +71,8 @@ export async function sendSecurityAlertEmail(options: SecurityAlertOptions): Pro
               </div>
               <p style="font-size: 13px; color: #a1a1a6; line-height: 1.6;">
                 <strong>Horário:</strong> ${new Date().toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' })}<br/>
-                <strong>IP:</strong> ${ipAddress || 'Não identificado'}<br/>
-                <strong>Localização aproximada:</strong> ${location || 'Brasil'}
+                  <strong>IP:</strong> ${safeIp}<br/>
+                  <strong>Localização aproximada:</strong> ${safeLocation}
               </p>
               <div style="margin-top: 24px; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.1); font-size: 12px; color: #86868b; text-align: center;">
                 Se você não reconhece esta atividade, recomendamos redefinir sua senha imediatamente assim que o período de proteção expirar.
@@ -71,11 +81,13 @@ export async function sendSecurityAlertEmail(options: SecurityAlertOptions): Pro
           `,
         }),
       });
+    } catch {
+      console.error('Falha ao acessar o provedor de e-mail.');
     }
 
     return true;
-  } catch (err) {
-    console.error('Erro ao enviar e-mail de alerta de segurança:', err);
+  } catch {
+    console.error('Erro ao enviar e-mail de alerta de segurança.');
     return false;
   }
 }

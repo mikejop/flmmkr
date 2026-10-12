@@ -21,7 +21,8 @@ enabled = true
 site_url = "http://localhost:2383"
 additional_redirect_urls = ["https://localhost:2383"]
 jwt_expiry = 3600
-enable_signup = true
+enable_signup = false
+enable_anonymous_sign_ins = false
 
 [storage]
 enabled = true

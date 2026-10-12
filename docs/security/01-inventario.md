@@ -81,7 +81,7 @@ Com base nas migrations (`supabase/migrations/`) e nos acessos identificados no 
 | `/api/checkout/asaas` | POST | Anônimo | Endpoint de criação de cobrança no Asaas. Validações anti-fraude por IP/MAC. | Sanitização regex |
 | `/api/checkout/status` | GET | Anônimo | Consulta status de pagamento no Asaas por `paymentId`. Se aprovado, provisiona usuário e retorna link com email. | Nenhuma |
 | `/api/checkout/abandon` | POST | Anônimo | Registro de leads. | Nenhuma formal |
-| `/api/webhooks/asaas` | POST | Asaas Webhook | Verifica header `asaas-access-token` contra `process.env.ASAAS_WEBHOOK_SECRET`. | Nenhuma |
+| `/api/webhooks/asaas` | POST | Asaas Webhook | Verifica o header `asaas-access-token` em tempo constante contra o segredo lido do Supabase Vault no servidor. | Nenhuma |
 | `/api/offer-timer` | GET | Anônimo | Controle do cronômetro da oferta. | Nenhuma |
 | `/api/member/bg-video` | GET, POST | Anônimo / Aluno | Controle de vídeo de fundo por MAC/IP/userId. | Nenhuma |
 | `/api/telemetry/visit` | POST | Anônimo | Registro de visitas e telemetria. | Nenhuma |
@@ -98,9 +98,9 @@ Com base nas migrations (`supabase/migrations/`) e nos acessos identificados no 
 | `src/utils/supabase/admin.ts` | `SUPABASE_SECRET_KEY` ou `SUPABASE_SERVICE_ROLE_KEY` | Servidor | **Correto**: Roda somente no backend (`typeof window === 'undefined'`). Não exposto ao cliente. |
 | `src/utils/offerPricing.ts` | `SUPABASE_SECRET_KEY` ou `SUPABASE_SERVICE_ROLE_KEY` | Servidor | **Correto**: Roda no backend durante rotas de API. |
 | `src/utils/memberBgVideo.ts` | `SUPABASE_SECRET_KEY` ou `SUPABASE_SERVICE_ROLE_KEY` | Servidor | **Correto**: Roda apenas no backend. |
-| `src/services/asaas.ts` | `ASAAS_API_KEY` ou `ASAAS_ACCESS_TOKEN` | Servidor | **Correto**: Executado estritamente em server-side API routes. |
-| `src/services/notificationService.ts` | `RESEND_API_KEY` | Servidor | **Correto**: Executado somente em rotas de backend. |
-| `src/app/api/webhooks/asaas/route.ts` | `ASAAS_WEBHOOK_SECRET` | Servidor | **Correto**: Comparação de header em server-side route. |
+| `src/services/asaas.ts` | `asaas_api_key` no Supabase Vault | Servidor | Lido pelo helper server-only `src/utils/serverSecrets.ts`; nunca enviado ao cliente. |
+| `src/services/emailService.ts`, `src/services/notificationService.ts` | `resend_api_key` no Supabase Vault | Servidor | Lido pelo helper server-only `src/utils/serverSecrets.ts`; nunca enviado ao cliente. |
+| `src/app/api/webhooks/asaas/route.ts` | `asaas_webhook_secret` no Supabase Vault | Servidor | Comparação de header em tempo constante no route handler. |
 
 > **Conformidade da Regra 3**: Nenhuma chave `service_role` ou segredo de API de pagamento/e-mail possui prefixo `NEXT_PUBLIC_` ou está sendo importado diretamente em componentes de cliente (`'use client'`).
 
@@ -117,10 +117,9 @@ Com base nas migrations (`supabase/migrations/`) e nos acessos identificados no 
 ### Variáveis Privadas / Segredos (Server-Only)
 - `SUPABASE_URL`: URL do projeto.
 - `SUPABASE_SECRET_KEY` / `SUPABASE_SERVICE_ROLE_KEY`: Chave mestra de administração do Supabase (**altamente sensível**).
-- `ASAAS_API_KEY` / `ASAAS_ACCESS_TOKEN`: Token de integração bancária Asaas (**altamente sensível**).
-- `ASAAS_WEBHOOK_SECRET`: Token de autenticação do Webhook Asaas.
+- Asaas API key, token do webhook e chave Resend: armazenados no Supabase Vault e lidos apenas pelo backend.
 - `DATABASE_URL` / `DIRECT_URL`: Conexão direta PostgreSQL (**altamente sensível**).
-- `RESEND_API_KEY`: Chave de envio de emails transacionais.
+- `SUPABASE_SECRET_KEY`: Credencial de bootstrap do próprio Supabase, mantida em variável privada do servidor para permitir que o backend acesse Supabase Auth e o banco.
 
 ---
 

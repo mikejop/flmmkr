@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/utils/supabase/admin';
 import { validateAndSanitizeBody } from '@/utils/security';
+import { getAuthenticatedUser } from '@/utils/supabase/authenticated';
 
 export const dynamic = 'force-dynamic';
 
@@ -12,10 +13,11 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ valid: false, error: 'Parâmetros suspeitos' }, { status: 400 });
     }
 
-    const { sessionToken, userId } = sanitized;
+    const { sessionToken } = sanitized;
+    const { user } = await getAuthenticatedUser();
 
-    if (!sessionToken || !userId) {
-      return NextResponse.json({ valid: false, error: 'Token ou usuário não fornecido.' }, { status: 400 });
+    if (!user || !sessionToken) {
+      return NextResponse.json({ valid: false, error: 'Sessão autenticada e token são obrigatórios.' }, { status: 401 });
     }
 
     // Buscar status da sessão atual
@@ -23,6 +25,7 @@ export async function POST(req: NextRequest) {
       .from('user_active_sessions')
       .select('*')
       .eq('session_token', sessionToken)
+      .eq('user_id', user.id)
       .maybeSingle();
 
     if (error || !sessionRecord) {
@@ -30,7 +33,7 @@ export async function POST(req: NextRequest) {
       const { data: latestActive } = await supabaseAdmin
         .from('user_active_sessions')
         .select('*')
-        .eq('user_id', userId)
+        .eq('user_id', user.id)
         .order('created_at', { ascending: false })
         .limit(1)
         .maybeSingle();
@@ -68,6 +71,6 @@ export async function POST(req: NextRequest) {
     });
   } catch (err: any) {
     console.error('[Session Heartbeat Error]:', err);
-    return NextResponse.json({ valid: true, error: err?.message }, { status: 500 });
+    return NextResponse.json({ valid: false, error: 'Não foi possível validar a sessão.' }, { status: 500 });
   }
 }

@@ -5,6 +5,9 @@ import { getCurrentBatchPrice, resolveOfferTimerSession } from '@/utils/offerPri
 import { provisionSupabaseUserAndProfile } from '@/services/userService';
 import { validateAndSanitizeBody } from '@/utils/security';
 import { getAsaasInstallmentNumber } from '@/utils/asaasPricing';
+import { isValidExpiredOfferToken } from '@/utils/promoToken';
+import { createHash } from 'node:crypto';
+import { getClientIp } from '@/utils/clientIp';
 
 export const dynamic = 'force-dynamic';
 
@@ -40,9 +43,7 @@ export async function POST(req: NextRequest) {
       creditCard,
       creditCardHolderInfo,
       billingInfo,
-      macAddress,
-      isExpired = false,
-      hasDiscount25 = false
+      // Pricing flags sent by the browser are deliberately ignored.
     } = requestData;
 
     // 1. Validação básica de entrada
@@ -52,13 +53,14 @@ export async function POST(req: NextRequest) {
         { status: 400 }
       );
     }
+    if (!['PIX', 'CREDIT_CARD'].includes(billingType)) {
+      return NextResponse.json({ error: 'Método de pagamento não suportado.' }, { status: 400 });
+    }
+    if (!['color-master-produto', 'color-master-completo'].includes(productId)) {
+      return NextResponse.json({ error: 'Produto inválido.' }, { status: 400 });
+    }
 
-    // 2. Validação estrita do cronômetro no servidor por MAC e IP (Anti-Fraude)
-    const forwardedFor = req.headers.get('x-forwarded-for');
-    const realIp = req.headers.get('x-real-ip');
-    const ip = forwardedFor ? forwardedFor.split(',')[0].trim() : (realIp || '127.0.0.1');
-    const cookieMac = req.cookies.get('flmmkr_device_mac')?.value;
-    const finalMac = (macAddress || cookieMac || '').trim();
+    const ip = getClientIp(req) || 'UNKNOWN';
 
     // Recuperar atribuição de tráfego (origem, UTM, device fingerprint)
     const cookieAttrRaw = req.cookies.get('flmmkr_attribution')?.value;
@@ -69,7 +71,7 @@ export async function POST(req: NextRequest) {
       } catch {}
     }
     const finalTrafficSource = requestData.trafficSource || cookieAttr?.sourceName || 'Direto';
-    const finalDeviceFp = finalMac || cookieAttr?.deviceFingerprint || null;
+    const finalDeviceFp = cookieAttr?.deviceFingerprint || null;
     const finalUtmSource = requestData.utmSource || cookieAttr?.utmSource || null;
     const finalReferrer = requestData.referrer || req.headers.get('referer') || null;
 
@@ -90,36 +92,32 @@ export async function POST(req: NextRequest) {
         isRealExpired = false;
       } else {
         try {
-          const timerSession = await resolveOfferTimerSession({
-            macAddress: finalMac,
-            ip,
-            userAgent: req.headers.get('user-agent') || undefined
-          });
+          const sessionCookie = req.cookies.get('flmmkr_offer_session')?.value || '';
+          if (!/^[a-f0-9-]{36}$/i.test(sessionCookie)) {
+            return NextResponse.json({ error: 'Recarregue a página para validar a oferta.' }, { status: 409 });
+          }
+          const timerSession = await resolveOfferTimerSession(
+            createHash('sha256').update(sessionCookie).digest('hex')
+          );
           const now = Date.now();
           const expiresAtTime = new Date(timerSession.expiresAt).getTime();
           isRealExpired = now >= expiresAtTime || timerSession.isExpired;
         } catch (timerErr) {
-          console.warn('Erro ao validar timer no checkout:', timerErr);
-          isRealExpired = Boolean(isExpired);
+          console.error('Erro ao validar timer no checkout:', timerErr);
+          return NextResponse.json({ error: 'Não foi possível validar a oferta agora. Tente novamente.' }, { status: 503 });
         }
       }
     }
 
-    // Verificação estrita de IP para modo de teste
-    const AUTHORIZED_TEST_IPS = ['168.90.209.157', '138.118.162.182', '127.0.0.1', '::1'];
-    const isTestUserIp = AUTHORIZED_TEST_IPS.includes(ip);
+    const hasDiscount25 = isValidExpiredOfferToken(req.cookies.get('flmmkr_discount_25')?.value) && isRealExpired;
 
-    // 3. Definir valor baseado no lote promocional e expiração validada pelo servidor
-    let productValue = isTestUserIp ? 5.0 : 95;
-    let productDescription = isTestUserIp
-      ? 'Masterclass Color Master | Produto (Teste Autorizado)'
-      : `Masterclass Color Master | Produto (${batchInfo.batchName})`;
+    // Preço sempre derivado no servidor; não existe preço de teste por endereço IP.
+    let productValue = 95;
+    let productDescription = `Masterclass Color Master | Produto (${batchInfo.batchName})`;
 
     if (productId === 'color-master-completo') {
       productValue = 497.0;
       productDescription = 'Color Master Completo - FLMMKR';
-    } else if (isTestUserIp) {
-      productValue = 5.0;
     } else if (batchInfo.isLaunchPhase) {
       // Fase de lançamento (até 09/10): valor garantido R$ 95
       productValue = 95;

@@ -1,6 +1,7 @@
 import { supabaseAdmin } from '@/utils/supabase/admin';
 import { createActivationToken } from '@/services/activationService';
 import { sendActivationEmail } from '@/services/emailService';
+import crypto from 'crypto';
 
 export { supabaseAdmin };
 
@@ -35,12 +36,17 @@ export async function provisionSupabaseUserAndProfile({
   const normalizedEmail = email.trim().toLowerCase();
 
   // 1. Verificar se usuário já existe no auth
-  const { data: userList } = await supabaseAdmin.auth.admin.listUsers();
-  let user = userList?.users?.find((u) => u.email?.toLowerCase() === normalizedEmail);
+  let user: import('@supabase/supabase-js').User | null = null;
+  for (let page = 1; page <= 20; page += 1) {
+    const { data: userList, error: listError } = await supabaseAdmin.auth.admin.listUsers({ page, perPage: 1000 });
+    if (listError) throw listError;
+    user = userList.users.find((u) => u.email?.toLowerCase() === normalizedEmail) || null;
+    if (user || userList.users.length < 1000) break;
+  }
 
   if (!user) {
     // Gerar senha provisória aleatória; o usuário definirá a senha na tela de Primeiro Acesso
-    const tempPassword = `Flmmkr#${Math.random().toString(36).slice(2)}${Date.now()}`;
+    const tempPassword = `Flmmkr#${crypto.randomBytes(32).toString('hex')}`;
     const { data: newUser, error: createErr } = await supabaseAdmin.auth.admin.createUser({
       email: normalizedEmail,
       password: tempPassword,
@@ -69,8 +75,15 @@ export async function provisionSupabaseUserAndProfile({
   // 2. Inserir ou atualizar na tabela profiles
   if (user) {
     // Preservar role de admin se já existir
-    const currentRole = user.app_metadata?.role || user.user_metadata?.role;
+    const currentRole = user.app_metadata?.role;
     const assignedRole = currentRole === 'admin' ? 'admin' : 'student';
+
+    const { data: existingProfile, error: existingProfileError } = await supabaseAdmin
+      .from('profiles').select('asaas_payment_id, payment_status').eq('id', user.id).maybeSingle();
+    if (existingProfileError) throw existingProfileError;
+    if (asaasPaymentId && existingProfile?.asaas_payment_id === asaasPaymentId && existingProfile.payment_status === 'CONFIRMED') {
+      return { user, activationToken: null, activationUrl: null };
+    }
 
     // Gerar token/sufixo exclusivo para o primeiro acesso
     tokenResult = await createActivationToken(user.id, normalizedEmail);
@@ -91,12 +104,12 @@ export async function provisionSupabaseUserAndProfile({
         role: assignedRole,
         has_access: true,
         payment_status: 'CONFIRMED',
-        access_suffix: tokenResult.token,
         updated_at: new Date().toISOString()
       }, { onConflict: 'id' });
 
     if (profileErr) {
       console.error('Erro ao atualizar profiles no Supabase:', profileErr);
+      throw profileErr;
     }
 
     // Disparar e-mail de ativação com o link e botão clicável
@@ -113,7 +126,5 @@ export async function provisionSupabaseUserAndProfile({
 
   return {
     user,
-    activationToken: tokenResult?.token,
-    activationUrl: tokenResult?.url
   };
 }

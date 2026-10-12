@@ -1,3 +1,4 @@
+import 'server-only';
 import { createClient } from '@supabase/supabase-js';
 
 export interface UserTimerRecord {
@@ -17,9 +18,8 @@ export interface UserTimerRecord {
 export const TIMER_DURATION_MS = 15 * 60 * 1000; // 15 minutos
 export const COOLDOWN_DURATION_MS = 36 * 60 * 60 * 1000; // 36 horas após expirar
 
-// Cache em memória de alta performance com indexação dupla (MAC e IP)
-const macMemoryCache = new Map<string, UserTimerRecord>();
-const ipMemoryCache = new Map<string, UserTimerRecord>();
+// The database is authoritative; this short cache is keyed only by a random server cookie.
+const sessionCache = new Map<string, UserTimerRecord>();
 
 export interface BatchPriceInfo {
   promoPrice: number;
@@ -122,12 +122,7 @@ function getSupabaseAdmin() {
  * Atualiza o cache local em memória para MAC e IP
  */
 function updateMemoryCache(record: UserTimerRecord) {
-  if (record.macAddress) {
-    macMemoryCache.set(record.macAddress, record);
-  }
-  if (record.ip) {
-    ipMemoryCache.set(record.ip, record);
-  }
+  if (record.clientIdentifier) sessionCache.set(record.clientIdentifier, record);
 }
 
 /**
@@ -142,273 +137,79 @@ function updateMemoryCache(record: UserTimerRecord) {
  *    Se o tempo acabar (00:00), o usuário fica sem a promoção durante 36h.
  *    Após exatamente 36 horas após zerar, o sistema silenciosamente reseta o cronômetro no backend.
  */
-export async function resolveOfferTimerSession(params: {
-  macAddress: string;
-  ip: string;
-  userAgent?: string;
-}): Promise<UserTimerRecord> {
-  const { macAddress, ip, userAgent } = params;
+export async function resolveOfferTimerSession(clientIdentifier: string): Promise<UserTimerRecord> {
+  const normalizedIdentifier = clientIdentifier.trim();
+  if (!/^[a-f0-9-]{36}$/i.test(normalizedIdentifier)) throw new Error('Sessão de oferta inválida.');
   const now = Date.now();
   const supabase = getSupabaseAdmin();
+  if (!supabase) throw new Error('Supabase não configurado para persistir a oferta.');
 
-  let session: UserTimerRecord | null = null;
-  let foundByMac = false;
-
-  // 1. PRIORIDADE 1: Buscar por MAC Address (Impressão Digital do Computador)
-  if (macAddress) {
-    session = macMemoryCache.get(macAddress) || null;
-
-    if (!session && supabase) {
-      try {
-        const { data, error } = await supabase
-          .from('offer_timer_sessions')
-          .select('*')
-          .eq('mac_address', macAddress)
-          .order('first_access_at', { ascending: false })
-          .limit(1)
-          .maybeSingle();
-
-        if (!error && data) {
-          session = {
-            id: data.id,
-            macAddress: data.mac_address,
-            ip: data.ip,
-            clientIdentifier: data.client_identifier,
-            userAgent: data.user_agent,
-            firstAccessAt: data.first_access_at,
-            expiresAt: data.expires_at,
-            cooldownUntil: data.cooldown_until,
-            isExpired: data.is_expired
-          };
-          updateMemoryCache(session);
-        }
-      } catch (err: any) {
-        console.warn('[Timer] Erro na busca por MAC:', err?.message || err);
-      }
-    }
-
-    if (session) {
-      foundByMac = true;
-      // Se o usuário mudou de internet/Wi-Fi, atualizar o IP registrado para manter rastreabilidade
-      if (session.ip !== ip) {
-        session.ip = ip;
-        updateMemoryCache(session);
-        if (supabase) {
-          try {
-            await supabase
-              .from('offer_timer_sessions')
-              .update({ ip, updated_at: new Date().toISOString() })
-              .eq('mac_address', macAddress);
-          } catch {}
-        }
-      }
-    }
-  }
-
-  // 2. PRIORIDADE 2: Se não encontrou por MAC, buscar por IP da rede
-  if (!session && ip) {
-    session = ipMemoryCache.get(ip) || null;
-
-    if (!session && supabase) {
-      try {
-        const { data, error } = await supabase
-          .from('offer_timer_sessions')
-          .select('*')
-          .eq('ip', ip)
-          .order('first_access_at', { ascending: false })
-          .limit(1)
-          .maybeSingle();
-
-        if (!error && data) {
-          session = {
-            id: data.id,
-            macAddress: data.mac_address,
-            ip: data.ip,
-            clientIdentifier: data.client_identifier,
-            userAgent: data.user_agent,
-            firstAccessAt: data.first_access_at,
-            expiresAt: data.expires_at,
-            cooldownUntil: data.cooldown_until,
-            isExpired: data.is_expired
-          };
-          updateMemoryCache(session);
-        }
-      } catch (err: any) {
-        console.warn('[Timer] Erro na busca por IP:', err?.message || err);
-      }
-    }
-  }
-
-  const lote1EndTimestamp = new Date(LOTE1_END_ISO).getTime();
-
-  // Se ainda estiver na fase de lançamento (até 09/10/2026 às 23:59:59):
-  // O cronômetro de 15 minutos NÃO roda nem expira!
-  if (now <= lote1EndTimestamp) {
-    if (session) {
-      session.isExpired = false;
-      return session;
-    }
-    const firstAccessAt = new Date(now).toISOString();
-    const expiresAt = new Date(lote1EndTimestamp + TIMER_DURATION_MS).toISOString();
-    const cooldownUntil = new Date(lote1EndTimestamp + TIMER_DURATION_MS + COOLDOWN_DURATION_MS).toISOString();
-    const clientIdentifier = `${macAddress || 'dev'}_${ip.replace(/[^a-zA-Z0-9]/g, '_')}`;
-
-    const newRecord: UserTimerRecord = {
-      macAddress: macAddress || `mac_anon_${Date.now()}`,
-      ip,
-      clientIdentifier,
-      userAgent,
-      firstAccessAt,
-      expiresAt,
-      cooldownUntil,
-      isExpired: false
-    };
-    updateMemoryCache(newRecord);
-    return newRecord;
-  }
-
-  // Pós-lançamento (a partir de 10/10/2026):
-  // Se a sessão existente foi criada durante o lançamento (antes do término de lote1),
-  // o usuário ganha os 15 minutos cheios a partir do seu primeiro acesso pós-lançamento!
-  if (session && new Date(session.firstAccessAt).getTime() <= lote1EndTimestamp) {
-    const firstAccessAt = new Date(now).toISOString();
-    const expiresAt = new Date(now + TIMER_DURATION_MS).toISOString();
-    const cooldownUntil = new Date(now + TIMER_DURATION_MS + COOLDOWN_DURATION_MS).toISOString();
-
-    session = {
-      ...session,
-      firstAccessAt,
-      expiresAt,
-      cooldownUntil,
-      isExpired: false
-    };
-
-    updateMemoryCache(session);
-
-    if (supabase) {
-      try {
-        await supabase
-          .from('offer_timer_sessions')
-          .update({
-            first_access_at: firstAccessAt,
-            expires_at: expiresAt,
-            cooldown_until: cooldownUntil,
-            is_expired: false,
-            updated_at: new Date().toISOString()
-          })
-          .eq('id', session.id);
-      } catch {}
-    }
-
-    return session;
-  }
-
-  // 3. SE EXISTIR SESSÃO: Verificar o Cooldown de 36 Horas para Reset Silencioso
-  if (session) {
-    const cooldownTime = new Date(session.cooldownUntil).getTime();
-
-    // Se já passaram as 36 horas após o cronômetro zerar, reseta silenciosamente
-    if (now >= cooldownTime) {
-      const firstAccessAt = new Date(now).toISOString();
-      const expiresAt = new Date(now + TIMER_DURATION_MS).toISOString();
-      const cooldownUntil = new Date(now + TIMER_DURATION_MS + COOLDOWN_DURATION_MS).toISOString();
-
+  let session = sessionCache.get(normalizedIdentifier) || null;
+  if (!session) {
+    const { data, error } = await supabase
+      .from('offer_timer_sessions')
+      .select('id, client_identifier, first_access_at, expires_at, cooldown_until, is_expired')
+      .eq('client_identifier', normalizedIdentifier)
+      .order('first_access_at', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    if (error) throw new Error('Não foi possível carregar o cronômetro da oferta.');
+    if (data) {
       session = {
-        ...session,
-        macAddress: macAddress || session.macAddress,
-        ip,
-        userAgent: userAgent || session.userAgent,
-        firstAccessAt,
-        expiresAt,
-        cooldownUntil,
-        isExpired: false
+        id: data.id,
+        clientIdentifier: normalizedIdentifier,
+        macAddress: '',
+        ip: '',
+        firstAccessAt: data.first_access_at,
+        expiresAt: data.expires_at,
+        cooldownUntil: data.cooldown_until,
+        isExpired: data.is_expired,
       };
-
-      updateMemoryCache(session);
-
-      if (supabase) {
-        try {
-          await supabase
-            .from('offer_timer_sessions')
-            .update({
-              first_access_at: firstAccessAt,
-              expires_at: expiresAt,
-              cooldown_until: cooldownUntil,
-              is_expired: false,
-              updated_at: new Date().toISOString()
-            })
-            .eq('id', session.id);
-        } catch {}
-      }
-
-      return session;
     }
+  }
 
-    // Se ainda está dentro do período (seja ativo ou bloqueado nas 36h)
-    const expiresAtTime = new Date(session.expiresAt).getTime();
-    const isExpired = now >= expiresAtTime;
-
-    if (isExpired !== session.isExpired) {
-      session.isExpired = isExpired;
-      updateMemoryCache(session);
-      if (supabase) {
-        try {
-          await supabase
-            .from('offer_timer_sessions')
-            .update({ is_expired: isExpired, updated_at: new Date().toISOString() })
-            .eq('id', session.id);
-        } catch {}
-      }
-    }
-
+  const launchEnd = new Date(LOTE1_END_ISO).getTime();
+  if (session && now < launchEnd) {
+    session.isExpired = false;
     return session;
   }
 
-  // 4. SE NÃO EXISTIA: Criar uma nova sessão vinculada ao MAC e IP
-  const firstAccessAt = new Date(now).toISOString();
-  const expiresAt = new Date(now + TIMER_DURATION_MS).toISOString();
-  // Cooldown de 36 horas inicia após os 15 minutos do cronômetro zerarem
-  const cooldownUntil = new Date(now + TIMER_DURATION_MS + COOLDOWN_DURATION_MS).toISOString();
-  const clientIdentifier = `${macAddress || 'dev'}_${ip.replace(/[^a-zA-Z0-9]/g, '_')}`;
+  const shouldStart = !session || now >= new Date(session.cooldownUntil).getTime() ||
+    new Date(session.firstAccessAt).getTime() <= launchEnd;
+  const firstAccessAt = shouldStart ? new Date(now).toISOString() : session.firstAccessAt;
+  const expiresAt = shouldStart ? new Date(now + TIMER_DURATION_MS).toISOString() : session.expiresAt;
+  const cooldownUntil = shouldStart
+    ? new Date(now + TIMER_DURATION_MS + COOLDOWN_DURATION_MS).toISOString()
+    : session.cooldownUntil;
+  const isExpired = now >= new Date(expiresAt).getTime();
 
-  const newRecord: UserTimerRecord = {
-    macAddress: macAddress || `mac_anon_${Date.now()}`,
-    ip,
-    clientIdentifier,
-    userAgent,
+  const record: UserTimerRecord = {
+    id: session?.id,
+    macAddress: '',
+    ip: '',
+    clientIdentifier: normalizedIdentifier,
     firstAccessAt,
     expiresAt,
     cooldownUntil,
-    isExpired: false
+    isExpired,
+  };
+  const values = {
+    mac_address: null,
+    ip: null,
+    user_agent: null,
+    client_identifier: normalizedIdentifier,
+    first_access_at: firstAccessAt,
+    expires_at: expiresAt,
+    cooldown_until: cooldownUntil,
+    is_expired: isExpired,
+    updated_at: new Date().toISOString(),
   };
 
-  updateMemoryCache(newRecord);
-
-  if (supabase) {
-    try {
-      const { data, error } = await supabase
-        .from('offer_timer_sessions')
-        .insert({
-          mac_address: newRecord.macAddress,
-          ip: newRecord.ip,
-          client_identifier: newRecord.clientIdentifier,
-          user_agent: newRecord.userAgent,
-          first_access_at: newRecord.firstAccessAt,
-          expires_at: newRecord.expiresAt,
-          cooldown_until: newRecord.cooldownUntil,
-          is_expired: false
-        })
-        .select()
-        .maybeSingle();
-
-      if (!error && data) {
-        newRecord.id = data.id;
-        updateMemoryCache(newRecord);
-      }
-    } catch (err: any) {
-      console.warn('[Timer] Erro ao persistir nova sessão:', err?.message || err);
-    }
-  }
-
-  return newRecord;
+  const write = session?.id
+    ? await supabase.from('offer_timer_sessions').update(values).eq('id', session.id).select('id').maybeSingle()
+    : await supabase.from('offer_timer_sessions').insert(values).select('id').maybeSingle();
+  if (write.error || !write.data) throw new Error('Não foi possível salvar o cronômetro da oferta.');
+  record.id = write.data.id;
+  updateMemoryCache(record);
+  return record;
 }

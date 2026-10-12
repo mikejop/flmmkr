@@ -5,6 +5,7 @@
  */
 
 import { supabaseAdmin } from '@/utils/supabase/admin';
+import { getServerSecret } from '@/utils/serverSecrets';
 
 export interface SendActivationEmailOptions {
   email: string;
@@ -20,18 +21,18 @@ export async function sendActivationEmail({
   const normalizedEmail = email.trim().toLowerCase();
   const firstName = name.trim().split(' ')[0] || 'Aluno(a)';
 
-  const textBody = `Olá, ${firstName}!
+  const textBody = `Bem-vindo, ${firstName}. Seu acesso está liberado.
 
-Seu pagamento foi confirmado com sucesso e seu acesso ao COLOR MASTER® | PRODUTO está liberado.
+Sua compra da Masterclass Color Master® | Produtos foi confirmada.
 
-Para cadastrar sua senha e acessar a plataforma, utilize o link exclusivo abaixo:
+Para criar sua senha e acessar a plataforma, abra o seu link exclusivo:
 ${activationUrl}
 
-Caso o botão não funcione, você pode copiar e colar o link diretamente no seu navegador.
-Este link é seguro, pessoal e intransferível.
+Este link é pessoal e exclusivo para ${normalizedEmail}. Não compartilhe com outras pessoas.
 
-Equipe FLMMKR
-contato@flmmkr.site`;
+Precisa de ajuda? Responda este e-mail ou escreva para contato@flmmkr.com.br.
+
+FLMMKR - Color Master® | Produtos`;
 
   // Calcular data de expiração (1 ano após ativação)
   const expirationDate = new Date();
@@ -76,7 +77,7 @@ contato@flmmkr.site`;
 </html>`;
   }
 
-  console.log(`[Email Service] Link de ativação gerado para ${normalizedEmail}: ${activationUrl}`);
+  console.log('[Email Service] Link de ativação preparado para envio.');
 
   // Registrar auditoria no Supabase
   try {
@@ -85,7 +86,6 @@ contato@flmmkr.site`;
       email: normalizedEmail,
       details: {
         recipient: normalizedEmail,
-        activationUrl,
         timestamp: new Date().toISOString()
       }
     });
@@ -94,33 +94,34 @@ contato@flmmkr.site`;
   }
 
   // 1. Envio de alta entregabilidade via Resend SDK
-  const resendApiKey = process.env.RESEND_API_KEY;
-  if (resendApiKey) {
-    try {
-      const { Resend } = await import('resend');
-      const resend = new Resend(resendApiKey);
+  try {
+    const resendApiKey = await getServerSecret('resendApiKey');
+    const { Resend } = await import('resend');
+    const resend = new Resend(resendApiKey);
 
-      const sender = process.env.EMAIL_FROM || 'FLMMKR <contato@flmmkr.site>';
-      const { data, error } = await resend.emails.send({
-        from: sender,
-        to: [normalizedEmail],
-        subject: 'Seu acesso exclusivo ao COLOR MASTER® | FLMMKR',
-        html: htmlBody,
-        text: textBody,
-        headers: {
-          'X-Entity-Ref-ID': Buffer.from(activationUrl).toString('base64').slice(0, 16)
-        }
-      });
-
-      if (error) {
-        console.error('[Email Service] Falha ao enviar via Resend:', error);
-      } else {
-        console.log(`[Email Service] E-mail de ativação enviado com sucesso via Resend para ${normalizedEmail}. ID: ${data?.id}`);
-        return true;
+    const sender = process.env.EMAIL_FROM || 'FLMMKR <contato@flmmkr.site>';
+    const { data, error } = await resend.emails.send({
+      from: sender,
+      to: [normalizedEmail],
+      replyTo: process.env.EMAIL_REPLY_TO || 'contato@flmmkr.com.br',
+      // Assunto transacional e neutro (sem termos promocionais como "exclusivo")
+      subject: 'Seu acesso ao Color Master está pronto',
+      html: htmlBody,
+      text: textBody,
+      headers: {
+        // ID único por envio evita agrupamento/threading suspeito no Gmail
+        'X-Entity-Ref-ID': crypto.randomUUID()
       }
-    } catch (resendErr) {
-      console.error('[Email Service] Exceção ao enviar via Resend SDK:', resendErr);
+    });
+
+    if (error) {
+      console.error('[Email Service] Falha ao enviar via Resend:', error);
+    } else {
+      console.log('[Email Service] E-mail de ativação enviado com sucesso via Resend.');
+      return true;
     }
+  } catch (resendErr) {
+    console.error('[Email Service] Exceção ao enviar via Resend SDK:', resendErr);
   }
 
   return true;

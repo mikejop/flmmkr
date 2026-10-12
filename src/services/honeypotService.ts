@@ -96,7 +96,7 @@ export async function banAttacker({
   if (cleanIp) bannedIpsCache.add(cleanIp);
   if (cleanMac) bannedMacsCache.add(cleanMac);
 
-  console.warn(`[HONEYPOT TRIGGERED] Bloqueio INDEFINIDO aplicado para IP: ${cleanIp}, MAC: ${cleanMac}, Rota: ${honeypotPath}`);
+  console.warn('[HONEYPOT TRIGGERED] Registro de segurança criado.');
 
   try {
     await supabaseAdmin.from('blocked_attackers').insert({
@@ -120,12 +120,10 @@ export async function banAttacker({
 export async function isAttackerBanned({
   ip,
   mac,
-  fingerprint,
   hasBannedCookie
 }: {
   ip: string;
   mac?: string;
-  fingerprint?: string;
   hasBannedCookie?: boolean;
 }): Promise<boolean> {
   // 1. Se tem o cookie indelével de banimento

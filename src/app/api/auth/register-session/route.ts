@@ -3,27 +3,27 @@ import { supabaseAdmin } from '@/utils/supabase/admin';
 import { validateAndSanitizeBody } from '@/utils/security';
 import { getDeviceInfoFromRequest } from '@/utils/deviceDetection';
 import crypto from 'crypto';
+import { getAuthenticatedUser } from '@/utils/supabase/authenticated';
 
 export const dynamic = 'force-dynamic';
 
 export async function POST(req: NextRequest) {
   try {
     const rawBody = await req.json();
-    const { safe, sanitized } = validateAndSanitizeBody(rawBody);
+    const { safe } = validateAndSanitizeBody(rawBody);
     if (!safe) {
       return NextResponse.json({ error: 'Parâmetros suspeitos' }, { status: 400 });
     }
 
-    const { userId } = sanitized;
-    if (!userId) {
-      return NextResponse.json({ error: 'ID do usuário não fornecido.' }, { status: 400 });
-    }
+    const { user } = await getAuthenticatedUser();
+    if (!user) return NextResponse.json({ error: 'Não autenticado.' }, { status: 401 });
+    const userId = user.id;
 
     const deviceInfo = getDeviceInfoFromRequest(req);
     const now = new Date();
 
     // Desativar sessões antigas
-    await supabaseAdmin
+    const { error: deactivateError } = await supabaseAdmin
       .from('user_active_sessions')
       .update({
         is_active: false,
@@ -33,10 +33,11 @@ export async function POST(req: NextRequest) {
       })
       .eq('user_id', userId)
       .eq('is_active', true);
+    if (deactivateError) throw deactivateError;
 
     // Gerar e registrar novo token de sessão
     const sessionToken = crypto.randomUUID();
-    await supabaseAdmin.from('user_active_sessions').insert({
+    const { error: insertError } = await supabaseAdmin.from('user_active_sessions').insert({
       user_id: userId,
       session_token: sessionToken,
       device_name: deviceInfo.deviceName,
@@ -46,6 +47,7 @@ export async function POST(req: NextRequest) {
       created_at: now.toISOString(),
       last_heartbeat_at: now.toISOString(),
     });
+    if (insertError) throw insertError;
 
     return NextResponse.json({
       success: true,

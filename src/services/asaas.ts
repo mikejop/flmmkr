@@ -4,42 +4,10 @@
  * Secret keys are never exposed to browser clients.
  */
 
-import fs from 'fs';
-import path from 'path';
+import { getServerSecret } from '@/utils/serverSecrets';
 
 function getAsaasApiUrl(): string {
   return process.env.ASAAS_API_URL || 'https://api.asaas.com/v3';
-}
-
-function getAsaasApiKey(): string {
-  let key = (
-    process.env.ASAAS_API_KEY ||
-    process.env.ASAAS_ACCESS_TOKEN ||
-    ''
-  ).trim();
-
-  // Se a chave veio com escape de barra invertida (\$aact...) do dotenv, desescapar:
-  if (key.startsWith('\\$')) {
-    key = key.slice(1);
-  }
-
-  // Fallback: se por qualquer razão o Next.js dotenv-expand suprimiu a chave, ler diretamente do .env.local
-  if (!key) {
-    try {
-      const envPath = path.resolve(process.cwd(), '.env.local');
-      if (fs.existsSync(envPath)) {
-        const content = fs.readFileSync(envPath, 'utf8');
-        const match = content.match(/ASAAS_API_KEY\s*=\s*["']?([^"'\r\n]+)["']?/);
-        if (match && match[1]) {
-          key = match[1].replace(/\\([$])/g, '$1').trim();
-        }
-      }
-    } catch (e) {
-      console.error('Erro ao ler fallback ASAAS_API_KEY:', e);
-    }
-  }
-
-  return key;
 }
 
 interface AsaasCustomerInput {
@@ -81,11 +49,29 @@ interface AsaasPaymentInput {
   };
 }
 
+interface AsaasCustomer {
+  id: string;
+  name: string;
+  email?: string;
+  mobilePhone?: string;
+  phone?: string;
+  address?: string;
+  addressNumber?: string;
+  complement?: string;
+  province?: string;
+  cityName?: string;
+  state?: string;
+  postalCode?: string;
+}
+
+interface AsaasPayment {
+  id: string;
+  status: string;
+  invoiceUrl?: string;
+}
+
 async function asaasFetch<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
-  const apiKey = getAsaasApiKey();
-  if (!apiKey) {
-    throw new Error('ASAAS_API_KEY is not configured on the server.');
-  }
+  const apiKey = await getServerSecret('asaasApiKey');
 
   const baseUrl = getAsaasApiUrl();
   const url = `${baseUrl}${endpoint.startsWith('/') ? endpoint : `/${endpoint}`}`;
@@ -116,8 +102,8 @@ export const asaasService = {
   /**
    * Obtém os detalhes de um cliente por ID
    */
-  async getCustomer(id: string): Promise<any> {
-    return asaasFetch(`/customers/${id}`);
+  async getCustomer(id: string): Promise<AsaasCustomer> {
+    return asaasFetch<AsaasCustomer>(`/customers/${id}`);
   },
 
   /**
@@ -154,10 +140,10 @@ export const asaasService = {
   /**
    * Cria uma nova cobrança (PIX, Cartão de Crédito ou Boleto)
    */
-  async createPayment(input: AsaasPaymentInput): Promise<any> {
+  async createPayment(input: AsaasPaymentInput): Promise<AsaasPayment> {
     const isInstallment = !!(input.installmentCount && input.installmentCount > 1);
 
-    const payload: any = {
+    const payload: Record<string, unknown> = {
       customer: input.customer,
       billingType: input.billingType,
       dueDate: input.dueDate,
@@ -181,7 +167,7 @@ export const asaasService = {
       payload.creditCardHolderInfo = input.creditCardHolderInfo;
     }
 
-    return asaasFetch('/payments', {
+    return asaasFetch<AsaasPayment>('/payments', {
       method: 'POST',
       body: JSON.stringify(payload)
     });
@@ -197,7 +183,7 @@ export const asaasService = {
   /**
    * Consulta status de uma cobrança existente
    */
-  async getPaymentStatus(paymentId: string): Promise<any> {
-    return asaasFetch(`/payments/${paymentId}`);
+  async getPaymentStatus(paymentId: string): Promise<AsaasPayment> {
+    return asaasFetch<AsaasPayment>(`/payments/${paymentId}`);
   }
 };

@@ -1,7 +1,5 @@
+import 'server-only';
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
-
-const DEFAULT_SUPABASE_URL = 'https://gnqqaskurjkrllnhjygt.supabase.co';
-const DEFAULT_SUPABASE_SERVICE_KEY = 'dummy-service-role-key-for-build';
 
 function resolveUrl(): string {
   const envUrl = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -11,7 +9,7 @@ function resolveUrl(): string {
       return trimmed;
     }
   }
-  return DEFAULT_SUPABASE_URL;
+  throw new Error('NEXT_PUBLIC_SUPABASE_URL ou SUPABASE_URL deve ser configurada no servidor.');
 }
 
 function resolveKey(): string {
@@ -22,34 +20,49 @@ function resolveKey(): string {
       return trimmed;
     }
   }
-  return DEFAULT_SUPABASE_SERVICE_KEY;
+  throw new Error('SUPABASE_SERVICE_ROLE_KEY ou SUPABASE_SECRET_KEY deve ser configurada no servidor.');
+}
+
+function resolveAnonKey(): string {
+  const envKey =
+    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ||
+    process.env.SUPABASE_PUBLISHABLE_KEY ||
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
+    '';
+  if (typeof envKey === 'string') {
+    const trimmed = envKey.trim();
+    if (trimmed.length > 0 && trimmed !== 'undefined' && trimmed !== 'null') {
+      return trimmed;
+    }
+  }
+  throw new Error('NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ou NEXT_PUBLIC_SUPABASE_ANON_KEY deve ser configurada para autenticação isolada.');
 }
 
 let _supabaseAdmin: SupabaseClient | null = null;
 
 export const getSupabaseAdmin = (): SupabaseClient => {
   if (!_supabaseAdmin) {
-    try {
-      const supabaseUrl = resolveUrl();
-      const supabaseSecretKey = resolveKey();
-
-      _supabaseAdmin = createClient(supabaseUrl, supabaseSecretKey, {
-        auth: {
-          autoRefreshToken: false,
-          persistSession: false,
-        },
-      });
-    } catch (err) {
-      console.warn('[SupabaseAdmin] Falha ao inicializar client Supabase:', err);
-      _supabaseAdmin = createClient(DEFAULT_SUPABASE_URL, DEFAULT_SUPABASE_SERVICE_KEY, {
-        auth: {
-          autoRefreshToken: false,
-          persistSession: false,
-        },
-      });
-    }
+    _supabaseAdmin = createClient(resolveUrl(), resolveKey(), {
+      auth: {
+        autoRefreshToken: false,
+        persistSession: false,
+      },
+    });
   }
   return _supabaseAdmin;
+};
+
+/**
+ * Cria um cliente isolado para autenticação de usuário (signInWithPassword).
+ * Evita que o client admin (service_role) tenha seus headers sobrescritos pelo JWT do usuário.
+ */
+export const createIsolatedAuthClient = (): SupabaseClient => {
+  return createClient(resolveUrl(), resolveAnonKey(), {
+    auth: {
+      autoRefreshToken: false,
+      persistSession: false,
+    },
+  });
 };
 
 /**

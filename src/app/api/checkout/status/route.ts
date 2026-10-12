@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { asaasService } from '@/services/asaas';
 import { supabaseAdmin } from '@/utils/supabase/admin';
-import { provisionSupabaseUserAndProfile } from '@/services/userService';
 
 export const dynamic = 'force-dynamic';
 
@@ -14,48 +13,24 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: 'ID do pagamento não informado.' }, { status: 400 });
     }
 
+    const { data: pending, error: pendingError } = await supabaseAdmin
+      .from('pending_checkouts')
+      .select('status')
+      .eq('payment_id', paymentId)
+      .maybeSingle();
+    if (pendingError || !pending) return NextResponse.json({ error: 'Pagamento não encontrado.' }, { status: 404 });
+
     // 1. Consultar status no Asaas
     const payment = await asaasService.getPaymentStatus(paymentId);
     const isApproved = payment.status === 'CONFIRMED' || payment.status === 'RECEIVED';
 
     if (isApproved) {
-      // 2. Buscar dados da sessão pendente
-      const { data: pending } = await supabaseAdmin
-        .from('pending_checkouts')
-        .select('*')
-        .eq('payment_id', paymentId)
-        .maybeSingle();
-
-      if (pending && pending.status !== 'CONFIRMED') {
-        // Criar usuário e perfil no Supabase
-        await provisionSupabaseUserAndProfile({
-          email: pending.email,
-          name: pending.full_name,
-          phone: pending.phone,
-          birthDate: pending.birth_date,
-          age: pending.age,
-          profession: pending.profession,
-          address: pending.address,
-          asaasCustomerId: pending.asaas_customer_id,
-          asaasPaymentId: paymentId
-        });
-
-        // Atualizar status no pending_checkouts
-        await supabaseAdmin
-          .from('pending_checkouts')
-          .update({ status: 'CONFIRMED', updated_at: new Date().toISOString() })
-          .eq('payment_id', paymentId);
-      }
-
-      const clientEmail = pending?.email || '';
-      const clientName = pending?.full_name || '';
+      const isProvisioned = pending.status === 'CONFIRMED';
 
       return NextResponse.json({
         confirmed: true,
         status: payment.status,
-        activationSent: true,
-        email: clientEmail,
-        name: clientName
+        activationSent: isProvisioned
       });
     }
 

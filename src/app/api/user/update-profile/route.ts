@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/utils/supabase/admin';
 import { validateAndSanitizeBody } from '@/utils/security';
 import { NICKNAME_REGEX, normalizeNickname } from '@/lib/nickname';
+import { getAuthenticatedUser } from '@/utils/supabase/authenticated';
 
 export const dynamic = 'force-dynamic';
 
@@ -15,11 +16,10 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: reason || 'Entrada inválida' }, { status: 400 });
     }
 
-    const { userId, firstName, lastName, phone, email, avatarUrl, nickname } = sanitized;
-
-    if (!userId) {
-      return NextResponse.json({ error: 'ID do usuário não fornecido.' }, { status: 400 });
-    }
+    const { user, supabase } = await getAuthenticatedUser();
+    if (!user) return NextResponse.json({ error: 'Não autenticado.' }, { status: 401 });
+    const userId = user.id;
+    const { firstName, lastName, phone, email, avatarUrl, nickname } = sanitized;
 
     const fullName = [firstName || '', lastName || ''].join(' ').trim();
 
@@ -32,9 +32,8 @@ export async function POST(req: NextRequest) {
       updated_at: new Date().toISOString(),
     };
 
-    if (email) {
-      updateData.email = email.toLowerCase().trim();
-    }
+    const normalizedEmail = typeof email === 'string' ? email.trim().toLowerCase() : user.email;
+    const emailChangeRequested = !!normalizedEmail && normalizedEmail !== user.email?.toLowerCase();
 
     if (avatarUrl) {
       updateData.avatar_url = avatarUrl;
@@ -68,6 +67,7 @@ export async function POST(req: NextRequest) {
 
     if (profileError) {
       console.error('Erro ao atualizar profiles:', profileError);
+      return NextResponse.json({ error: 'Não foi possível atualizar o perfil.' }, { status: 500 });
     }
 
     // 3. Atualizar dados no auth.users do Supabase
@@ -79,13 +79,10 @@ export async function POST(req: NextRequest) {
       },
     };
 
-    // Se o e-mail foi alterado e é diferente
-    if (email) {
-      const normalizedEmail = email.toLowerCase().trim();
-      const { data: userRecord } = await supabaseAdmin.auth.admin.getUserById(userId);
-      if (userRecord?.user?.email?.toLowerCase() !== normalizedEmail) {
-        authUpdatePayload.email = normalizedEmail;
-        authUpdatePayload.email_confirm = true; // Confirma o novo e-mail
+    if (emailChangeRequested) {
+      const { error: emailError } = await supabase.auth.updateUser({ email: normalizedEmail });
+      if (emailError) {
+        return NextResponse.json({ error: emailError.message || 'Não foi possível solicitar a troca de e-mail.' }, { status: 400 });
       }
     }
 
@@ -104,7 +101,9 @@ export async function POST(req: NextRequest) {
       user: {
         fullName,
         phone,
-        email,
+        email: user.email,
+        emailChangeRequested,
+        pendingEmail: emailChangeRequested ? normalizedEmail : null,
         avatarUrl,
       },
     });

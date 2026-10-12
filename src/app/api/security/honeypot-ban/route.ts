@@ -1,60 +1,49 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/utils/supabase/admin';
+import { timingSafeEqual } from 'node:crypto';
+import { z } from 'zod';
+import { getClientIp } from '@/utils/clientIp';
+import { readJsonLimited } from '@/utils/rateLimit';
 
 export const dynamic = 'force-dynamic';
 
+const banSchema = z.object({
+  mac: z.string().max(200).optional(),
+  honeypotPath: z.string().min(1).max(500),
+  userAgent: z.string().max(1000).optional(),
+}).strict();
+
 export async function POST(req: NextRequest) {
   try {
-    const body = await req.json().catch(() => ({}));
-    const { ip, mac, honeypotPath, userAgent, headers } = body;
+    const expected = process.env.HONEYPOT_SECRET || '';
+    const received = req.headers.get('x-flmmkr-internal-secret') || '';
+    const expectedBytes = Buffer.from(expected);
+    const receivedBytes = Buffer.from(received);
+    if (!expected || expectedBytes.length !== receivedBytes.length || !timingSafeEqual(expectedBytes, receivedBytes)) {
+      return NextResponse.json({ error: 'Não autorizado.' }, { status: 401 });
+    }
 
-    const forwardedFor = req.headers.get('x-forwarded-for');
-    const realIp = req.headers.get('x-real-ip');
-    const finalIp = ip || (forwardedFor ? forwardedFor.split(',')[0].trim() : realIp) || '127.0.0.1';
+    const body = await readJsonLimited(req, 4_096);
+    const parsed = banSchema.safeParse(body);
+    if (!parsed.success) return NextResponse.json({ error: 'Dados inválidos.' }, { status: 400 });
+    const { mac, honeypotPath, userAgent } = parsed.data;
+    const finalIp = getClientIp(req) || 'UNKNOWN';
 
-    console.warn(`[HONEYPOT REGISTRATION] Banindo atacante: IP=${finalIp}, MAC=${mac}, Rota=${honeypotPath}`);
+    console.warn('[HONEYPOT REGISTRATION] Evento de segurança recebido.');
 
-    await supabaseAdmin.from('blocked_attackers').insert({
+    const { error } = await supabaseAdmin.from('blocked_attackers').insert({
       ip_address: finalIp,
       mac_address: mac || null,
       honeypot_triggered: honeypotPath || 'UNKNOWN_HONEYPOT',
       user_agent: userAgent || req.headers.get('user-agent') || null,
-      request_headers: headers || null,
+      request_headers: null,
       is_banned: true,
       notes: 'Bloqueio automático acionado pelo middleware do Honeypot.'
     });
+    if (error) throw error;
 
     return NextResponse.json({ banned: true });
-  } catch (err: any) {
-    console.error('[Honeypot Ban API Error]:', err);
+  } catch {
     return NextResponse.json({ error: 'Erro ao processar banimento' }, { status: 500 });
-  }
-}
-
-export async function GET(req: NextRequest) {
-  try {
-    const { searchParams } = new URL(req.url);
-    const ip = searchParams.get('ip');
-    const mac = searchParams.get('mac');
-
-    if (!ip && !mac) {
-      return NextResponse.json({ banned: false });
-    }
-
-    let query = supabaseAdmin.from('blocked_attackers').select('id').eq('is_banned', true);
-    if (ip && mac) {
-      query = query.or(`ip_address.eq.${ip},mac_address.eq.${mac}`);
-    } else if (ip) {
-      query = query.eq('ip_address', ip);
-    } else if (mac) {
-      query = query.eq('mac_address', mac);
-    }
-
-    const { data } = await query.limit(1);
-    const isBanned = !!(data && data.length > 0);
-
-    return NextResponse.json({ banned: isBanned });
-  } catch (err) {
-    return NextResponse.json({ banned: false });
   }
 }

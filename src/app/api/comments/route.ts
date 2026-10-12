@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { getMediaUrl } from '@/lib/storage';
 import { supabaseAdmin } from '@/utils/supabase/admin';
+import { getAuthenticatedUser } from '@/utils/supabase/authenticated';
 
 export const dynamic = 'force-dynamic';
 
@@ -7,7 +9,8 @@ export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
     const lessonId = searchParams.get('lessonId');
-    const userId = searchParams.get('userId');
+    const { user } = await getAuthenticatedUser();
+    const userId = user?.id || null;
 
     if (!lessonId) {
       return NextResponse.json({ error: 'lessonId é obrigatório' }, { status: 400 });
@@ -15,7 +18,7 @@ export async function GET(req: NextRequest) {
 
     // 1. Verificar se o usuário é administrador/professor
     let isAdmin = false;
-    if (userId) {
+    if (user) {
       const { data: prof } = await supabaseAdmin
         .from('profiles')
         .select('role')
@@ -104,7 +107,9 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { lessonId, moduleId, content, isPublic = true, parentId = null, userId } = body;
+    const { user } = await getAuthenticatedUser();
+    const userId = user?.id;
+    const { lessonId, moduleId, content, isPublic = true, parentId = null } = body;
 
     if (!userId) {
       return NextResponse.json({ error: 'Usuário não autenticado' }, { status: 401 });
@@ -135,7 +140,7 @@ export async function POST(req: NextRequest) {
       .maybeSingle();
 
     const userName = prof?.full_name || prof?.first_name || 'Aluno';
-    const userAvatar = prof?.avatar_url || '/media/banners/hero_01.webp';
+    const userAvatar = prof?.avatar_url || getMediaUrl('banners/hero_01.webp');
 
     // 2. Inserir comentário no banco de dados
     const { data: newComment, error: insertError } = await supabaseAdmin
@@ -241,7 +246,8 @@ export async function DELETE(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
     const commentId = searchParams.get('id');
-    const userId = searchParams.get('userId');
+    const { user } = await getAuthenticatedUser();
+    const userId = user?.id;
 
     if (!commentId || !userId) {
       return NextResponse.json({ error: 'ID do comentário e ID do usuário são obrigatórios' }, { status: 400 });

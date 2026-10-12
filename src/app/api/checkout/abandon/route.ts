@@ -1,11 +1,36 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/utils/supabase/admin';
+import { z } from 'zod';
+import { getClientIp } from '@/utils/clientIp';
+import { consumeRateLimit, readJsonLimited } from '@/utils/rateLimit';
 
 export const dynamic = 'force-dynamic';
 
+const leadSchema = z.object({
+  name: z.string().max(200).optional(),
+  email: z.string().email().max(254).optional(),
+  phone: z.string().max(40).optional(),
+  location: z.string().max(200).optional(),
+  profession: z.string().max(120).optional(),
+  paymentMethod: z.string().max(40).optional(),
+  reason: z.string().max(500).optional(),
+  trafficSource: z.string().max(120).optional(),
+  deviceFingerprint: z.string().max(200).optional(),
+  utmSource: z.string().max(120).optional(),
+  referrer: z.string().max(1000).optional(),
+}).strict();
+
 export async function POST(req: NextRequest) {
   try {
-    const body = await req.json();
+    const allowed = await consumeRateLimit(req, 'checkout-abandon', 10, 60);
+    if (allowed === null) return NextResponse.json({ error: 'Serviço indisponível.' }, { status: 503 });
+    if (!allowed) return NextResponse.json({ error: 'Muitas requisições.' }, { status: 429 });
+    const body = await readJsonLimited(req, 16_384);
+    if (!body) {
+      return NextResponse.json({ error: 'Requisição muito grande.' }, { status: 413 });
+    }
+    const parsed = leadSchema.safeParse(body);
+    if (!parsed.success) return NextResponse.json({ error: 'Dados inválidos.' }, { status: 400 });
     const {
       name,
       email,
@@ -18,7 +43,7 @@ export async function POST(req: NextRequest) {
       deviceFingerprint,
       utmSource,
       referrer
-    } = body;
+    } = parsed.data;
 
     // Registra apenas se ao menos tiver nome ou profissão preenchidos
     if (!name && !profession && !location) {
@@ -27,16 +52,18 @@ export async function POST(req: NextRequest) {
 
     // Recuperar atribuição de tráfego do cookie se não veio no body
     const cookieAttrRaw = req.cookies.get('flmmkr_attribution')?.value;
-    let cookieAttr: any = null;
+    let cookieAttr: { sourceName?: string; deviceFingerprint?: string; utmSource?: string } | null = null;
     if (cookieAttrRaw) {
       try {
-        cookieAttr = JSON.parse(decodeURIComponent(cookieAttrRaw));
+        const parsed: unknown = JSON.parse(decodeURIComponent(cookieAttrRaw));
+        if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
+          cookieAttr = parsed as typeof cookieAttr;
+        }
       } catch {}
     }
 
     // IP do visitante
-    const forwarded = req.headers.get('x-forwarded-for');
-    const ip = forwarded ? forwarded.split(',')[0].trim() : (req.headers.get('x-real-ip') || '127.0.0.1');
+    const ip = getClientIp(req);
 
     const finalTrafficSource = trafficSource || cookieAttr?.sourceName || 'Direto';
     const finalDeviceFingerprint = deviceFingerprint || cookieAttr?.deviceFingerprint || null;
@@ -56,7 +83,7 @@ export async function POST(req: NextRequest) {
         failure_reason: reason || 'Usuário fechou o modal de checkout sem concluir o pagamento',
         traffic_source: finalTrafficSource,
         device_fingerprint: finalDeviceFingerprint,
-        ip,
+        ip: ip || 'UNKNOWN',
         utm_source: finalUtmSource,
         referrer: finalReferrer,
         created_at: new Date().toISOString()
@@ -67,8 +94,8 @@ export async function POST(req: NextRequest) {
     }
 
     return NextResponse.json({ success: true });
-  } catch (err: any) {
-    console.error('Erro no endpoint de abandono de carrinho:', err?.message || err);
+  } catch (err: unknown) {
+    console.error('Erro no endpoint de abandono de carrinho:', err instanceof Error ? err.message : 'Falha interna');
     return NextResponse.json({ error: 'Erro ao registrar abandono' }, { status: 500 });
   }
 }

@@ -26,11 +26,11 @@ function resolveKey(): string {
   return DEFAULT_SUPABASE_ANON_KEY;
 }
 
-export const createClient = (request: NextRequest) => {
+export const createClient = (request: NextRequest, forwardedHeaders: Headers = request.headers) => {
   // Create an unmodified response
   let supabaseResponse = NextResponse.next({
     request: {
-      headers: request.headers,
+      headers: forwardedHeaders,
     },
   });
 
@@ -45,7 +45,7 @@ export const createClient = (request: NextRequest) => {
         setAll(cookiesToSet) {
           cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value));
           supabaseResponse = NextResponse.next({
-            request,
+            request: { headers: forwardedHeaders },
           });
           cookiesToSet.forEach(({ name, value, options }) =>
             supabaseResponse.cookies.set(name, value, options)

@@ -64,11 +64,7 @@ export function extractLocation(req: Request): string {
 }
 
 export function extractIpAddress(req: Request): string {
-  const forwarded = req.headers.get('x-forwarded-for');
-  if (forwarded) {
-    return forwarded.split(',')[0].trim();
-  }
-  return req.headers.get('x-real-ip') || '127.0.0.1';
+  return getClientIp(req) || '';
 }
 
 export function getDeviceInfoFromRequest(req: Request): DeviceInfo {
@@ -79,3 +75,4 @@ export function getDeviceInfoFromRequest(req: Request): DeviceInfo {
     location: extractLocation(req),
   };
 }
+import { getClientIp } from '@/utils/clientIp';

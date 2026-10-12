@@ -1,21 +1,21 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/utils/supabase/admin';
+import { getAuthenticatedUser } from '@/utils/supabase/authenticated';
 
 export const dynamic = 'force-dynamic';
+const COURSE_ID = 'color-master-produto';
 
 export async function GET(req: NextRequest) {
   try {
-    const { searchParams } = new URL(req.url);
-    const userId = searchParams.get('userId');
-
-    if (!userId) {
-      return NextResponse.json({ error: 'userId é obrigatório.' }, { status: 400 });
-    }
+    const { user } = await getAuthenticatedUser();
+    if (!user) return NextResponse.json({ error: 'Não autenticado.' }, { status: 401 });
+    const userId = user.id;
 
     const { data, error } = await supabaseAdmin
       .from('user_reading_state')
       .select('*')
       .eq('user_id', userId)
+      .eq('course_id', COURSE_ID)
       .maybeSingle();
 
     if (error) {
@@ -33,17 +33,21 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { userId, lastModuleId, lastLessonId, lastSubtabId, lastTab, scrollTop } = body;
+    const { lastModuleId, lastLessonId, lastSubtabId, lastTab, scrollTop } = body;
+    const { user } = await getAuthenticatedUser();
+    if (!user) return NextResponse.json({ error: 'Não autenticado.' }, { status: 401 });
+    const userId = user.id;
 
     if (!userId || !lastLessonId) {
       return NextResponse.json(
-        { error: 'userId e lastLessonId são obrigatórios.' },
+        { error: 'lastLessonId é obrigatório.' },
         { status: 400 }
       );
     }
 
     const payload = {
       user_id: userId,
+      course_id: COURSE_ID,
       last_module_id: lastModuleId || 'mod1',
       last_lesson_id: lastLessonId,
       last_subtab_id: lastSubtabId || null,
@@ -54,7 +58,7 @@ export async function POST(req: NextRequest) {
 
     const { data, error } = await supabaseAdmin
       .from('user_reading_state')
-      .upsert(payload, { onConflict: 'user_id' })
+      .upsert(payload, { onConflict: 'user_id,course_id' })
       .select()
       .single();
 

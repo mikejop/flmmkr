@@ -1,16 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/utils/supabase/admin';
+import { getAuthenticatedUser } from '@/utils/supabase/authenticated';
 
 export const dynamic = 'force-dynamic';
 
 export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
-    const userId = searchParams.get('userId');
-
-    if (!userId) {
-      return NextResponse.json({ error: 'userId é obrigatório' }, { status: 400 });
-    }
+    const { user } = await getAuthenticatedUser();
+    if (!user) return NextResponse.json({ error: 'Não autenticado.' }, { status: 401 });
+    const userId = user.id;
 
     const { data: notifications, error } = await supabaseAdmin
       .from('user_notifications')
@@ -38,11 +37,10 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { userId, notificationId, markAll } = body;
-
-    if (!userId) {
-      return NextResponse.json({ error: 'userId é obrigatório' }, { status: 400 });
-    }
+    const { notificationId, markAll } = body;
+    const { user } = await getAuthenticatedUser();
+    if (!user) return NextResponse.json({ error: 'Não autenticado.' }, { status: 401 });
+    const userId = user.id;
 
     if (markAll) {
       const { error } = await supabaseAdmin
@@ -76,13 +74,11 @@ export async function POST(req: NextRequest) {
 export async function DELETE(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
-    const userId = searchParams.get('userId');
+    const { user } = await getAuthenticatedUser();
+    if (!user) return NextResponse.json({ error: 'Não autenticado.' }, { status: 401 });
+    const userId = user.id;
     const id = searchParams.get('id');
     const all = searchParams.get('all') === '1';
-
-    if (!userId) {
-      return NextResponse.json({ error: 'userId é obrigatório' }, { status: 400 });
-    }
 
     if (all) {
       const { error } = await supabaseAdmin.from('user_notifications').delete().eq('user_id', userId);

@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/utils/supabase/admin';
 import { validateAndSanitizeBody, detectSqlInjection } from '@/utils/security';
-import { validateActivationToken, consumeActivationToken } from '@/services/activationService';
+import { validateActivationToken, consumeActivationToken, releaseActivationToken } from '@/services/activationService';
 import { verifyAndSyncPaymentAccess } from '@/services/paymentVerificationService';
 import { getDeviceInfoFromRequest } from '@/utils/deviceDetection';
 import crypto from 'crypto';
+import { writeSupabaseSessionCookies } from '@/utils/supabase/sessionCookies';
 
 export const dynamic = 'force-dynamic';
 
@@ -93,6 +94,11 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    // Claim the bearer token atomically so concurrent requests cannot reuse it.
+    if (!(await consumeActivationToken(token))) {
+      return NextResponse.json({ success: false, error: 'Link de primeiro acesso inválido, expirado ou já utilizado.' }, { status: 409 });
+    }
+
     // 5. Criptografia e Atualização de Senha no Supabase Auth
     // O Supabase Auth criptografa a senha nativamente usando Bcrypt com salt seguro
     const { error: updateErr } = await supabaseAdmin.auth.admin.updateUserById(userId, {
@@ -105,6 +111,7 @@ export async function POST(req: NextRequest) {
     });
 
     if (updateErr) {
+      await releaseActivationToken(token);
       console.error('[First Access] Erro ao salvar senha no Supabase:', updateErr);
       return NextResponse.json(
         { success: false, error: 'Falha ao criptografar e registrar senha.' },
@@ -112,10 +119,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // 6. Consumir token único
-    await consumeActivationToken(token);
-
-    // 7. Autenticar usuário para gerar sessão
+    // 6. Autenticar usuário para gerar sessão
     const { data: signInData, error: signInErr } = await supabaseAdmin.auth.signInWithPassword({
       email,
       password
@@ -146,12 +150,12 @@ export async function POST(req: NextRequest) {
       last_heartbeat_at: nowIso
     });
 
-    return NextResponse.json({
+    const response = NextResponse.json({
       success: true,
-      session: signInData.session,
-      user: signInData.user,
       sessionToken
     });
+    await writeSupabaseSessionCookies(req, response, signInData.session);
+    return response;
   } catch (err: any) {
     console.error('[API /api/auth/first-access Exception]:', err);
     return NextResponse.json(
