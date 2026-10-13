@@ -32,6 +32,7 @@ import AnaliseTecnicaArticle from '@/components/AnaliseTecnicaArticle';
 import AnaliseTecnicaVideo from '@/components/AnaliseTecnicaVideo';
 import GenericLessonArticle from '@/components/GenericLessonArticle';
 import PandaPlaylistPlayer from '@/components/PandaPlaylistPlayer';
+import PandaSingleVideo from '@/components/PandaSingleVideo';
 
 // Lazy load heavy interactive tools for instant initial render and 0 lag
 const ExposureCalculator = lazy(() => import('@/components/ExposureCalculator'));
@@ -1331,6 +1332,12 @@ export function MemberAreaApp({ skipInternalPreloader = false }: { skipInternalP
                       />
                     ) : activeLessonId === 'mod1-analise-tecnica' ? (
                       <AnaliseTecnicaVideo onLessonEnded={() => handleLessonFinished(activeLessonId)} />
+                    ) : activeLessonId === 'mod1-2' ? (
+                      <PandaSingleVideo
+                        videoId="daedd222-f8da-4bf6-8a22-2c94904c6ed3"
+                        title="Gerenciamento de Cores"
+                        onLessonEnded={() => handleLessonFinished(activeLessonId)}
+                      />
                     ) : (
                       <VideoLessonPlayer
                         ref={playerRef}
