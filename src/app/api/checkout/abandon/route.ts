@@ -52,12 +52,13 @@ export async function POST(req: NextRequest) {
 
     // Recuperar atribuição de tráfego do cookie se não veio no body
     const cookieAttrRaw = req.cookies.get('flmmkr_attribution')?.value;
-    let cookieAttr: { sourceName?: string; deviceFingerprint?: string; utmSource?: string } | null = null;
+    type CookieAttribution = { sourceName?: string; deviceFingerprint?: string; utmSource?: string };
+    let cookieAttr: CookieAttribution | null = null as CookieAttribution | null;
     if (cookieAttrRaw) {
       try {
         const parsed: unknown = JSON.parse(decodeURIComponent(cookieAttrRaw));
         if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
-          cookieAttr = parsed as typeof cookieAttr;
+          cookieAttr = parsed as CookieAttribution;
         }
       } catch {}
     }

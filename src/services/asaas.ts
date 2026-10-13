@@ -68,6 +68,8 @@ interface AsaasPayment {
   id: string;
   status: string;
   invoiceUrl?: string;
+  errors?: { description?: string }[];
+  refusalReason?: string;
 }
 
 async function asaasFetch<T>(endpoint: string, options: RequestInit = {}): Promise<T> {

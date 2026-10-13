@@ -115,7 +115,7 @@ export async function POST(req: NextRequest) {
                 await provisionSupabaseUserAndProfile({
                   email: customer.email,
                   name: customer.name || 'Aluno FLMMKR',
-                  phone: customer.mobilePhone || customer.phone || null,
+                  phone: customer.mobilePhone || customer.phone || undefined,
                   address: customer.address ? {
                     street: customer.address,
                     number: customer.addressNumber,

@@ -60,7 +60,7 @@ export default function AnaliseTecnicaVideo({ onLessonEnded }: { onLessonEnded?:
           className="absolute inset-0 h-full w-full border-0"
           allow="accelerometer; gyroscope; autoplay; encrypted-media; picture-in-picture"
           allowFullScreen
-          fetchPriority="high"
+          {...({ fetchPriority: 'high' } as Record<string, string>)}
         />
       </div>
     </div>

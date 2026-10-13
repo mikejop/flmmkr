@@ -176,11 +176,11 @@ export async function resolveOfferTimerSession(clientIdentifier: string): Promis
 
   const shouldStart = !session || now >= new Date(session.cooldownUntil).getTime() ||
     new Date(session.firstAccessAt).getTime() <= launchEnd;
-  const firstAccessAt = shouldStart ? new Date(now).toISOString() : session.firstAccessAt;
-  const expiresAt = shouldStart ? new Date(now + TIMER_DURATION_MS).toISOString() : session.expiresAt;
+  const firstAccessAt = shouldStart ? new Date(now).toISOString() : session!.firstAccessAt;
+  const expiresAt = shouldStart ? new Date(now + TIMER_DURATION_MS).toISOString() : session!.expiresAt;
   const cooldownUntil = shouldStart
     ? new Date(now + TIMER_DURATION_MS + COOLDOWN_DURATION_MS).toISOString()
-    : session.cooldownUntil;
+    : session!.cooldownUntil;
   const isExpired = now >= new Date(expiresAt).getTime();
 
   const record: UserTimerRecord = {
