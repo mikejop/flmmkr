@@ -1172,6 +1172,9 @@ export function MemberAreaApp({ skipInternalPreloader = false }: { skipInternalP
                   }}
                 />
 
+                {/* Acessibilidade: entre o sino e o perfil */}
+                <AccessibilityWidget placement="header" />
+
                 {/* User Profile / Login */}
                 {isLoggedIn ? (
                   <div className="relative">
@@ -1180,14 +1183,8 @@ export function MemberAreaApp({ skipInternalPreloader = false }: { skipInternalP
                       aria-label={`Menu da conta de ${userProfile.firstName}`}
                       aria-haspopup="menu"
                       aria-expanded={isProfileMenuOpen}
-                      className="flex items-center gap-2 p-1 sm:pl-2.5 rounded-full bg-white/[0.08] hover:bg-white/[0.15] border border-white/15 backdrop-blur-md shadow-xs cursor-pointer transition-all"
+                      className="flex items-center p-0.5 rounded-full bg-white/[0.08] hover:bg-white/[0.15] border border-white/15 backdrop-blur-md shadow-xs cursor-pointer transition-all"
                     >
-                      <div className="text-right hidden sm:block">
-                        <span className="text-xs font-bold text-white block leading-none">{userProfile.firstName}</span>
-                        <span className="text-xs text-[#00c7fc] font-semibold block leading-none mt-1">
-                          {isMasterAdmin ? 'ADMIN' : 'ALUNO'}
-                        </span>
-                      </div>
                       <img 
                         src={userProfile.avatar} 
                         alt="" 
@@ -1272,7 +1269,11 @@ export function MemberAreaApp({ skipInternalPreloader = false }: { skipInternalP
 
               <TextHighlighterTool lessonId={activeLessonId} containerRef={lessonContainerRef} />
               
-              <div className="w-full max-w-[1536px] mx-auto px-4 sm:px-6 lg:px-10 py-8 flex-1 space-y-8">
+              <div
+                id="lesson-zoom-target"
+                style={{ zoom: 'var(--lesson-zoom-scale, 1)' }}
+                className="w-full max-w-[1536px] mx-auto px-4 sm:px-6 lg:px-10 py-8 flex-1 space-y-8"
+              >
                 
                 {/* Lesson Header */}
                 <div className="space-y-3 border-b border-neutral-200/80 pb-5">
@@ -1491,7 +1492,6 @@ export function MemberAreaApp({ skipInternalPreloader = false }: { skipInternalP
 
 
       {/* ACCESSIBILITY WIDGET */}
-      <AccessibilityWidget />
 
       {/* LOGIN MODAL */}
       <LoginModal 

@@ -22,7 +22,8 @@ const DEFAULT_PREFS: AccessibilityPrefs = {
 
 const STORAGE_KEY = 'youtuber_pro_a11y_prefs';
 
-export const AccessibilityWidget: React.FC = () => {
+export const AccessibilityWidget: React.FC<{ placement?: 'floating' | 'header' }> = ({ placement = 'floating' }) => {
+  const inHeader = placement === 'header';
   const [isOpen, setIsOpen] = useState(false);
   const guideRef = useRef<HTMLDivElement | null>(null);
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -102,6 +103,17 @@ export const AccessibilityWidget: React.FC = () => {
     }
   }, [prefs]);
 
+  // Slider/botões da barra de zoom também mudam o tamanho aqui (controles ligados entre si).
+  useEffect(() => {
+    const onZoom = (e: Event) => {
+      const value = (e as CustomEvent<number>).detail;
+      if (typeof value !== 'number') return;
+      setPrefs((prev) => (prev.fontScale === value ? prev : { ...prev, fontScale: value }));
+    };
+    window.addEventListener('youtuber_pro_zoom_update', onZoom);
+    return () => window.removeEventListener('youtuber_pro_zoom_update', onZoom);
+  }, []);
+
   // Track mouse position for Reading Guide line with 0ms lag / 120fps hardware acceleration
   useEffect(() => {
     if (!prefs.readingGuide) return;
@@ -161,7 +173,7 @@ export const AccessibilityWidget: React.FC = () => {
 
       {/* Floating Accessibility Launcher Button (Right Side with Dyslexia 'A' Icon) */}
       <div 
-        className="fixed bottom-6 right-6 z-50"
+        className={inHeader ? 'relative' : 'fixed bottom-6 right-6 z-50'}
         onMouseEnter={clearAutoCloseTimer}
         onMouseLeave={() => {
           if (isOpen) startAutoCloseTimer();
@@ -171,17 +183,31 @@ export const AccessibilityWidget: React.FC = () => {
           onClick={() => setIsOpen(!isOpen)}
           aria-label="Abrir Menu de Acessibilidade Cognitiva e Dislexia"
           aria-expanded={isOpen}
-          className="group relative flex items-center justify-center w-12 h-12 rounded-full bg-[#0071E3] hover:bg-[#0077ED] text-white shadow-xl hover:scale-105 transition-all duration-200 focus:outline-none focus:ring-4 focus:ring-blue-400"
-          title="Acessibilidade & Leitura"
+          className={`group relative flex items-center justify-center rounded-full text-white focus:outline-none focus:ring-4 focus:ring-blue-400 ${
+            inHeader
+              ? `w-9 h-9 transition-colors border ${isOpen ? 'bg-[#0071E3] border-[#0071E3]' : 'bg-white/[0.06] border-white/10 hover:bg-[#0071E3] hover:border-[#0071E3] focus-visible:bg-[#0071E3]'}`
+              : 'w-12 h-12 bg-[#0071E3] hover:bg-[#0077ED] shadow-xl hover:scale-105 transition-all duration-200'
+          }`}
+          title={inHeader ? undefined : 'Acessibilidade & Leitura'}
         >
           {/* Stylized Dyslexic 'A' Icon */}
-          <span className="font-sans font-black text-xl leading-none select-none tracking-tighter transition-transform group-hover:scale-110">
+          <span className={`font-sans font-black leading-none select-none tracking-tighter ${inHeader ? 'text-base' : 'text-xl transition-transform group-hover:scale-110'}`}>
             A
           </span>
-          <span className="absolute -top-1 -right-1 flex h-3.5 w-3.5">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-300 opacity-75"></span>
-            <span className="relative inline-flex rounded-full h-3.5 w-3.5 bg-emerald-400"></span>
-          </span>
+          {inHeader && !isOpen && (
+            <span
+              role="tooltip"
+              className="pointer-events-none absolute top-full left-1/2 -translate-x-1/2 mt-2 whitespace-nowrap rounded-lg bg-[#2c2c2e] border border-white/10 px-2.5 py-1 text-xs font-medium text-white shadow-lg opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100 transition-opacity z-50"
+            >
+              Acessibilidade
+            </span>
+          )}
+          {!inHeader && (
+            <span className="absolute -top-1 -right-1 flex h-3.5 w-3.5">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-300 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-3.5 w-3.5 bg-emerald-400"></span>
+            </span>
+          )}
         </button>
 
         {/* Accessibility Control Panel Popover */}
@@ -189,7 +215,7 @@ export const AccessibilityWidget: React.FC = () => {
           <div 
             role="dialog"
             aria-label="Painel de Acessibilidade e Leitura"
-            className="absolute bottom-16 right-0 w-80 sm:w-96 p-5 rounded-2xl bg-[#1C1C1E]/95 backdrop-blur-xl border border-white/10 shadow-2xl text-white z-50 animate-fade-in"
+            className={`absolute right-0 w-80 sm:w-96 max-w-[90vw] p-5 ${inHeader ? 'top-12' : 'bottom-16'} rounded-2xl bg-[#1C1C1E]/95 backdrop-blur-xl border border-white/10 shadow-2xl text-white z-50 animate-fade-in`}
           >
             {/* Header */}
             <div className="flex items-center justify-between pb-4 border-b border-white/10 mb-4">

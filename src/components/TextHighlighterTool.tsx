@@ -136,23 +136,10 @@ export const TextHighlighterTool: React.FC<TextHighlighterToolProps> = ({ lesson
     return () => window.removeEventListener('youtuber_pro_zoom_update', handleZoomUpdate);
   }, []);
 
-  const handleZoomChange = (delta: number) => {
-    setZoomLevel((prev) => {
-      const next = Math.min(200, Math.max(50, prev + delta));
-      const s = `${next / 100}`;
-      document.documentElement.style.setProperty('--lesson-zoom-scale', s);
-      document.documentElement.style.setProperty('--lesson-font-scale', s);
-      try {
-        const saved = localStorage.getItem('youtuber_pro_a11y_prefs');
-        const prefs = saved ? JSON.parse(saved) : {};
-        localStorage.setItem('youtuber_pro_a11y_prefs', JSON.stringify({ ...prefs, fontScale: next }));
-      } catch (e) {}
-      return next;
-    });
-  };
-
+  // Aplica o zoom do conteúdo da aula (variável lida por #lesson-zoom-target) e avisa o
+  // widget de acessibilidade, para os dois controles ficarem sempre iguais.
   const handleSetZoomLevel = (val: number) => {
-    const next = Math.min(200, Math.max(50, val));
+    const next = Math.min(200, Math.max(50, Math.round(val)));
     setZoomLevel(next);
     const s = `${next / 100}`;
     document.documentElement.style.setProperty('--lesson-zoom-scale', s);
@@ -162,7 +149,10 @@ export const TextHighlighterTool: React.FC<TextHighlighterToolProps> = ({ lesson
       const prefs = saved ? JSON.parse(saved) : {};
       localStorage.setItem('youtuber_pro_a11y_prefs', JSON.stringify({ ...prefs, fontScale: next }));
     } catch (e) {}
+    window.dispatchEvent(new CustomEvent('youtuber_pro_zoom_update', { detail: next }));
   };
+
+  const handleZoomChange = (delta: number) => handleSetZoomLevel(zoomLevel + delta);
 
   const popupRef = useRef<HTMLDivElement>(null);
   const activePopoverRef = useRef<HTMLDivElement>(null);

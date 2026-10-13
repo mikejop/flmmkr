@@ -223,155 +223,7 @@ export default function PandaPlaylistPlayer({
 
   return (
     <div className="w-full bg-[#121318] border border-white/10 rounded-2xl sm:rounded-3xl shadow-2xl overflow-hidden selection:bg-[#0071e3] selection:text-white transition-all">
-      {/* Grid Principal: Lista na Vertical à Esquerda + Player à Direita */}
-      <div className="flex flex-col lg:flex-row w-full">
-        {/* LISTA DE VÍDEOS NA VERTICAL (LADO ESQUERDO) */}
-        <aside
-          onMouseEnter={handleSidebarMouseEnter}
-          onMouseLeave={handleSidebarMouseLeave}
-          className={`border-b lg:border-b-0 lg:border-r border-white/10 bg-[#0c0d11] transition-all duration-300 ease-in-out shrink-0 flex flex-col ${
-            isSidebarOpen
-              ? 'w-full lg:w-80 max-h-[320px] lg:max-h-none overflow-y-auto'
-              : 'hidden lg:flex lg:w-14 items-center py-4 bg-black/60'
-          }`}
-        >
-          {isSidebarOpen ? (
-            <div className="p-3 sm:p-4 space-y-2.5">
-              <div className="flex items-center justify-between pb-2 border-b border-white/5">
-                <span className="text-xs font-semibold uppercase tracking-wider text-white/50 flex items-center gap-2">
-                  <ListVideo className="w-3.5 h-3.5 text-[#0071e3]" />
-                  Aulas do Módulo ({videos.length})
-                </span>
-                <button
-                  onClick={handleSidebarClose}
-                  className="text-white/40 hover:text-white transition-colors cursor-pointer p-1 rounded"
-                  title="Minimizar lista"
-                >
-                  <ChevronLeft className="w-4 h-4" />
-                </button>
-              </div>
-
-              {/* Lista Vertical dos Vídeos */}
-              <div className="space-y-2">
-                {videos.map((vid, idx) => {
-                  const isCurrent = idx === currentIndex;
-                  const isCompleted = completedVideos.includes(vid.id);
-
-                  return (
-                    <button
-                      key={vid.id}
-                      onClick={() => handleSelectVideo(idx)}
-                      className={`w-full text-left p-2.5 sm:p-3 rounded-xl transition-all cursor-pointer flex items-center gap-3 border group ${
-                        isCurrent
-                          ? 'bg-[#0071e3]/10 border-[#0071e3] shadow-[0_0_20px_rgba(0,113,227,0.25)] ring-1 ring-[#0071e3]/50'
-                          : 'bg-white/5 border-white/5 hover:bg-white/10 hover:border-white/15'
-                      }`}
-                    >
-                      {/* Miniatura do PandaVideo */}
-                      <div className="relative w-20 sm:w-24 aspect-video rounded-lg overflow-hidden bg-black shrink-0 border border-white/10">
-                        {vid.thumbnail_url ? (
-                          <img
-                            src={vid.thumbnail_url}
-                            alt={vid.title}
-                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                            loading="lazy"
-                          />
-                        ) : (
-                          <div className="w-full h-full bg-zinc-900 flex items-center justify-center">
-                            <Play className="w-4 h-4 text-white/40" />
-                          </div>
-                        )}
-
-                        {/* Tag de duração na thumbnail */}
-                        <div className="absolute bottom-1 right-1 px-1 py-0.5 rounded bg-black/80 text-[10px] font-mono text-white/90">
-                          {vid.duration_formatted}
-                        </div>
-
-                        {/* Overlay se estiver tocando */}
-                        {isCurrent && (
-                          <div className="absolute inset-0 bg-[#0071e3]/30 flex items-center justify-center">
-                            <div className="w-6 h-6 rounded-full bg-[#0071e3] text-white flex items-center justify-center shadow-lg">
-                              <Play className="w-3 h-3 fill-current ml-0.5" />
-                            </div>
-                          </div>
-                        )}
-                      </div>
-
-                      {/* Informações textuais do vídeo */}
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-1.5 mb-1">
-                          <span
-                            className={`text-[10px] font-mono uppercase font-semibold px-1.5 py-0.5 rounded ${
-                              isCurrent
-                                ? 'bg-[#0071e3] text-white'
-                                : 'bg-white/10 text-white/60'
-                            }`}
-                          >
-                            {vid.part_label || `Parte ${idx + 1}`}
-                          </span>
-                          {isCompleted && (
-                            <CheckCircle2 className="w-3 h-3 text-emerald-400 shrink-0" />
-                          )}
-                        </div>
-
-                        <h4
-                          className={`text-xs font-medium leading-snug line-clamp-2 transition-colors ${
-                            isCurrent ? 'text-white font-semibold' : 'text-white/70 group-hover:text-white'
-                          }`}
-                        >
-                          {vid.title}
-                        </h4>
-
-                        <div className="flex items-center gap-2 mt-1 text-[11px] text-white/40">
-                          <span className="flex items-center gap-1">
-                            <Clock className="w-3 h-3" />
-                            {vid.duration_formatted}
-                          </span>
-                          {isCurrent && (
-                            <span className="text-[#0071e3] font-semibold text-[10px] animate-pulse">
-                              • Tocando
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-          ) : (
-            /* Versão minimizada da barra lateral */
-            <div className="flex flex-col items-center gap-4 py-2">
-              <button
-                onClick={handleSidebarOpen}
-                title="Maximizar lista de vídeos"
-                className="w-7 h-7 rounded-full bg-white/[0.04] hover:bg-white/10 border border-white/10 flex items-center justify-center text-[#0071e3]/80 hover:text-white transition-all duration-200 ease-out hover:scale-125 hover:shadow-[0_0_14px_rgba(0,113,227,0.3)] focus-visible:scale-125 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0071e3] cursor-pointer"
-              >
-                <ChevronRight className="w-4 h-4" />
-              </button>
-
-              <div className="flex flex-col items-center gap-3">
-                {videos.map((vid, idx) => {
-                  const isCurrent = idx === currentIndex;
-                  return (
-                    <button
-                      key={vid.id}
-                      onClick={() => handleSelectVideo(idx)}
-                      title={`${vid.title} (${vid.duration_formatted})`}
-                      className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-mono font-bold transition-all duration-200 ease-out hover:scale-125 focus-visible:scale-125 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0071e3] cursor-pointer ${
-                        isCurrent
-                          ? 'bg-[#0071e3]/80 text-white hover:bg-[#0071e3] hover:shadow-[0_0_14px_rgba(0,113,227,0.45)]'
-                          : 'bg-white/[0.04] text-white/40 hover:text-white hover:bg-white/10'
-                      }`}
-                    >
-                      {idx + 1}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-          )}
-        </aside>
+      <div className="flex flex-col w-full">
 
         {/* ÁREA DO PLAYER DO PANDAVIDEO (LADO DIREITO) */}
         <main className="flex-1 min-w-0 bg-black flex flex-col justify-center relative">
@@ -395,7 +247,7 @@ export default function PandaPlaylistPlayer({
               className="w-full h-full border-0 absolute inset-0"
               allow="accelerometer; gyroscope; autoplay; encrypted-media; picture-in-picture"
               allowFullScreen={true}
-              fetchPriority="high"
+              {...({ fetchPriority: 'high' } as Record<string, string>)}
             />
 
             {/* Máscara estética protetora contra logotipo do PandaVideo */}
@@ -405,6 +257,172 @@ export default function PandaPlaylistPlayer({
                 background: 'linear-gradient(to top left, rgba(0,0,0,0.4) 0%, transparent 60%)'
               }}
             />
+
+            {/* LISTA DE VÍDEOS: fica POR CIMA do vídeo (não empurra nem muda a proporção do player) */}
+            <aside
+              onMouseEnter={handleSidebarMouseEnter}
+              onMouseLeave={handleSidebarMouseLeave}
+              className="absolute inset-y-0 left-0 z-30 flex flex-col w-80 max-w-[88%] overflow-y-auto border-r border-white/10 bg-[#0c0d11]"
+              style={{
+                transform: isSidebarOpen ? 'translateX(0)' : 'translateX(-100%)',
+                boxShadow: isSidebarOpen ? '0 25px 50px -12px rgba(0,0,0,0.6)' : 'none',
+                pointerEvents: isSidebarOpen ? 'auto' : 'none',
+                transition: 'transform 320ms cubic-bezier(0.455, 0.03, 0.515, 0.955), box-shadow 320ms cubic-bezier(0.455, 0.03, 0.515, 0.955)',
+                willChange: 'transform',
+              }}
+              aria-hidden={!isSidebarOpen}
+              inert={!isSidebarOpen}
+            >
+                <div className="p-3 sm:p-4 space-y-2.5">
+                  <div className="flex items-center justify-between pb-2 border-b border-white/5">
+                    <span className="text-xs font-semibold uppercase tracking-wider text-white/50 flex items-center gap-2">
+                      <ListVideo className="w-3.5 h-3.5 text-[#0071e3]" />
+                      Aulas do Módulo ({videos.length})
+                    </span>
+                    <button
+                      onClick={handleSidebarClose}
+                      className="text-white/40 hover:text-white transition-colors cursor-pointer p-1 rounded"
+                      title="Minimizar lista"
+                    >
+                      <ChevronLeft className="w-4 h-4" />
+                    </button>
+                  </div>
+
+                  {/* Lista Vertical dos Vídeos */}
+                  <div className="space-y-2">
+                    {videos.map((vid, idx) => {
+                      const isCurrent = idx === currentIndex;
+                      const isCompleted = completedVideos.includes(vid.id);
+
+                      return (
+                        <button
+                          key={vid.id}
+                          onClick={() => handleSelectVideo(idx)}
+                          className={`w-full text-left p-2.5 sm:p-3 rounded-xl transition-all cursor-pointer flex items-center gap-3 border group ${
+                            isCurrent
+                              ? 'bg-[#0071e3]/10 border-[#0071e3] shadow-[0_0_20px_rgba(0,113,227,0.25)] ring-1 ring-[#0071e3]/50'
+                              : 'bg-white/5 border-white/5 hover:bg-white/10 hover:border-white/15'
+                          }`}
+                        >
+                          {/* Miniatura do PandaVideo */}
+                          <div className="relative w-20 sm:w-24 aspect-video rounded-lg overflow-hidden bg-black shrink-0 border border-white/10">
+                            {vid.thumbnail_url ? (
+                              <img
+                                src={vid.thumbnail_url}
+                                alt={vid.title}
+                                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                                loading="lazy"
+                              />
+                            ) : (
+                              <div className="w-full h-full bg-zinc-900 flex items-center justify-center">
+                                <Play className="w-4 h-4 text-white/40" />
+                              </div>
+                            )}
+
+                            {/* Tag de duração na thumbnail */}
+                            <div className="absolute bottom-1 right-1 px-1 py-0.5 rounded bg-black/80 text-[10px] font-mono text-white/90">
+                              {vid.duration_formatted}
+                            </div>
+
+                            {/* Overlay se estiver tocando */}
+                            {isCurrent && (
+                              <div className="absolute inset-0 bg-[#0071e3]/30 flex items-center justify-center">
+                                <div className="w-6 h-6 rounded-full bg-[#0071e3] text-white flex items-center justify-center shadow-lg">
+                                  <Play className="w-3 h-3 fill-current ml-0.5" />
+                                </div>
+                              </div>
+                            )}
+                          </div>
+
+                          {/* Informações textuais do vídeo */}
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-1.5 mb-1">
+                              <span
+                                className={`text-[10px] font-mono uppercase font-semibold px-1.5 py-0.5 rounded ${
+                                  isCurrent
+                                    ? 'bg-[#0071e3] text-white'
+                                    : 'bg-white/10 text-white/60'
+                                }`}
+                              >
+                                {vid.part_label || `Parte ${idx + 1}`}
+                              </span>
+                              {isCompleted && (
+                                <CheckCircle2 className="w-3 h-3 text-emerald-400 shrink-0" />
+                              )}
+                            </div>
+
+                            <h4
+                              className={`text-xs font-medium leading-snug line-clamp-2 transition-colors ${
+                                isCurrent ? 'text-white font-semibold' : 'text-white/70 group-hover:text-white'
+                              }`}
+                            >
+                              {vid.title}
+                            </h4>
+
+                            <div className="flex items-center gap-2 mt-1 text-[11px] text-white/40">
+                              <span className="flex items-center gap-1">
+                                <Clock className="w-3 h-3" />
+                                {vid.duration_formatted}
+                              </span>
+                              {isCurrent && (
+                                <span className="text-[#0071e3] font-semibold text-[10px] animate-pulse">
+                                  • Tocando
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+            </aside>
+
+            {/* Mini-barra (lista recolhida): entra/sai com a mesma curva quadrática */}
+            <aside
+              aria-label="Lista de vídeos recolhida"
+              aria-hidden={isSidebarOpen}
+              inert={isSidebarOpen}
+              onMouseEnter={handleSidebarMouseEnter}
+              onMouseLeave={handleSidebarMouseLeave}
+              className="absolute top-3 left-3 z-30 hidden lg:flex flex-col items-center py-2 px-1.5 rounded-2xl border border-white/10 bg-black/70"
+              style={{
+                opacity: isSidebarOpen ? 0 : 1,
+                transform: isSidebarOpen ? 'translateX(-12px)' : 'translateX(0)',
+                pointerEvents: isSidebarOpen ? 'none' : 'auto',
+                transition: 'opacity 320ms cubic-bezier(0.455, 0.03, 0.515, 0.955), transform 320ms cubic-bezier(0.455, 0.03, 0.515, 0.955)',
+              }}
+            >
+                <div className="flex flex-col items-center gap-4 py-2">
+                  <button
+                    onClick={handleSidebarOpen}
+                    title="Maximizar lista de vídeos"
+                    className="w-7 h-7 rounded-full bg-white/[0.04] hover:bg-white/10 border border-white/10 flex items-center justify-center text-[#0071e3]/80 hover:text-white transition-all duration-200 ease-out hover:scale-125 hover:shadow-[0_0_14px_rgba(0,113,227,0.3)] focus-visible:scale-125 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0071e3] cursor-pointer"
+                  >
+                    <ChevronRight className="w-4 h-4" />
+                  </button>
+
+                  <div className="flex flex-col items-center gap-3">
+                    {videos.map((vid, idx) => {
+                      const isCurrent = idx === currentIndex;
+                      return (
+                        <button
+                          key={vid.id}
+                          onClick={() => handleSelectVideo(idx)}
+                          title={`${vid.title} (${vid.duration_formatted})`}
+                          className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-mono font-bold transition-all duration-200 ease-out hover:scale-125 focus-visible:scale-125 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0071e3] cursor-pointer ${
+                            isCurrent
+                              ? 'bg-[#0071e3]/80 text-white hover:bg-[#0071e3] hover:shadow-[0_0_14px_rgba(0,113,227,0.45)]'
+                              : 'bg-white/[0.04] text-white/40 hover:text-white hover:bg-white/10'
+                          }`}
+                        >
+                          {idx + 1}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+            </aside>
           </div>
 
           {/* Barra inferior de status e navegação entre partes */}

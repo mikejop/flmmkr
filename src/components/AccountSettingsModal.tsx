@@ -25,13 +25,6 @@ interface AccountSettingsModalProps {
   onProfileUpdated: (updated: Partial<UserProfile>) => void;
 }
 
-const PRESET_AVATARS = [
-  getMediaUrl('banners/hero_01.webp'),
-  getMediaUrl('banners/hero_02.webp'),
-  getMediaUrl('banners/hero_03.webp'),
-  getMediaUrl('banners/hero_04.webp'),
-];
-
 export const AccountSettingsModal: React.FC<AccountSettingsModalProps> = ({
   isOpen,
   onClose,
@@ -47,7 +40,7 @@ export const AccountSettingsModal: React.FC<AccountSettingsModalProps> = ({
   const [email, setEmail] = useState(userProfile.email || '');
   const [phone, setPhone] = useState(userProfile.phone || '');
   const [nickname, setNickname] = useState(userProfile.nickname || '');
-  const [avatar, setAvatar] = useState(userProfile.avatar || PRESET_AVATARS[0]);
+  const [avatar, setAvatar] = useState(userProfile.avatar);
 
   // Sincronizar dados do perfil do Supabase sempre que o modal for aberto ou os dados atualizados
   useEffect(() => {
@@ -57,7 +50,7 @@ export const AccountSettingsModal: React.FC<AccountSettingsModalProps> = ({
       setEmail(userProfile.email || '');
       setPhone(userProfile.phone || '');
       setNickname(userProfile.nickname || '');
-      setAvatar(userProfile.avatar || PRESET_AVATARS[0]);
+      setAvatar(userProfile.avatar);
       setFeedback(null);
     }
   }, [isOpen, userProfile]);
@@ -350,23 +343,7 @@ export const AccountSettingsModal: React.FC<AccountSettingsModalProps> = ({
                     </span>
                   )}
                 </div>
-                <p className="text-[11px] text-neutral-400">Escolha uma imagem do seu dispositivo para salvar no banco de dados ou selecione um preset do estúdio.</p>
-                
-                {/* Preset Avatars */}
-                <div className="flex items-center gap-2 pt-1">
-                  {PRESET_AVATARS.map((preset, idx) => (
-                    <button
-                      key={idx}
-                      type="button"
-                      onClick={() => setAvatar(preset)}
-                      className={`w-6 h-6 rounded-full overflow-hidden border transition-all ${
-                        avatar === preset ? 'border-[#0071e3] scale-110 shadow-[0_0_8px_#0071e3]' : 'border-white/20 opacity-70 hover:opacity-100'
-                      }`}
-                    >
-                      <img src={preset} alt={`Preset ${idx + 1}`} className="w-full h-full object-cover" />
-                    </button>
-                  ))}
-                </div>
+                <p className="text-[11px] text-neutral-400">Escolha uma imagem do seu dispositivo para usar como foto de perfil.</p>
               </div>
             </div>
 
