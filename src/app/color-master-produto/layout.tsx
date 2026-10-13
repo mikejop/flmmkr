@@ -5,6 +5,8 @@ export const metadata: Metadata = {
     absolute: 'Color Master® | Produtos',
   },
   description: 'Área de Membros e Ambiente de Aprendizagem do Color Master® | Produtos por FLMMKR.',
+  // Conteúdo exclusivo para alunos: fora dos buscadores. As prévias públicas ficam em /aulas.
+  robots: { index: false, follow: false, nocache: true },
 };
 
 export default function ColorMasterProdutoLayout({

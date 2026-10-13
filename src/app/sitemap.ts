@@ -1,6 +1,7 @@
 import { MetadataRoute } from 'next';
 import { PRODUCTS } from '@/config/products';
 import { SITE_CONFIG } from '@/config/siteConfig';
+import { LESSON_SEO, LESSON_SEO_PUBLISHED, LESSON_SEO_UPDATED_AT } from '@/data/lessonSeo';
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const baseUrl = SITE_CONFIG.seo.url;
@@ -14,21 +15,9 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 1.0,
     },
     {
-      url: `${baseUrl}/color-master-produto`,
-      lastModified: lastModDate,
-      changeFrequency: 'daily',
-      priority: 1.0,
-    },
-    {
       url: `${baseUrl}/cursos`,
       lastModified: lastModDate,
       changeFrequency: 'weekly',
-      priority: 0.9,
-    },
-    {
-      url: `${baseUrl}/conteudo`,
-      lastModified: lastModDate,
-      changeFrequency: 'daily',
       priority: 0.9,
     },
     {
@@ -36,12 +25,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
       lastModified: lastModDate,
       changeFrequency: 'weekly',
       priority: 0.6,
-    },
-    {
-      url: `${baseUrl}/primeiro-acesso`,
-      lastModified: lastModDate,
-      changeFrequency: 'monthly',
-      priority: 0.5,
     },
     {
       url: `${baseUrl}/privacidade`,
@@ -67,5 +50,17 @@ export default function sitemap(): MetadataRoute.Sitemap {
     };
   });
 
-  return [...staticPages, ...productPages];
+  // Prévias públicas das aulas (a área de membros em si não é indexável).
+  const lessonPages: MetadataRoute.Sitemap = (LESSON_SEO_PUBLISHED ? LESSON_SEO : []).map((lesson) => ({
+    url: `${baseUrl}/aulas/${lesson.moduleSlug}/${lesson.slug}`,
+    lastModified: new Date(LESSON_SEO_UPDATED_AT),
+    changeFrequency: 'monthly',
+    priority: 0.7,
+  }));
+
+  const indexPage: MetadataRoute.Sitemap = LESSON_SEO_PUBLISHED
+    ? [{ url: `${baseUrl}/aulas`, lastModified: new Date(LESSON_SEO_UPDATED_AT), changeFrequency: 'weekly', priority: 0.9 }]
+    : [];
+
+  return [...staticPages, ...indexPage, ...productPages, ...lessonPages];
 }

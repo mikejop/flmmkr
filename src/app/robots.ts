@@ -14,8 +14,11 @@ export default function robots(): MetadataRoute.Robots {
         userAgent: '*',
         allow: '/',
         disallow: [
-          '/api/private/',
-          '/api/webhooks/',
+          '/api/',
+          '/color-master-produto',
+          '/conteudo',
+          '/primeiro-acesso',
+          '/definir-senha',
           '/_next/',
         ],
       },
@@ -24,8 +27,11 @@ export default function robots(): MetadataRoute.Robots {
         userAgent: 'Bingbot',
         allow: '/',
         disallow: [
-          '/api/private/',
-          '/api/webhooks/',
+          '/api/',
+          '/color-master-produto',
+          '/conteudo',
+          '/primeiro-acesso',
+          '/definir-senha',
           '/_next/',
         ],
       },
@@ -42,24 +48,21 @@ export default function robots(): MetadataRoute.Robots {
           'Claude-User',     // Ações de usuário no Claude
           'PerplexityBot',   // Perplexity AI Search Crawler
           'Perplexity-User', // Requisições em tempo real do usuário no Perplexity
-          'Applebot-Extended'// Apple Intelligence Web Search
         ],
         allow: '/',
       },
-      // NOTA OPCIONAL: Se desejar bloquear APENAS o treinamento dos modelos de IA mantendo a citação nos buscadores,
-      // descomente as regras abaixo:
-      /*
+      // 3. Crawlers de TREINAMENTO de modelos de IA: bloqueados (as IAs de busca acima continuam liberadas).
       {
         userAgent: [
           'GPTBot',          // Treinamento de modelos da OpenAI
-          'ClaudeBot',        // Treinamento de modelos da Anthropic
+          'ClaudeBot',       // Treinamento de modelos da Anthropic
           'Google-Extended', // Treinamento Gemini / Vertex AI
           'CCBot',           // Common Crawl (dataset público de IA)
           'Bytespider',      // ByteDance
+          'Applebot-Extended', // Apple: uso do conteúdo para treinar modelos (o Applebot de busca segue liberado)
         ],
         disallow: '/',
       },
-      */
     ],
     sitemap: `${baseUrl}/sitemap.xml`,
     host: baseUrl,

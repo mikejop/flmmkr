@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { PRODUCTS } from '@/config/products';
 import { SITE_CONFIG } from '@/config/siteConfig';
+import { LESSON_SEO, LESSON_SEO_PUBLISHED } from '@/data/lessonSeo';
 import { z } from 'zod';
 import { consumeRateLimit, readJsonLimited } from '@/utils/rateLimit';
 
@@ -34,13 +35,12 @@ export async function GET(req: NextRequest) {
   const baseUrl = SITE_CONFIG.seo.url;
   const urlList = [
     `${baseUrl}/`,
-    `${baseUrl}/color-master-produto`,
     `${baseUrl}/cursos`,
-    `${baseUrl}/conteudo`,
     `${baseUrl}/links`,
-    `${baseUrl}/primeiro-acesso`,
-    `${baseUrl}/definir-senha`,
-    ...PRODUCTS.map(p => `${baseUrl}/produtos/${p.slug}`)
+    ...PRODUCTS.map(p => `${baseUrl}/produtos/${p.slug}`),
+    ...(LESSON_SEO_PUBLISHED
+      ? [`${baseUrl}/aulas`, ...LESSON_SEO.map(l => `${baseUrl}/aulas/${l.moduleSlug}/${l.slug}`)]
+      : [])
   ];
 
   try {
