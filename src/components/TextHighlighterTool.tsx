@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import { HighlightItem } from '../types';
 import { 
   fetchUserHighlights, 
@@ -11,6 +12,10 @@ import { Highlighter, Trash2, X, Check, FileText, Bookmark, FolderOpen, ZoomIn, 
 interface TextHighlighterToolProps {
   lessonId: string;
   containerRef: React.RefObject<HTMLDivElement | null>;
+  /** Elemento no fim da linha de botões flutuantes (ex.: voltar ao topo), alinhado com zoom e marcações. */
+  trailing?: React.ReactNode;
+  /** Quadro onde a linha de botões deve ficar (canto inferior direito). Sem ele, usa a janela inteira. */
+  portalTarget?: HTMLElement | null;
 }
 
 const COLOR_CLASSES: Record<HighlightItem['color'], { bg: string; mark: string; border: string }> = {
@@ -63,7 +68,7 @@ const findSectionTitle = (node: Node | null, container: HTMLElement | null): str
   return 'Conteúdo Geral';
 };
 
-export const TextHighlighterTool: React.FC<TextHighlighterToolProps> = ({ lessonId, containerRef }) => {
+export const TextHighlighterTool: React.FC<TextHighlighterToolProps> = ({ lessonId, containerRef, trailing, portalTarget }) => {
   const [highlights, setHighlights] = useState<HighlightItem[]>([]);
   const [selectionRange, setSelectionRange] = useState<{
     text: string;
@@ -462,123 +467,131 @@ export const TextHighlighterTool: React.FC<TextHighlighterToolProps> = ({ lesson
       )}
 
       {/* Floating Action Controls: Google Docs Zoom Pill + Marcações */}
-      <div className="fixed bottom-6 right-6 z-40 flex flex-wrap items-center justify-end gap-3 max-w-[calc(100vw-2rem)]">
-        {/* Floating Zoom & Reading Pill (Google Docs Style - Minimized / Expanded) */}
-        {!isZoomBarExpanded ? (
-          <div className="relative group">
-            {/* Tooltip */}
-            <div className="absolute bottom-full right-0 mb-2 hidden group-hover:flex flex-col items-end pointer-events-none z-50 animate-fade-in">
-              <span className="bg-[#1c1c1e] text-white text-[11px] font-medium px-3 py-1.5 rounded-xl border border-white/10 shadow-xl whitespace-nowrap">
-                Clique para ajustar o zoom e tamanho de leitura
-              </span>
-              <span className="w-2 h-2 bg-[#1c1c1e] border-r border-b border-white/10 rotate-45 mr-4 -mt-1" />
-            </div>
+      {(() => {
+        const row = (
+        <div data-hero-hide className={`transition-opacity duration-300 ${portalTarget ? 'absolute' : 'fixed'} bottom-6 right-6 z-40 flex flex-wrap items-center justify-end gap-3 max-w-[calc(100%-3rem)]`}>
+          {/* Floating Zoom & Reading Pill (Google Docs Style - Minimized / Expanded) */}
+          {!isZoomBarExpanded ? (
+            <div className="relative group">
+              {/* Tooltip */}
+              <div className="absolute bottom-full right-0 mb-2 hidden group-hover:flex flex-col items-end pointer-events-none z-50 animate-fade-in">
+                <span className="bg-[#1c1c1e] text-white text-[11px] font-medium px-3 py-1.5 rounded-xl border border-white/10 shadow-xl whitespace-nowrap">
+                  Clique para ajustar o zoom e tamanho de leitura
+                </span>
+                <span className="w-2 h-2 bg-[#1c1c1e] border-r border-b border-white/10 rotate-45 mr-4 -mt-1" />
+              </div>
 
-            {/* Minimized T Button */}
-            <button
-              onClick={() => setIsZoomBarExpanded(true)}
-              className="bg-[#1c1c1e] hover:bg-neutral-800 text-white px-3.5 py-2 rounded-full shadow-2xl border border-neutral-700/80 font-bold text-xs flex items-center gap-2 transition-all hover:scale-105 active:scale-95 cursor-pointer"
-              aria-label="Abrir Ajuste de Leitura & Zoom"
-              title="Ajuste de Leitura & Zoom"
-            >
-              <Type size={16} className="text-[#0071e3]" />
-              <span 
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleSetZoomLevel(100);
-                }}
-                className="font-mono text-xs font-bold text-white bg-[#0071e3] hover:bg-[#0077ed] px-2 py-0.5 rounded-full transition-all hover:scale-105 cursor-pointer"
-                title="Clique para resetar o zoom para 100%"
-              >
-                {zoomLevel}%
-              </span>
-            </button>
-          </div>
-        ) : (
-          /* Expanded Full Zoom Bar */
-          <div 
-            onMouseEnter={clearZoomBarAutoCloseTimer}
-            onMouseLeave={() => {
-              if (isZoomBarExpanded) startZoomBarAutoCloseTimer();
-            }}
-            className="bg-[#1c1c1e]/95 backdrop-blur-md text-white px-4 py-2.5 rounded-full border border-neutral-700/80 shadow-2xl flex items-center gap-3 select-none animate-fade-in"
-          >
-            <div className="flex items-center gap-2">
+              {/* Minimized T Button */}
               <button
-                onClick={() => setIsZoomBarExpanded(false)}
-                className="flex items-center gap-2 cursor-pointer hover:opacity-80 transition-opacity"
-                title="Minimizar barra de zoom"
+                onClick={() => setIsZoomBarExpanded(true)}
+                className="bg-[#1c1c1e] hover:bg-neutral-800 text-white px-3.5 py-2 rounded-full shadow-2xl border border-neutral-700/80 font-bold text-xs flex items-center gap-2 transition-all hover:scale-105 active:scale-95 cursor-pointer"
+                aria-label="Abrir Ajuste de Leitura & Zoom"
+                title="Ajuste de Leitura & Zoom"
               >
-                <span className="hidden sm:inline text-[10px] font-bold tracking-wider uppercase text-neutral-300">
-                  AJUSTE DE LEITURA & ZOOM
+                <Type size={16} className="text-[#0071e3]" />
+                <span 
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleSetZoomLevel(100);
+                  }}
+                  className="font-mono text-xs font-bold text-white bg-[#0071e3] hover:bg-[#0077ed] px-2 py-0.5 rounded-full transition-all hover:scale-105 cursor-pointer"
+                  title="Clique para resetar o zoom para 100%"
+                >
+                  {zoomLevel}%
                 </span>
               </button>
-              
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleSetZoomLevel(100);
-                }}
-                className="text-xs px-2.5 py-0.5 bg-[#0071e3] hover:bg-[#0077ed] text-white rounded-full font-mono font-bold transition-all hover:scale-105 active:scale-95 cursor-pointer shadow-xs"
-                title="Clique para resetar o zoom para 100%"
-                aria-label="Resetar zoom para 100%"
-              >
-                {zoomLevel}%
-              </button>
             </div>
-
-            <div className="flex items-center gap-1.5">
-              <button
-                onClick={() => handleZoomChange(-5)}
-                disabled={zoomLevel <= 50}
-                className="p-1 rounded-full hover:bg-white/10 text-neutral-300 disabled:opacity-40 transition-colors cursor-pointer"
-                title="Diminuir Zoom (50% min)"
-                aria-label="Diminuir Zoom"
-              >
-                <ZoomOut size={15} />
-              </button>
-
-              <input
-                type="range"
-                min={50}
-                max={200}
-                step={5}
-                value={zoomLevel}
-                onChange={(e) => handleSetZoomLevel(Number(e.target.value))}
-                className="w-24 sm:w-36 accent-[#0071e3] cursor-pointer h-1.5 bg-neutral-700 rounded-lg appearance-none"
-                aria-label="Controle de Zoom da Página"
-              />
-
-              <button
-                onClick={() => handleZoomChange(5)}
-                disabled={zoomLevel >= 200}
-                className="p-1 rounded-full hover:bg-white/10 text-neutral-300 disabled:opacity-40 transition-colors cursor-pointer"
-                title="Aumentar Zoom (200% max)"
-                aria-label="Aumentar Zoom"
-              >
-                <ZoomIn size={15} />
-              </button>
-            </div>
-
-            <button
-              onClick={() => setIsZoomBarExpanded(false)}
-              className="p-1 text-neutral-400 hover:text-white rounded-full transition-colors ml-1 cursor-pointer"
-              title="Minimizar"
+          ) : (
+            /* Expanded Full Zoom Bar */
+            <div 
+              onMouseEnter={clearZoomBarAutoCloseTimer}
+              onMouseLeave={() => {
+                if (isZoomBarExpanded) startZoomBarAutoCloseTimer();
+              }}
+              className="bg-[#1c1c1e]/95 backdrop-blur-md text-white px-4 py-2.5 rounded-full border border-neutral-700/80 shadow-2xl flex items-center gap-3 select-none animate-fade-in"
             >
-              <X size={14} />
-            </button>
-          </div>
-        )}
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setIsZoomBarExpanded(false)}
+                  className="flex items-center gap-2 cursor-pointer hover:opacity-80 transition-opacity"
+                  title="Minimizar barra de zoom"
+                >
+                  <span className="hidden sm:inline text-[10px] font-bold tracking-wider uppercase text-neutral-300">
+                    AJUSTE DE LEITURA & ZOOM
+                  </span>
+                </button>
+                
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleSetZoomLevel(100);
+                  }}
+                  className="text-xs px-2.5 py-0.5 bg-[#0071e3] hover:bg-[#0077ed] text-white rounded-full font-mono font-bold transition-all hover:scale-105 active:scale-95 cursor-pointer shadow-xs"
+                  title="Clique para resetar o zoom para 100%"
+                  aria-label="Resetar zoom para 100%"
+                >
+                  {zoomLevel}%
+                </button>
+              </div>
 
-        {/* Marcações Button */}
-        <button
-          onClick={() => setIsDrawerOpen(!isDrawerOpen)}
-          className="bg-[#1c1c1e] hover:bg-neutral-800 text-white px-4 py-2.5 rounded-full shadow-2xl border border-neutral-700/80 font-bold text-xs flex items-center gap-2 transition-all hover:scale-105 active:scale-95 cursor-pointer"
-        >
-          <Bookmark size={15} className="text-amber-400" />
-          Marcações ({highlights.length})
-        </button>
-      </div>
+              <div className="flex items-center gap-1.5">
+                <button
+                  onClick={() => handleZoomChange(-5)}
+                  disabled={zoomLevel <= 50}
+                  className="p-1 rounded-full hover:bg-white/10 text-neutral-300 disabled:opacity-40 transition-colors cursor-pointer"
+                  title="Diminuir Zoom (50% min)"
+                  aria-label="Diminuir Zoom"
+                >
+                  <ZoomOut size={15} />
+                </button>
+
+                <input
+                  type="range"
+                  min={50}
+                  max={200}
+                  step={5}
+                  value={zoomLevel}
+                  onChange={(e) => handleSetZoomLevel(Number(e.target.value))}
+                  className="w-24 sm:w-36 accent-[#0071e3] cursor-pointer h-1.5 bg-neutral-700 rounded-lg appearance-none"
+                  aria-label="Controle de Zoom da Página"
+                />
+
+                <button
+                  onClick={() => handleZoomChange(5)}
+                  disabled={zoomLevel >= 200}
+                  className="p-1 rounded-full hover:bg-white/10 text-neutral-300 disabled:opacity-40 transition-colors cursor-pointer"
+                  title="Aumentar Zoom (200% max)"
+                  aria-label="Aumentar Zoom"
+                >
+                  <ZoomIn size={15} />
+                </button>
+              </div>
+
+              <button
+                onClick={() => setIsZoomBarExpanded(false)}
+                className="p-1 text-neutral-400 hover:text-white rounded-full transition-colors ml-1 cursor-pointer"
+                title="Minimizar"
+              >
+                <X size={14} />
+              </button>
+            </div>
+          )}
+
+          {/* Marcações Button */}
+          <button
+            onClick={() => setIsDrawerOpen(!isDrawerOpen)}
+            className="bg-[#1c1c1e] hover:bg-neutral-800 text-white px-4 py-2.5 rounded-full shadow-2xl border border-neutral-700/80 font-bold text-xs flex items-center gap-2 transition-all hover:scale-105 active:scale-95 cursor-pointer"
+          >
+            <Bookmark size={15} className="text-amber-400" />
+            Marcações ({highlights.length})
+          </button>
+
+          {/* Vaga fixa de 44px: o botão de topo aparece/some sem empurrar zoom e marcações */}
+          <div className="flex h-11 w-11 shrink-0 items-center justify-center">{trailing}</div>
+        </div>
+        );
+        return portalTarget ? createPortal(row, portalTarget) : row;
+      })()}
 
       {/* Highlights Drawer / Modal */}
       {isDrawerOpen && (

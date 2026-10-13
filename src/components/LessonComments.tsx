@@ -85,6 +85,7 @@ export default function LessonComments({
   const [comments, setComments] = useState<CommentItem[]>([]);
   const [totalCount, setTotalCount] = useState(0);
   const [loading, setLoading] = useState(false);
+  const [loadError, setLoadError] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
   // Lista de alunos para menções @
@@ -110,6 +111,7 @@ export default function LessonComments({
   const loadComments = useCallback(async () => {
     if (!lessonId) return;
     setLoading(true);
+    setLoadError(false);
     try {
       const url = `/api/comments?lessonId=${encodeURIComponent(lessonId)}${
         userId ? `&userId=${encodeURIComponent(userId)}` : ''
@@ -119,9 +121,12 @@ export default function LessonComments({
         const data = await res.json();
         setComments(data.comments || []);
         setTotalCount(data.total || 0);
+      } else {
+        setLoadError(true);
       }
     } catch (err) {
       console.error('Erro ao carregar comentários:', err);
+      setLoadError(true);
     } finally {
       setLoading(false);
     }
@@ -134,12 +139,13 @@ export default function LessonComments({
       const url = cursor ? `/api/students/list?cursor=${encodeURIComponent(cursor)}` : '/api/students/list';
       // A lista de menções muda pouco: a 1ª página fica 12 h no navegador.
       const cacheKey = cursor ? null : 'students-list-first-page';
-      let data: any = cacheKey ? readCache<any>(cacheKey)?.value : null;
-      if (cacheKey && data && (readCache<any>(cacheKey)?.ageMs ?? Infinity) > 12 * 60 * 60 * 1000) data = null;
+      type StudentsPage = { students?: StudentItem[]; nextCursor?: string | null };
+      const cached = cacheKey ? readCache<StudentsPage>(cacheKey) : null;
+      let data: StudentsPage | null = cached && cached.ageMs <= 12 * 60 * 60 * 1000 ? cached.value : null;
       if (!data) {
         const res = await fetch(url);
         if (!res.ok) return;
-        data = await res.json();
+        data = (await res.json()) as StudentsPage;
         if (cacheKey) writeCache(cacheKey, data);
       }
       setStudents((current) => cursor ? [...current, ...(data.students || [])] : (data.students || []));
@@ -455,7 +461,7 @@ export default function LessonComments({
         return (
           <span
             key={index}
-            className="inline-flex items-center font-bold text-[#00c7fc] bg-[#0071e3]/20 border border-[#0071e3]/40 px-1.5 py-0.5 rounded-md mx-0.5 text-xs sm:text-[13px]"
+            className="inline-flex items-center font-bold text-[#0071e3] bg-[#0071e3]/20 border border-[#0071e3]/40 px-1.5 py-0.5 rounded-md mx-0.5 text-xs sm:text-[13px]"
           >
             {part}
           </span>
@@ -471,26 +477,26 @@ export default function LessonComments({
   );
 
   return (
-    <div className="w-full my-6 bg-[#16161a] border border-white/10 shadow-2xl rounded-[24px] overflow-hidden select-text transition-all duration-300 text-white">
+    <div className="w-full my-6 bg-white border border-neutral-200 shadow-sm rounded-[24px] overflow-hidden select-text transition-all duration-300 text-neutral-900">
       {/* 1. BARRA MINIMIZADA (HEADER CLICÁVEL COM TEMA ESCURO E ALTO CONTRASTE) */}
       <div
         onClick={() => setIsExpanded(!isExpanded)}
-        className="flex items-center justify-between px-5 sm:px-8 py-5 cursor-pointer hover:bg-white/5 transition-colors select-none group"
+        className="flex items-center justify-between px-5 sm:px-8 py-5 cursor-pointer hover:bg-neutral-100 transition-colors select-none group"
       >
         <div className="flex items-center gap-4">
-          <div className="w-10 h-10 rounded-xl bg-[#0071e3]/15 border border-[#0071e3]/30 flex items-center justify-center text-[#00c7fc] group-hover:scale-105 group-hover:bg-[#0071e3] group-hover:text-white transition-all shadow-xs">
+          <div className="w-10 h-10 flex items-center justify-center text-[#0071e3] group-hover:scale-105 transition-all">
             <MessageSquare className="w-5 h-5" />
           </div>
           <div>
             <div className="flex items-center gap-2.5">
-              <h3 className="text-sm sm:text-base font-bold tracking-tight text-white group-hover:text-[#00c7fc] transition-colors">
+              <h3 className="text-sm sm:text-base font-bold tracking-tight text-neutral-900 group-hover:text-[#0071e3] transition-colors">
                 Comentários e Dúvidas da Aula
               </h3>
-              <span className="text-xs font-mono font-bold px-2.5 py-0.5 rounded-full bg-white/10 text-white border border-white/15">
+              <span className="text-xs font-mono font-bold px-2.5 py-0.5 rounded-full bg-neutral-200/70 text-neutral-900 border border-neutral-200">
                 {totalCount}
               </span>
             </div>
-            <p className="text-xs sm:text-sm text-neutral-400 font-medium mt-0.5">
+            <p className="text-xs sm:text-sm text-neutral-600 font-medium mt-0.5">
               {isExpanded
                 ? 'Clique para recolher o campo de comentários'
                 : 'Clique para deixar um comentário, marcar colegas com @ ou tirar dúvidas'}
@@ -506,13 +512,13 @@ export default function LessonComments({
               setIsExpanded(true);
               setShowPublicList(true);
             }}
-            className="hidden sm:flex items-center gap-2 px-4 py-2 text-xs font-bold text-[#00c7fc] hover:text-white bg-[#0071e3]/15 hover:bg-[#0071e3] border border-[#0071e3]/35 rounded-xl transition-all shadow-xs"
+            className="hidden sm:flex items-center gap-2 px-2 py-2 text-xs font-bold text-[#0071e3] hover:underline transition-all"
           >
             <Users className="w-4 h-4" />
             <span>Ver comentários da turma ({totalCount})</span>
           </button>
 
-          <div className="w-9 h-9 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-neutral-300 group-hover:text-white group-hover:bg-white/10 transition-all">
+          <div className="w-9 h-9 rounded-xl bg-neutral-100 border border-neutral-200 flex items-center justify-center text-neutral-700 group-hover:text-neutral-900 group-hover:bg-neutral-200 transition-all">
             {isExpanded ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
           </div>
         </div>
@@ -520,13 +526,13 @@ export default function LessonComments({
 
       {/* 2. ÁREA EXPANDIDA */}
       {isExpanded && (
-        <div className="px-5 sm:px-8 pb-8 pt-4 border-t border-white/10 space-y-6 animate-fadeIn bg-black/40">
+        <div className="px-5 sm:px-8 pb-8 pt-4 border-t border-neutral-200 space-y-6 animate-fadeIn bg-[#f5f5f7]">
           {/* BOTÃO MOBILE PARA VER COMENTÁRIOS */}
           <div className="sm:hidden flex justify-end">
             <button
               type="button"
               onClick={() => setShowPublicList(!showPublicList)}
-              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-[#00c7fc] bg-[#0071e3]/15 border border-[#0071e3]/30 rounded-lg"
+              className="flex items-center gap-1.5 px-2 py-1.5 text-xs font-bold text-[#0071e3] hover:underline"
             >
               <Users className="w-3.5 h-3.5" />
               <span>Ver comentários da turma ({totalCount})</span>
@@ -536,23 +542,23 @@ export default function LessonComments({
           {/* FORMULÁRIO DE NOVO COMENTÁRIO */}
           <form
             onSubmit={handleCreateComment}
-            className="p-5 sm:p-6 rounded-2xl bg-[#1a1a1e] border border-white/10 shadow-xl space-y-4 relative"
+            className="p-5 sm:p-6 rounded-2xl bg-[#f5f5f7] border border-neutral-200 shadow-xl space-y-4 relative"
           >
             <div className="flex flex-wrap items-center justify-between gap-3">
-              <span className="text-xs font-bold uppercase tracking-wider text-white flex items-center gap-2">
-                <MessageSquare className="w-4 h-4 text-[#00c7fc]" />
+              <span className="text-xs font-bold uppercase tracking-wider text-neutral-900 flex items-center gap-2">
+                <MessageSquare className="w-4 h-4 text-[#0071e3]" />
                 Deixar sua dúvida ou comentário
               </span>
 
               {/* SELETOR: PÚBLICO OU NÃO PÚBLICO */}
-              <div className="flex items-center gap-1 bg-black/50 p-1 rounded-xl border border-white/10">
+              <div className="flex items-center gap-1 bg-neutral-100 p-1 rounded-xl border border-neutral-200">
                 <button
                   type="button"
                   onClick={() => setIsPublic(true)}
                   className={`flex items-center gap-1.5 px-3 py-1.5 text-xs rounded-lg transition-all ${
                     isPublic
                       ? 'bg-[#0071e3] text-white font-bold shadow-xs'
-                      : 'text-neutral-400 hover:text-white font-medium'
+                      : 'text-neutral-600 hover:text-neutral-900 font-medium'
                   }`}
                   title="Visível para todos os alunos e o professor"
                 >
@@ -564,8 +570,8 @@ export default function LessonComments({
                   onClick={() => setIsPublic(false)}
                   className={`flex items-center gap-1.5 px-3 py-1.5 text-xs rounded-lg transition-all ${
                     !isPublic
-                      ? 'bg-white/20 text-white font-bold shadow-xs'
-                      : 'text-neutral-400 hover:text-white font-medium'
+                      ? 'bg-neutral-300 text-neutral-900 font-bold shadow-xs'
+                      : 'text-neutral-600 hover:text-neutral-900 font-medium'
                   }`}
                   title="Apenas o professor verá seu comentário no dashboard dele"
                 >
@@ -576,20 +582,20 @@ export default function LessonComments({
             </div>
 
             {/* AVISO DO TIPO DE PRIVACIDADE */}
-            <div className="text-xs flex items-center gap-2 text-neutral-300 font-medium">
+            <div className="text-xs flex items-center gap-2 text-neutral-700 font-medium">
               {isPublic ? (
                 <>
-                  <Globe className="w-4 h-4 text-[#00c7fc]" />
+                  <Globe className="w-4 h-4 text-[#0071e3]" />
                   <span>
-                    <strong className="text-white">Público:</strong> visível para todos os
-                    colegas da turma e para o professor. Use <span className="text-[#00c7fc] font-bold">@nome</span> para marcar colegas.
+                    <strong className="text-neutral-900">Público:</strong> visível para todos os
+                    colegas da turma e para o professor. Use <span className="text-[#0071e3] font-bold">@nome</span> para marcar colegas.
                   </span>
                 </>
               ) : (
                 <>
-                  <Lock className="w-4 h-4 text-[#00c7fc]" />
+                  <Lock className="w-4 h-4 text-[#0071e3]" />
                   <span>
-                    <strong className="text-white">Não público (Privado):</strong> apenas você
+                    <strong className="text-neutral-900">Não público (Privado):</strong> apenas você
                     e o professor podem visualizar esta mensagem.
                   </span>
                 </>
@@ -604,32 +610,32 @@ export default function LessonComments({
                 onChange={handleCommentChange}
                 placeholder="Escreva sua dúvida, reflexão ou use @ para marcar outro aluno..."
                 rows={3}
-                className="w-full px-4 py-3 text-sm bg-[#111114] border border-white/15 rounded-xl text-white placeholder:text-neutral-500 focus:outline-none focus:border-[#0071e3] focus:ring-2 focus:ring-[#0071e3]/30 transition-all resize-none shadow-xs font-sans leading-relaxed"
+                className="w-full px-4 py-3 text-sm bg-white border border-neutral-200 rounded-xl text-neutral-900 placeholder:text-neutral-500 focus:outline-none focus:border-[#0071e3] focus:ring-2 focus:ring-[#0071e3]/30 transition-all resize-none shadow-xs font-sans leading-relaxed"
               />
 
               {/* AUTOCOMPLETE POPUP PARA @MENÇÕES */}
               {showMentionMenu && mentionTarget === 'comment' && filteredStudents.length > 0 && (
-                <div onScroll={(event) => { const el = event.currentTarget; if (el.scrollTop + el.clientHeight >= el.scrollHeight - 16) loadNextStudentsPage(); }} className="absolute left-0 bottom-full mb-1 w-64 max-h-48 overflow-y-auto bg-[#1f1f23] border border-white/15 rounded-xl shadow-2xl z-30 divide-y divide-white/10 text-white">
-                  <div className="p-2 bg-white/5 text-[11px] font-bold text-neutral-300 uppercase tracking-wider flex items-center gap-1.5">
-                    <AtSign size={12} className="text-[#00c7fc]" />
+                <div onScroll={(event) => { const el = event.currentTarget; if (el.scrollTop + el.clientHeight >= el.scrollHeight - 16) loadNextStudentsPage(); }} className="absolute left-0 bottom-full mb-1 w-64 max-h-48 overflow-y-auto bg-[#f5f5f7] border border-neutral-200 rounded-xl shadow-sm z-30 divide-y divide-neutral-200 text-neutral-900">
+                  <div className="p-2 bg-neutral-100 text-[11px] font-bold text-neutral-700 uppercase tracking-wider flex items-center gap-1.5">
+                    <AtSign size={12} className="text-[#0071e3]" />
                     <span>Mencionar Aluno</span>
                   </div>
                   {filteredStudents.map((student) => (
                     <div
                       key={student.id}
                       onClick={() => handleSelectMention(student)}
-                      className="flex items-center gap-2.5 p-2.5 hover:bg-white/10 cursor-pointer transition-colors"
+                      className="flex items-center gap-2.5 p-2.5 hover:bg-neutral-200 cursor-pointer transition-colors"
                     >
                       {student.avatar ? (
-                        <img src={student.avatar} alt={student.name} className="w-6 h-6 rounded-full object-cover border border-white/20" />
+                        <img src={student.avatar} alt={student.name} className="w-6 h-6 rounded-full object-cover border border-neutral-300" />
                       ) : (
-                        <div className="w-6 h-6 rounded-full bg-[#0071e3]/20 border border-[#0071e3]/40 text-[#00c7fc] text-[10px] font-bold flex items-center justify-center">
+                        <div className="w-6 h-6 rounded-full bg-[#0071e3]/20 border border-[#0071e3]/40 text-[#0071e3] text-[10px] font-bold flex items-center justify-center">
                           {student.name.charAt(0)}
                         </div>
                       )}
                       <div>
-                        <div className="text-xs font-bold text-white">{student.name}</div>
-                        <div className="text-[10px] text-[#00c7fc]">@{student.tag}</div>
+                        <div className="text-xs font-bold text-neutral-900">{student.name}</div>
+                        <div className="text-[10px] text-[#0071e3]">@{student.tag}</div>
                       </div>
                     </div>
                   ))}
@@ -642,7 +648,7 @@ export default function LessonComments({
               <div className="flex items-center gap-2 px-3.5 py-2.5 rounded-xl bg-red-500/10 border border-red-500/30 text-red-300 text-xs font-medium animate-fadeIn">
                 <AlertCircle className="w-4 h-4 shrink-0 text-red-400" />
                 <span>
-                  <strong className="text-white">Links não permitidos:</strong> Para manter a segurança da turma, não é permitido compartilhar links externos nos comentários.
+                  <strong className="text-neutral-900">Links não permitidos:</strong> Para manter a segurança da turma, não é permitido compartilhar links externos nos comentários.
                 </span>
               </div>
             )}
@@ -660,12 +666,12 @@ export default function LessonComments({
                       commentTextareaRef.current.focus();
                     }
                   }}
-                  className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-semibold text-[#00c7fc] bg-[#0071e3]/15 hover:bg-[#0071e3]/25 border border-[#0071e3]/30 rounded-lg transition-colors cursor-pointer"
+                  className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-semibold text-[#0071e3] bg-[#0071e3]/15 hover:bg-[#0071e3]/25 border border-[#0071e3]/30 rounded-lg transition-colors cursor-pointer"
                 >
                   <AtSign size={13} />
                   <span>Marcar colega</span>
                 </button>
-                <span className="text-[11px] text-neutral-400 font-medium hidden sm:inline">
+                <span className="text-[11px] text-neutral-600 font-medium hidden sm:inline">
                   Digite @ para mencionar outro aluno
                 </span>
               </div>
@@ -693,20 +699,50 @@ export default function LessonComments({
           {/* LISTA DE COMENTÁRIOS */}
           {showPublicList && (
             <div className="space-y-4 pt-2">
-              <div className="flex items-center justify-between border-b border-white/10 pb-3">
-                <span className="text-xs font-bold uppercase tracking-wider text-neutral-300">
+              <div className="flex items-center justify-between border-b border-neutral-200 pb-3">
+                <span className="text-xs font-bold uppercase tracking-wider text-neutral-700">
                   Discussão da Aula ({comments.length})
                 </span>
                 {loading && (
-                  <div className="flex items-center gap-1.5 text-xs text-[#00c7fc] font-semibold">
+                  <div className="flex items-center gap-1.5 text-xs text-[#0071e3] font-semibold">
                     <Loader2 className="w-3.5 h-3.5 animate-spin" />
                     <span>Atualizando...</span>
                   </div>
                 )}
               </div>
 
-              {comments.length === 0 && !loading && (
-                <div className="py-10 text-center text-neutral-400 text-sm font-medium">
+              {/* Esqueleto enquanto o primeiro carregamento acontece */}
+              {loading && comments.length === 0 && !loadError && (
+                <div className="space-y-4" aria-hidden="true">
+                  {[0, 1, 2].map((i) => (
+                    <div key={i} className="flex gap-3">
+                      <div className="h-9 w-9 shrink-0 rounded-full bg-neutral-200 animate-pulse motion-reduce:animate-none" />
+                      <div className="flex-1 space-y-2">
+                        <div className="h-3 w-1/4 rounded bg-neutral-200 animate-pulse motion-reduce:animate-none" />
+                        <div className="h-3 w-3/4 rounded bg-neutral-200 animate-pulse motion-reduce:animate-none" />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Falha ao carregar: explica e oferece nova tentativa */}
+              {loadError && !loading && (
+                <div role="alert" className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-800">
+                  <p className="font-semibold">Não foi possível carregar os comentários agora.</p>
+                  <p className="mt-1">Verifique sua conexão e tente de novo.</p>
+                  <button
+                    type="button"
+                    onClick={() => loadComments()}
+                    className="mt-3 rounded-lg bg-white px-4 py-2 text-sm font-bold text-red-800 ring-1 ring-red-200 hover:bg-red-100 cursor-pointer"
+                  >
+                    Tentar de novo
+                  </button>
+                </div>
+              )}
+
+              {comments.length === 0 && !loading && !loadError && (
+                <div className="py-10 text-center text-neutral-600 text-sm font-medium">
                   <MessageSquare className="w-8 h-8 mx-auto mb-2 text-neutral-500" />
                   Nenhum comentário deixado nesta aula ainda. Seja o primeiro a perguntar!
                 </div>
@@ -725,10 +761,10 @@ export default function LessonComments({
                     <div
                       key={comment.id}
                       id={`comment-${comment.id}`}
-                      className={`p-5 rounded-2xl bg-[#1a1a1e] border shadow-md space-y-3 transition-all duration-500 ${
+                      className={`p-5 rounded-2xl bg-[#f5f5f7] border shadow-md space-y-3 transition-all duration-500 ${
                         highlightId === comment.id
                           ? 'border-[#00c7fc] ring-2 ring-[#0071e3]/60'
-                          : 'border-white/10'
+                          : 'border-neutral-200'
                       }`}
                     >
                       {/* HEADER DO COMENTÁRIO */}
@@ -738,33 +774,33 @@ export default function LessonComments({
                             <img
                               src={comment.user_avatar}
                               alt={comment.user_name}
-                              className="w-9 h-9 rounded-full object-cover border border-white/20 shadow-xs"
+                              className="w-9 h-9 rounded-full object-cover border border-neutral-300 shadow-xs"
                             />
                           ) : (
-                            <div className="w-9 h-9 rounded-full bg-[#0071e3]/20 border border-[#0071e3]/40 flex items-center justify-center text-xs font-bold text-[#00c7fc]">
+                            <div className="w-9 h-9 rounded-full bg-[#0071e3]/20 border border-[#0071e3]/40 flex items-center justify-center text-xs font-bold text-[#0071e3]">
                               {comment.user_name?.charAt(0)?.toUpperCase() || 'A'}
                             </div>
                           )}
 
                           <div>
                             <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5">
-                              <span className="text-xs sm:text-sm font-bold text-white">
+                              <span className="text-xs sm:text-sm font-bold text-neutral-900">
                                 {comment.user_name}
                               </span>
-                              <span className="text-xs font-semibold text-[#00c7fc]">@{commentNick}</span>
+                              <span className="text-xs font-semibold text-[#0071e3]">@{commentNick}</span>
                               {isAuthor && (
-                                <span className="text-[10px] px-2 py-0.5 rounded-full bg-[#0071e3]/20 text-[#00c7fc] border border-[#0071e3]/40 font-bold">
+                                <span className="text-[10px] px-2 py-0.5 rounded-full bg-[#0071e3]/20 text-[#0071e3] border border-[#0071e3]/40 font-bold">
                                   Você
                                 </span>
                               )}
                               {!comment.is_public && (
-                                <span className="text-[10px] px-2 py-0.5 rounded-full bg-white/10 text-white border border-white/15 font-bold flex items-center gap-1">
+                                <span className="text-[10px] px-2 py-0.5 rounded-full bg-neutral-200/70 text-neutral-900 border border-neutral-200 font-bold flex items-center gap-1">
                                   <Lock className="w-2.5 h-2.5" />
                                   Privado (Professor)
                                 </span>
                               )}
                             </div>
-                            <span className="text-xs text-neutral-400 font-medium">
+                            <span className="text-xs text-neutral-600 font-medium">
                               {formatDate(comment.created_at)}
                             </span>
                           </div>
@@ -775,7 +811,7 @@ export default function LessonComments({
                           <button
                             type="button"
                             onClick={() => handleDeleteComment(comment.id)}
-                            className="text-neutral-400 hover:text-red-400 p-1.5 rounded-lg hover:bg-red-500/10 transition-colors cursor-pointer"
+                            className="text-neutral-600 hover:text-red-400 p-1.5 rounded-lg hover:bg-red-500/10 transition-colors cursor-pointer"
                             title="Excluir meu comentário"
                           >
                             <Trash2 className="w-4 h-4" />
@@ -784,7 +820,7 @@ export default function LessonComments({
                       </div>
 
                       {/* CONTEÚDO COM FORMATAÇÃO DE MENÇÃO */}
-                      <p className="text-sm leading-relaxed text-neutral-200 whitespace-pre-wrap pl-12 font-sans">
+                      <p className="text-sm leading-relaxed text-neutral-800 whitespace-pre-wrap pl-12 font-sans">
                         {renderFormattedContent(comment.content)}
                       </p>
 
@@ -796,7 +832,7 @@ export default function LessonComments({
                           className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg transition-all cursor-pointer ${
                             hasLiked
                               ? 'text-red-400 bg-red-500/15 border border-red-500/30 font-bold'
-                              : 'text-neutral-400 hover:text-[#00c7fc] hover:bg-white/5 border border-transparent font-medium'
+                              : 'text-neutral-600 hover:text-[#0071e3] hover:bg-neutral-100 border border-transparent font-medium'
                           }`}
                         >
                           <Heart className={`w-3.5 h-3.5 ${hasLiked ? 'fill-red-400 text-red-400' : ''}`} />
@@ -812,7 +848,7 @@ export default function LessonComments({
                               startReply(comment.id, commentNick);
                             }
                           }}
-                          className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-neutral-400 hover:text-[#00c7fc] hover:bg-white/5 transition-colors font-medium cursor-pointer"
+                          className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-neutral-600 hover:text-[#0071e3] hover:bg-neutral-100 transition-colors font-medium cursor-pointer"
                         >
                           <CornerDownRight className="w-3.5 h-3.5" />
                           <span>Responder</span>
@@ -826,8 +862,8 @@ export default function LessonComments({
                             aria-expanded={repliesOpen}
                             className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg transition-colors font-semibold cursor-pointer border ${
                               repliesOpen
-                                ? 'text-white bg-[#0071e3]/30 border-[#0071e3]/50'
-                                : 'text-[#00c7fc] bg-[#0071e3]/10 border-[#0071e3]/30 hover:bg-[#0071e3]/20'
+                                ? 'text-neutral-900 bg-[#0071e3]/30 border-[#0071e3]/50'
+                                : 'text-[#0071e3] bg-[#0071e3]/10 border-[#0071e3]/30 hover:bg-[#0071e3]/20'
                             }`}
                           >
                             <MessageSquare className="w-3.5 h-3.5" />
@@ -843,39 +879,39 @@ export default function LessonComments({
                       {/* FORMULÁRIO DE RESPOSTA INLINE */}
                       {replyingToId === comment.id && (
                         <div className="pl-12 pt-2">
-                          <div className="p-4 rounded-xl bg-[#121215] border border-white/10 space-y-2.5 relative">
+                          <div className="p-4 rounded-xl bg-white border border-neutral-200 space-y-2.5 relative">
                             <textarea
                               ref={replyTextareaRef}
                               value={replyText}
                               onChange={handleReplyChange}
                               placeholder={`Responder para @${commentNick} (use @ para marcar)...`}
                               rows={2}
-                              className="w-full px-3.5 py-2 text-xs sm:text-sm bg-[#1a1a1e] border border-white/15 rounded-lg text-white placeholder:text-neutral-500 focus:outline-none focus:border-[#0071e3]"
+                              className="w-full px-3.5 py-2 text-xs sm:text-sm bg-[#f5f5f7] border border-neutral-200 rounded-lg text-neutral-900 placeholder:text-neutral-500 focus:outline-none focus:border-[#0071e3]"
                             />
 
                             {/* AUTOCOMPLETE POPUP PARA @MENÇÕES NA RESPOSTA */}
                             {showMentionMenu && mentionTarget === 'reply' && filteredStudents.length > 0 && (
-                              <div onScroll={(event) => { const el = event.currentTarget; if (el.scrollTop + el.clientHeight >= el.scrollHeight - 16) loadNextStudentsPage(); }} className="absolute left-4 bottom-full mb-1 w-64 max-h-48 overflow-y-auto bg-[#1f1f23] border border-white/15 rounded-xl shadow-2xl z-30 divide-y divide-white/10 text-white">
-                                <div className="p-2 bg-white/5 text-[11px] font-bold text-neutral-300 uppercase tracking-wider flex items-center gap-1.5">
-                                  <AtSign size={12} className="text-[#00c7fc]" />
+                              <div onScroll={(event) => { const el = event.currentTarget; if (el.scrollTop + el.clientHeight >= el.scrollHeight - 16) loadNextStudentsPage(); }} className="absolute left-4 bottom-full mb-1 w-64 max-h-48 overflow-y-auto bg-[#f5f5f7] border border-neutral-200 rounded-xl shadow-sm z-30 divide-y divide-neutral-200 text-neutral-900">
+                                <div className="p-2 bg-neutral-100 text-[11px] font-bold text-neutral-700 uppercase tracking-wider flex items-center gap-1.5">
+                                  <AtSign size={12} className="text-[#0071e3]" />
                                   <span>Mencionar Aluno</span>
                                 </div>
                                 {filteredStudents.map((student) => (
                                   <div
                                     key={student.id}
                                     onClick={() => handleSelectMention(student)}
-                                    className="flex items-center gap-2.5 p-2.5 hover:bg-white/10 cursor-pointer transition-colors"
+                                    className="flex items-center gap-2.5 p-2.5 hover:bg-neutral-200 cursor-pointer transition-colors"
                                   >
                                     {student.avatar ? (
-                                      <img src={student.avatar} alt={student.name} className="w-6 h-6 rounded-full object-cover border border-white/20" />
+                                      <img src={student.avatar} alt={student.name} className="w-6 h-6 rounded-full object-cover border border-neutral-300" />
                                     ) : (
-                                      <div className="w-6 h-6 rounded-full bg-[#0071e3]/20 border border-[#0071e3]/40 text-[#00c7fc] text-[10px] font-bold flex items-center justify-center">
+                                      <div className="w-6 h-6 rounded-full bg-[#0071e3]/20 border border-[#0071e3]/40 text-[#0071e3] text-[10px] font-bold flex items-center justify-center">
                                         {student.name.charAt(0)}
                                       </div>
                                     )}
                                     <div>
-                                      <div className="text-xs font-bold text-white">{student.name}</div>
-                                      <div className="text-[10px] text-[#00c7fc]">@{student.tag}</div>
+                                      <div className="text-xs font-bold text-neutral-900">{student.name}</div>
+                                      <div className="text-[10px] text-[#0071e3]">@{student.tag}</div>
                                     </div>
                                   </div>
                                 ))}
@@ -894,7 +930,7 @@ export default function LessonComments({
                               <button
                                 type="button"
                                 onClick={() => setReplyingToId(null)}
-                                className="px-3 py-1.5 text-xs text-neutral-400 hover:text-white font-medium cursor-pointer"
+                                className="px-3 py-1.5 text-xs text-neutral-600 hover:text-neutral-900 font-medium cursor-pointer"
                               >
                                 Cancelar
                               </button>
@@ -913,7 +949,7 @@ export default function LessonComments({
 
                       {/* RESPOSTAS (somente uma lista aberta por vez) */}
                       {repliesOpen && replies.length > 0 && (
-                        <div className="pl-12 pt-2 space-y-3 border-l-2 border-white/15 ml-4 animate-fadeIn">
+                        <div className="pl-12 pt-2 space-y-3 border-l-2 border-neutral-200 ml-4 animate-fadeIn">
                           {replies.map((reply) => {
                             const isReplyAuthor = !!userId && reply.user_id === userId;
                             const replyHasLiked = userId && (reply.liked_by || []).includes(userId);
@@ -923,10 +959,10 @@ export default function LessonComments({
                               <div
                                 key={reply.id}
                                 id={`comment-${reply.id}`}
-                                className={`p-4 rounded-xl bg-[#141417] border space-y-2 transition-all duration-500 ${
+                                className={`p-4 rounded-xl bg-white border space-y-2 transition-all duration-500 ${
                                   highlightId === reply.id
                                     ? 'border-[#00c7fc] ring-2 ring-[#0071e3]/60'
-                                    : 'border-white/10'
+                                    : 'border-neutral-200'
                                 }`}
                               >
                                 <div className="flex items-start justify-between">
@@ -935,24 +971,24 @@ export default function LessonComments({
                                       <img
                                         src={reply.user_avatar}
                                         alt={reply.user_name}
-                                        className="w-7 h-7 rounded-full object-cover border border-white/20"
+                                        className="w-7 h-7 rounded-full object-cover border border-neutral-300"
                                       />
                                     ) : (
-                                      <div className="w-7 h-7 rounded-full bg-[#0071e3]/20 border border-[#0071e3]/40 flex items-center justify-center text-[10px] font-bold text-[#00c7fc]">
+                                      <div className="w-7 h-7 rounded-full bg-[#0071e3]/20 border border-[#0071e3]/40 flex items-center justify-center text-[10px] font-bold text-[#0071e3]">
                                         {reply.user_name?.charAt(0)?.toUpperCase() || 'A'}
                                       </div>
                                     )}
                                     <div>
                                       <div className="flex flex-wrap items-center gap-x-1.5">
-                                        <span className="text-xs font-bold text-white">{reply.user_name}</span>
-                                        <span className="text-[11px] font-semibold text-[#00c7fc]">@{replyNick}</span>
+                                        <span className="text-xs font-bold text-neutral-900">{reply.user_name}</span>
+                                        <span className="text-[11px] font-semibold text-[#0071e3]">@{replyNick}</span>
                                         {isReplyAuthor && (
-                                          <span className="text-[9px] px-1.5 py-0.2 rounded-full bg-[#0071e3]/20 text-[#00c7fc] border border-[#0071e3]/40 font-bold">
+                                          <span className="text-[9px] px-1.5 py-0.2 rounded-full bg-[#0071e3]/20 text-[#0071e3] border border-[#0071e3]/40 font-bold">
                                             Você
                                           </span>
                                         )}
                                       </div>
-                                      <span className="text-[10px] text-neutral-400 font-medium">
+                                      <span className="text-[10px] text-neutral-600 font-medium">
                                         {formatDate(reply.created_at)}
                                       </span>
                                     </div>
@@ -963,7 +999,7 @@ export default function LessonComments({
                                     <button
                                       type="button"
                                       onClick={() => handleDeleteComment(reply.id)}
-                                      className="text-neutral-400 hover:text-red-400 p-1 rounded transition-colors cursor-pointer"
+                                      className="text-neutral-600 hover:text-red-400 p-1 rounded transition-colors cursor-pointer"
                                       title="Excluir minha resposta"
                                     >
                                       <Trash2 className="w-3.5 h-3.5" />
@@ -971,7 +1007,7 @@ export default function LessonComments({
                                   )}
                                 </div>
 
-                                <p className="text-xs sm:text-sm text-neutral-200 leading-relaxed whitespace-pre-wrap pl-9 font-sans">
+                                <p className="text-xs sm:text-sm text-neutral-800 leading-relaxed whitespace-pre-wrap pl-9 font-sans">
                                   {renderFormattedContent(reply.content)}
                                 </p>
 
@@ -982,7 +1018,7 @@ export default function LessonComments({
                                     className={`flex items-center gap-1 px-2 py-0.5 rounded transition-colors cursor-pointer ${
                                       replyHasLiked
                                         ? 'text-red-400 bg-red-500/15 border border-red-500/30 font-bold'
-                                        : 'text-neutral-400 hover:text-[#00c7fc] hover:bg-white/5 font-medium'
+                                        : 'text-neutral-600 hover:text-[#0071e3] hover:bg-neutral-100 font-medium'
                                     }`}
                                   >
                                     <Heart className={`w-3 h-3 ${replyHasLiked ? 'fill-red-400 text-red-400' : ''}`} />
@@ -992,7 +1028,7 @@ export default function LessonComments({
                                   <button
                                     type="button"
                                     onClick={() => startReply(comment.id, replyNick)}
-                                    className="flex items-center gap-1 px-2 py-0.5 rounded text-neutral-400 hover:text-[#00c7fc] hover:bg-white/5 transition-colors font-medium cursor-pointer"
+                                    className="flex items-center gap-1 px-2 py-0.5 rounded text-neutral-600 hover:text-[#0071e3] hover:bg-neutral-100 transition-colors font-medium cursor-pointer"
                                   >
                                     <CornerDownRight className="w-3 h-3" />
                                     <span>Responder</span>

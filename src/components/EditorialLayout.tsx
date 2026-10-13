@@ -4,6 +4,8 @@ import React from 'react';
 import { Camera, Image as ImageIcon } from 'lucide-react';
 
 interface EditorialSectionProps {
+  /** Âncora da seção (para links como #camera-raw). */
+  id?: string;
   kickerLeft?: string;
   kickerRight?: string;
   title: string;
@@ -16,6 +18,7 @@ interface EditorialSectionProps {
  * Seção Editorial estilo Página de Jornal ou Revista Impressa
  */
 export const EditorialSection: React.FC<EditorialSectionProps> = ({
+  id,
   kickerLeft = 'FLMMKR · COLOR MASTER',
   kickerRight = 'EDITORIAL',
   title,
@@ -25,11 +28,12 @@ export const EditorialSection: React.FC<EditorialSectionProps> = ({
 }) => {
   return (
     <section 
+      id={id}
       style={{
         contentVisibility: 'auto',
         containIntrinsicSize: '650px',
       }}
-      className={`w-full bg-white p-6 sm:p-10 lg:p-12 border border-neutral-200/80 rounded-[28px] shadow-sm relative overflow-hidden transition-all duration-300 ${className}`}
+      className={`w-full bg-white p-6 sm:p-10 lg:p-12 border border-neutral-200/80 rounded-[28px] shadow-sm relative overflow-hidden transition-all duration-300 scroll-mt-4 ${className}`}
     >
       {/* Kicker Superior de Jornal / Revista */}
       <div className="font-serif text-[12px] sm:text-[13px] tracking-[0.25em] uppercase text-neutral-500 font-medium mb-4 flex items-center justify-between border-b border-neutral-300/60 pb-3">
@@ -273,3 +277,25 @@ export const FullWidthImage: React.FC<FullWidthImageProps> = ({
     </div>
   );
 };
+
+export interface TocGroup {
+  title: string;
+  id: string;
+  items?: { label: string; id: string }[];
+}
+
+/** Quem renderiza a linha do tempo (MemberAreaApp) recebe os blocos do artigo por aqui. */
+export const TocRegistryContext = React.createContext<((groups: TocGroup[]) => void) | null>(null);
+
+/**
+ * Declara os blocos do artigo para o sumário em linha do tempo da aula (ver LessonTimeline).
+ * Não desenha nada: a linha do tempo fica à esquerda de todo o conteúdo, junto com o vídeo.
+ */
+export function ArticleToc({ groups }: { groups: TocGroup[] }) {
+  const register = React.useContext(TocRegistryContext);
+  React.useEffect(() => {
+    register?.(groups);
+    return () => register?.([]);
+  }, [register, groups]);
+  return null;
+}

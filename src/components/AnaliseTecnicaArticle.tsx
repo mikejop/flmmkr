@@ -3,14 +3,13 @@
 import {
   EditorialQuote,
   EditorialSection,
+  ArticleToc,
+  type TocGroup,
   TwoColumnText,
 } from './EditorialLayout';
 import ChromaSubsamplingDemo from './ChromaSubsamplingDemo';
+import BitDepthSimulator from './BitDepthSimulator';
 
-const gradientImage =
-  'https://images.squarespace-cdn.com/content/v1/6885e4cc114bc647662424fb/58b71d0b-94fe-4493-9486-71b0e7034cd6/8b%2Bvs%2B10b.png?format=1500w';
-const gradingImage =
-  'https://noamkroll.com/wp-content/uploads/2015/05/Skintone-Color-Grading.jpg';
 const cameraImage =
   'https://www.filmtools.com/media/catalog/product/1/7/1712933734_1823585.jpg';
 
@@ -100,15 +99,15 @@ function CameraDepthList({ group }: { group: (typeof cameraGroups)[number] }) {
   );
 }
 
-function ArticleImage({ src, alt, caption, source }: { src: string; alt: string; caption: string; source: string }) {
+function ArticleImage({ src, alt, caption, source, sourceLabel = 'Fonte da imagem', bordered = true }: { src: string; alt: string; caption: string; source: string; sourceLabel?: string; bordered?: boolean }) {
   return (
-    <figure className="my-7 overflow-hidden rounded-2xl border border-neutral-200 bg-white">
+    <figure className={`my-7 overflow-hidden bg-white ${bordered ? 'rounded-2xl border border-neutral-200' : ''}`}>
       {/* Imagens externas permanecem hospedadas na página de origem e recebem crédito abaixo. */}
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img src={src} alt={alt} loading="lazy" decoding="async" className="block max-h-[560px] w-full object-contain" />
       <figcaption className="flex flex-wrap justify-between gap-x-3 gap-y-1 px-4 py-3 font-sans text-xs text-neutral-600">
         <span>{caption}</span>
-        <a href={source} target="_blank" rel="noreferrer" className="text-[#0071e3] hover:underline">Fonte da imagem</a>
+        <a href={source} target="_blank" rel="noreferrer" className="text-[#0071e3] hover:underline">{sourceLabel}</a>
       </figcaption>
     </figure>
   );
@@ -135,21 +134,31 @@ function KeyPoints({ advantages, limitations, usage }: { advantages: string; lim
   );
 }
 
+const TOC: TocGroup[] = [
+  { title: "Profundidade de bits", id: "profundidade-de-bits", items: [{ label: "O que significa profundidade de bits?", id: "o-que-significa-profundidade-de-bits" }, { label: "Quantos níveis cada profundidade oferece?", id: "quantos-niveis-cada-profundidade-oferece" }, { label: "O que muda na correção de cor?", id: "o-que-muda-na-correcao-de-cor" }] },
+  { title: "Quais câmeras gravam em cada profundidade?", id: "quais-cameras-gravam-em-cada-profundidade", items: [{ label: "Observações sobre formatos e modos", id: "observacoes-sobre-formatos-e-modos" }, { label: "ARRI ALEXA e AMIRA por profundidade", id: "arri-alexa-e-amira-por-profundidade" }] },
+  { title: "Bits não são latitude", id: "bits-nao-sao-latitude", items: [{ label: "Latitude de exposição", id: "latitude-de-exposicao" }] },
+  { title: "Chroma Subsampling", id: "chroma-subsampling", items: [{ label: "Impacto na correção de cor", id: "impacto-na-correcao-de-cor" }, { label: "Subamostragem não é profundidade de bits", id: "subamostragem-nao-e-profundidade-de-bits" }] },
+  { title: "Qual profundidade de bits devo escolher?", id: "qual-profundidade-de-bits-devo-escolher" },
+];
+
 export default function AnaliseTecnicaArticle() {
   return (
     <article className="relative w-full space-y-10 font-serif leading-relaxed text-[#111111]">
-      <EditorialSection kickerLeft="FUNDAMENTOS · ANÁLISE TÉCNICA" kickerRight="PRECISÃO DO SINAL" title="PROFUNDIDADE DE BITS" subtitle="8, 10, 12 E 16-BIT NA IMAGEM CINEMATOGRÁFICA">
+      <ArticleToc groups={TOC} />
+
+      <EditorialSection id="profundidade-de-bits" kickerLeft="FUNDAMENTOS · ANÁLISE TÉCNICA" kickerRight="PRECISÃO DO SINAL" title="PROFUNDIDADE DE BITS" subtitle="8, 10, 12 E 16-BIT NA IMAGEM CINEMATOGRÁFICA">
         <div className="space-y-5">
-          <h4 className="font-sans text-xl font-bold text-neutral-900">O que significa profundidade de bits?</h4>
+          <h4 id="o-que-significa-profundidade-de-bits" className="scroll-mt-4 font-sans text-xl font-bold text-neutral-900">O que significa profundidade de bits?</h4>
         <TwoColumnText
           left={<><p>Quando uma câmera grava em 8, 10, 12 ou 16 bits, esse número indica quantos níveis digitais podem representar cada amostra do sinal. O sensor capta luz, e a câmera converte essas informações em valores numéricos que, depois do processamento, formam a imagem.</p><p>Imagine um degradê do preto ao branco. Com poucos valores disponíveis, transições suaves podem aparecer como saltos entre tons. Com mais valores, o sinal descreve essas transições com maior precisão.</p></>}
           right={<><p>A profundidade de bits importa especialmente quando o material será submetido a correção de cor, criação de looks, composição de efeitos visuais ou outras operações intensas. Ela define a precisão numérica da representação; não descreve, sozinha, a qualidade total da imagem.</p><EditorialQuote quote="Mais níveis oferecem mais precisão para trabalhar o sinal captado, mas não recuperam informação que nunca foi registrada." /></>}
         />
-        <ArticleImage src={gradientImage} alt="Comparação visual entre degradês de 8-bit e 10-bit" caption="Representação ilustrativa de faixas tonais e banding." source="https://jusha.com.au/knowledge-base/8-bit-vs-10-bit-color-depth" />
+        <BitDepthSimulator />
         </div>
 
         <div className="space-y-5 border-t border-neutral-200 pt-7">
-        <h4 className="font-sans text-xl font-bold text-neutral-900">Quantos níveis cada profundidade oferece?</h4>
+        <h4 id="quantos-niveis-cada-profundidade-oferece" className="scroll-mt-4 font-sans text-xl font-bold text-neutral-900">Quantos níveis cada profundidade oferece?</h4>
         <p className="font-serif text-[16px] text-neutral-800 sm:text-[17px]">A quantidade de valores possíveis por amostra é calculada por 2ⁿ, em que <em>n</em> representa a profundidade de bits. A tabela considera três canais RGB independentes com o mesmo número de níveis; as combinações são uma referência matemática, não uma contagem de cores que o olho necessariamente distingue.</p>
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           {[
@@ -190,30 +199,29 @@ export default function AnaliseTecnicaArticle() {
         </div>
 
         <div className="space-y-5 border-t border-neutral-200 pt-7">
-        <h4 className="font-sans text-xl font-bold text-neutral-900">O que muda na correção de cor?</h4>
+        <h4 id="o-que-muda-na-correcao-de-cor" className="scroll-mt-4 font-sans text-xl font-bold text-neutral-900">O que muda na correção de cor?</h4>
         <TwoColumnText
           left={<><p>A profundidade de bits influencia como o material suporta ajustes. Imagine um fundo cinza com iluminação suave. Ao alterar exposição e contraste, o colorista redistribui os valores dessa transição. Se a origem tem pouca precisão, o ajuste pode tornar degraus tonais ou outros artefatos mais visíveis.</p><p>O mesmo princípio aparece no uso de curvas, qualifiers, máscaras, janelas, ajustes seletivos de saturação e criação de looks.</p></>}
           right={<><p>Isso não quer dizer que um arquivo de 10 ou 12-bit sempre terá melhor aparência que um arquivo de 8-bit. Exposição incorreta, altas luzes estouradas, sombras tomadas por ruído e compressão agressiva podem comprometer o material em qualquer profundidade.</p><p>Um software pode calcular internamente com precisão de ponto flutuante, como 32-bit float, mas isso não transforma uma captura original de 8-bit em uma captura de 32-bit: os cálculos não recuperam informação que não foi registrada.</p></>}
         />
-        <ArticleImage src={gradingImage} alt="Comparação de pele antes e depois da correção de cor no DaVinci Resolve" caption="Exemplo de tratamento de tons de pele com qualifier e power windows." source="https://noamkroll.com/how-to-match-skintones-perfectly-using-qualifiers-power-windows-in-davinci-resolve/" />
         </div>
       </EditorialSection>
 
-      <EditorialSection kickerLeft="CÂMERAS E FORMATOS" kickerRight="A CAPTURA DEFINE O SINAL" title="QUAIS CÂMERAS GRAVAM EM CADA PROFUNDIDADE?" subtitle="A MESMA CÂMERA PODE OFERECER FORMATOS DIFERENTES">
+      <EditorialSection id="quais-cameras-gravam-em-cada-profundidade" kickerLeft="CÂMERAS E FORMATOS" kickerRight="A CAPTURA DEFINE O SINAL" title="QUAIS CÂMERAS GRAVAM EM CADA PROFUNDIDADE?" subtitle="A MESMA CÂMERA PODE OFERECER FORMATOS DIFERENTES">
         <p className="font-serif text-[16px] text-neutral-800 sm:text-[17px]">Os exemplos abaixo ilustram possibilidades de gravação. A profundidade efetiva depende do modo, resolução, taxa de quadros e formato escolhidos; confirme sempre as especificações do modo de gravação usado.</p>
-        <ArticleImage src={cameraImage} alt="Câmera de cinema Blackmagic Design PYXIS 6K com montagem Canon EF" caption="Blackmagic Design PYXIS 6K Cinema Box, Canon EF." source="https://www.filmtools.com/blackmagic-design-pyxis-6k-cinema-box-camera-canon-ef.html" />
+        <ArticleImage src={cameraImage} alt="Câmera de cinema Blackmagic Design PYXIS 6K com montagem Canon EF" caption="Blackmagic Design PYXIS 6K Cinema Box, Canon EF." source="https://www.blackmagicdesign.com/products/blackmagicpyxis" sourceLabel="Fonte: Blackmagic Design" bordered={false} />
         <div className="space-y-5">
           {cameraGroups.map((group) => <CameraDepthList key={group.depth} group={group} />)}
         </div>
         <div className="rounded-2xl border border-neutral-200 bg-[#f5f5f7] p-5 sm:p-6">
-          <h4 className="font-sans text-lg font-bold text-neutral-900">Observações sobre formatos e modos</h4>
+          <h4 id="observacoes-sobre-formatos-e-modos" className="scroll-mt-4 font-sans text-lg font-bold text-neutral-900">Observações sobre formatos e modos</h4>
           <ul className="mt-3 list-disc space-y-2 pl-5 font-serif text-sm leading-relaxed text-neutral-800">
             <li>A disponibilidade de 10-bit varia conforme codec e modo. A Sony α7 IV oferece 10-bit 4:2:2 nos modos XAVC compatíveis; a Fujifilm X-H2S também oferece opções de 8-bit e 10-bit.</li>
             <li>A Panasonic GH5 passou a oferecer gravação interna 4:2:2 de 10-bit por atualização de firmware.</li>
             <li>Blackmagic RAW usa codificação não linear de 12-bit. Nikon Z8 e Z9 oferecem gravação interna em 12-bit N-RAW e ProRes RAW HQ; a Canon EOS R5 C oferece Cinema RAW Light de 12-bit, além de vídeo comprimido em 10-bit e 8-bit.</li>
           </ul>
           <p className="mt-4 font-serif text-sm leading-relaxed text-neutral-800"><strong>ARRI ALEXA 35:</strong> seu ARRIRAW é de 13-bit, não deve ser classificado como 12-bit. A ARRI diferencia os dados RAW de 12-bit dos sensores ALEV3 e os dados de 13-bit da ALEXA 35.</p>
-          <h4 className="mt-5 font-sans text-base font-bold text-neutral-900">ARRI ALEXA e AMIRA por profundidade</h4>
+          <h4 id="arri-alexa-e-amira-por-profundidade" className="scroll-mt-4 mt-5 font-sans text-base font-bold text-neutral-900">ARRI ALEXA e AMIRA por profundidade</h4>
           <ul className="mt-2 list-disc space-y-2 pl-5 font-serif text-sm leading-relaxed text-neutral-800">
             <li><strong>8-bit:</strong> AMIRA em MPEG-2 HD 422, nos modos compatíveis.</li>
             <li><strong>10-bit:</strong> ALEXA Classic, XT, SXT, Mini, LF, Mini LF e ALEXA 35 em Apple ProRes 422 ou 422 HQ, conforme modelo e modo; AMIRA em ProRes 422, 422 LT e 422 HQ.</li>
@@ -225,102 +233,35 @@ export default function AnaliseTecnicaArticle() {
         <p className="font-sans text-xs leading-relaxed text-neutral-600">Especificações oficiais: <a className="text-[#0071e3] hover:underline" href="https://www.sony.com/electronics/support/e-mount-body-ilce-7-series/ilce-7cl/specifications" target="_blank" rel="noreferrer">Sony α7C</a> · <a className="text-[#0071e3] hover:underline" href="https://www.sony.com/electronics/support/camcorders-and-video-cameras-interchangeable-lens-camcorders/ilme-fx3/specifications" target="_blank" rel="noreferrer">Sony FX3</a> · <a className="text-[#0071e3] hover:underline" href="https://www.panasonic.com/content/dam/Panasonic/MEA/pdf-download/cameras-camcorders/DC-GH5.pdf" target="_blank" rel="noreferrer">Panasonic GH5</a> · <a className="text-[#0071e3] hover:underline" href="https://www.blackmagicdesign.com/br/products/blackmagicpocketcinemacamera/techspecs/W-CIN-12" target="_blank" rel="noreferrer">Blackmagic 6K Pro</a> · <a className="text-[#0071e3] hover:underline" href="https://www.usa.canon.com/shop/p/eos-c70" target="_blank" rel="noreferrer">Canon C70</a> · <a className="text-[#0071e3] hover:underline" href="https://pro.sony/bp_BR/products/digital-cinema-cameras/venice2" target="_blank" rel="noreferrer">Sony VENICE 2</a>.</p>
       </EditorialSection>
 
-      <EditorialSection kickerLeft="CONCEITOS RELACIONADOS" kickerRight="LEITURA DO MATERIAL" title="BITS NÃO SÃO LATITUDE" subtitle="PROFUNDIDADE, FAIXA DINÂMICA E EXPOSIÇÃO SÃO CONCEITOS DIFERENTES">
+      <EditorialSection id="bits-nao-sao-latitude" kickerLeft="CONCEITOS RELACIONADOS" kickerRight="LEITURA DO MATERIAL" title="BITS NÃO SÃO LATITUDE" subtitle="PROFUNDIDADE, FAIXA DINÂMICA E EXPOSIÇÃO SÃO CONCEITOS DIFERENTES">
         <TwoColumnText
           left={<><h4 className="font-sans text-lg font-bold text-neutral-900">Profundidade de bits</h4><p>Indica quantos valores digitais estão disponíveis para representar cada amostra. A faixa dinâmica descreve a extensão entre os níveis de sinal mais baixos e mais altos que o sistema registra, de acordo com critérios definidos.</p></>}
-          right={<><h4 className="font-sans text-lg font-bold text-neutral-900">Latitude de exposição</h4><p>É a margem que o material oferece para ajustes de exposição, especialmente nas altas luzes e nas sombras. Uma câmera pode gravar em 12-bit e ter menos faixa dinâmica que outra que grava em 10-bit, por diferenças de sensor, ruído, saturação, leitura e processamento.</p></>}
+          right={<><h4 id="latitude-de-exposicao" className="scroll-mt-4 font-sans text-lg font-bold text-neutral-900">Latitude de exposição</h4><p>É a margem que o material oferece para ajustes de exposição, especialmente nas altas luzes e nas sombras. Uma câmera pode gravar em 12-bit e ter menos faixa dinâmica que outra que grava em 10-bit, por diferenças de sensor, ruído, saturação, leitura e processamento.</p></>}
         />
         <EditorialQuote quote="Um bit adicional dobra os códigos disponíveis; não equivale automaticamente a um ponto de latitude." />
         <p className="font-serif text-[16px] text-neutral-800 sm:text-[17px]">12-bit pode representar com mais precisão a informação captada, mas não cria detalhes depois que o sensor saturou nem transforma sombras dominadas por ruído em informação limpa.</p>
       </EditorialSection>
 
-      <EditorialSection kickerLeft="ESPECIFICAÇÕES DE VÍDEO" kickerRight="AMOSTRAGEM DE COR" title="CHROMA SUBSAMPLING" subtitle="4:4:4, 4:2:2 E 4:2:0">
+      <EditorialSection id="chroma-subsampling" kickerLeft="ESPECIFICAÇÕES DE VÍDEO" kickerRight="AMOSTRAGEM DE COR" title="CHROMA SUBSAMPLING" subtitle="4:4:4, 4:2:2 E 4:2:0">
         <p className="font-serif text-[16px] text-neutral-800 sm:text-[17px]">Chroma subsampling, ou subamostragem de crominância, reduz a resolução espacial da informação de cor para diminuir a quantidade de dados do vídeo. A luminância — relacionada à estrutura de brilho e detalhes — permanece em resolução completa. Como o olho percebe melhor pequenos detalhes de brilho do que de cor, essa redução costuma ser discreta em cenas comuns.</p>
         <p className="font-serif text-[16px] text-neutral-800 sm:text-[17px]">A notação descreve a quantidade de amostras de crominância em relação à luminância dentro de uma área de referência. Ela não indica profundidade de bits, resolução total da câmera ou taxa de bits.</p>
 
         <ChromaSubsamplingDemo />
 
         <div className="space-y-3 font-serif text-[16px] leading-relaxed text-neutral-800 [&_p]:text-justify">
-          <h4 className="font-sans text-lg font-bold text-neutral-900">Impacto na correção de cor</h4>
+          <h4 id="impacto-na-correcao-de-cor" className="scroll-mt-4 font-sans text-lg font-bold text-neutral-900">Impacto na correção de cor</h4>
           <p>Menos amostras de cor podem limitar seleções próximas às bordas e tornar mais trabalhosos o chroma key, a composição e os ajustes seletivos intensos. Em cenas comuns e com correções moderadas, 4:2:0 ainda pode oferecer ótimo resultado; a diferença depende da imagem e do tratamento.</p>
           <p>4:4:4 preserva mais informação cromática para trabalhos exigentes, mas pode demandar mais armazenamento e processamento. 4:2:2 oferece um meio-termo usado em muitos fluxos profissionais. Subamostragem, sozinha, não determina a qualidade: codec, compressão, exposição e profundidade de bits também contam.</p>
         </div>
 
         <div className="rounded-2xl border border-neutral-200 bg-[#f5f5f7] p-5 sm:p-6">
-          <h4 className="font-sans text-lg font-bold text-neutral-900">Subamostragem não é profundidade de bits</h4>
+          <h4 id="subamostragem-nao-e-profundidade-de-bits" className="scroll-mt-4 font-sans text-lg font-bold text-neutral-900">Subamostragem não é profundidade de bits</h4>
           <p className="mt-2 font-serif text-[16px] leading-relaxed text-neutral-800">Profundidade de bits define quantos valores digitais cada amostra pode representar; subamostragem define quantas amostras de cor são registradas e onde. Assim, 10 bits 4:2:0 têm maior precisão numérica por amostra que 8 bits 4:2:2, mas menos resolução espacial de cor. Um formato não é sempre superior: depende do uso, do codec e da captação.</p>
           <p className="mt-3 font-serif text-[16px] leading-relaxed text-neutral-800">Para muitos trabalhos de direção de fotografia e correção de cor, 10 bits 4:2:2 combinam boa precisão tonal com mais informação cromática que 4:2:0. Projetos com composição complexa podem se beneficiar de 4:4:4. RAW de sensor Bayer não deve ser chamado automaticamente de 4:4:4: seus dados têm outra organização e precisam ser convertidos em imagem colorida.</p>
         </div>
       </EditorialSection>
 
-      <EditorialSection kickerLeft="TELAS · SINAL · PROCESSAMENTO" kickerRight="REPRODUÇÃO DE IMAGEM" title="PROFUNDIDADE DE BITS NOS DISPOSITIVOS DE VISUALIZAÇÃO" subtitle="PAINEL, SINAL RECEBIDO E PROCESSAMENTO INTERNO">
-        <TwoColumnText
-          left={<><p>Monitores, televisores e celulares recebem um sinal de imagem, processam suas informações e as transformam em luz por meio dos pixels da tela. Nesse contexto, a profundidade de bits determina a precisão potencial para reproduzir gradações de cor e luminosidade.</p><p>Uma tela não tem necessariamente uma única profundidade de bits. É preciso considerar o sinal recebido, o processamento interno e a capacidade do painel de reproduzir as gradações. São aspectos relacionados, mas diferentes.</p></>}
-          right={<><p>Um monitor pode receber um sinal de 10 bits, fazer cálculos internos em 14 ou 16 bits e usar um painel nativo de 8 bits por componente. O processamento pode melhorar as conversões, mas não transforma o painel em um painel nativo de 16 bits.</p><p>Essa distinção é essencial para avaliar uma tela de edição, correção de cor e color grading.</p></>}
-        />
-
-        <div className="space-y-4">
-          <h4 className="font-sans text-xl font-bold text-neutral-900">O que significam 8, 10 e 12 bits em uma tela?</h4>
-          <p className="font-serif text-[16px] text-neutral-800 sm:text-[17px]">Em RGB, cada pixel é formado pelos componentes vermelho, verde e azul. A profundidade por componente determina quantos códigos digitais representam cada um.</p>
-          <div className="overflow-x-auto rounded-2xl border border-neutral-200">
-            <table className="w-full min-w-[520px] border-collapse text-left font-serif text-sm text-neutral-800">
-              <thead className="bg-neutral-100 font-sans text-xs uppercase tracking-wide text-neutral-600"><tr><th className="px-4 py-3">Bits por componente RGB</th><th className="px-4 py-3">Códigos por componente</th><th className="px-4 py-3">Combinações RGB teóricas</th></tr></thead>
-              <tbody>{[['8 bits', '256', '16,7 milhões'], ['10 bits', '1.024', '1,07 bilhão'], ['12 bits', '4.096', '68,7 bilhões']].map(([depth, levels, colors]) => <tr key={depth} className="border-t border-neutral-200"><th className="px-4 py-3 font-sans font-semibold text-neutral-900">{depth}</th><td className="px-4 py-3">{levels}</td><td className="px-4 py-3">{colors}</td></tr>)}</tbody>
-            </table>
-          </div>
-          <p className="font-serif text-sm leading-relaxed text-neutral-700">São combinações matemáticas; isso não garante que a tela consiga reproduzir fisicamente todas elas. Também não confunda bits por componente com bits por pixel: RGB de 8 bits por componente usa 24 bits por pixel; em 10 bits por componente, são 30 bits por pixel.</p>
-        </div>
-
-        <div className="rounded-2xl border border-neutral-200 bg-[#f5f5f7] p-5 sm:p-6">
-          <h4 className="font-sans text-lg font-bold text-neutral-900">Então, o que significa “32-bit color”?</h4>
-          <p className="mt-2 font-serif text-[16px] leading-relaxed text-neutral-800">A expressão costuma aparecer nas configurações do computador e não significa, necessariamente, que o monitor reproduza 32 bits para cada componente. Em uma representação convencional de 32 bits por pixel, são usados 8 bits para cada componente RGB e mais 8 bits para transparência (canal alfa) ou preenchimento. A imagem continua com 256 códigos por componente, cerca de 16,7 milhões de combinações.</p>
-          <p className="mt-3 font-serif text-[16px] leading-relaxed text-neutral-800">Há outros formatos de 32 bits por pixel, inclusive alguns com 10 bits por componente RGB e 2 bits para alfa. Por isso, o número total de bits por pixel não revela, sozinho, a profundidade do sinal nem a capacidade do painel. Consulte as especificações do modelo.</p>
-        </div>
-
-        <div className="grid gap-5 lg:grid-cols-3">
-          <BitDepthCard depth="Painel de 8 bits · 256 níveis">
-            <p>É suficiente para muitas tarefas, de navegação e entretenimento à edição convencional. Em degradês, sombras e fundos uniformes, pode deixar faixas visíveis entre tons próximos: o chamado <em>banding</em>.</p>
-            <p>O resultado também depende do sinal, do processamento, da calibração e das condições de visualização. Um bom painel de 8 bits pode ser muito consistente e atender bem a vídeos, navegação e edições sem controle rigoroso das gradações.</p>
-          </BitDepthCard>
-          <BitDepthCard depth="Painel de 10 bits · 1.024 níveis">
-            <p>Oferece quatro vezes mais códigos por componente que 8 bits. Pode reproduzir degradês, sombras e transições de cor com maior precisão, algo útil para avaliar materiais de 10 bits e imagens HDR.</p>
-            <p>Para enxergar essa diferença, o sinal, o sistema de reprodução e o monitor precisam estar configurados para trabalhar em 10 bits. O painel não recria gradações que já faltam na imagem.</p>
-          </BitDepthCard>
-          <BitDepthCard depth="8 bits + FRC">
-            <p>O <em>Frame Rate Control</em> alterna rapidamente entre níveis próximos para simular gradações intermediárias. Pode se aproximar visualmente de 10 bits, mas não é igual a um painel nativo de 10 bits; a qualidade depende da implementação.</p>
-            <p>Ao avaliar uma tela, verifique se “10 bits” significa painel nativo ou 8 bits + FRC.</p>
-          </BitDepthCard>
-        </div>
-
-        <div className="rounded-2xl border border-neutral-200 bg-[#f5f5f7] p-5 sm:p-6">
-          <h4 className="font-sans text-lg font-bold text-neutral-900">Processamento interno de 10, 12, 14 ou 16 bits</h4>
-          <p className="mt-2 font-serif text-[16px] leading-relaxed text-neutral-800">O monitor pode fazer cálculos internos com mais precisão do que a profundidade nativa do painel. LUTs (<em>Look-Up Tables</em>) e outros cálculos ajudam a converter gama, ajustar o ponto de branco, corrigir a uniformidade e construir curvas de reprodução. Mais precisão reduz erros de arredondamento nessas operações.</p>
-          <p className="mt-3 font-serif text-[16px] leading-relaxed text-neutral-800">Uma LUT de 16 bits, por exemplo, pode calcular correções para um painel nativo de 10 bits. Ela melhora a precisão dos cálculos, mas não transforma o painel em uma tela de 16 bits nem recupera informação ausente no sinal.</p>
-        </div>
-
-        <div className="space-y-4">
-          <h4 className="font-sans text-xl font-bold text-neutral-900">Como funciona a cadeia de exibição?</h4>
-          <p className="font-serif text-[16px] text-neutral-800 sm:text-[17px]">Para preservar a imagem, as etapas precisam ser compatíveis:</p>
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
-            {[
-              ['1. Fonte', 'Arquivo ou sinal original em 8, 10, 12 bits ou outra profundidade do formato.'],
-              ['2. Sistema', 'Computador, placa gráfica ou reprodutor processa e envia o sinal.'],
-              ['3. Conexão', 'HDMI, DisplayPort, SDI e outras interfaces têm modos e limites próprios.'],
-              ['4. Processamento', 'A tela converte o sinal, aplica correções e prepara os valores.'],
-              ['5. Painel', 'Os pixels reproduzem a imagem conforme a capacidade física da tela.'],
-            ].map(([step, description]) => <div key={step} className="rounded-2xl border border-neutral-200 bg-white p-4"><h5 className="font-sans text-sm font-bold text-neutral-900">{step}</h5><p className="mt-2 font-serif text-sm leading-relaxed text-neutral-700">{description}</p></div>)}
-          </div>
-          <p className="font-serif text-sm leading-relaxed text-neutral-700">Se uma etapa reduzir a precisão, um painel de 10 bits não garante que todas as gradações originais serão preservadas. O processamento interno pode melhorar conversões, mas não recuperar informação perdida antes.</p>
-        </div>
-
-        <TwoColumnText
-          left={<><h4 className="font-sans text-lg font-bold text-neutral-900">Televisores e celulares</h4><p>HDR10 usa sinal de vídeo de 10 bits, mas a compatibilidade com esse padrão não garante painel nativo de 10 bits nem reprodução HDR de alta qualidade. Brilho, contraste, nível de preto e processamento também influenciam o resultado.</p><p>Nos celulares, a indicação “1 bilhão de cores” não informa, sozinha, se o painel é nativo de 10 bits ou usa 8 bits + FRC. É preciso consultar a documentação do modelo.</p></>}
-          right={<><h4 className="font-sans text-lg font-bold text-neutral-900">O que avaliar para correção de cor</h4><p>Verifique a profundidade nativa do painel, o uso de FRC, a compatibilidade com o sinal e a precisão do processamento. Considere também calibração, uniformidade, gerenciamento e gama de cores, além da reprodução de sombras e altas luzes.</p><p>Profundidade de bits e gama de cores são características diferentes. Uma tela pode cobrir um espaço amplo, como DCI-P3, e ainda ter limitações na quantidade de gradações reproduzidas.</p></>}
-        />
-        <EditorialQuote quote="O número exibido pelo sistema, a precisão do processamento interno e a capacidade nativa do painel descrevem coisas diferentes." />
-      </EditorialSection>
-
-      <EditorialSection kickerLeft="DECISÃO DE PRODUÇÃO" kickerRight="ESCOLHA DE FORMATO" title="QUAL PROFUNDIDADE DE BITS DEVO ESCOLHER?" subtitle="A DECISÃO DEPENDE DO MATERIAL, DA PÓS-PRODUÇÃO E DA ESTRUTURA DISPONÍVEL">
+      <EditorialSection id="qual-profundidade-de-bits-devo-escolher" kickerLeft="DECISÃO DE PRODUÇÃO" kickerRight="ESCOLHA DE FORMATO" title="QUAL PROFUNDIDADE DE BITS DEVO ESCOLHER?" subtitle="A DECISÃO DEPENDE DO MATERIAL, DA PÓS-PRODUÇÃO E DA ESTRUTURA DISPONÍVEL">
         <TwoColumnText
           left={<><p>A escolha depende do tipo de produção, da liberdade necessária na pós e da estrutura disponível para gravar, editar e armazenar o material. Um videomaker que produz para redes sociais, um filmmaker que grava videoclipes e um diretor de fotografia de publicidade podem ter necessidades bem diferentes.</p><p>Quanto maior a profundidade, maior a precisão numérica para representar as informações da imagem. Isso pode preservar melhor as gradações durante a correção de cor, mas também pode aumentar as exigências de armazenamento e processamento, conforme o formato.</p></>}
           right={<><p>O ponto decisivo é escolher uma profundidade compatível com o tratamento que a imagem vai receber. Para gravar, fazer pequenos ajustes e publicar rapidamente, talvez não seja necessário um fluxo RAW de alta precisão. Para reconstruir o contraste de Log, fazer correções seletivas complexas ou buscar acabamento visual rigoroso, preservar mais informação desde a captura pode fazer diferença.</p><p>Profundidade de bits não determina sozinha o tamanho do arquivo nem o desempenho da câmera. Codec, compressão, resolução, taxa de quadros e taxa de bits também influenciam esses fatores. Mais bits tampouco significam automaticamente mais faixa dinâmica ou uma imagem visualmente superior.</p></>}

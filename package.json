@@ -10,6 +10,7 @@
     "postinstall": "prisma skills sync || exit 0"
   },
   "dependencies": {
+    "@gsap/react": "^2.1.2",
     "@prisma/client": "^7.10.0",
     "@supabase/server": "^1.9.0",
     "@supabase/ssr": "^0.12.7",
@@ -17,6 +18,7 @@
     "@types/pg": "^8.23.1",
     "@vercel/analytics": "^2.0.1",
     "@vercel/functions": "^3.9.11",
+    "gsap": "^3.15.0",
     "hls.js": "^1.7.3",
     "lucide-react": "^1.48.0",
     "motion": "^14.0.0",

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getAuthenticatedUser } from '@/utils/supabase/authenticated';
 import { supabaseAdmin } from '@/utils/supabase/admin';
+import { LESSON_VIDEOS, findLessonVideo, pandaEmbedUrl, pandaThumbnailUrl } from '@/config/lessonVideos';
 
 interface PandaVideoInfo {
   id: string;
@@ -27,29 +28,14 @@ function cleanVideoTitle(title: string): string {
   return title.replace(/\s*-\s*Parte\s*0[12]\s*$/i, '').trim();
 }
 
-const DEFAULT_VIDEOS: Record<string, Partial<PandaVideoInfo>> = {
-  'dcc5a135-2d08-4589-b0f1-caff163a7cf5': {
-    title: 'Introdução ao DaVinci Resolve - Parte 01',
-    thumbnail_url: 'https://cdn.pandavideo.com/vz-5bb7b1c1-d28/dcc5a135-2d08-4589-b0f1-caff163a7cf5/thumbnail.jpg',
-    duration: 330,
-    part_label: 'Parte 01',
-    embed_url: 'https://player-vz-5bb7b1c1-d28.tv.pandavideo.com.br/embed/?v=dcc5a135-2d08-4589-b0f1-caff163a7cf5'
-  },
-  'd792f957-2169-4efe-9b64-bc27a16bdb39': {
-    title: 'Introdução ao DaVinci Resolve - Parte 02',
-    thumbnail_url: 'https://cdn.pandavideo.com/vz-5bb7b1c1-d28/d792f957-2169-4efe-9b64-bc27a16bdb39/thumbnail.jpg',
-    duration: 789,
-    part_label: 'Parte 02',
-    embed_url: 'https://player-vz-5bb7b1c1-d28.tv.pandavideo.com.br/embed/?v=d792f957-2169-4efe-9b64-bc27a16bdb39'
-  }
-};
-
 async function fetchVideoOEmbed(videoId: string): Promise<PandaVideoInfo> {
-  const fallback = DEFAULT_VIDEOS[videoId] || {
-    title: `Vídeo ${videoId.substring(0, 8)}`,
-    thumbnail_url: '',
-    duration: 0,
-    embed_url: `https://player-vz-5bb7b1c1-d28.tv.pandavideo.com.br/embed/?v=${videoId}`
+  const seed = findLessonVideo(videoId);
+  const fallback: Partial<PandaVideoInfo> = {
+    title: seed?.title || `Vídeo ${videoId.substring(0, 8)}`,
+    thumbnail_url: pandaThumbnailUrl(videoId),
+    duration: seed?.duration || 0,
+    part_label: seed?.partLabel,
+    embed_url: pandaEmbedUrl(videoId),
   };
 
   const cached = cache.get(videoId);
@@ -73,11 +59,11 @@ async function fetchVideoOEmbed(videoId: string): Promise<PandaVideoInfo> {
 
     const result: PandaVideoInfo = {
       id: videoId,
-      title: cleanVideoTitle(data.title || fallback.title || 'Introdução ao DaVinci Resolve'),
+      title: cleanVideoTitle(data.title || fallback.title || 'Vídeo da aula'),
       thumbnail_url: data.thumbnail_url || fallback.thumbnail_url || '',
       duration,
       duration_formatted: formatDuration(duration),
-      embed_url: `https://player-vz-5bb7b1c1-d28.tv.pandavideo.com.br/embed/?v=${videoId}`,
+      embed_url: pandaEmbedUrl(videoId),
       part_label: fallback.part_label
     };
 
@@ -88,7 +74,7 @@ async function fetchVideoOEmbed(videoId: string): Promise<PandaVideoInfo> {
     const duration = fallback.duration || 0;
     return {
       id: videoId,
-      title: cleanVideoTitle(fallback.title || 'Introdução ao DaVinci Resolve'),
+      title: cleanVideoTitle(fallback.title || 'Vídeo da aula'),
       thumbnail_url: fallback.thumbnail_url || '',
       duration,
       duration_formatted: formatDuration(duration),
@@ -113,11 +99,10 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: 'Acesso não autorizado.' }, { status: 403, headers: { 'Cache-Control': 'private, no-store' } });
   }
 
-  const requestedLesson = new URL(req.url).searchParams.get('lessonId') || 'introducao-davinci-resolve';
-  const lessonVideos: Record<string, string[]> = {
-    'introducao-davinci-resolve': ['dcc5a135-2d08-4589-b0f1-caff163a7cf5', 'd792f957-2169-4efe-9b64-bc27a16bdb39'],
-  };
-  const ids = lessonVideos[requestedLesson];
+  const requestedParam = new URL(req.url).searchParams.get('lessonId') || 'mod1-1';
+  // Compatibilidade com o identificador antigo da primeira aula.
+  const requestedLesson = requestedParam === 'introducao-davinci-resolve' ? 'mod1-1' : requestedParam;
+  const ids = Object.hasOwn(LESSON_VIDEOS, requestedLesson) ? LESSON_VIDEOS[requestedLesson].map((v) => v.id) : undefined;
   if (!ids) {
     return NextResponse.json({ error: 'Aula não encontrada.' }, { status: 404, headers: { 'Cache-Control': 'private, no-store' } });
   }

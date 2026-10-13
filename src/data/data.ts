@@ -59,8 +59,8 @@ export const modulesData: CourseModule[] = [
             concept: `A Academy Color Encoding System (ACES) é o padrão de gerenciamento de cores desenvolvido pela Academia de Cinema dos EUA. Ele transforma materiais de diferentes marcas e modelos de câmeras em um espaço de cor gigantesco e linear (ACEScg / ACEScc / ACEScct), garantindo consistência fotométrica perfeita em produções multicâmera.`,
             steps: [
               'Ative o Color Science como ACEScc ou ACEScct nas configurações do projeto.',
-              'Defina a versão ACES mais recente e selecione o IDT (Input Device Transform) correspondente a cada câmera da cena.',
-              'Configure o ODT (Output Device Transform) correto para sua tela de entrega comercial (ex: Rec.709).',
+              'Defina a versão ACES mais recente e selecione o ACES Input Transform correspondente a cada câmera da cena.',
+              'Configure o ACES Output Transform correto para sua tela de entrega comercial (ex: Rec.709).',
               'Utilize ACEScct para uma resposta mais orgânica e suave nos controles de sombras e Lift.'
             ],
             tips: ['ACEScct é a escolha recomendada para comerciais, pois evita que ajustes de sombra quebrem bruscamente a curva tonal.']
@@ -72,19 +72,6 @@ export const modulesData: CourseModule[] = [
           'Valide a integridade do histograma e dos níveis de saturação após a conversão.'
         ],
         tips: ['Nunca aplique ajustes criativos antes de normalizar o espaço de cor da sua gravação.']
-      },
-      {
-        id: 'mod1-3',
-        title: 'Como fazer a análise artística do vídeo',
-        isFree: true,
-        concept: `Antes de mexer em qualquer controle de cor, é indispensável realizar a análise analítica e estética do material. Isso envolve entender o gênero do produto, o contraste desejado, a iluminação da cena e cruzar o olhar artístico com a leitura dos Scopes (Waveform, RGB Parade, Vectorscope e Histograma).`,
-        steps: [
-          'Analise a distribuição de iluminação pelo Waveform e identifique sombras esmagadas ou altas estouradas.',
-          'Use o RGB Parade para detectar contaminações indesejadas (color casts) em pretos e brancos.',
-          'Verifique no Vectorscope a fidelidade e saturação das cores do produto e o alinhamento da linha de Skin Tone.',
-          'Determine a intenção estética (clean comercial, dramático, quente/frio, vintage) antes de iniciar o grading.'
-        ],
-        tips: ['O monitor pode enganar por calibragem ou iluminação ambiente; os scopes fornecem a verdade numérica absoluta.']
       },
       {
         id: 'mod1-4',

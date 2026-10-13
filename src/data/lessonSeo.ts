@@ -188,22 +188,6 @@ export const LESSON_SEO: LessonSeo[] = [
     ]
   },
   {
-    "id": "mod1-3",
-    "moduleSlug": "fundamentos",
-    "moduleTitle": "Fundamentos",
-    "slug": "como-fazer-a-analise-artistica-do-video",
-    "title": "Como fazer a análise artística do vídeo",
-    "metaDescription": "Antes de mexer em qualquer controle de cor, é indispensável realizar a análise analítica e estética do material. Isso envolve entender o gênero do…",
-    "learningOutcomes": [],
-    "topics": [
-      {
-        "id": "visao-geral-1",
-        "heading": "Visão geral",
-        "opening": "Antes de mexer em qualquer controle de cor, é indispensável realizar a análise analítica e estética do material. Isso envolve entender o gênero do produto, o contraste desejado, a iluminação da cena e cruzar o olhar artístico com a leitura dos Scopes (Waveform, RGB Parade, Vectorscope e Histograma)."
-      }
-    ]
-  },
-  {
     "id": "mod1-4",
     "moduleSlug": "fundamentos",
     "moduleTitle": "Fundamentos",

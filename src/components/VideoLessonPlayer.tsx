@@ -37,6 +37,8 @@ interface VideoLessonPlayerProps {
   poster?: string;
   studentName?: string;
   onLessonEnded?: () => void;
+  /** Disparado quando o vídeo começa a tocar. */
+  onPlay?: () => void;
 }
 
 export const VideoLessonPlayer = forwardRef<VideoLessonPlayerHandle, VideoLessonPlayerProps>(
@@ -48,6 +50,7 @@ export const VideoLessonPlayer = forwardRef<VideoLessonPlayerHandle, VideoLesson
       poster,
       studentName = 'Aluno',
       onLessonEnded,
+      onPlay,
     },
     ref
   ) {
@@ -275,6 +278,7 @@ export const VideoLessonPlayer = forwardRef<VideoLessonPlayerHandle, VideoLesson
       setIsBuffering(false);
       setIsPlaying(true);
       setHasStarted(true);
+      onPlay?.();
     };
     const handlePause = () => setIsPlaying(false);
 

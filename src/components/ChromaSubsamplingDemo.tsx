@@ -52,7 +52,7 @@ function Matrix({ values, label }: { values: readonly (readonly string[])[]; lab
 
 export default function ChromaSubsamplingDemo() {
   const [selected, setSelected] = useState<ChromaFormat>('4:2:0');
-  const [view, setView] = useState<'color' | 'luma' | 'combined'>('color');
+  const [view, setView] = useState<'color' | 'luma' | 'combined'>('combined');
   const format = formats[selected];
   const combined = luma.map((row, y) => row.map((gray, x) => {
     const color = format.chroma[y][x];

@@ -10,8 +10,11 @@ import {
   Clock,
   Sparkles,
   Maximize2,
+  X,
   Volume2
 } from 'lucide-react';
+import { LESSON_VIDEOS, pandaEmbedUrl, pandaThumbnailUrl, type LessonVideoSeed } from '@/config/lessonVideos';
+import { cachedJson } from '@/lib/clientCache';
 
 export interface PandaVideoItem {
   id: string;
@@ -27,40 +30,67 @@ interface PandaPlaylistPlayerProps {
   lessonId?: string;
   studentName?: string;
   onLessonEnded?: () => void;
+  /** Disparado quando o aluno dá play em qualquer vídeo da lista. */
+  onPlay?: () => void;
 }
 
-const INITIAL_VIDEOS: PandaVideoItem[] = [
-  {
-    id: 'dcc5a135-2d08-4589-b0f1-caff163a7cf5',
-    title: 'Introdução ao DaVinci Resolve',
-    thumbnail_url: 'https://cdn.pandavideo.com/vz-5bb7b1c1-d28/dcc5a135-2d08-4589-b0f1-caff163a7cf5/thumbnail.jpg',
-    duration: 330,
-    duration_formatted: '05:30',
-    embed_url: 'https://player-vz-5bb7b1c1-d28.tv.pandavideo.com.br/embed/?v=dcc5a135-2d08-4589-b0f1-caff163a7cf5',
-    part_label: 'Parte 01'
-  },
-  {
-    id: 'd792f957-2169-4efe-9b64-bc27a16bdb39',
-    title: 'Introdução ao DaVinci Resolve',
-    thumbnail_url: 'https://cdn.pandavideo.com/vz-5bb7b1c1-d28/d792f957-2169-4efe-9b64-bc27a16bdb39/thumbnail.jpg',
-    duration: 789,
-    duration_formatted: '13:08',
-    embed_url: 'https://player-vz-5bb7b1c1-d28.tv.pandavideo.com.br/embed/?v=d792f957-2169-4efe-9b64-bc27a16bdb39',
-    part_label: 'Parte 02'
-  }
-];
+const toItem = (seed: LessonVideoSeed): PandaVideoItem => ({
+  id: seed.id,
+  title: seed.title,
+  thumbnail_url: pandaThumbnailUrl(seed.id),
+  duration: seed.duration || 0,
+  duration_formatted: seed.duration
+    ? `${String(Math.floor(seed.duration / 60)).padStart(2, '0')}:${String(seed.duration % 60).padStart(2, '0')}`
+    : '',
+  embed_url: pandaEmbedUrl(seed.id),
+  part_label: seed.partLabel,
+});
+
+const seedsFor = (lessonId?: string): LessonVideoSeed[] =>
+  (lessonId && Object.hasOwn(LESSON_VIDEOS, lessonId) ? LESSON_VIDEOS[lessonId] : LESSON_VIDEOS['mod1-1']);
+
+type PandaWindow = typeof window & {
+  PandaPlayer?: new (id: string, options: { onReady: () => void }) => {
+    pipScrollFollow: (options: { panda_id_player: string }) => void;
+  };
+  pandascripttag?: Array<() => void>;
+};
 
 export default function PandaPlaylistPlayer({
   lessonId,
   studentName,
-  onLessonEnded
+  onLessonEnded,
+  onPlay
 }: PandaPlaylistPlayerProps) {
-  const [videos, setVideos] = useState<PandaVideoItem[]>(INITIAL_VIDEOS);
+  const [videos, setVideos] = useState<PandaVideoItem[]>(() => seedsFor(lessonId).map(toItem));
   const [currentIndex, setCurrentIndex] = useState<number>(0);
-  const [isSidebarOpen, setIsSidebarOpen] = useState<boolean>(true);
+  // A lista de vídeos começa minimizada (abre pelo botão ou ao passar o mouse na borda).
+  const [isSidebarOpen, setIsSidebarOpen] = useState<boolean>(false);
   const [autoPlayNext, setAutoPlayNext] = useState<boolean>(false);
+  // Mini player: com menos de 50% do vídeo visível ele flutua no canto; ao voltar a 50%+, retorna ao lugar.
+  const slotRef = useRef<HTMLDivElement>(null);
+  const [isOffscreen, setIsOffscreen] = useState<boolean>(false);
+  const [miniDismissed, setMiniDismissed] = useState<boolean>(false);
+  const isMini = isOffscreen && !miniDismissed;
+  // Atalho da lista de vídeos (mini-barra): some ao dar play e reaparece conforme o mouse chega perto.
+  const railRef = useRef<HTMLElement>(null);
+  const [isPlaying, setIsPlaying] = useState<boolean>(false);
+  const [railProximity, setRailProximity] = useState<number>(0); // 0 = longe · 1 = em cima
+  const RAIL_REACH_PX = 64; // distância curta de aproximação
+  const railOpacity = isPlaying ? railProximity : 1;
+
+  const handleRailZoneMove = (e: React.MouseEvent) => {
+    const r = railRef.current?.getBoundingClientRect();
+    if (!r) return;
+    const dx = Math.max(r.left - e.clientX, 0, e.clientX - r.right);
+    const dy = Math.max(r.top - e.clientY, 0, e.clientY - r.bottom);
+    const next = Math.round(Math.max(0, 1 - Math.hypot(dx, dy) / RAIL_REACH_PX) * 10) / 10;
+    setRailProximity((prev) => (prev === next ? prev : next));
+  };
   const [completedVideos, setCompletedVideos] = useState<string[]>([]);
   const [iframeKey, setIframeKey] = useState<number>(0);
+  // Chave do iframe que já terminou de carregar (preloader aparece enquanto for diferente da chave atual)
+  const [loadedKey, setLoadedKey] = useState<string>('');
   const initialCollapseTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const closeSidebarTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const hasAutoCollapsedRef = useRef(false);
@@ -68,6 +98,9 @@ export default function PandaPlaylistPlayer({
   const videosCountRef = useRef(videos.length);
 
   const activeVideo = videos[currentIndex] || videos[0];
+  const activeSeed = seedsFor(lessonId).find((v) => v.id === activeVideo.id);
+  // Só aula com 2+ vídeos tem lista; com 1 vídeo aparece apenas o player.
+  const hasPlaylist = videos.length > 1;
 
   useEffect(() => {
     videosCountRef.current = videos.length;
@@ -136,24 +169,44 @@ export default function PandaPlaylistPlayer({
     if (closeSidebarTimerRef.current) clearTimeout(closeSidebarTimerRef.current);
   }, []);
 
-  // 1. Busca dinâmica dos dados oficiais no PandaVideo via API
+  useEffect(() => {
+    const slot = slotRef.current;
+    if (!slot) return;
+    const io = new IntersectionObserver(
+      ([entry]) => {
+        const visibleEnough = entry.intersectionRatio >= 0.5;
+        setIsOffscreen(!visibleEnough);
+        if (visibleEnough) setMiniDismissed(false);
+      },
+      { threshold: [0.5] }
+    );
+    io.observe(slot);
+    return () => io.disconnect();
+  }, []);
+
+  // 1. Dados oficiais (título, miniatura, duração) via API do Panda. Os metadados quase não mudam:
+  // ficam 24 h no navegador (cache de até 7 dias, apagado no logout) para poupar o servidor.
   useEffect(() => {
     let isMounted = true;
-    fetch('/api/content/panda-info')
-      .then((res) => res.json())
-      .then((data) => {
-        if (isMounted && data.success && Array.isArray(data.videos) && data.videos.length > 0) {
-          setVideos(data.videos);
-        }
-      })
-      .catch((err) => {
-        console.warn('Erro ao sincronizar informações do PandaVideo:', err);
-      });
+    const id = lessonId || 'mod1-1';
+    cachedJson<PandaVideoItem[]>(
+      `panda-info:${id}`,
+      async () => {
+        const res = await fetch(`/api/content/panda-info?lessonId=${encodeURIComponent(id)}`);
+        const data = await res.json();
+        return data.success && Array.isArray(data.videos) && data.videos.length > 0 ? (data.videos as PandaVideoItem[]) : null;
+      },
+      { freshMs: 24 * 60 * 60 * 1000 }
+    ).then((list) => {
+      if (isMounted && list) setVideos(list);
+    }).catch((err) => {
+      console.warn('Erro ao sincronizar informações do PandaVideo:', err);
+    });
 
     return () => {
       isMounted = false;
     };
-  }, []);
+  }, [lessonId]);
 
   // 2. Carrega o script oficial do PandaPlayer
   useEffect(() => {
@@ -164,6 +217,24 @@ export default function PandaPlaylistPlayer({
       document.head.appendChild(script);
     }
   }, []);
+
+  // 2.1 Liga a API do PandaPlayer ao iframe atual (PiP que acompanha a rolagem, como no embed oficial)
+  useEffect(() => {
+    const w = window as PandaWindow;
+    const playerId = `panda-${activeVideo.id}`;
+    const init = () => {
+      if (!w.PandaPlayer) return;
+      const player = new w.PandaPlayer(playerId, {
+        onReady: () => {},
+      });
+    };
+    if (w.PandaPlayer) {
+      init();
+    } else {
+      w.pandascripttag = w.pandascripttag || [];
+      w.pandascripttag.push(init);
+    }
+  }, [activeVideo.id, iframeKey]);
 
   // 3. Listener de Autoplay Sequencial: ao terminar um vídeo, passa automaticamente para o outro
   useEffect(() => {
@@ -180,7 +251,12 @@ export default function PandaPlaylistPlayer({
           msgData?.type === 'panda_ended' ||
           msgData?.event === 'ended';
 
+        const isPlay = msgData?.message === 'panda_play' || msgData?.type === 'panda_play' || msgData?.event === 'play';
+        if (isPlay) { setIsPlaying(true); onPlay?.(); }
+        if (msgData?.message === 'panda_pause' || msgData?.type === 'panda_pause') setIsPlaying(false);
+
         if (isEnded) {
+          setIsPlaying(false);
           // Marca o vídeo atual como concluído
           setCompletedVideos((prev) =>
             prev.includes(activeVideo.id) ? prev : [...prev, activeVideo.id]
@@ -207,19 +283,31 @@ export default function PandaPlaylistPlayer({
     return () => {
       window.removeEventListener('message', handlePandaMessage);
     };
-  }, [currentIndex, videos.length, activeVideo.id, onLessonEnded]);
+  }, [currentIndex, videos.length, activeVideo.id, onLessonEnded, onPlay]);
 
   const handleSelectVideo = (index: number) => {
     if (index === currentIndex) return;
     setCurrentIndex(index);
+    setIsPlaying(false);
     setAutoPlayNext(true);
     setIframeKey((prev) => prev + 1);
   };
 
+  const currentKey = `${activeVideo.id}-${iframeKey}`;
+  const isPlayerLoading = loadedKey !== currentKey;
+
+  // Rede de segurança: se o evento de carregamento não chegar, libera o player após 15 s
+  useEffect(() => {
+    const timer = setTimeout(() => setLoadedKey(currentKey), 15000);
+    return () => clearTimeout(timer);
+  }, [currentKey]);
+
   // URL do iframe com parâmetro autoplay dinâmico e sem logo
   const embedSrc = `${activeVideo.embed_url}${
+    activeSeed?.defaultSubtitle ? `&defaultSubtitle=${encodeURIComponent(activeSeed.defaultSubtitle)}` : ''
+  }${
     autoPlayNext ? '&autoplay=true' : ''
-  }&initQuality=2160p&controls=play-large,play,progress,current-time,mute,volume,captions,settings,fullscreen`;
+  }&initQuality=2160p&controls=play-large,play,progress,current-time,mute,volume,captions,settings,pip,airplay,cast,fullscreen`;
 
   return (
     <div className="w-full bg-[#121318] border border-white/10 rounded-2xl sm:rounded-3xl shadow-2xl overflow-hidden selection:bg-[#0071e3] selection:text-white transition-all">
@@ -227,7 +315,7 @@ export default function PandaPlaylistPlayer({
 
         {/* ÁREA DO PLAYER DO PANDAVIDEO (LADO DIREITO) */}
         <main className="flex-1 min-w-0 bg-black flex flex-col justify-center relative">
-          {!isSidebarOpen && (
+          {hasPlaylist && !isSidebarOpen && (
             <button
               onClick={handleSidebarOpen}
               title="Mostrar lista de vídeos"
@@ -238,7 +326,36 @@ export default function PandaPlaylistPlayer({
             </button>
           )}
           {/* Container do Iframe com Proporção Responsiva Cinematográfica */}
-          <div className="relative w-full aspect-[1.54] mx-auto bg-black overflow-hidden flex items-center justify-center">
+          <div ref={slotRef} className="relative w-full aspect-[1.54] mx-auto bg-black">
+          <div
+            className={
+              isMini
+                ? 'fixed bottom-36 right-6 z-50 w-[420px] max-w-[calc(100vw-2rem)] aspect-[1.54] overflow-hidden rounded-xl border border-white/15 bg-black shadow-2xl animate-in fade-in zoom-in-95 duration-200 motion-reduce:animate-none'
+                : 'absolute inset-0 overflow-hidden bg-black flex items-center justify-center'
+            }
+          >
+            {isMini && (
+              <div className="absolute right-2 top-2 z-40 flex gap-1.5">
+                <button
+                  type="button"
+                  onClick={() => slotRef.current?.scrollIntoView({ block: 'center', behavior: 'smooth' })}
+                  aria-label="Voltar ao vídeo"
+                  title="Voltar ao vídeo"
+                  className="flex h-8 w-8 items-center justify-center rounded-full bg-black/70 text-white transition-colors hover:bg-black/90"
+                >
+                  <Maximize2 className="h-4 w-4" aria-hidden="true" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setMiniDismissed(true)}
+                  aria-label="Fechar mini player"
+                  title="Fechar mini player"
+                  className="flex h-8 w-8 items-center justify-center rounded-full bg-black/70 text-white transition-colors hover:bg-black/90"
+                >
+                  <X className="h-4 w-4" aria-hidden="true" />
+                </button>
+              </div>
+            )}
             <iframe
               key={`panda-iframe-${activeVideo.id}-${iframeKey}`}
               id={`panda-${activeVideo.id}`}
@@ -247,8 +364,27 @@ export default function PandaPlaylistPlayer({
               className="w-full h-full border-0 absolute inset-0"
               allow="accelerometer; gyroscope; autoplay; encrypted-media; picture-in-picture"
               allowFullScreen={true}
+              onLoad={() => setLoadedKey(currentKey)}
               {...({ fetchPriority: 'high' } as Record<string, string>)}
             />
+
+            {/* Preloader: cobre o player até o vídeo carregar e então some */}
+            <div
+              role="status"
+              aria-live="polite"
+              aria-hidden={!isPlayerLoading}
+              className={`absolute inset-0 z-[25] flex flex-col items-center justify-center gap-4 bg-[#0c0d11] transition-opacity duration-300 ${
+                isPlayerLoading ? 'opacity-100' : 'pointer-events-none opacity-0'
+              }`}
+            >
+              <span
+                aria-hidden="true"
+                className="h-12 w-12 animate-spin rounded-full border-4 border-white/15 border-t-[#0071e3] motion-reduce:animate-none"
+              />
+              <span className="font-sans text-sm font-medium text-white/70">
+                {isPlayerLoading ? 'Carregando vídeo…' : ''}
+              </span>
+            </div>
 
             {/* Máscara estética protetora contra logotipo do PandaVideo */}
             <div
@@ -258,6 +394,8 @@ export default function PandaPlaylistPlayer({
               }}
             />
 
+            {hasPlaylist && (
+            <>
             {/* LISTA DE VÍDEOS: fica POR CIMA do vídeo (não empurra nem muda a proporção do player) */}
             <aside
               onMouseEnter={handleSidebarMouseEnter}
@@ -379,15 +517,24 @@ export default function PandaPlaylistPlayer({
             </aside>
 
             {/* Mini-barra (lista recolhida): entra/sai com a mesma curva quadrática */}
+            {/* Zona de aproximação: a mini-barra + 64px ao redor. Só captura o mouse com o vídeo tocando
+                (o iframe do Panda não repassa o movimento do mouse ao resto da página). */}
+            <div
+              onMouseMove={handleRailZoneMove}
+              onMouseLeave={() => setRailProximity(0)}
+              className="absolute left-0 top-0 z-30 hidden lg:block pl-3 pt-3 pr-16 pb-16"
+              style={{ pointerEvents: isPlaying && !isSidebarOpen ? 'auto' : 'none' }}
+            >
             <aside
+              ref={railRef}
               aria-label="Lista de vídeos recolhida"
               aria-hidden={isSidebarOpen}
               inert={isSidebarOpen}
-              onMouseEnter={handleSidebarMouseEnter}
+              onMouseEnter={() => { setRailProximity(1); handleSidebarMouseEnter(); }}
               onMouseLeave={handleSidebarMouseLeave}
-              className="absolute top-3 left-3 z-30 hidden lg:flex flex-col items-center py-2 px-1.5 rounded-2xl border border-white/10 bg-black/70"
+              className="relative flex flex-col items-center py-2 px-1.5 rounded-2xl border border-white/10 bg-black/70"
               style={{
-                opacity: isSidebarOpen ? 0 : 1,
+                opacity: isSidebarOpen ? 0 : railOpacity,
                 transform: isSidebarOpen ? 'translateX(-12px)' : 'translateX(0)',
                 pointerEvents: isSidebarOpen ? 'none' : 'auto',
                 transition: 'opacity 320ms cubic-bezier(0.455, 0.03, 0.515, 0.955), transform 320ms cubic-bezier(0.455, 0.03, 0.515, 0.955)',
@@ -423,6 +570,10 @@ export default function PandaPlaylistPlayer({
                   </div>
                 </div>
             </aside>
+            </div>
+            </>
+            )}
+          </div>
           </div>
 
           {/* Barra inferior de status e navegação entre partes */}

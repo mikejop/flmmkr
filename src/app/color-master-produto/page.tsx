@@ -21,6 +21,14 @@ export default function ColorMasterProdutoPage() {
   useEffect(() => {
     let isMounted = true;
 
+    // Mostra por que a pessoa está saindo antes de redirecionar (em vez de trocar de página sem aviso).
+    const leaveWithMessage = (message: string) => {
+      setStatusMessage(message);
+      setTimeout(() => {
+        if (isMounted) window.location.replace('/');
+      }, 1800);
+    };
+
     async function verifyAndLoadEverything() {
       try {
         setStatusMessage('Verificando sessão de login...');
@@ -28,7 +36,7 @@ export default function ColorMasterProdutoPage() {
         if (!isMounted) return;
 
         if (!user) {
-          window.location.replace('/');
+          leaveWithMessage('Sua sessão não foi encontrada. Redirecionando para o login...');
           return;
         }
 
@@ -48,7 +56,7 @@ export default function ColorMasterProdutoPage() {
             removeCache(accessKey);
             await supabase.auth.signOut();
             if (isMounted) {
-              window.location.replace('/');
+              leaveWithMessage('Não encontramos um pagamento confirmado para esta conta. Redirecionando...');
             }
             return;
           }
@@ -73,7 +81,7 @@ export default function ColorMasterProdutoPage() {
       } catch (err) {
         console.error('Erro na validação de pagamento e carregamento:', err);
         if (isMounted) {
-          window.location.replace('/');
+          leaveWithMessage('Não foi possível validar seu acesso agora. Redirecionando...');
         }
       }
     }

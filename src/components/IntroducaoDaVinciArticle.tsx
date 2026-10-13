@@ -6,6 +6,8 @@ import React from 'react';
 import Image from 'next/image';
 import {
   EditorialSection,
+  ArticleToc,
+  type TocGroup,
   TwoColumnText,
   ImageAndText,
   EditorialQuote,
@@ -29,14 +31,35 @@ function NodeTypeCard({ title, children, use, images = [] }: { title: string; ch
   );
 }
 
+const TOC: TocGroup[] = [
+  { title: "Primeiro, vamos entender o DaVinci Resolve", id: "primeiro-vamos-entender-o-davinci-resolve" },
+  { title: "A aba Color", id: "a-aba-color" },
+  { title: "Os Nodes", id: "os-nodes", items: [{ label: "Tipos de nodes", id: "tipos-de-nodes" }, { label: "Como organizar os nodes", id: "como-organizar-os-nodes" }] },
+  { title: "Primárias", id: "primarias", items: [{ label: "Primaries", id: "primaries" }, { label: "Color Wheels", id: "color-wheels" }, { label: "Log Wheels", id: "log-wheels" }] },
+  { title: "Ferramentas específicas", id: "ferramentas-especificas", items: [{ label: "HDR", id: "hdr" }, { label: "RGB Mixer", id: "rgb-mixer" }, { label: "Curves", id: "curves" }] },
+  { title: "Isolamento", id: "isolamento", items: [{ label: "Qualifier", id: "qualifier" }, { label: "Power Windows", id: "power-windows" }] },
+  { title: "Tracker", id: "tracker" },
+  { title: "Magic Mask", id: "magic-mask" },
+  { title: "Blur e Sharpen", id: "blur-e-sharpen" },
+  { title: "Key", id: "key" },
+  { title: "Sizing", id: "sizing" },
+  { title: "Scopes", id: "scopes" },
+  { title: "Split Screen", id: "split-screen" },
+  { title: "Gallery", id: "gallery" },
+  { title: "Color Match", id: "color-match" },
+  { title: "Atalhos que você precisa começar a usar", id: "atalhos-que-voce-precisa-comecar-a-usar", items: [{ label: "Navegação e reprodução", id: "navegacao-e-reproducao" }, { label: "Nodes (atalhos)", id: "nodes-atalhos" }, { label: "Análise e comparação", id: "analise-e-comparacao" }, { label: "Gallery e Stills", id: "gallery-e-stills" }, { label: "Versions", id: "versions" }, { label: "Uma regra simples", id: "uma-regra-simples" }] },
+];
+
 export default function IntroducaoDaVinciArticle() {
   return (
     <article className="w-full text-[#111111] font-serif select-text leading-relaxed relative space-y-10">
+      <ArticleToc groups={TOC} />
+
 
       {/* ===================================================================
           SEÇÃO 1 — PRIMEIRO, VAMOS ENTENDER O DAVINCI RESOLVE
           =================================================================== */}
-      <EditorialSection
+      <EditorialSection id="primeiro-vamos-entender-o-davinci-resolve"
         kickerLeft="FUNDAMENTOS · INTRODUÇÃO"
         kickerRight="VISÃO GERAL"
         title="PRIMEIRO, VAMOS ENTENDER O DAVINCI RESOLVE"
@@ -86,7 +109,7 @@ export default function IntroducaoDaVinciArticle() {
       {/* ===================================================================
           SEÇÃO 2 — A ABA COLOR
           =================================================================== */}
-      <EditorialSection
+      <EditorialSection id="a-aba-color"
         kickerLeft="FUNDAMENTOS"
         kickerRight="ESTRUTURA DA TELA"
         title="A ABA COLOR"
@@ -112,7 +135,7 @@ export default function IntroducaoDaVinciArticle() {
       {/* ===================================================================
           SEÇÃO 3 — OS NODES
           =================================================================== */}
-      <EditorialSection
+      <EditorialSection id="os-nodes"
         kickerLeft="FUNDAMENTOS"
         kickerRight="FLUXO SEQUENCIAL"
         title="OS NODES"
@@ -151,7 +174,7 @@ export default function IntroducaoDaVinciArticle() {
 
         <div className="space-y-5 border-t border-neutral-200 pt-7">
           <div className="space-y-3 font-serif text-[16px] leading-relaxed text-neutral-800 [&_p]:text-justify">
-            <h4 className="font-sans text-xl font-bold text-neutral-900">Tipos de nodes no DaVinci Resolve</h4>
+            <h4 id="tipos-de-nodes" className="scroll-mt-4 font-sans text-xl font-bold text-neutral-900">Tipos de nodes no DaVinci Resolve</h4>
             <p>Na página Color, os nodes são a estrutura usada para organizar e executar correções e tratamentos da imagem. Cada node funciona como uma etapa do processamento e pode conter ajustes primários, correções seletivas, máscaras, efeitos e outras operações.</p>
             <p>Separar o tratamento em etapas independentes ajuda a organizar a ordem das operações e facilita a revisão. Você pode, por exemplo, dedicar nodes diferentes ao balanço de cor, contraste, ajustes de pele e criação do look. As conexões formam a <em>node tree</em> (árvore de nodes): a saída de um node pode alimentar outro, dividir-se em ramificações ou ser combinada com outras operações.</p>
             <p>As estruturas abaixo têm comportamentos diferentes. Entendê-las ajuda a montar árvores de nodes organizadas e escolher o fluxo adequado sem adicionar complexidade desnecessária.</p>
@@ -208,7 +231,7 @@ export default function IntroducaoDaVinciArticle() {
           </div>
 
           <div className="rounded-2xl border border-neutral-200 bg-[#f5f5f7] p-5 sm:p-6">
-            <h4 className="font-sans text-lg font-bold text-neutral-900">Como organizar os nodes em um trabalho real</h4>
+            <h4 id="como-organizar-os-nodes" className="scroll-mt-4 font-sans text-lg font-bold text-neutral-900">Como organizar os nodes em um trabalho real</h4>
             <p className="mt-2 font-serif text-[16px] leading-relaxed text-neutral-800">Um fluxo serial simples pode começar pelo tratamento técnico da imagem, seguir para balanço de branco e exposição, avançar para contraste e saturação e terminar com a criação do look e os ajustes finais.</p>
             <p className="mt-3 font-serif text-[16px] leading-relaxed text-neutral-800">Quando precisar de correções seletivas independentes, use uma estrutura paralela. Para tratar a região externa de uma seleção, considere o Outside Node; para unir máscaras, o Key Mixer; para sobrepor regiões corrigidas, o Layer Mixer.</p>
             <p className="mt-3 font-serif text-[16px] leading-relaxed text-neutral-800">Não existe uma única árvore ideal para todas as cenas. A melhor estrutura é a que permite fazer os ajustes necessários com clareza, controle e flexibilidade, sem tornar o processo mais complexo do que o projeto exige.</p>
@@ -219,13 +242,13 @@ export default function IntroducaoDaVinciArticle() {
       {/* ===================================================================
           SEÇÃO 4 — PRIMARIES
           =================================================================== */}
-      <EditorialSection
+      <EditorialSection id="primarias"
         kickerLeft="FUNDAMENTOS"
         kickerRight="AJUSTE DE BASE · FERRAMENTAS PRIMÁRIAS"
         title="PRIMÁRIAS"
         subtitle="PRIMARIES, COLOR WHEELS E LOG WHEELS"
       >
-        <h4 className="border-t border-neutral-200 pt-6 font-sans text-xl font-bold text-neutral-900">Primaries</h4>
+        <h4 id="primaries" className="scroll-mt-4 border-t border-neutral-200 pt-6 font-sans text-xl font-bold text-neutral-900">Primaries</h4>
         <ImageAndText
           imageSrc={getMediaUrl('assets/artigos/introducao-davinci/PRIMARIES.webp')}
           imageAlt="Painel Primaries no DaVinci Resolve"
@@ -251,7 +274,7 @@ export default function IntroducaoDaVinciArticle() {
           </div>
         </ImageAndText>
 
-        <h4 className="border-t border-neutral-200 pt-6 font-sans text-xl font-bold text-neutral-900">Color Wheels <span className="font-normal text-neutral-600">· Lift, Gamma, Gain e Offset</span></h4>
+        <h4 id="color-wheels" className="scroll-mt-4 border-t border-neutral-200 pt-6 font-sans text-xl font-bold text-neutral-900">Color Wheels <span className="font-normal text-neutral-600">· Lift, Gamma, Gain e Offset</span></h4>
         <ImageAndText
           imageSrc={getMediaUrl('assets/artigos/introducao-davinci/COLOR WHEELS.webp')}
           imageAlt="Painel das Color Wheels no DaVinci Resolve"
@@ -280,7 +303,7 @@ export default function IntroducaoDaVinciArticle() {
           </div>
         </ImageAndText>
 
-        <h4 className="border-t border-neutral-200 pt-6 font-sans text-xl font-bold text-neutral-900">Log Wheels <span className="font-normal text-neutral-600">· Shadow, Midtone e Highlight</span></h4>
+        <h4 id="log-wheels" className="scroll-mt-4 border-t border-neutral-200 pt-6 font-sans text-xl font-bold text-neutral-900">Log Wheels <span className="font-normal text-neutral-600">· Shadow, Midtone e Highlight</span></h4>
         <ImageAndText
           imageSrc={getMediaUrl('assets/artigos/introducao-davinci/LOG WHEELS.webp')}
           imageAlt="Painel das Log Wheels no DaVinci Resolve"
@@ -310,13 +333,13 @@ export default function IntroducaoDaVinciArticle() {
       {/* ===================================================================
           SEÇÃO 5 — FERRAMENTAS ESPECÍFICAS
           =================================================================== */}
-      <EditorialSection
+      <EditorialSection id="ferramentas-especificas"
         kickerLeft="PÁGINA COLOR"
         kickerRight="RECURSOS DE AJUSTE"
         title="FERRAMENTAS ESPECÍFICAS"
         subtitle="HDR, RGB MIXER E CURVES"
       >
-        <h4 className="border-t border-neutral-200 pt-6 font-sans text-xl font-bold text-neutral-900">HDR <span className="font-normal text-neutral-600">· Ajustes precisos por faixa tonal</span></h4>
+        <h4 id="hdr" className="scroll-mt-4 border-t border-neutral-200 pt-6 font-sans text-xl font-bold text-neutral-900">HDR <span className="font-normal text-neutral-600">· Ajustes precisos por faixa tonal</span></h4>
         <ImageAndText
           imageSrc={getMediaUrl('assets/artigos/introducao-davinci/HDR.webp')}
           imageAlt="Painel HDR Palette com zonas zonais"
@@ -344,7 +367,7 @@ export default function IntroducaoDaVinciArticle() {
             </div>
           </div>
         </ImageAndText>
-        <h4 className="border-t border-neutral-200 pt-6 font-sans text-xl font-bold text-neutral-900">RGB Mixer <span className="font-normal text-neutral-600">· Canais de cor</span></h4>
+        <h4 id="rgb-mixer" className="scroll-mt-4 border-t border-neutral-200 pt-6 font-sans text-xl font-bold text-neutral-900">RGB Mixer <span className="font-normal text-neutral-600">· Canais de cor</span></h4>
         <ImageAndText
           imageSrc={getMediaUrl('assets/artigos/introducao-davinci/RGB MIXER.webp')}
           imageAlt="RGB Mixer no DaVinci Resolve"
@@ -369,7 +392,7 @@ export default function IntroducaoDaVinciArticle() {
             </div>
           </div>
         </ImageAndText>
-        <h4 className="border-t border-neutral-200 pt-6 font-sans text-xl font-bold text-neutral-900">Curves <span className="font-normal text-neutral-600">· Contraste, matiz e saturação</span></h4>
+        <h4 id="curves" className="scroll-mt-4 border-t border-neutral-200 pt-6 font-sans text-xl font-bold text-neutral-900">Curves <span className="font-normal text-neutral-600">· Contraste, matiz e saturação</span></h4>
         <ImageAndText
           imageSrc={getMediaUrl('assets/artigos/introducao-davinci/CURVES.webp')}
           imageAlt="Curvas Custom e Curvas HSL no DaVinci Resolve"
@@ -402,13 +425,13 @@ export default function IntroducaoDaVinciArticle() {
       {/* ===================================================================
           SEÇÃO 6 — ISOLAMENTO
           =================================================================== */}
-      <EditorialSection
+      <EditorialSection id="isolamento"
         kickerLeft="CORREÇÕES SECUNDÁRIAS"
         kickerRight="SELEÇÃO DE ÁREAS"
         title="ISOLAMENTO"
         subtitle="QUALIFIER E POWER WINDOWS"
       >
-        <h4 className="border-t border-neutral-200 pt-6 font-sans text-xl font-bold text-neutral-900">Qualifier <span className="font-normal text-neutral-600">· Seleção por cor</span></h4>
+        <h4 id="qualifier" className="scroll-mt-4 border-t border-neutral-200 pt-6 font-sans text-xl font-bold text-neutral-900">Qualifier <span className="font-normal text-neutral-600">· Seleção por cor</span></h4>
         <ImageAndText
           imageSrc={getMediaUrl('assets/artigos/introducao-davinci/QUALIFIER.webp')}
           imageAlt="Qualifier no DaVinci Resolve"
@@ -439,7 +462,7 @@ export default function IntroducaoDaVinciArticle() {
             </div>
           </div>
         </ImageAndText>
-        <h4 className="border-t border-neutral-200 pt-6 font-sans text-xl font-bold text-neutral-900">Power Windows <span className="font-normal text-neutral-600">· Máscaras geométricas e vetoriais</span></h4>
+        <h4 id="power-windows" className="scroll-mt-4 border-t border-neutral-200 pt-6 font-sans text-xl font-bold text-neutral-900">Power Windows <span className="font-normal text-neutral-600">· Máscaras geométricas e vetoriais</span></h4>
         <ImageAndText
           imageSrc={getMediaUrl('assets/artigos/introducao-davinci/POWER WINDOWS.webp')}
           imageAlt="Power Windows no DaVinci: Linear, Circular e Polígono"
@@ -469,7 +492,7 @@ export default function IntroducaoDaVinciArticle() {
       {/* ===================================================================
           SEÇÃO 7 — TRACKER
           =================================================================== */}
-      <EditorialSection
+      <EditorialSection id="tracker"
         kickerLeft="AUTOMAÇÃO"
         kickerRight="TRACKING DE MOVIMENTO"
         title="TRACKER"
@@ -504,7 +527,7 @@ export default function IntroducaoDaVinciArticle() {
       {/* ===================================================================
           SEÇÃO 8 — MAGIC MASK
           =================================================================== */}
-      <EditorialSection
+      <EditorialSection id="magic-mask"
         kickerLeft="RECURSO STUDIO"
         kickerRight="INTELIGÊNCIA ARTIFICIAL"
         title="MAGIC MASK"
@@ -539,7 +562,7 @@ export default function IntroducaoDaVinciArticle() {
       {/* ===================================================================
           SEÇÃO 9 — BLUR E SHARPEN
           =================================================================== */}
-      <EditorialSection
+      <EditorialSection id="blur-e-sharpen"
         kickerLeft="TRATAMENTO ÓPTICO"
         kickerRight="NITIDEZ E TEXTURA"
         title="BLUR E SHARPEN"
@@ -574,7 +597,7 @@ export default function IntroducaoDaVinciArticle() {
       {/* ===================================================================
           SEÇÃO 10 — KEY
           =================================================================== */}
-      <EditorialSection
+      <EditorialSection id="key"
         kickerLeft="CONTROLE DE FLUXO"
         kickerRight="OPACIDADE E MÁSCARA"
         title="KEY"
@@ -609,7 +632,7 @@ export default function IntroducaoDaVinciArticle() {
       {/* ===================================================================
           SEÇÃO 11 — SIZING
           =================================================================== */}
-      <EditorialSection
+      <EditorialSection id="sizing"
         kickerLeft="ENQUADRAMENTO"
         kickerRight="GEOMETRIA"
         title="SIZING"
@@ -644,7 +667,7 @@ export default function IntroducaoDaVinciArticle() {
       {/* ===================================================================
           SEÇÃO 12 — SCOPES
           =================================================================== */}
-      <EditorialSection
+      <EditorialSection id="scopes"
         kickerLeft="CALIBRAÇÃO E TÉCNICA"
         kickerRight="MONITORAMENTO DO SINAL"
         title="SCOPES"
@@ -679,7 +702,7 @@ export default function IntroducaoDaVinciArticle() {
       {/* ===================================================================
           SEÇÃO 13 — SPLIT SCREEN
           =================================================================== */}
-      <EditorialSection
+      <EditorialSection id="split-screen"
         kickerLeft="CONSISTÊNCIA"
         kickerRight="COMPARAÇÃO DIRETA"
         title="SPLIT SCREEN"
@@ -714,7 +737,7 @@ export default function IntroducaoDaVinciArticle() {
       {/* ===================================================================
           SEÇÃO 14 — GALLERY
           =================================================================== */}
-      <EditorialSection
+      <EditorialSection id="gallery"
         kickerLeft="MEMÓRIA VISUAL"
         kickerRight="STILLS E REFERÊNCIAS"
         title="GALLERY"
@@ -749,7 +772,7 @@ export default function IntroducaoDaVinciArticle() {
       {/* ===================================================================
           SEÇÃO 15 — COLOR MATCH
           =================================================================== */}
-      <EditorialSection
+      <EditorialSection id="color-match"
         kickerLeft="TÉCNICA DE CALIBRAÇÃO"
         kickerRight="EQUALIZAÇÃO DE CÂMERAS"
         title="COLOR MATCH"
@@ -775,7 +798,7 @@ export default function IntroducaoDaVinciArticle() {
       {/* ===================================================================
           SEÇÃO 16 — ATALHOS QUE VOCÊ PRECISA COMEÇAR A USAR
           =================================================================== */}
-      <EditorialSection
+      <EditorialSection id="atalhos-que-voce-precisa-comecar-a-usar"
         kickerLeft="PRODUTIVIDADE"
         kickerRight="TECLADO DO COLORISTA"
         title="ATALHOS QUE VOCÊ PRECISA COMEÇAR A USAR"
@@ -802,7 +825,7 @@ export default function IntroducaoDaVinciArticle() {
           {/* NAVEGAÇÃO E REPRODUÇÃO */}
           <div className="bg-white rounded-2xl border border-neutral-200/90 shadow-2xs overflow-hidden">
             <div className="bg-neutral-100/75 px-5 py-3 border-b border-neutral-200/80">
-              <h4 className="text-xs font-bold tracking-widest text-neutral-700 uppercase">Navegação e Reprodução</h4>
+              <h4 id="navegacao-e-reproducao" className="scroll-mt-4 text-xs font-bold tracking-widest text-neutral-700 uppercase">Navegação e Reprodução</h4>
             </div>
             <div className="overflow-x-auto">
               <table className="w-full text-left text-sm">
@@ -867,7 +890,7 @@ export default function IntroducaoDaVinciArticle() {
           {/* NODES */}
           <div className="bg-white rounded-2xl border border-neutral-200/90 shadow-2xs overflow-hidden">
             <div className="bg-neutral-100/75 px-5 py-3 border-b border-neutral-200/80">
-              <h4 className="text-xs font-bold tracking-widest text-neutral-700 uppercase">Nodes</h4>
+              <h4 id="nodes-atalhos" className="scroll-mt-4 text-xs font-bold tracking-widest text-neutral-700 uppercase">Nodes</h4>
             </div>
             <div className="overflow-x-auto">
               <table className="w-full text-left text-sm">
@@ -940,7 +963,7 @@ export default function IntroducaoDaVinciArticle() {
           {/* ANÁLISE E COMPARAÇÃO */}
           <div className="bg-white rounded-2xl border border-neutral-200/90 shadow-2xs overflow-hidden">
             <div className="bg-neutral-100/75 px-5 py-3 border-b border-neutral-200/80">
-              <h4 className="text-xs font-bold tracking-widest text-neutral-700 uppercase">Análise e Comparação</h4>
+              <h4 id="analise-e-comparacao" className="scroll-mt-4 text-xs font-bold tracking-widest text-neutral-700 uppercase">Análise e Comparação</h4>
             </div>
             <div className="overflow-x-auto">
               <table className="w-full text-left text-sm">
@@ -995,7 +1018,7 @@ export default function IntroducaoDaVinciArticle() {
             <div className="bg-white rounded-2xl border border-neutral-200/90 shadow-2xs overflow-hidden flex flex-col justify-between">
               <div>
                 <div className="bg-neutral-100/75 px-5 py-3 border-b border-neutral-200/80">
-                  <h4 className="text-xs font-bold tracking-widest text-neutral-700 uppercase">Gallery e Stills</h4>
+                  <h4 id="gallery-e-stills" className="scroll-mt-4 text-xs font-bold tracking-widest text-neutral-700 uppercase">Gallery e Stills</h4>
                 </div>
                 <table className="w-full text-left text-sm">
                   <tbody className="divide-y divide-neutral-100 text-neutral-800">
@@ -1026,7 +1049,7 @@ export default function IntroducaoDaVinciArticle() {
             <div className="bg-white rounded-2xl border border-neutral-200/90 shadow-2xs overflow-hidden flex flex-col justify-between">
               <div>
                 <div className="bg-neutral-100/75 px-5 py-3 border-b border-neutral-200/80">
-                  <h4 className="text-xs font-bold tracking-widest text-neutral-700 uppercase">Versions</h4>
+                  <h4 id="versions" className="scroll-mt-4 text-xs font-bold tracking-widest text-neutral-700 uppercase">Versions</h4>
                 </div>
                 <table className="w-full text-left text-sm">
                   <tbody className="divide-y divide-neutral-100 text-neutral-800">
@@ -1049,7 +1072,7 @@ export default function IntroducaoDaVinciArticle() {
 
           {/* UMA REGRA SIMPLES */}
           <div className="mt-10 p-6 md:p-8 rounded-2xl bg-neutral-100/70 border border-neutral-200">
-            <h4 className="text-xs font-bold tracking-widest text-neutral-500 uppercase mb-4">Uma Regra Simples</h4>
+            <h4 id="uma-regra-simples" className="scroll-mt-4 text-xs font-bold tracking-widest text-neutral-500 uppercase mb-4">Uma Regra Simples</h4>
             <p className="font-serif text-lg text-neutral-800 leading-relaxed mb-4">
               Aprenda primeiro os atalhos que correspondem às ações que você repete o tempo inteiro:
             </p>

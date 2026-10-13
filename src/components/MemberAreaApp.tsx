@@ -1,11 +1,14 @@
 'use client';
 
 import React, { useState, useEffect, useRef, useMemo, Suspense, lazy } from 'react';
+import BackToTopButton from './BackToTopButton';
+import LessonTimeline, { LESSON_VIDEO_ANCHOR } from './LessonTimeline';
+import { TocRegistryContext, type TocGroup } from './EditorialLayout';
 import { motion, AnimatePresence, MotionConfig } from 'motion/react';
 import { 
   Folder, ChevronRight, ChevronLeft,
   CheckCircle2, Lock, PanelLeftClose, PanelLeft, X, Search, Menu,
-  Wand2, Palette, User, LogIn, LogOut, Star, Compass
+  Wand2, Palette, User, LogIn, LogOut, Star, Compass, Undo2
 } from 'lucide-react';
 import { modulesData } from '@/data/data';
 import { UserProgress, CourseModule, ModuleId, Subtopic, Challenge } from '@/types/course';
@@ -29,10 +32,12 @@ import LessonCompletionTransition from '@/components/LessonCompletionTransition'
 import IntroducaoDaVinciArticle from '@/components/IntroducaoDaVinciArticle';
 import NodeWorkflowGraph from '@/components/NodeWorkflowGraph';
 import AnaliseTecnicaArticle from '@/components/AnaliseTecnicaArticle';
-import AnaliseTecnicaVideo from '@/components/AnaliseTecnicaVideo';
+import GerenciamentoCoresArticle from '@/components/GerenciamentoCoresArticle';
 import GenericLessonArticle from '@/components/GenericLessonArticle';
 import PandaPlaylistPlayer from '@/components/PandaPlaylistPlayer';
-import PandaSingleVideo from '@/components/PandaSingleVideo';
+import { LESSON_VIDEOS } from '@/config/lessonVideos';
+import FloatingCompleteButton from '@/components/FloatingCompleteButton';
+import ScrollShrinkVideo, { type ScrollShrinkVideoHandle } from '@/components/ScrollShrinkVideo';
 
 // Lazy load heavy interactive tools for instant initial render and 0 lag
 const ExposureCalculator = lazy(() => import('@/components/ExposureCalculator'));
@@ -138,10 +143,18 @@ export function MemberAreaApp({ skipInternalPreloader = false }: { skipInternalP
   const [sidebarPref, setIsSidebarExpanded] = useState<boolean>(true);
   const [isMaximized, setIsMaximized] = useState<boolean>(false);
   const [searchQuery, setSearchQuery] = useState<string>('');
+  const [mainEl, setMainEl] = useState<HTMLElement | null>(null);
+  // Título/módulo da aula ficam numa barra fixa no topo do quadro assim que o conteúdo aparece (fim do modo cinema).
+  const [isTitleStuck, setIsTitleStuck] = useState<boolean>(false);
   const [isSearchOpen, setIsSearchOpen] = useState<boolean>(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState<boolean>(false);
   const isSidebarExpanded = sidebarPref || isMobileMenuOpen;
   const lessonContainerRef = useRef<HTMLDivElement>(null);
+  const [articleToc, setArticleToc] = useState<TocGroup[]>([]);
+  const timelineGroups = useMemo<TocGroup[]>(
+    () => (articleToc.length ? [{ title: 'Vídeo da aula', id: LESSON_VIDEO_ANCHOR }, ...articleToc] : []),
+    [articleToc]
+  );
   
   const [isLoginModalOpen, setIsLoginModalOpen] = useState<boolean>(false);
   const [isCheckoutModalOpen, setIsCheckoutModalOpen] = useState<boolean>(false);
@@ -165,6 +178,8 @@ export function MemberAreaApp({ skipInternalPreloader = false }: { skipInternalP
   // Comentário/resposta a abrir (vindo de uma notificação)
   const [focusCommentId, setFocusCommentId] = useState<string | null>(null);
   const playerRef = useRef<VideoLessonPlayerHandle>(null);
+  const shrinkRef = useRef<ScrollShrinkVideoHandle>(null);
+  const sidebarCollapsedForLessonRef = useRef<string | null>(null);
 
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState<boolean>(false);
   const [isAccountModalOpen, setIsAccountModalOpen] = useState<boolean>(false);
@@ -231,10 +246,6 @@ export function MemberAreaApp({ skipInternalPreloader = false }: { skipInternalP
     }
   }, [activeLessonId, activeLesson]);
 
-  const currentSubtab = useMemo(() => {
-    if (!activeLesson?.subtabs || activeLesson.subtabs.length === 0) return null;
-    return activeLesson.subtabs.find(t => t.id === activeSubtabId) || activeLesson.subtabs[0];
-  }, [activeLesson, activeSubtabId]);
 
   // Overall course progress percentage
   const totalLessonsCount = useMemo(() => {
@@ -592,6 +603,19 @@ export function MemberAreaApp({ skipInternalPreloader = false }: { skipInternalP
     }
   };
 
+  // Ao dar play, recolhe o menu lateral (uma vez por aula, para não brigar com quem reabre o menu).
+  const handleVideoPlay = () => {
+    if (sidebarCollapsedForLessonRef.current === activeLessonId) return;
+    sidebarCollapsedForLessonRef.current = activeLessonId;
+    setIsSidebarExpanded(false);
+  };
+
+  // Fim do último vídeo da aula: conclui e faz o player diminuir sozinho.
+  const handleLastVideoEnded = () => {
+    handleLessonFinished(activeLessonId);
+    shrinkRef.current?.reveal();
+  };
+
   const handleCompleteAndNext = (lessonId: string) => {
     handleLessonFinished(lessonId);
   };
@@ -883,7 +907,7 @@ export function MemberAreaApp({ skipInternalPreloader = false }: { skipInternalP
               <div className="space-y-3 w-full">
                 <div className="space-y-1">
                   {isSidebarExpanded && (
-                    <span className="text-xs font-bold text-[#a1a1a6] tracking-widest uppercase block px-3 mb-1.5">MÓDULOS</span>
+                    <span className="text-[13px] font-bold text-[#a1a1a6] tracking-widest uppercase block px-3 mb-1.5">MÓDULOS</span>
                   )}
                   
                   {modulesData.map((mod) => {
@@ -919,7 +943,7 @@ export function MemberAreaApp({ skipInternalPreloader = false }: { skipInternalP
                             });
                           }}
                           style={{ transitionTimingFunction: 'cubic-bezier(0.455, 0.03, 0.515, 0.955)' }}
-                          className={`w-full flex items-center ${isSidebarExpanded ? 'justify-between px-3' : 'justify-center px-0'} py-2 rounded-[10px] text-xs transition-all duration-300 hover:scale-[1.02] text-left cursor-pointer ${
+                          className={`w-full flex items-center ${isSidebarExpanded ? 'justify-between px-3' : 'justify-center px-0'} py-2 rounded-[10px] text-[13px] transition-all duration-300 hover:scale-[1.02] text-left cursor-pointer ${
                             isCurrent 
                               ? 'bg-white/15 text-white border border-white/20 shadow-[0_2px_12px_rgba(0,0,0,0.25),inset_0_1px_0_rgba(255,255,255,0.2)] font-semibold backdrop-blur-md' 
                               : 'text-neutral-300 hover:text-white hover:bg-white/[0.08] border border-transparent hover:border-white/10'
@@ -933,7 +957,7 @@ export function MemberAreaApp({ skipInternalPreloader = false }: { skipInternalP
                               {getModuleIcon(mod.id, isCurrent)}
                             </div>
                             {isSidebarExpanded && (
-                              <span className="truncate text-xs whitespace-nowrap">{getModuleName(mod.title)}</span>
+                              <span className="truncate text-[13px] whitespace-nowrap">{getModuleName(mod.title)}</span>
                             )}
                           </div>
 
@@ -1052,7 +1076,7 @@ export function MemberAreaApp({ skipInternalPreloader = false }: { skipInternalP
                 }}
                 onMouseLeave={handleModuleMouseLeave}
               >
-                <p className="text-xs font-bold text-white truncate border-b border-white/10 pb-1 mb-1 px-1">
+                <p className="text-[13px] font-bold text-white truncate border-b border-white/10 pb-1 mb-1 px-1">
                   {getModuleName(modulesData.find(m => m.id === activeFlyoutModule)?.title)}
                 </p>
                 {modulesData.find(m => m.id === activeFlyoutModule)?.subtopics.map(sub => (
@@ -1081,11 +1105,11 @@ export function MemberAreaApp({ skipInternalPreloader = false }: { skipInternalP
           </aside>
 
           {/* MAIN SPACE (TOOLBAR + CONTENT) */}
-          <main className="flex-1 flex flex-col overflow-hidden relative">
+          <main ref={setMainEl} className="flex-1 flex flex-col overflow-hidden relative">
             
             {/* Toolbar com o mesmo fundo sólido do menu lateral */}
             <header
-              className="h-14 bg-[#121216] border-b border-white/12 flex items-center px-3 sm:px-6 justify-between gap-2 select-none relative z-20 shrink-0"
+              className="h-14 bg-[#121216] border-b border-white/12 flex items-center px-3 sm:px-6 justify-between gap-2 select-none relative z-[45] shrink-0"
             >
               
               {/* Left Toolbar Info */}
@@ -1121,7 +1145,7 @@ export function MemberAreaApp({ skipInternalPreloader = false }: { skipInternalP
                   </div>
 
                   <div className="border-l border-white/15 pl-3 hidden sm:block">
-                    <span className="block text-xs font-bold tracking-tight text-white leading-none">FLMMKR</span>
+                    <span className="block text-[13px] font-bold tracking-tight text-white leading-none">FLMMKR</span>
                   </div>
                 </div>
               </div>
@@ -1129,20 +1153,20 @@ export function MemberAreaApp({ skipInternalPreloader = false }: { skipInternalP
               {/* Center Progress Meter */}
               {isLoggedIn && (
                 <div role="progressbar" aria-label="Progresso do curso" aria-valuemin={0} aria-valuemax={100} aria-valuenow={percentComplete} className="hidden lg:flex items-center gap-3 bg-white/[0.05] hover:bg-white/[0.08] px-3.5 py-1.5 rounded-full border border-white/10 backdrop-blur-md shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] relative z-10 transition-colors">
-                  <span className="text-xs font-bold tracking-wider text-[#a1a1a6] uppercase leading-none">Progresso</span>
+                  <span className="text-[13px] font-bold tracking-tight text-white uppercase leading-none">Progresso</span>
                   <div className="w-32 h-1.5 rounded-full bg-white/10 overflow-hidden">
                     <div 
                       className="h-full bg-gradient-to-r from-[#0071e3] to-[#00c7fc] transition-all duration-300 shadow-[0_0_8px_rgba(0,199,252,0.5)]"
                       style={{ width: `${percentComplete}%` }}
                     />
                   </div>
-                  <span className="text-xs font-bold text-[#00c7fc] font-mono leading-none">{percentComplete}%</span>
+                  <span className="text-[13px] font-bold text-[#00c7fc] font-mono leading-none">{percentComplete}%</span>
                 </div>
               )}
 
               {/* Progresso compacto (celular e tablet) */}
               {isLoggedIn && (
-                <span className="lg:hidden text-xs font-bold text-[#00c7fc] font-mono tabular-nums bg-white/[0.06] border border-white/10 rounded-full px-2.5 py-1">
+                <span className="lg:hidden text-[13px] font-bold text-[#00c7fc] font-mono tabular-nums bg-white/[0.06] border border-white/10 rounded-full px-2.5 py-1">
                   {percentComplete}%<span className="sr-only"> do curso concluído</span>
                 </span>
               )}
@@ -1159,7 +1183,7 @@ export function MemberAreaApp({ skipInternalPreloader = false }: { skipInternalP
                   className="flex items-center justify-center md:justify-start bg-white/[0.06] hover:bg-white/[0.12] border border-white/10 rounded-full p-2.5 md:px-3.5 md:py-2 md:w-32 cursor-pointer backdrop-blur-md shadow-xs transition-all"
                 >
                   <Search size={15} className="text-[#a1a1a6] md:mr-1.5" aria-hidden="true" />
-                  <span className="hidden md:inline text-xs text-[#a1a1a6] select-none">Buscar...</span>
+                  <span className="hidden md:inline text-[13px] text-[#a1a1a6] select-none">Buscar...</span>
                 </button>
 
                 {/* Notifications Button & Dropdown */}
@@ -1211,8 +1235,8 @@ export function MemberAreaApp({ skipInternalPreloader = false }: { skipInternalP
                           className="absolute right-0 top-11 w-60 max-w-[90vw] z-50 overflow-hidden bg-[#16161a]/90 backdrop-blur-2xl border border-white/15 rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.6),inset_0_1px_0_rgba(255,255,255,0.12)] p-2 space-y-1"
                         >
                           <div className="px-3 py-2 border-b border-white/10">
-                            <p className="text-xs font-bold text-white truncate">{userProfile.firstName} {userProfile.lastName}</p>
-                            <p className="text-xs text-neutral-300 truncate">{userProfile.email}</p>
+                            <p className="text-[13px] font-bold text-white truncate">{userProfile.firstName} {userProfile.lastName}</p>
+                            <p className="text-[13px] text-neutral-300 truncate">{userProfile.email}</p>
                           </div>
                           <button
                             role="menuitem"
@@ -1220,7 +1244,7 @@ export function MemberAreaApp({ skipInternalPreloader = false }: { skipInternalP
                               setIsProfileMenuOpen(false);
                               setIsAccountModalOpen(true);
                             }}
-                            className="w-full flex items-center gap-2 px-3 py-2.5 rounded-xl text-xs text-neutral-200 hover:text-white hover:bg-white/10 text-left font-medium transition-colors"
+                            className="w-full flex items-center gap-2 px-3 py-2.5 rounded-xl text-[13px] text-neutral-200 hover:text-white hover:bg-white/10 text-left font-medium transition-colors"
                           >
                             <User size={14} />
                             <span>Minha Conta</span>
@@ -1228,7 +1252,7 @@ export function MemberAreaApp({ skipInternalPreloader = false }: { skipInternalP
                           <button
                             role="menuitem"
                             onClick={handleLogout}
-                            className="w-full flex items-center gap-2 px-3 py-2.5 rounded-xl text-xs text-red-400 hover:text-red-300 hover:bg-red-500/10 text-left font-medium transition-colors"
+                            className="w-full flex items-center gap-2 px-3 py-2.5 rounded-xl text-[13px] text-red-400 hover:text-red-300 hover:bg-red-500/10 text-left font-medium transition-colors"
                           >
                             <LogOut size={14} />
                             <span>Sair</span>
@@ -1240,7 +1264,7 @@ export function MemberAreaApp({ skipInternalPreloader = false }: { skipInternalP
                 ) : (
                   <button
                     onClick={() => setIsLoginModalOpen(true)}
-                    className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-[#0071e3] hover:bg-[#0077ed] text-white font-bold text-xs transition-all shadow-md shadow-blue-500/20 cursor-pointer"
+                    className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-[#0071e3] hover:bg-[#0077ed] text-white font-bold text-[13px] transition-all shadow-md shadow-blue-500/20 cursor-pointer"
                   >
                     <LogIn size={13} />
                     <span>Entrar</span>
@@ -1268,86 +1292,38 @@ export function MemberAreaApp({ skipInternalPreloader = false }: { skipInternalP
                 />
               )}
 
-              <TextHighlighterTool lessonId={activeLessonId} containerRef={lessonContainerRef} />
-              
               <div
                 id="lesson-zoom-target"
                 style={{ zoom: 'var(--lesson-zoom-scale, 1)' }}
-                className="w-full max-w-[1536px] mx-auto px-4 sm:px-6 lg:px-10 py-8 flex-1 space-y-8"
+                className="sticky top-0 z-30 w-full max-w-[1536px] mx-auto px-4 sm:px-6 lg:px-10 pt-[4.5rem] pb-8 flex-1 space-y-8"
               >
                 
-                {/* Lesson Header */}
-                <div className="space-y-3 border-b border-neutral-200/80 pb-5">
-                  <div className="flex flex-wrap items-center justify-between gap-3">
-                    <span className="text-xs font-bold tracking-widest text-[#0071e3] uppercase">
-                      {activeModule.badge ? `${activeModule.badge} · ` : ''}{activeModule.title}
-                    </span>
-                    
-                    {progress.completedLessons.includes(activeLessonId) && (
-                      <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 text-emerald-600 border border-emerald-200/60 px-3 py-1 text-xs font-bold uppercase tracking-wider">
-                        <CheckCircle2 size={12} /> Concluída
-                      </span>
-                    )}
-                  </div>
-
-                  <h1 className="text-2xl md:text-4xl font-extrabold tracking-tight leading-tight text-[#1d1d1f]">
-                    {activeLesson.title}
-                  </h1>
-
-                  {/* Subtabs Selector (e.g. CST / ACES ou Métodos de Look) no TOPO do vídeo */}
-                  {activeLesson.subtabs && activeLesson.subtabs.length > 0 && (
-                    <div className="pt-2">
-                      <div className="flex flex-wrap items-center gap-2 p-1.5 bg-neutral-200/60 rounded-2xl w-fit border border-neutral-300/80 shadow-xs">
-                        {activeLesson.subtabs.map(tab => {
-                          const isSelected = (currentSubtab?.id || activeLesson.subtabs![0].id) === tab.id;
-                          return (
-                            <button
-                              key={tab.id}
-                              onClick={() => setActiveSubtabId(tab.id)}
-                              aria-pressed={isSelected}
-                              className={`px-4 py-2.5 min-h-11 rounded-xl text-sm font-bold transition-all cursor-pointer ${
-                                isSelected
-                                    ? 'bg-[#0071e3] text-white shadow-xs'
-                                  : 'text-neutral-700 hover:text-neutral-900 hover:bg-white/60'
-                              }`}
-                            >
-                              {tab.label}
-                            </button>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  )}
-                </div>
-
                 {/* Lesson Body: Video on Top, Editorial Article Below */}
                 <div className="space-y-8">
                   {/* Video Player on Top */}
-                  <div className="w-full">
-                    {activeLessonId === 'mod1-1' ? (
+                  <div id={LESSON_VIDEO_ANCHOR} className="w-full">
+                    <ScrollShrinkVideo ref={shrinkRef} containerRef={lessonContainerRef} resetKey={activeLessonId} onRevealChange={setIsTitleStuck}>
+                    {Object.hasOwn(LESSON_VIDEOS, activeLessonId) ? (
+                      // Mesmo player Panda em todas as aulas que têm vídeo (key reinicia o estado a cada aula)
                       <PandaPlaylistPlayer
+                        key={activeLessonId}
                         lessonId={activeLessonId}
                         studentName={studentDisplayName}
-                        onLessonEnded={() => handleLessonFinished(activeLessonId)}
-                      />
-                    ) : activeLessonId === 'mod1-analise-tecnica' ? (
-                      <AnaliseTecnicaVideo onLessonEnded={() => handleLessonFinished(activeLessonId)} />
-                    ) : activeLessonId === 'mod1-2' ? (
-                      <PandaSingleVideo
-                        videoId="daedd222-f8da-4bf6-8a22-2c94904c6ed3"
-                        title="Gerenciamento de Cores"
-                        onLessonEnded={() => handleLessonFinished(activeLessonId)}
+                        onLessonEnded={handleLastVideoEnded}
+                        onPlay={handleVideoPlay}
                       />
                     ) : (
                       <VideoLessonPlayer
                         ref={playerRef}
-                        videoUrl={currentSubtab?.videoUrl || activeLesson.videoUrl}
+                        videoUrl={activeLesson.videoUrl}
                         lessonId={activeLessonId}
-                        title={currentSubtab ? `${activeLesson.title} — ${currentSubtab.label}` : activeLesson.title}
+                        title={activeLesson.title}
                         studentName={studentDisplayName}
-                        onLessonEnded={() => handleLessonFinished(activeLessonId)}
+                        onLessonEnded={handleLastVideoEnded}
+                        onPlay={handleVideoPlay}
                       />
                     )}
+                    </ScrollShrinkVideo>
                   </div>
 
                   {/* Campo de Comentários da Aula */}
@@ -1362,19 +1338,31 @@ export function MemberAreaApp({ skipInternalPreloader = false }: { skipInternalP
                   />
 
                   {/* Editorial Text Layout under the video */}
+                  <TocRegistryContext.Provider value={setArticleToc}>
                   <Suspense fallback={<ToolFallback />}>
                     {activeLessonId === 'mod1-1' ? (
                       <IntroducaoDaVinciArticle />
                     ) : activeLessonId === 'mod1-analise-tecnica' ? (
                       <AnaliseTecnicaArticle />
+                    ) : activeLessonId === 'mod1-2' ? (
+                      <GerenciamentoCoresArticle />
                     ) : (
-                      <GenericLessonArticle
-                        moduleTitle={activeModule.title}
-                        lesson={activeLesson}
-                        currentSubtab={currentSubtab}
-                      />
+                      activeLesson.subtabs && activeLesson.subtabs.length > 0 ? (
+                        // Sem botões de aba: o conteúdo de cada variação (ex.: CST e ACES) aparece em sequência.
+                        activeLesson.subtabs.map((tab) => (
+                          <GenericLessonArticle
+                            key={tab.id}
+                            moduleTitle={activeModule.title}
+                            lesson={activeLesson}
+                            currentSubtab={tab}
+                          />
+                        ))
+                      ) : (
+                        <GenericLessonArticle moduleTitle={activeModule.title} lesson={activeLesson} />
+                      )
                     )}
                   </Suspense>
+                  </TocRegistryContext.Provider>
                   {activeLessonId === 'mod1-4' && <NodeWorkflowGraph />}
 
                   {/* Botão de Conclusão e Avanço no final da aula */}
@@ -1386,20 +1374,67 @@ export function MemberAreaApp({ skipInternalPreloader = false }: { skipInternalP
                       <ChevronLeft size={16} aria-hidden="true" />
                       <span>Aula anterior</span>
                     </button>
-                    <button
-                      onClick={() => handleCompleteAndNext(activeLessonId)}
-                      className="min-h-12 bg-[#0071e3] hover:bg-[#0077ed] text-white rounded-full px-8 font-bold text-sm shadow-md active:scale-[0.98] transition-colors cursor-pointer select-none flex items-center justify-center gap-2"
-                    >
-                      <CheckCircle2 size={16} aria-hidden="true" />
-                      <span>{progress.completedLessons.includes(activeLessonId) ? 'Concluir de novo e avançar' : 'Concluir e avançar'}</span>
-                    </button>
+                    {progress.completedLessons.includes(activeLessonId) ? (
+                      <button
+                        onClick={() => handleToggleLessonComplete(activeLessonId)}
+                        className="min-h-12 rounded-full border border-neutral-300 bg-white hover:bg-neutral-100 text-neutral-800 px-8 font-bold text-sm active:scale-[0.98] transition-colors cursor-pointer select-none flex items-center justify-center gap-2"
+                      >
+                        <Undo2 size={16} aria-hidden="true" />
+                        <span>Desfazer</span>
+                      </button>
+                    ) : (
+                      <button
+                        onClick={() => handleCompleteAndNext(activeLessonId)}
+                        className="min-h-12 bg-[#0071e3] hover:bg-[#0077ed] text-white rounded-full px-8 font-bold text-sm shadow-md active:scale-[0.98] transition-colors cursor-pointer select-none flex items-center justify-center gap-2"
+                      >
+                        <CheckCircle2 size={16} aria-hidden="true" />
+                        <span>Concluir e avançar</span>
+                      </button>
+                    )}
                   </div>
                 </div>
 
               </div>
 
+              {/* Pista de rolagem do efeito do vídeo: mantém o conteúdo congelado enquanto o player diminui (ScrollShrinkVideo) */}
+              <div aria-hidden="true" className="shrink-0" style={{ height: 'var(--hero-runway, 0px)' }} />
+
+              {/* Zoom, Marcações e voltar ao topo: aparecem no canto inferior direito do quadro do conteúdo (portal para o <main>) */}
+              <TextHighlighterTool lessonId={activeLessonId} containerRef={lessonContainerRef} trailing={<BackToTopButton containerRef={lessonContainerRef} />} portalTarget={mainEl} />
+
             </div>
 
+          {/* Barra fixa: módulo + título (e selo "Concluída"). Aparece quando o modo cinema termina e não some mais ao rolar. */}
+          <div
+            aria-hidden={!isTitleStuck}
+            // Acompanha a rolagem (mesma variável do fundo e do conteúdo): aparece junto com o resto e some conforme o player cresce.
+            style={{
+              opacity: 'var(--hero-fade, 1)',
+              transform: 'translateY(calc((1 - var(--hero-fade, 1)) * -0.5rem))',
+            }}
+            className={`absolute inset-x-0 top-14 z-[35] border-b border-neutral-200 bg-[#f5f5f7] ${
+              isTitleStuck ? '' : 'pointer-events-none'
+            }`}
+          >
+            <div className="mx-auto flex h-11 w-full max-w-[1536px] items-center gap-3 px-4 sm:px-6 lg:px-10">
+              <span className="shrink-0 text-xs font-bold uppercase tracking-wide text-[#0071e3]">
+                {activeModule.badge ? `${activeModule.badge} · ` : ''}{activeModule.title}
+              </span>
+              <span aria-hidden="true" className="h-4 w-px shrink-0 bg-neutral-300" />
+              <h1 className="min-w-0 flex-1 truncate text-base font-bold tracking-tight text-[#1d1d1f]">{activeLesson.title}</h1>
+              {progress.completedLessons.includes(activeLessonId) && (
+                <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-emerald-200/60 bg-emerald-50 px-2.5 py-0.5 text-xs font-semibold text-emerald-700">
+                  <CheckCircle2 size={12} aria-hidden="true" /> Concluída
+                </span>
+              )}
+            </div>
+          </div>
+          {timelineGroups.length > 0 && <LessonTimeline groups={timelineGroups} containerRef={lessonContainerRef} />}
+          {isLoggedIn && !completionTransitionData && !progress.completedLessons.includes(activeLessonId) && (
+            <div data-hero-hide className={`absolute right-6 z-30 transition-[opacity,top] duration-300 ${isTitleStuck ? 'top-[112px]' : 'top-[72px]'}`}>
+              <FloatingCompleteButton onComplete={() => handleCompleteAndNext(activeLessonId)} />
+            </div>
+          )}
           </main>
 
       </div>
@@ -1455,7 +1490,7 @@ export function MemberAreaApp({ skipInternalPreloader = false }: { skipInternalP
                         className="w-full text-left p-3 rounded-xl hover:bg-white/10 transition-colors flex justify-between items-center text-white min-h-12"
                       >
                         <div>
-                          <span className="text-xs font-bold text-[#00c7fc] uppercase">{module.title}</span>
+                          <span className="text-[13px] font-bold text-[#00c7fc] uppercase">{module.title}</span>
                           <h4 className="text-sm font-semibold">{lesson.title}</h4>
                         </div>
                         <ChevronRight size={16} className="text-neutral-300" aria-hidden="true" />

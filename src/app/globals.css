@@ -323,3 +323,17 @@ header :focus-visible {
     scroll-behavior: auto !important;
   }
 }
+
+/* Modo cinema da aula: com o vídeo ocupando o quadro, só ele aparece. O resto (irmãos do vídeo em
+   qualquer nível) fica transparente e surge conforme --hero-fade vai de 0 a 1 (ver ScrollShrinkVideo). */
+[data-hero] #lesson-zoom-target > :not(:has(#lesson-video)):not(#lesson-video),
+[data-hero] #lesson-zoom-target :has(#lesson-video) > :not(:has(#lesson-video)):not(#lesson-video) {
+  opacity: var(--hero-fade, 0);
+  pointer-events: none;
+}
+
+/* No modo cinema, os botões flutuantes e o índice lateral também somem. */
+main:has([data-hero]) [data-hero-hide] {
+  opacity: 0;
+  pointer-events: none;
+}

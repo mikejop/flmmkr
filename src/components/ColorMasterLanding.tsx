@@ -502,7 +502,6 @@ export const ColorMasterLanding: React.FC = () => {
       lessons: [
         'Introdução ao DaVinci Resolve',
         'Gerenciamento de Cores (com abas dedicadas para CST e ACES)',
-        'Como fazer a análise artística do vídeo',
         'Fluxo de Trabalho'
       ]
     },
