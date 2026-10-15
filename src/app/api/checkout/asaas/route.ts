@@ -97,7 +97,8 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ error: 'Recarregue a página para validar a oferta.' }, { status: 409 });
           }
           const timerSession = await resolveOfferTimerSession(
-            createHash('sha256').update(sessionCookie).digest('hex')
+            createHash('sha256').update(sessionCookie).digest('hex'),
+            ip
           );
           const now = Date.now();
           const expiresAtTime = new Date(timerSession.expiresAt).getTime();

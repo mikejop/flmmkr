@@ -5,6 +5,7 @@ import {
   resolveOfferTimerSession
 } from '@/utils/offerPricing';
 import { createExpiredOfferToken } from '@/utils/promoToken';
+import { getClientIp } from '@/utils/clientIp';
 
 export const dynamic = 'force-dynamic';
 
@@ -29,7 +30,7 @@ export async function GET(req: NextRequest) {
   const clientIdentifier = createHash('sha256').update(rawIdentifier).digest('hex');
   let session;
   try {
-    session = await resolveOfferTimerSession(clientIdentifier);
+    session = await resolveOfferTimerSession(clientIdentifier, getClientIp(req));
   } catch {
     return NextResponse.json({ error: 'Não foi possível carregar a oferta.' }, { status: 503 });
   }

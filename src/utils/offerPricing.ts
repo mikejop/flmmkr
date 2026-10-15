@@ -1,10 +1,11 @@
 import 'server-only';
 import { createClient } from '@supabase/supabase-js';
+import { hashClientIp } from '@/utils/ipHash';
 
 export interface UserTimerRecord {
   id?: string;
-  macAddress: string;
-  ip: string;
+  /** HMAC do IP (ver utils/ipHash); null quando não há IP ou segredo. */
+  ip: string | null;
   clientIdentifier?: string;
   userAgent?: string;
   firstAccessAt: string;
@@ -119,29 +120,27 @@ function getSupabaseAdmin() {
 }
 
 /**
- * Atualiza o cache local em memória para MAC e IP
+ * Atualiza o cache local em memória
  */
 function updateMemoryCache(record: UserTimerRecord) {
   if (record.clientIdentifier) sessionCache.set(record.clientIdentifier, record);
 }
 
 /**
- * Resolve e gerencia a sessão do cronômetro com base na hierarquia estrita:
- * 
- * 1. PRIORIDADE MÁXIMA: mac_address (impressão digital do computador).
- *    Se o usuário mudar de internet/Wi-Fi, o site reconhece o mac_address e mantém o timer ativo.
- * 2. SEGUNDA PRIORIDADE: IP.
- *    Se outra pessoa usar o mesmo IP, ela vê o mesmo timer dos outros usuários da mesma rede.
- * 3. Se nenhuma existir, cria uma nova sessão vinculando o MAC e o IP.
- * 4. COOLDOWN DE 36 HORAS:
- *    Se o tempo acabar (00:00), o usuário fica sem a promoção durante 36h.
- *    Após exatamente 36 horas após zerar, o sistema silenciosamente reseta o cronômetro no backend.
+ * Resolve e gerencia a sessão do cronômetro da oferta:
+ *
+ * 1. A sessão é localizada só pelo identificador do cookie do servidor (client_identifier, único).
+ *    O IP é guardado apenas como hash (HMAC) para auditoria e nunca serve de chave, então a falta
+ *    de IP não cria sessões duplicadas nem reinicia o cronômetro.
+ * 2. Sem sessão, cria uma nova (15 minutos).
+ * 3. COOLDOWN DE 36 HORAS: se o tempo acabar, o aluno fica sem a promoção por 36 h e depois o cronômetro recomeça.
  */
-export async function resolveOfferTimerSession(clientIdentifier: string): Promise<UserTimerRecord> {
+export async function resolveOfferTimerSession(clientIdentifier: string, clientIp?: string | null): Promise<UserTimerRecord> {
   const normalizedIdentifier = clientIdentifier.trim();
   // Os chamadores passam o SHA-256 (64 caracteres hexadecimais) do cookie da oferta.
   if (!/^[a-f0-9]{64}$/i.test(normalizedIdentifier)) throw new Error('Sessão de oferta inválida.');
   const now = Date.now();
+  const ipHash = hashClientIp(clientIp);
   const supabase = getSupabaseAdmin();
   if (!supabase) throw new Error('Supabase não configurado para persistir a oferta.');
 
@@ -159,8 +158,7 @@ export async function resolveOfferTimerSession(clientIdentifier: string): Promis
       session = {
         id: data.id,
         clientIdentifier: normalizedIdentifier,
-        macAddress: '',
-        ip: '',
+        ip: ipHash,
         firstAccessAt: data.first_access_at,
         expiresAt: data.expires_at,
         cooldownUntil: data.cooldown_until,
@@ -186,8 +184,7 @@ export async function resolveOfferTimerSession(clientIdentifier: string): Promis
 
   const record: UserTimerRecord = {
     id: session?.id,
-    macAddress: '',
-    ip: '',
+    ip: ipHash,
     clientIdentifier: normalizedIdentifier,
     firstAccessAt,
     expiresAt,
@@ -195,8 +192,7 @@ export async function resolveOfferTimerSession(clientIdentifier: string): Promis
     isExpired,
   };
   const values = {
-    mac_address: null,
-    ip: null,
+    ip: ipHash,
     user_agent: null,
     client_identifier: normalizedIdentifier,
     first_access_at: firstAccessAt,
@@ -206,10 +202,36 @@ export async function resolveOfferTimerSession(clientIdentifier: string): Promis
     updated_at: new Date().toISOString(),
   };
 
-  const write = session?.id
+  let write = session?.id
     ? await supabase.from('offer_timer_sessions').update(values).eq('id', session.id).select('id').maybeSingle()
     : await supabase.from('offer_timer_sessions').insert(values).select('id').maybeSingle();
-  if (write.error || !write.data) throw new Error('Não foi possível salvar o cronômetro da oferta.');
+
+  // Duas requisições simultâneas do mesmo visitante: a segunda perde a corrida do UNIQUE e reaproveita a sessão criada.
+  if (!session?.id && write.error?.code === '23505') {
+    const existing = await supabase
+      .from('offer_timer_sessions')
+      .select('id, first_access_at, expires_at, cooldown_until, is_expired')
+      .eq('client_identifier', normalizedIdentifier)
+      .maybeSingle();
+    if (existing.data) {
+      const reused: UserTimerRecord = {
+        id: existing.data.id,
+        ip: ipHash,
+        clientIdentifier: normalizedIdentifier,
+        firstAccessAt: existing.data.first_access_at,
+        expiresAt: existing.data.expires_at,
+        cooldownUntil: existing.data.cooldown_until,
+        isExpired: now >= new Date(existing.data.expires_at).getTime() || existing.data.is_expired,
+      };
+      updateMemoryCache(reused);
+      return reused;
+    }
+  }
+
+  if (write.error || !write.data) {
+    console.error('[offerPricing] Falha ao salvar o cronômetro:', write.error?.message);
+    throw new Error('Não foi possível salvar o cronômetro da oferta.');
+  }
   record.id = write.data.id;
   updateMemoryCache(record);
   return record;

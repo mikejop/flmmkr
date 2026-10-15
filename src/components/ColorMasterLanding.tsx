@@ -361,8 +361,8 @@ export const ColorMasterLanding: React.FC = () => {
       .then((mac) => {
         setDeviceMac(mac);
 
-        // Sincronizar com o servidor: prioridade 1 = MAC Address, prioridade 2 = IP
-        return fetch(`/api/offer-timer?macAddress=${encodeURIComponent(mac)}`)
+        // Sincronizar o cronômetro com o servidor (a sessão da oferta vem do cookie do servidor)
+        return fetch('/api/offer-timer')
           .then((res) => res.json())
           .then((data) => {
             if (data && typeof data.remainingSeconds === 'number') {
