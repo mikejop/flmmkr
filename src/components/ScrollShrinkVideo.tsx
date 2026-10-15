@@ -1,6 +1,6 @@
 'use client';
 
-import React, { forwardRef, useEffect, useImperativeHandle, useRef } from 'react';
+import React, { forwardRef, useEffect, useImperativeHandle, useRef, useState } from 'react';
 import gsap from 'gsap';
 import { useGSAP } from '@gsap/react';
 
@@ -42,6 +42,7 @@ const ScrollShrinkVideo = forwardRef<ScrollShrinkVideoHandle, ScrollShrinkVideoP
   const wrapRef = useRef<HTMLDivElement>(null);
   const runwayRef = useRef(0); // D: distância de rolagem do efeito, em px
   const revealTweenRef = useRef<gsap.core.Tween | null>(null);
+  const [retry, setRetry] = useState(0);
   const onRevealChangeRef = useRef(onRevealChange);
   useEffect(() => { onRevealChangeRef.current = onRevealChange; }, [onRevealChange]);
 
@@ -65,7 +66,12 @@ const ScrollShrinkVideo = forwardRef<ScrollShrinkVideoHandle, ScrollShrinkVideoP
     const container = containerRef.current;
     const wrap = wrapRef.current;
     const slot = wrap?.parentElement; // espaço do vídeo no fluxo (não sofre o transform do vídeo)
-    if (!container || !wrap || !slot) return;
+    if (!container || !wrap || !slot) {
+      // Na primeira montagem o efeito deste filho roda ANTES de o React ligar o ref do quadro (pai): container ainda é null.
+      // Tenta de novo no próximo quadro; sem isto o efeito do vídeo "cheio" nunca era armado na primeira aula aberta.
+      const id = requestAnimationFrame(() => setRetry((n) => n + 1));
+      return () => cancelAnimationFrame(id);
+    }
 
     const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     if (reduce) {
@@ -161,7 +167,7 @@ const ScrollShrinkVideo = forwardRef<ScrollShrinkVideoHandle, ScrollShrinkVideoP
       container.style.setProperty('--hero-runway', '0px');
       runwayRef.current = 0;
     };
-  }, { dependencies: [resetKey], revertOnUpdate: true });
+  }, { dependencies: [resetKey, retry], revertOnUpdate: true });
 
   return (
     <div className="w-full">
