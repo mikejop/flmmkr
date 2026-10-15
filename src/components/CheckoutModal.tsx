@@ -673,7 +673,8 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
 
   if (!isOpen && !visible) return null;
 
-  const currentPrice = isExpired ? regularPrice : price;
+  // `price` já vem do servidor/landing com o valor certo (promoção ativa ou preço da fase); nunca troca por 195.
+  const currentPrice = price;
 
   return (
     <div
@@ -731,7 +732,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
               <span className="text-[28px] sm:text-[32px] font-bold text-white tracking-tight leading-none">
                 R$ {currentPrice}
               </span>
-              {!isExpired && (
+              {price < regularPrice && (
                 <span className="text-[13px] text-[#86868b] line-through leading-none">
                   De R$ {regularPrice}
                 </span>

@@ -116,7 +116,7 @@ export async function POST(req: NextRequest) {
 
     if (productId !== 'color-master-completo') {
       if (batchInfo.isLaunchPhase) {
-        // Até 09/10/2026 às 23:59:59: Preço fixo de R$ 95 sem contagem regressiva de expiração
+        // Até 16/10/2026 às 23:59:59: preço fixo de R$ 95 sem contagem regressiva de expiração
         isRealExpired = false;
       } else {
         try {
@@ -148,13 +148,12 @@ export async function POST(req: NextRequest) {
       productValue = 497.0;
       productDescription = 'Color Master Completo - FLMMKR';
     } else if (batchInfo.isLaunchPhase) {
-      // Fase de lançamento (até 09/10): valor garantido R$ 95
-      productValue = 95;
+      // Fase de lançamento (até 16/10): valor garantido R$ 95
+      productValue = batchInfo.promoPrice;
     } else {
-      // Pós-lançamento (a partir de 10/10):
-      // Se não expirou (dentro dos 15 min): R$ 95 (promoção antiga garantida)
-      // Se expirou: preço vigente do momento (R$ 125, R$ 150 ou R$ 195)
-      productValue = isRealExpired ? batchInfo.currentBatchPrice : 95;
+      // Pós-lançamento: cronômetro ativo = preço promocional da fase (R$ 95 nos lotes de 125 e 150; 40% off no preço cheio).
+      // Cronômetro expirado = preço de venda da fase (R$ 125, R$ 150 ou R$ 195).
+      productValue = isRealExpired ? batchInfo.currentBatchPrice : batchInfo.promoPrice;
 
       // Se aplicou desconto de 25% pelo link do tooltip após expirar:
       if (hasDiscount25 && isRealExpired) {

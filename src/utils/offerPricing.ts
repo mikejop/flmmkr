@@ -1,6 +1,7 @@
 import 'server-only';
 import { createClient } from '@supabase/supabase-js';
 import { hashClientIp } from '@/utils/ipHash';
+import { getCurrentBatchPrice, LOTE1_END_ISO } from './priceSchedule.ts';
 
 export interface UserTimerRecord {
   id?: string;
@@ -16,90 +17,13 @@ export interface UserTimerRecord {
   updatedAt?: string;
 }
 
-export const TIMER_DURATION_MS = 15 * 60 * 1000; // 15 minutos
 export const COOLDOWN_DURATION_MS = 36 * 60 * 60 * 1000; // 36 horas após expirar
 
 // The database is authoritative; this short cache is keyed only by a random server cookie.
 const sessionCache = new Map<string, UserTimerRecord>();
 
-export interface BatchPriceInfo {
-  promoPrice: number;
-  currentBatchPrice: number;
-  regularPrice: number;
-  batchName: string;
-  nextPriceDate?: string;
-  isLaunchPhase: boolean;
-}
-
-export const LOTE1_END_ISO = '2026-10-09T23:59:59-03:00';
-export const LOTE2_END_ISO = '2026-10-13T23:59:59-03:00';
-export const LOTE3_END_ISO = '2026-10-17T23:59:59-03:00';
-
-/**
- * Função para calcular o preço promocional de acordo com as datas dos lotes:
- * - Até 09/10/2026 (Sexta-feira 23:59:59): R$ 95 (Lote Especial de Lançamento - Sem cronômetro de 15 min)
- * - De 10/10/2026 até 13/10/2026 (Terça-feira 23:59:59): R$ 125 (2º Lote - Cronômetro de 15 min para garantir R$ 95)
- * - De 14/10/2026 até 17/10/2026 (Sábado 23:59:59): R$ 150 (3º Lote - Cronômetro de 15 min para garantir R$ 95)
- * - A partir de 18/10/2026: R$ 195 (Preço Oficial Regular - Cronômetro de 15 min para garantir R$ 95)
- */
-export function getCurrentBatchPrice(now: Date = new Date()): BatchPriceInfo {
-  const regularPrice = 195;
-  const currentYear = now.getFullYear();
-
-  const refDate = new Date(now);
-  if (currentYear < 2026) {
-    refDate.setFullYear(2026);
-  }
-
-  const lote1End = new Date(LOTE1_END_ISO);
-  const lote2End = new Date(LOTE2_END_ISO);
-  const lote3End = new Date(LOTE3_END_ISO);
-
-  // 1. Fase de Lançamento: Até 09/10/2026 às 23:59:59
-  if (refDate <= lote1End) {
-    return {
-      promoPrice: 95,
-      currentBatchPrice: 95,
-      regularPrice,
-      batchName: 'Lote Especial de Lançamento',
-      nextPriceDate: '09/10/2026',
-      isLaunchPhase: true
-    };
-  }
-
-  // 2. 2º Lote: De 10/10/2026 até 13/10/2026 às 23:59:59
-  if (refDate <= lote2End) {
-    return {
-      promoPrice: 95,
-      currentBatchPrice: 125,
-      regularPrice,
-      batchName: '2º Lote Promocional',
-      nextPriceDate: '13/10/2026',
-      isLaunchPhase: false
-    };
-  }
-
-  // 3. 3º Lote: De 14/10/2026 até 17/10/2026 às 23:59:59
-  if (refDate <= lote3End) {
-    return {
-      promoPrice: 95,
-      currentBatchPrice: 150,
-      regularPrice,
-      batchName: '3º Lote Promocional',
-      nextPriceDate: '17/10/2026',
-      isLaunchPhase: false
-    };
-  }
-
-  // 4. Preço Oficial Regular: A partir de 18/10/2026
-  return {
-    promoPrice: 95,
-    currentBatchPrice: regularPrice,
-    regularPrice,
-    batchName: 'Preço Oficial Regular',
-    isLaunchPhase: false
-  };
-}
+export { getCurrentBatchPrice, LOTE1_END_ISO, LOTE2_END_ISO, LOTE3_END_ISO } from './priceSchedule.ts';
+export type { BatchPriceInfo, PricePhaseId } from './priceSchedule.ts';
 
 /**
  * Supabase Admin Client (Service Role - Acesso restrito ao backend)
@@ -132,7 +56,7 @@ function updateMemoryCache(record: UserTimerRecord) {
  * 1. A sessão é localizada só pelo identificador do cookie do servidor (client_identifier, único).
  *    O IP é guardado apenas como hash (HMAC) para auditoria e nunca serve de chave, então a falta
  *    de IP não cria sessões duplicadas nem reinicia o cronômetro.
- * 2. Sem sessão, cria uma nova (15 minutos).
+ * 2. Sem sessão, cria uma nova (duração conforme a fase de preço: 15, 10 ou 3 minutos).
  * 3. COOLDOWN DE 36 HORAS: se o tempo acabar, o aluno fica sem a promoção por 36 h e depois o cronômetro recomeça.
  */
 export async function resolveOfferTimerSession(clientIdentifier: string, clientIp?: string | null): Promise<UserTimerRecord> {
@@ -173,12 +97,17 @@ export async function resolveOfferTimerSession(clientIdentifier: string, clientI
     return session;
   }
 
+  // Cada fase de preço tem o seu cronômetro: quem entra numa fase nova (ou volta depois do período de espera) ganha um novo.
+  const currentPhase = getCurrentBatchPrice(new Date(now));
+  const timerMs = Math.max(1, currentPhase.timerMinutes) * 60 * 1000;
+  const sessionPhase = session ? getCurrentBatchPrice(new Date(session.firstAccessAt)).phaseId : null;
+
   const shouldStart = !session || now >= new Date(session.cooldownUntil).getTime() ||
-    new Date(session.firstAccessAt).getTime() <= launchEnd;
+    sessionPhase !== currentPhase.phaseId;
   const firstAccessAt = shouldStart ? new Date(now).toISOString() : session!.firstAccessAt;
-  const expiresAt = shouldStart ? new Date(now + TIMER_DURATION_MS).toISOString() : session!.expiresAt;
+  const expiresAt = shouldStart ? new Date(now + timerMs).toISOString() : session!.expiresAt;
   const cooldownUntil = shouldStart
-    ? new Date(now + TIMER_DURATION_MS + COOLDOWN_DURATION_MS).toISOString()
+    ? new Date(now + timerMs + COOLDOWN_DURATION_MS).toISOString()
     : session!.cooldownUntil;
   const isExpired = now >= new Date(expiresAt).getTime();
 

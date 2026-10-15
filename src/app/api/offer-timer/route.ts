@@ -22,7 +22,11 @@ export async function GET(req: NextRequest) {
       finalPrice: batchInfo.promoPrice,
       batchName: batchInfo.batchName,
       nextPriceDate: batchInfo.nextPriceDate,
-    });
+      timerMinutes: 0,
+      promoPercentOffBatch: batchInfo.promoPercentOffBatch,
+      promoPercentOffRegular: batchInfo.promoPercentOffRegular,
+      batchPercentOffRegular: batchInfo.batchPercentOffRegular,
+    }, { headers: { 'Cache-Control': 'private, no-store' } });
   }
 
   const existingCookie = req.cookies.get('flmmkr_offer_session')?.value || '';
@@ -53,6 +57,10 @@ export async function GET(req: NextRequest) {
     finalPrice,
     batchName: batchInfo.batchName,
     nextPriceDate: batchInfo.nextPriceDate,
+    timerMinutes: batchInfo.timerMinutes,
+    promoPercentOffBatch: batchInfo.promoPercentOffBatch,
+    promoPercentOffRegular: batchInfo.promoPercentOffRegular,
+    batchPercentOffRegular: batchInfo.batchPercentOffRegular,
   });
 
   const expiredOfferToken = isExpired ? createExpiredOfferToken(Date.now() + 36 * 60 * 60 * 1000) : null;
