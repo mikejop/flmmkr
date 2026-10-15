@@ -1,25 +1,47 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/utils/supabase/admin';
-import { validateAndSanitizeBody } from '@/utils/security';
+import { z } from 'zod';
+import { readJsonLimited } from '@/utils/rateLimit';
 import { NICKNAME_REGEX, normalizeNickname } from '@/lib/nickname';
 import { getAuthenticatedUser } from '@/utils/supabase/authenticated';
 
 export const dynamic = 'force-dynamic';
 
+const profileSchema = z.object({
+  firstName: z.string().trim().max(80).optional(),
+  lastName: z.string().trim().max(80).optional(),
+  phone: z.string().trim().max(30).optional(),
+  email: z.string().trim().toLowerCase().email().max(254).optional(),
+  nickname: z.string().trim().max(40).optional(),
+  avatarUrl: z.string().max(500).nullish(),
+});
+
+const AVATAR_EXT = /^avatar\.(jpg|png|webp|gif|avif)$/;
+
+/** URL pública montada pelo servidor em /api/user/upload-avatar: https://<projeto>.supabase.co/storage/v1/object/public/avatars/<userId>/avatar.<ext> */
+function isOwnAvatarUrl(value: string | null | undefined, userId: string): value is string {
+  if (!value) return false;
+  const base = (process.env.NEXT_PUBLIC_SUPABASE_URL || '').replace(/\/+$/, '');
+  if (!base) return false;
+  const prefix = `${base}/storage/v1/object/public/avatars/${userId}/`;
+  if (!value.startsWith(prefix)) return false;
+  const rest = value.slice(prefix.length);
+  return AVATAR_EXT.test(rest);
+}
+
 export async function POST(req: NextRequest) {
   try {
-    const rawBody = await req.json();
-
-    // 1. Filtro contra SQL Injection
-    const { safe, sanitized, reason } = validateAndSanitizeBody(rawBody);
-    if (!safe) {
-      return NextResponse.json({ error: reason || 'Entrada inválida' }, { status: 400 });
-    }
-
     const { user, supabase } = await getAuthenticatedUser();
     if (!user) return NextResponse.json({ error: 'Não autenticado.' }, { status: 401 });
     const userId = user.id;
-    const { firstName, lastName, phone, email, avatarUrl, nickname } = sanitized;
+
+    const parsed = profileSchema.safeParse(await readJsonLimited(req, 8 * 1024));
+    if (!parsed.success) {
+      return NextResponse.json({ error: 'Dados inválidos. Confira o tamanho dos campos (nome até 80 caracteres).' }, { status: 400 });
+    }
+    const { firstName, lastName, phone, email, nickname } = parsed.data;
+    // O avatar só vale se for a URL pública do NOSSO bucket, na pasta do próprio aluno; qualquer outra é ignorada.
+    const avatarUrl = isOwnAvatarUrl(parsed.data.avatarUrl, userId) ? parsed.data.avatarUrl : undefined;
 
     const fullName = [firstName || '', lastName || ''].join(' ').trim();
 
@@ -82,17 +104,16 @@ export async function POST(req: NextRequest) {
     if (emailChangeRequested) {
       const { error: emailError } = await supabase.auth.updateUser({ email: normalizedEmail });
       if (emailError) {
-        return NextResponse.json({ error: emailError.message || 'Não foi possível solicitar a troca de e-mail.' }, { status: 400 });
+        console.warn('[Update Profile] Troca de e-mail recusada:', emailError.message);
+        return NextResponse.json({ error: 'Não foi possível solicitar a troca de e-mail.' }, { status: 400 });
       }
     }
 
     const { error: authError } = await supabaseAdmin.auth.admin.updateUserById(userId, authUpdatePayload);
 
     if (authError) {
-      return NextResponse.json(
-        { error: authError.message || 'Falha ao atualizar dados de autenticação.' },
-        { status: 400 }
-      );
+      console.error('[Update Profile] Falha ao atualizar o Auth:', authError.message);
+      return NextResponse.json({ error: 'Não foi possível atualizar os dados de acesso.' }, { status: 400 });
     }
 
     return NextResponse.json({
@@ -109,9 +130,6 @@ export async function POST(req: NextRequest) {
     });
   } catch (err: any) {
     console.error('[Update Profile Error]:', err);
-    return NextResponse.json(
-      { error: err?.message || 'Erro interno ao atualizar perfil.' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Erro interno ao atualizar perfil.' }, { status: 500 });
   }
 }

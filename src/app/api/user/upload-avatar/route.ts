@@ -52,7 +52,7 @@ export async function POST(req: NextRequest) {
 
     if (uploadError) {
       console.error('Erro no upload para Supabase Storage:', uploadError);
-      return NextResponse.json({ error: `Erro no upload: ${uploadError.message}` }, { status: 500 });
+      return NextResponse.json({ error: 'Não foi possível enviar a foto.' }, { status: 500 });
     }
 
     // 4. Obter a URL pública do avatar
@@ -94,7 +94,7 @@ export async function POST(req: NextRequest) {
   } catch (err: any) {
     console.error('Erro geral no upload do avatar:', err);
     return NextResponse.json(
-      { error: err?.message || 'Falha ao processar upload da foto.' },
+      { error: 'Falha ao processar upload da foto.' },
       { status: 500 }
     );
   }

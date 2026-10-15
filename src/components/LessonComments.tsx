@@ -22,7 +22,8 @@ interface CommentItem {
   id: string;
   lesson_id: string;
   module_id?: string;
-  user_id: string;
+  /** O servidor não envia o id do autor: só diz se o comentário é meu. */
+  is_mine?: boolean;
   user_name: string;
   user_nickname?: string | null;
   user_avatar?: string;
@@ -30,7 +31,7 @@ interface CommentItem {
   content: string;
   is_public: boolean;
   likes_count: number;
-  liked_by?: string[];
+  liked_by_me?: boolean;
   created_at: string;
   replies?: CommentItem[];
 }
@@ -113,10 +114,7 @@ export default function LessonComments({
     setLoading(true);
     setLoadError(false);
     try {
-      const url = `/api/comments?lessonId=${encodeURIComponent(lessonId)}${
-        userId ? `&userId=${encodeURIComponent(userId)}` : ''
-      }`;
-      const res = await fetch(url);
+      const res = await fetch(`/api/comments?lessonId=${encodeURIComponent(lessonId)}`, { cache: 'no-store' });
       if (res.ok) {
         const data = await res.json();
         setComments(data.comments || []);
@@ -292,7 +290,6 @@ export default function LessonComments({
         body: JSON.stringify({
           lessonId,
           moduleId,
-          userId,
           content: newCommentText.trim(),
           isPublic,
           parentId: null
@@ -333,7 +330,6 @@ export default function LessonComments({
         body: JSON.stringify({
           lessonId,
           moduleId,
-          userId,
           content: replyText.trim(),
           isPublic: parentIsPublic,
           parentId
@@ -368,12 +364,9 @@ export default function LessonComments({
     const updateLikesInTree = (list: CommentItem[]): CommentItem[] => {
       return list.map((c) => {
         if (c.id === commentId) {
-          const liked = (c.liked_by || []).includes(userId);
-          const newLikedBy = liked
-            ? (c.liked_by || []).filter((id) => id !== userId)
-            : [...(c.liked_by || []), userId];
+          const liked = !!c.liked_by_me;
           const newCount = liked ? Math.max(0, c.likes_count - 1) : c.likes_count + 1;
-          return { ...c, likes_count: newCount, liked_by: newLikedBy };
+          return { ...c, likes_count: newCount, liked_by_me: !liked };
         }
         if (c.replies && c.replies.length > 0) {
           return { ...c, replies: updateLikesInTree(c.replies) };
@@ -388,7 +381,7 @@ export default function LessonComments({
       const res = await fetch('/api/comments/like', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ commentId, userId })
+        body: JSON.stringify({ commentId })
       });
       if (!res.ok) {
         await loadComments();
@@ -404,7 +397,7 @@ export default function LessonComments({
     if (!window.confirm('Tem certeza que deseja apagar este comentário?')) return;
 
     try {
-      const res = await fetch(`/api/comments?id=${commentId}&userId=${userId || ''}`, {
+      const res = await fetch(`/api/comments?id=${encodeURIComponent(commentId)}`, {
         method: 'DELETE'
       });
 
@@ -751,8 +744,8 @@ export default function LessonComments({
               {/* ITERAÇÃO DOS COMENTÁRIOS */}
               <div className="space-y-4">
                 {comments.map((comment) => {
-                  const isAuthor = !!userId && comment.user_id === userId;
-                  const hasLiked = userId && (comment.liked_by || []).includes(userId);
+                  const isAuthor = !!comment.is_mine;
+                  const hasLiked = !!comment.liked_by_me;
                   const replies = comment.replies || [];
                   const repliesOpen = openRepliesId === comment.id;
                   const commentNick = nickOf(comment);
@@ -951,8 +944,8 @@ export default function LessonComments({
                       {repliesOpen && replies.length > 0 && (
                         <div className="pl-12 pt-2 space-y-3 border-l-2 border-neutral-200 ml-4 animate-fadeIn">
                           {replies.map((reply) => {
-                            const isReplyAuthor = !!userId && reply.user_id === userId;
-                            const replyHasLiked = userId && (reply.liked_by || []).includes(userId);
+                            const isReplyAuthor = !!reply.is_mine;
+                            const replyHasLiked = !!reply.liked_by_me;
                             const replyNick = nickOf(reply);
 
                             return (

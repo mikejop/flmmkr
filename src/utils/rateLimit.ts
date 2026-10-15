@@ -29,3 +29,20 @@ export async function readJsonLimited(request: Request, maxBytes: number): Promi
     return null;
   }
 }
+
+/**
+ * Rate limit por USUÁRIO (mesma função atômica do banco). null = indisponível (sem RATE_LIMIT_HMAC_SECRET ou erro):
+ * quem chama deve recusar a requisição (falha fechada).
+ */
+export async function consumeUserRateLimit(userId: string, bucket: string, limit: number, windowSeconds: number): Promise<boolean | null> {
+  const secret = process.env.RATE_LIMIT_HMAC_SECRET?.trim();
+  if (!userId || !secret) return null;
+  const key = createHmac('sha256', secret).update(`${bucket}:user:${userId}`).digest('hex');
+  const { data, error } = await supabaseAdmin.rpc('consume_api_rate_limit', {
+    p_key: key,
+    p_max_requests: limit,
+    p_window_seconds: windowSeconds,
+  });
+  if (error || typeof data !== 'boolean') return null;
+  return data;
+}
