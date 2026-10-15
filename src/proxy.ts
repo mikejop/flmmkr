@@ -3,28 +3,9 @@ import { createClient } from '@/utils/supabase/middleware';
 import { detectSqlInjection } from '@/utils/security';
 import { banAttacker, isAttackerBanned, isHoneypotPath, isAutoLoadedResource, BLOCK_DURATION_MS } from '@/services/honeypotService';
 import { consumeRateLimit } from '@/utils/rateLimit';
+import { buildCsp } from '@/utils/csp';
 import { randomBytes } from 'node:crypto';
 import { getClientIp } from '@/utils/clientIp';
-
-function createReportOnlyCsp(nonce: string): string {
-  const supabaseHost = new URL(process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://gnqqaskurjkrllnhjygt.supabase.co').host;
-  const devEval = process.env.NODE_ENV === 'development' ? " 'unsafe-eval'" : '';
-  return [
-    "default-src 'self'",
-    "base-uri 'self'",
-    "object-src 'none'",
-    "frame-ancestors 'self'",
-    "form-action 'self' https://*.asaas.com",
-    "img-src 'self' data: blob: https://" + supabaseHost + " https://cdn.pandavideo.com https://*.pandavideo.com.br https://*.b-cdn.net https://images.unsplash.com https://plus.unsplash.com",
-    "media-src 'self' data: blob: https://*.pandavideo.com.br https://*.b-cdn.net",
-    "font-src 'self' data: https://fonts.gstatic.com",
-    "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
-    `script-src 'self' 'nonce-${nonce}' 'strict-dynamic'${devEval} https://player.pandavideo.com.br https://*.pandavideo.com.br https://*.asaas.com`,
-    `connect-src 'self' https://${supabaseHost} wss://${supabaseHost} https://api-v2.pandavideo.com.br https://*.pandavideo.com.br https://*.b-cdn.net https://*.asaas.com`,
-    "frame-src 'self' https://*.pandavideo.com.br https://*.asaas.com",
-    'upgrade-insecure-requests',
-  ].join('; ');
-}
 
 const BANNED_RESPONSE_HTML = `<!DOCTYPE html>
 <html lang="pt-BR">
@@ -49,14 +30,18 @@ const BANNED_RESPONSE_HTML = `<!DOCTYPE html>
 
 export async function proxy(request: NextRequest) {
   const nonce = randomBytes(18).toString('base64');
-  const csp = createReportOnlyCsp(nonce);
+  const csp = buildCsp(nonce);
+  const strictCsp = buildCsp(nonce, { strictStyles: true });
+  // Em produção a política é aplicada (Content-Security-Policy). Em desenvolvimento só relata, para não quebrar o HMR.
+  const enforce = process.env.NODE_ENV === 'production';
   const forwardedHeaders = new Headers(request.headers);
-  // Next reads the forwarded CSP nonce to add it to its generated scripts.
-  // Only the Report-Only header is sent to the browser; enforcement stays off.
+  // Next lê o nonce do CSP da requisição para marcar seus próprios scripts.
   forwardedHeaders.set('Content-Security-Policy', csp);
   forwardedHeaders.set('x-nonce', nonce);
   const applyReportOnly = (response: NextResponse) => {
-    response.headers.set('Content-Security-Policy-Report-Only', csp);
+    response.headers.set(enforce ? 'Content-Security-Policy' : 'Content-Security-Policy-Report-Only', csp);
+    // Política paralela mais estrita, só para observação (sem 'unsafe-inline' em estilos).
+    if (enforce) response.headers.set('Content-Security-Policy-Report-Only', strictCsp);
     return response;
   };
   const url = request.nextUrl;

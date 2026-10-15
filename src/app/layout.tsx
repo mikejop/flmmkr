@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from 'next';
 import { Suspense } from 'react';
+import { connection } from 'next/server';
 import Script from 'next/script';
 import './globals.css';
 import { SITE_CONFIG } from '@/config/siteConfig';
@@ -96,11 +97,13 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  // CSP com nonce por requisição exige renderização dinâmica (o nonce não existe em página estática).
+  await connection();
   // JSON-LD Structured Data for AEO / GEO / Search Engines
   const websiteSchema = {
     '@context': 'https://schema.org',
