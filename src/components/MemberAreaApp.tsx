@@ -899,7 +899,7 @@ export function MemberAreaApp({ skipInternalPreloader = false }: { skipInternalP
           >
             {/* Sidebar Header: Traffic Lights & Collapse Button */}
             <div 
-              className={`h-14 border-b border-white/12 bg-[#121216] flex items-center ${labelsShown ? 'px-3 justify-between md:min-w-72' : 'px-0 justify-center'} select-none shrink-0 relative z-10 gap-1`}
+              className={`h-14 border-b border-white/12 bg-[#121216] flex items-center ${labelsShown ? 'px-3 justify-between' : 'px-0 justify-center'} select-none shrink-0 relative z-10 gap-1`}
             >
               
               {/* Traffic Lights */}
@@ -940,7 +940,7 @@ export function MemberAreaApp({ skipInternalPreloader = false }: { skipInternalP
             </button>
 
             {/* Sidebar Content Tree */}
-            <div className={`flex-1 py-3 px-2 space-y-3 custom-scrollbar overflow-y-auto relative z-10 ${labelsShown ? 'md:min-w-72' : ''}`}>
+            <div className={`flex-1 py-3 px-2 space-y-3 custom-scrollbar overflow-y-auto relative z-10 `}>
               <div className="space-y-3 w-full">
                 <div className="space-y-1">
                   {labelsShown && (
@@ -979,7 +979,7 @@ export function MemberAreaApp({ skipInternalPreloader = false }: { skipInternalP
                               return isCurrentlyOpen ? {} : { [mod.id]: true };
                             });
                           }}
-                          className={`w-full flex items-center ${labelsShown ? 'justify-between px-3' : 'justify-center px-0'} py-2 rounded-[10px] text-[13px] transition-[background-color,border-color,color,box-shadow] duration-300 ease-out text-left cursor-pointer ${
+                          className={`w-full flex items-center justify-between px-[14px] py-2 rounded-[10px] text-[13px] transition-[background-color,border-color,color,box-shadow] duration-300 ease-out text-left cursor-pointer ${
                             isCurrent 
                               ? 'bg-white/15 text-white border border-white/20 shadow-[0_2px_12px_rgba(0,0,0,0.25),inset_0_1px_0_rgba(255,255,255,0.2)] font-semibold backdrop-blur-md' 
                               : 'text-neutral-300 hover:text-white hover:bg-white/[0.08] border border-transparent hover:border-white/10'
@@ -988,7 +988,7 @@ export function MemberAreaApp({ skipInternalPreloader = false }: { skipInternalP
                           aria-expanded={isSidebarExpanded ? !!expandedEmenta[mod.id] : undefined}
                           aria-label={!isSidebarExpanded ? `${getModuleName(mod.title)}${isLockedModule ? ' (bloqueado)' : ''}` : undefined}
                         >
-                          <div className={`flex items-center ${labelsShown ? 'gap-2.5 truncate min-w-0' : 'justify-center w-full'}`}>
+                          <div className="flex items-center gap-2.5 truncate min-w-0">
                             <div className="shrink-0 flex items-center justify-center">
                               {getModuleIcon(mod.id, isCurrent)}
                             </div>

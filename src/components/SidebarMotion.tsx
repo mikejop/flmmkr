@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import gsap from 'gsap';
 import { useGSAP } from '@gsap/react';
 
@@ -20,20 +20,17 @@ export const SIDEBAR_WIDTH_CLOSED = 64;
 export function useSidebarMotion(expanded: boolean) {
   const [aside, setAside] = useState<HTMLElement | null>(null);
   const [labelsShown, setLabelsShown] = useState(expanded);
-  const [prevExpanded, setPrevExpanded] = useState(expanded);
   const initializedFor = useRef<HTMLElement | null>(null);
   const expandedRef = useRef(expanded);
-  const stuckGuard = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const fadeInPending = useRef(false);
+  const timers = useRef<ReturnType<typeof setTimeout>[]>([]);
 
-  // Ao abrir, desenha os textos já (o fade de entrada roda na hora); ao fechar, só depois da animação.
-  if (expanded !== prevExpanded) {
-    setPrevExpanded(expanded);
-    if (expanded) setLabelsShown(true);
-  }
+  const clearTimers = () => { timers.current.forEach(clearTimeout); timers.current = []; };
+  useEffect(() => () => { timers.current.forEach(clearTimeout); }, []);
 
   useGSAP((_, contextSafe) => {
     expandedRef.current = expanded;
-    if (stuckGuard.current) { clearTimeout(stuckGuard.current); stuckGuard.current = null; }
+    clearTimers();
     const el = aside;
     if (!el || !contextSafe) return;
 
@@ -54,30 +51,41 @@ export function useSidebarMotion(expanded: boolean) {
       return;
     }
 
-    // Termina o fechamento: nunca deixa o menu estreito com os textos desenhados.
-    const finishClose = contextSafe(() => {
-      if (expandedRef.current) return;
-      gsap.set(el, { width: SIDEBAR_WIDTH_CLOSED });
-      // Elementos reaproveitados pelo React (ex.: botão de recolher vira o de expandir) não podem ficar com opacity 0 do fade.
+    // Troca o layout (com/sem textos) no meio do caminho, quando os textos já sumiram (fechar) ou
+    // quando a barra já tem largura para eles (abrir). Os itens acompanham a largura da barra o tempo todo.
+    const setLabels = contextSafe((value: boolean) => {
+      if (expandedRef.current !== value) return; // o usuário mudou de ideia no meio
+      if (value) fadeInPending.current = true;
+      setLabelsShown(value);
+    });
+    // Garante o estado final mesmo se a animação for interrompida.
+    const settle = contextSafe(() => {
+      if (expandedRef.current !== expanded) return;
+      gsap.set(el, { width: target });
+      setLabelsShown(expanded);
       gsap.set(el.querySelectorAll('.sb-fade'), { clearProps: 'opacity,transform' });
-      setLabelsShown(false);
     });
 
+    gsap.to(el, { width: target, duration: 0.5, ease: SIDEBAR_EASE, delay: expanded ? 0 : 0.04, overwrite: 'auto', onComplete: settle, onInterrupt: settle });
     if (expanded) {
-      gsap.to(el, { width: target, duration: 0.5, ease: SIDEBAR_EASE, overwrite: 'auto' });
-      // Os textos entram quando o menu já abriu um pouco, em cascata curta.
-      gsap.fromTo(
-        el.querySelectorAll('.sb-fade'),
-        { opacity: 0, x: -10 },
-        { opacity: 1, x: 0, duration: 0.35, ease: 'power2.out', stagger: 0.025, delay: 0.14, overwrite: 'auto', clearProps: 'opacity,transform' }
-      );
+      timers.current.push(setTimeout(() => setLabels(true), 190));
     } else {
       gsap.to(el.querySelectorAll('.sb-fade'), { opacity: 0, x: -6, duration: 0.16, ease: 'power2.in', stagger: 0.01, overwrite: 'auto' });
-      gsap.to(el, { width: target, duration: 0.45, ease: SIDEBAR_EASE, delay: 0.12, overwrite: 'auto', onComplete: finishClose, onInterrupt: finishClose });
-      // Rede de segurança: se por qualquer motivo a animação não terminar, o fechamento é concluído mesmo assim.
-      stuckGuard.current = setTimeout(finishClose, 900);
+      timers.current.push(setTimeout(() => setLabels(false), 190));
     }
+    timers.current.push(setTimeout(settle, 900)); // rede de segurança
   }, { dependencies: [expanded, aside] });
+
+  // Textos que acabaram de ser desenhados (ao abrir) entram em fade, em cascata curta.
+  useGSAP(() => {
+    if (!aside || !labelsShown || !fadeInPending.current) return;
+    fadeInPending.current = false;
+    gsap.fromTo(
+      aside.querySelectorAll('.sb-fade'),
+      { opacity: 0, x: -10 },
+      { opacity: 1, x: 0, duration: 0.32, ease: 'power2.out', stagger: 0.025, overwrite: 'auto', clearProps: 'opacity,transform' }
+    );
+  }, { dependencies: [labelsShown, aside] });
 
   return { setAside, labelsShown };
 }
