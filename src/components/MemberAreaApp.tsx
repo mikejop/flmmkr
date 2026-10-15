@@ -5,6 +5,9 @@ import BackToTopButton from './BackToTopButton';
 import LessonTimeline, { LESSON_VIDEO_ANCHOR } from './LessonTimeline';
 import { TocRegistryContext, type TocGroup } from './EditorialLayout';
 import { motion, AnimatePresence, MotionConfig } from 'motion/react';
+import gsap from 'gsap';
+import { useGSAP } from '@gsap/react';
+import { useSidebarMotion, GsapCollapse, GsapChevron, SIDEBAR_WIDTH_OPEN, SIDEBAR_WIDTH_CLOSED } from '@/components/SidebarMotion';
 import { 
   Folder, ChevronRight, ChevronLeft,
   CheckCircle2, Lock, PanelLeftClose, PanelLeft, X, Search, Menu,
@@ -160,6 +163,12 @@ export function MemberAreaApp({ skipInternalPreloader = false }: { skipInternalP
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState<boolean>(false);
   const isSidebarExpanded = sidebarPref || isMobileMenuOpen;
   const lessonContainerRef = useRef<HTMLDivElement>(null);
+  const asideRef = useRef<HTMLElement>(null);
+  const flyoutRef = useRef<HTMLDivElement>(null);
+  // Largura inicial (sem salto na primeira pintura); depois quem anima é o GSAP.
+  const [initialSidebarWidth] = useState(() => (isSidebarExpanded ? SIDEBAR_WIDTH_OPEN : SIDEBAR_WIDTH_CLOSED));
+  // Textos do menu: continuam desenhados enquanto o menu fecha, para sumirem em fade em vez de cortar de uma vez.
+  const labelsShown = useSidebarMotion(asideRef, isSidebarExpanded);
   const [articleToc, setArticleToc] = useState<TocGroup[]>([]);
   const timelineGroups = useMemo<TocGroup[]>(
     () => (articleToc.length ? [{ title: 'Vídeo da aula', id: LESSON_VIDEO_ANCHOR }, ...articleToc] : []),
@@ -174,6 +183,12 @@ export function MemberAreaApp({ skipInternalPreloader = false }: { skipInternalP
   
   const [copiedChallengeId, setCopiedChallengeId] = useState<string | null>(null);
   const [activeFlyoutModule, setActiveFlyoutModule] = useState<string | null>(null);
+  // Painel das aulas do módulo (menu recolhido): entra com fade, leve deslocamento e desaceleração.
+  useGSAP(() => {
+    if (!flyoutRef.current) return;
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    gsap.fromTo(flyoutRef.current, { opacity: 0, x: -10, scale: 0.97 }, { opacity: 1, x: 0, scale: 1, duration: 0.26, ease: 'power3.out', transformOrigin: 'left top', clearProps: 'transform' });
+  }, { dependencies: [activeFlyoutModule, isSidebarExpanded] });
   const flyoutTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [completionTransitionData, setCompletionTransitionData] = useState<{
     completedLessonTitle: string;
@@ -877,24 +892,20 @@ export function MemberAreaApp({ skipInternalPreloader = false }: { skipInternalP
 
           {/* SIDEBAR com Glassmorphism Apple (gaveta sobreposta no celular) */}
           <aside 
-            style={{
-              transition: 'width 320ms cubic-bezier(0.455, 0.03, 0.515, 0.955)',
-            }}
+            ref={asideRef}
+            style={{ width: initialSidebarWidth }}
             aria-label="Módulos e aulas"
-            className={`${isSidebarExpanded ? 'w-72 max-w-[85vw] md:max-w-none' : 'w-16'} ${isMobileMenuOpen ? 'flex fixed inset-y-0 left-0 z-40 md:relative md:z-auto' : 'hidden md:flex'} bg-[#121216] border-r border-white/12 flex-col shrink-0 select-none relative will-change-[width] overflow-hidden`}
+            className={`max-w-[85vw] md:max-w-none ${isMobileMenuOpen ? 'flex fixed inset-y-0 left-0 z-40 md:relative md:z-auto' : 'hidden md:flex'} bg-[#121216] border-r border-white/12 flex-col shrink-0 select-none relative will-change-[width] overflow-hidden`}
             id="window-sidebar"
           >
             {/* Sidebar Header: Traffic Lights & Collapse Button */}
             <div 
-              style={{
-                transitionTimingFunction: 'cubic-bezier(0.455, 0.03, 0.515, 0.955)',
-              }}
-              className={`h-14 border-b border-white/12 bg-[#121216] flex items-center ${isSidebarExpanded ? 'px-3 justify-between' : 'px-0 justify-center'} select-none shrink-0 relative z-10 gap-1 transition-all duration-300`}
+              className={`h-14 border-b border-white/12 bg-[#121216] flex items-center ${labelsShown ? 'px-3 justify-between' : 'px-0 justify-center'} select-none shrink-0 relative z-10 gap-1`}
             >
               
               {/* Traffic Lights */}
-              {isSidebarExpanded && (
-                <div className="flex items-center gap-1.5 shrink-0 pl-1">
+              {labelsShown && (
+                <div className="sb-fade flex items-center gap-1.5 shrink-0 pl-1">
                   <button 
                     onClick={() => setIsMaximized(!isMaximized)}
                     aria-label={isMaximized ? 'Restaurar janela' : 'Maximizar janela'}
@@ -917,11 +928,11 @@ export function MemberAreaApp({ skipInternalPreloader = false }: { skipInternalP
               )}
 
               {/* Collapse Trigger Button */}
-              {isSidebarExpanded ? (
+              {labelsShown ? (
                 <button 
                   onClick={() => setIsSidebarExpanded(false)}
                   aria-label="Recolher barra lateral"
-                  className="text-[#a1a1a6] hover:text-white transition-colors p-2.5 rounded-md hover:bg-white/5 cursor-pointer shrink-0 hidden md:block"
+                  className="sb-fade text-[#a1a1a6] hover:text-white transition-colors p-2.5 rounded-md hover:bg-white/5 cursor-pointer shrink-0 hidden md:block"
                   title="Recolher Barra"
                 >
                   <PanelLeftClose size={15} />
@@ -942,8 +953,8 @@ export function MemberAreaApp({ skipInternalPreloader = false }: { skipInternalP
             <div className="flex-1 py-3 px-2 space-y-3 custom-scrollbar overflow-y-auto relative z-10">
               <div className="space-y-3 w-full">
                 <div className="space-y-1">
-                  {isSidebarExpanded && (
-                    <span className="text-[13px] font-bold text-[#a1a1a6] tracking-widest uppercase block px-3 mb-1.5">MÓDULOS</span>
+                  {labelsShown && (
+                    <span className="sb-fade text-[13px] font-bold text-[#a1a1a6] tracking-widest uppercase block px-3 mb-1.5">MÓDULOS</span>
                   )}
                   
                   {modulesData.map((mod) => {
@@ -978,8 +989,7 @@ export function MemberAreaApp({ skipInternalPreloader = false }: { skipInternalP
                               return isCurrentlyOpen ? {} : { [mod.id]: true };
                             });
                           }}
-                          style={{ transitionTimingFunction: 'cubic-bezier(0.455, 0.03, 0.515, 0.955)' }}
-                          className={`w-full flex items-center ${isSidebarExpanded ? 'justify-between px-3' : 'justify-center px-0'} py-2 rounded-[10px] text-[13px] transition-all duration-300 hover:scale-[1.02] text-left cursor-pointer ${
+                          className={`w-full flex items-center ${labelsShown ? 'justify-between px-3' : 'justify-center px-0'} py-2 rounded-[10px] text-[13px] transition-[background-color,border-color,color,box-shadow] duration-300 ease-out text-left cursor-pointer ${
                             isCurrent 
                               ? 'bg-white/15 text-white border border-white/20 shadow-[0_2px_12px_rgba(0,0,0,0.25),inset_0_1px_0_rgba(255,255,255,0.2)] font-semibold backdrop-blur-md' 
                               : 'text-neutral-300 hover:text-white hover:bg-white/[0.08] border border-transparent hover:border-white/10'
@@ -988,31 +998,25 @@ export function MemberAreaApp({ skipInternalPreloader = false }: { skipInternalP
                           aria-expanded={isSidebarExpanded ? !!expandedEmenta[mod.id] : undefined}
                           aria-label={!isSidebarExpanded ? `${getModuleName(mod.title)}${isLockedModule ? ' (bloqueado)' : ''}` : undefined}
                         >
-                          <div className={`flex items-center ${isSidebarExpanded ? 'gap-2.5 truncate min-w-0' : 'justify-center w-full'}`}>
+                          <div className={`flex items-center ${labelsShown ? 'gap-2.5 truncate min-w-0' : 'justify-center w-full'}`}>
                             <div className="shrink-0 flex items-center justify-center">
                               {getModuleIcon(mod.id, isCurrent)}
                             </div>
-                            {isSidebarExpanded && (
-                              <span className="truncate text-[13px] whitespace-nowrap">{getModuleName(mod.title)}</span>
+                            {labelsShown && (
+                              <span className="sb-fade truncate text-[13px] whitespace-nowrap">{getModuleName(mod.title)}</span>
                             )}
                           </div>
 
-                          {isSidebarExpanded && (
-                            <div className="shrink-0 flex items-center gap-1 pl-1">
+                          {labelsShown && (
+                            <div className="sb-fade shrink-0 flex items-center gap-1 pl-1">
                               {isLockedModule ? (
                                 <Lock size={11} className="text-neutral-300 shrink-0" />
                               ) : (
                                 <>
                                   {isAllCompleted && <CheckCircle2 size={11} className="text-[#30d158] shrink-0 mr-1" />}
-                                  <ChevronRight 
-                                    size={12} 
-                                    className={`text-neutral-300 transition-transform duration-300 ${
-                                      expandedEmenta[mod.id] ? 'rotate-90 text-white' : 'rotate-0'
-                                    }`}
-                                    style={{
-                                      transitionTimingFunction: 'cubic-bezier(0.25, 0.46, 0.45, 0.94)'
-                                    }}
-                                  />
+                                  <GsapChevron open={!!expandedEmenta[mod.id]} className={expandedEmenta[mod.id] ? 'text-white' : 'text-neutral-300'}>
+                                    <ChevronRight size={12} />
+                                  </GsapChevron>
                                 </>
                               )}
                             </div>
@@ -1020,29 +1024,9 @@ export function MemberAreaApp({ skipInternalPreloader = false }: { skipInternalP
                         </button>
 
                         {/* Lesson Nest under Expanded Module com AnimatePresence e Curva Quadrática */}
-                        <AnimatePresence initial={false}>
-                          {isSidebarExpanded && expandedEmenta[mod.id] && (
-                            <motion.div
-                              key={`module-lessons-${mod.id}`}
-                              initial={{ height: 0, opacity: 0 }}
-                              animate={{ 
-                                height: 'auto', 
-                                opacity: 1,
-                                transition: {
-                                  height: { duration: 0.28, ease: [0.25, 0.46, 0.45, 0.94] },
-                                  opacity: { duration: 0.2, ease: [0.25, 0.46, 0.45, 0.94] }
-                                }
-                              }}
-                              exit={{ 
-                                height: 0, 
-                                opacity: 0,
-                                transition: {
-                                  height: { duration: 0.22, ease: [0.455, 0.03, 0.515, 0.955] },
-                                  opacity: { duration: 0.16, ease: [0.455, 0.03, 0.515, 0.955] }
-                                }
-                              }}
-                              className="overflow-hidden pl-2 ml-3 border-l border-white/10 space-y-0.5 py-1"
-                            >
+                        <GsapCollapse open={isSidebarExpanded && !!expandedEmenta[mod.id]} className="overflow-hidden pl-2 ml-3 border-l border-white/10 space-y-0.5 py-1">
+                          {(
+                            <>
                               {mod.subtopics.map((sub) => {
                                 const isCurrentLesson = activeLessonId === sub.id;
                                 const isCompleted = progress.completedLessons.includes(sub.id);
@@ -1098,9 +1082,9 @@ export function MemberAreaApp({ skipInternalPreloader = false }: { skipInternalP
                                   </button>
                                 );
                               })}
-                            </motion.div>
+                            </>
                           )}
-                        </AnimatePresence>
+                        </GsapCollapse>
 
                       </div>
                     );
@@ -1113,6 +1097,7 @@ export function MemberAreaApp({ skipInternalPreloader = false }: { skipInternalP
             {/* Collapsed Sidebar Hover Flyout Panel com Glassmorphism */}
             {!isSidebarExpanded && activeFlyoutModule && (
               <div 
+                ref={flyoutRef}
                 style={{
                   top: '70px',
                   backdropFilter: 'blur(28px) saturate(190%)',
