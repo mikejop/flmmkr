@@ -966,7 +966,7 @@ export function MemberAreaApp({ skipInternalPreloader = false }: { skipInternalP
                               setIsCheckoutModalOpen(true);
                               return;
                             }
-                            setActiveModuleId(mod.id);
+                            // Só abre/fecha o módulo: trocar o módulo ativo aqui deixava o título de uma aula e o conteúdo de outra.
                             if (!isSidebarExpanded) setIsSidebarExpanded(true);
                             
                             // Regra: quando um módulo estiver aberto, os outros estarão fechados

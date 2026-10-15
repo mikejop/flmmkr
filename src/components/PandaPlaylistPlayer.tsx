@@ -627,7 +627,11 @@ function PandaPlaylistPlayerInner({
  */
 export default function PandaPlaylistPlayer(props: PandaPlaylistPlayerProps) {
   const lessonId = props.lessonId || 'mod1-1';
-  const [state, setState] = useState<{ status: 'loading' | 'error' | 'ready'; videos: PandaVideoItem[]; denied?: boolean }>({ status: 'loading', videos: [] });
+  type LoadState = { lessonId: string; status: 'loading' | 'error' | 'ready'; videos: PandaVideoItem[]; denied?: boolean };
+  const [loaded, setLoaded] = useState<LoadState>({ lessonId, status: 'loading', videos: [] });
+  // Resultado de outra aula nunca é mostrado: ao trocar de aula, volta ao "carregando" até chegar o da aula atual.
+  const state: LoadState = loaded.lessonId === lessonId ? loaded : { lessonId, status: 'loading', videos: [] };
+  const setState = (next: Omit<LoadState, 'lessonId'>) => setLoaded({ ...next, lessonId });
   const [attempt, setAttempt] = useState(0);
 
   useEffect(() => {
@@ -649,7 +653,7 @@ export default function PandaPlaylistPlayer(props: PandaPlaylistPlayerProps) {
     return () => { alive = false; };
   }, [lessonId, attempt]);
 
-  if (state.status === 'ready') return <PandaPlaylistPlayerInner {...props} lessonId={lessonId} initialVideos={state.videos} />;
+  if (state.status === 'ready') return <PandaPlaylistPlayerInner key={lessonId} {...props} lessonId={lessonId} initialVideos={state.videos} />;
 
   return (
     <div className="w-full overflow-hidden rounded-2xl border border-white/10 bg-[#121318] shadow-2xl sm:rounded-3xl">
