@@ -3,6 +3,9 @@ import Link from 'next/link';
 import { ArrowLeft, ShieldCheck, Lock, Eye, FileText, CheckCircle2 } from 'lucide-react';
 import { SITE_CONFIG } from '@/config/siteConfig';
 
+// Conteúdo público definido em código: estático, regenerado no máximo 1x por dia (ou no deploy).
+export const revalidate = 86400;
+
 export const metadata: Metadata = {
   title: 'Política de Privacidade | FLMMKR',
   description: 'Saiba como a FLMMKR coleta, utiliza, armazena e protege os seus dados pessoais em conformidade com a LGPD.',

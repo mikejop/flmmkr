@@ -8,6 +8,9 @@ type Params = { modulo: string; aula: string };
 
 const find = ({ modulo, aula }: Params) => !LESSON_SEO_PUBLISHED ? undefined : LESSON_SEO.find((l) => l.moduleSlug === modulo && l.slug === aula);
 
+// Conteúdo público definido em código: estático, regenerado no máximo 1x por dia (ou no deploy).
+export const revalidate = 86400;
+
 export const dynamicParams = false;
 
 export function generateStaticParams(): Params[] {

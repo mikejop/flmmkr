@@ -5,6 +5,7 @@ import { supabaseAdmin } from '@/utils/supabase/admin';
 import { getAuthenticatedUser } from '@/utils/supabase/authenticated';
 import { requireActiveStudent } from '@/utils/supabase/access';
 import { consumeUserRateLimit, readJsonLimited } from '@/utils/rateLimit';
+import { getSharedPublicComments, invalidateComments, type SharedComment } from '@/services/commentsCache';
 
 export const dynamic = 'force-dynamic';
 
@@ -71,42 +72,79 @@ export async function GET(req: NextRequest) {
 
     const isAdmin = profile.role === 'admin';
 
-    const { data: allComments, error } = await supabaseAdmin
-      .from('lesson_comments')
-      .select('id, parent_id, user_id, user_name, user_avatar, content, is_public, likes_count, liked_by, created_at')
-      .eq('lesson_id', lessonId)
-      .order('created_at', { ascending: true })
-      .limit(1000);
+    let visible: PublicComment[];
+    let totalPublicCount: number;
+    let totalPrivateCount: number;
+    try {
+      if (isAdmin) {
+        // Administrador vê tudo (inclusive privados de outros): consulta direta, fora do cache compartilhado.
+        const { data: allComments, error } = await supabaseAdmin
+          .from('lesson_comments')
+          .select('id, parent_id, user_id, user_name, user_avatar, content, is_public, likes_count, liked_by, created_at')
+          .eq('lesson_id', lessonId)
+          .order('created_at', { ascending: true })
+          .limit(1000);
+        if (error) throw new Error(error.message);
+        const rows = (allComments || []) as CommentRow[];
+        const authorIds = Array.from(new Set(rows.map((c) => c.user_id).filter(Boolean)));
+        const nickById = new Map<string, string>();
+        if (authorIds.length > 0) {
+          const { data: authors } = await supabaseAdmin.from('profiles').select('id, nickname').in('id', authorIds);
+          (authors || []).forEach((a) => { if (a.nickname) nickById.set(a.id, a.nickname); });
+        }
+        visible = rows.map((c) => toPublic(c, user.id, nickById.get(c.user_id) || null));
+        totalPublicCount = rows.filter((c) => c.is_public).length;
+        totalPrivateCount = rows.filter((c) => !c.is_public).length;
+      } else {
+        // Aluno: lista pública do cache compartilhado + consulta pequena só do que é dele (privados, is_mine, liked_by_me).
+        const shared: SharedComment[] = await getSharedPublicComments(lessonId);
+        const { data: mineRows, error: mineError } = await supabaseAdmin
+          .from('lesson_comments')
+          .select('id, parent_id, user_id, user_name, user_avatar, content, is_public, likes_count, liked_by, created_at')
+          .eq('lesson_id', lessonId)
+          .eq('user_id', user.id)
+          .limit(500);
+        if (mineError) throw new Error(mineError.message);
+        const mine = (mineRows || []) as CommentRow[];
+        const mineIds = new Set(mine.map((c) => c.id));
 
-    if (error) {
-      console.error('Erro ao buscar comentários:', error.message);
+        const pageIds = shared.map((c) => c.id);
+        const likedIds = new Set<string>();
+        if (pageIds.length > 0) {
+          const { data: likedRows, error: likedError } = await supabaseAdmin
+            .from('lesson_comments')
+            .select('id')
+            .in('id', pageIds)
+            .contains('liked_by', [user.id]);
+          if (likedError) throw new Error(likedError.message);
+          (likedRows || []).forEach((r) => likedIds.add(r.id));
+        }
+
+        const publicView: PublicComment[] = shared.map((c) => ({
+          ...c,
+          liked_by_me: likedIds.has(c.id),
+          is_mine: mineIds.has(c.id),
+          replies: [],
+        }));
+        const myPrivate = mine.filter((c) => !c.is_public).map((c) => toPublic(c, user.id, null));
+        visible = [...publicView, ...myPrivate];
+        totalPublicCount = shared.length;
+        totalPrivateCount = myPrivate.length;
+      }
+    } catch (loadError) {
+      console.error('Erro ao buscar comentários:', loadError instanceof Error ? loadError.message : loadError);
       return NextResponse.json({ error: 'Não foi possível carregar os comentários.' }, { status: 500, headers: NO_STORE });
     }
 
-    // Administrador vê tudo; aluno vê os públicos e os próprios privados.
-    const rows = (allComments || []) as CommentRow[];
-    const visible = rows.filter((c) => isAdmin || c.is_public || c.user_id === user.id);
-
-    const authorIds = Array.from(new Set(visible.map((c) => c.user_id).filter(Boolean)));
-    const nickById = new Map<string, string>();
-    if (authorIds.length > 0) {
-      const { data: authors } = await supabaseAdmin.from('profiles').select('id, nickname').in('id', authorIds);
-      (authors || []).forEach((a) => { if (a.nickname) nickById.set(a.id, a.nickname); });
-    }
-
     const byId = new Map<string, PublicComment>();
-    visible.forEach((c) => byId.set(c.id, toPublic(c, user.id, nickById.get(c.user_id) || null)));
+    visible.forEach((c) => byId.set(c.id, c));
     const roots: PublicComment[] = [];
-    visible.forEach((c) => {
-      const current = byId.get(c.id)!;
-      const parent = c.parent_id ? byId.get(c.parent_id) : undefined;
+    visible.forEach((current) => {
+      const parent = current.parent_id ? byId.get(current.parent_id) : undefined;
       if (parent) parent.replies.push(current);
       else roots.push(current);
     });
     roots.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
-
-    const totalPublicCount = rows.filter((c) => c.is_public).length;
-    const totalPrivateCount = rows.filter((c) => !c.is_public && (isAdmin || c.user_id === user.id)).length;
 
     return NextResponse.json({
       comments: roots,
@@ -251,6 +289,8 @@ export async function POST(req: NextRequest) {
       console.warn('Erro ao disparar notificações:', notifErr);
     }
 
+    if (isPublic) invalidateComments(lessonId);
+
     return NextResponse.json({
       success: true,
       comment: toPublic(newComment as CommentRow, userId, null),
@@ -271,7 +311,7 @@ export async function DELETE(req: NextRequest) {
     }
 
     const { data: comment, error: fetchErr } = await supabaseAdmin
-      .from('lesson_comments').select('id, user_id').eq('id', commentId).maybeSingle();
+      .from('lesson_comments').select('id, user_id, lesson_id, is_public').eq('id', commentId).maybeSingle();
     if (fetchErr || !comment) return NextResponse.json({ error: 'Comentário não encontrado' }, { status: 404, headers: NO_STORE });
 
     // Regra: apenas o dono do comentário pode excluí-lo
@@ -285,6 +325,7 @@ export async function DELETE(req: NextRequest) {
       console.error('Erro ao excluir comentário:', delErr.message);
       return NextResponse.json({ error: 'Não foi possível excluir o comentário.' }, { status: 500, headers: NO_STORE });
     }
+    invalidateComments(comment.lesson_id);
     return NextResponse.json({ success: true, message: 'Comentário excluído com sucesso.' }, { headers: NO_STORE });
   } catch (err) {
     console.error('Erro em DELETE /api/comments:', err instanceof Error ? err.message : err);

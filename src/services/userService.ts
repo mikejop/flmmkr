@@ -1,4 +1,5 @@
 import { supabaseAdmin } from '@/utils/supabase/admin';
+import { invalidateUserAccess } from '@/utils/accessCache';
 import { createActivationToken } from '@/services/activationService';
 import { sendActivationEmail } from '@/services/emailService';
 import crypto from 'crypto';
@@ -111,6 +112,9 @@ export async function provisionSupabaseUserAndProfile({
       console.error('Erro ao atualizar profiles no Supabase:', profileErr);
       throw profileErr;
     }
+
+    // Acesso liberado: descarta qualquer cache antigo desse aluno (acesso, tokens DRM, URLs assinadas).
+    await invalidateUserAccess(user.id);
 
     // Disparar e-mail de ativação com o link e botão clicável
     try {

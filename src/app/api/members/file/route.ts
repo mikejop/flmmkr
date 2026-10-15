@@ -4,6 +4,8 @@ import { PRIVATE_MEMBER_ASSETS, type PrivateMemberAssetPath } from '@/config/pri
 import { verifyAccessCached } from '@/services/paymentVerificationService';
 import { getAuthenticatedUser } from '@/utils/supabase/authenticated';
 import { supabaseAdmin } from '@/utils/supabase/admin';
+import { cacheGet, cacheSet } from '@/utils/redis';
+import { signedUrlKey } from '@/utils/accessCache';
 
 export const dynamic = 'force-dynamic';
 
@@ -37,15 +39,21 @@ export async function GET(request: NextRequest) {
   const access = await verifyAccessCached({ userId: user.id, email: user.email });
   if (!access.isAllowed) return notFound();
 
-  const storagePath = PRIVATE_MEMBER_ASSETS[path as PrivateMemberAssetPath];
-  const { data, error } = await supabaseAdmin.storage
-    .from('members-private')
-    .createSignedUrl(storagePath, SIGNED_URL_TTL_SECONDS);
-
-  if (error || !data?.signedUrl) return notFound();
+  // URL assinada em cache por aluno e arquivo. O cache dura metade da validade da URL, então ela nunca chega quase vencida.
+  const cacheKey = signedUrlKey(user.id, path);
+  let signedUrl = await cacheGet<string>(cacheKey);
+  if (!signedUrl) {
+    const storagePath = PRIVATE_MEMBER_ASSETS[path as PrivateMemberAssetPath];
+    const { data, error } = await supabaseAdmin.storage
+      .from('members-private')
+      .createSignedUrl(storagePath, SIGNED_URL_TTL_SECONDS);
+    if (error || !data?.signedUrl) return notFound();
+    signedUrl = data.signedUrl;
+    await cacheSet(cacheKey, signedUrl, SIGNED_URL_TTL_SECONDS / 2);
+  }
 
   return new Response(null, {
     status: 302,
-    headers: { ...PRIVATE_HEADERS, Location: data.signedUrl },
+    headers: { ...PRIVATE_HEADERS, Location: signedUrl },
   });
 }

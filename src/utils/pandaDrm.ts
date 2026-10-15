@@ -2,6 +2,8 @@ import 'server-only';
 import { createHmac } from 'node:crypto';
 
 const TWO_HOURS_SECONDS = 2 * 60 * 60;
+/** Validade do token DRM (usada para calcular o TTL do cache no Redis). */
+export const PANDA_DRM_TOKEN_TTL_SECONDS = TWO_HOURS_SECONDS;
 
 const b64url = (input: Buffer | string) => Buffer.from(input).toString('base64url');
 

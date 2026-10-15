@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { supabaseAdmin } from '@/utils/supabase/admin';
 import { requireActiveStudent } from '@/utils/supabase/access';
 import { consumeUserRateLimit, readJsonLimited } from '@/utils/rateLimit';
+import { invalidateComments } from '@/services/commentsCache';
 
 export const dynamic = 'force-dynamic';
 
@@ -25,7 +26,7 @@ export async function POST(req: NextRequest) {
 
     const { data: comment, error: fetchErr } = await supabaseAdmin
       .from('lesson_comments')
-      .select('id, likes_count, liked_by')
+      .select('id, lesson_id, likes_count, liked_by')
       .eq('id', commentId)
       .maybeSingle();
     if (fetchErr || !comment) return NextResponse.json({ error: 'Comentário não encontrado.' }, { status: 404, headers: NO_STORE });
@@ -44,6 +45,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Não foi possível registrar a curtida.' }, { status: 500, headers: NO_STORE });
     }
 
+    invalidateComments(comment.lesson_id);
     return NextResponse.json({ success: true, liked: !hasLiked, likesCount: newLikesCount }, { headers: NO_STORE });
   } catch (err) {
     console.error('Erro na rota de like:', err instanceof Error ? err.message : err);

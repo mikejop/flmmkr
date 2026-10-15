@@ -4,6 +4,7 @@ import { z } from 'zod';
 import { getServerSecret } from '@/utils/serverSecrets';
 import { readJsonLimited } from '@/utils/rateLimit';
 import { verifyPaidPayment } from '@/services/asaasPaymentVerification';
+import { invalidateUserAccess } from '@/utils/accessCache';
 
 export const dynamic = 'force-dynamic';
 
@@ -198,8 +199,8 @@ export async function POST(req: NextRequest) {
         .update({ has_access: false, payment_status: status, updated_at: new Date().toISOString() })
         .eq('id', profile.id);
       if (revokeError) throw revokeError;
-      const { invalidateAccessCache } = await import('@/services/paymentVerificationService');
-      invalidateAccessCache(profile.id);
+      // Apaga na hora o cache de acesso, os tokens DRM e as URLs assinadas do aluno. Se o Redis falhar, o erro faz o Asaas repetir o evento.
+      if (!(await invalidateUserAccess(profile.id))) throw new Error('Falha ao limpar o cache de acesso no Redis.');
 
       const { error: sessionsError } = await supabaseAdmin
         .from('user_active_sessions')
