@@ -73,7 +73,7 @@ export function useSidebarMotion(expanded: boolean) {
       );
     } else {
       gsap.to(el.querySelectorAll('.sb-fade'), { opacity: 0, x: -6, duration: 0.16, ease: 'power2.in', stagger: 0.01, overwrite: 'auto' });
-      gsap.to(el, { width: target, duration: 0.45, ease: SIDEBAR_EASE, delay: 0.06, overwrite: 'auto', onComplete: finishClose, onInterrupt: finishClose });
+      gsap.to(el, { width: target, duration: 0.45, ease: SIDEBAR_EASE, delay: 0.12, overwrite: 'auto', onComplete: finishClose, onInterrupt: finishClose });
       // Rede de segurança: se por qualquer motivo a animação não terminar, o fechamento é concluído mesmo assim.
       stuckGuard.current = setTimeout(finishClose, 900);
     }
@@ -98,12 +98,13 @@ export function GsapCollapse({ open, className, children }: { open: boolean; cla
 
     if (open) {
       if (isFirst || reduce) return;
-      gsap.fromTo(el, { height: 0, opacity: 0 }, { height: 'auto', opacity: 1, duration: 0.42, ease: 'power3.out', overwrite: 'auto', clearProps: 'height,opacity' });
+      gsap.from(el, { height: 0, opacity: 0, paddingTop: 0, paddingBottom: 0, duration: 0.42, ease: 'power3.out', overwrite: 'auto', clearProps: 'height,opacity,paddingTop,paddingBottom' });
       gsap.from(el.children, { opacity: 0, x: -8, duration: 0.32, ease: 'power2.out', stagger: 0.045, delay: 0.06, clearProps: 'opacity,transform' });
     } else {
       const unmount = contextSafe(() => setMounted(false));
       if (reduce) { unmount(); return; }
-      gsap.to(el, { height: 0, opacity: 0, duration: 0.3, ease: 'power3.in', overwrite: 'auto', onComplete: unmount });
+      // Fecha rápido (0,28 s) e some junto com os textos do menu, antes de a barra ficar estreita.
+      gsap.to(el, { height: 0, opacity: 0, paddingTop: 0, paddingBottom: 0, duration: 0.28, ease: 'power2.inOut', overwrite: 'auto', onComplete: unmount, onInterrupt: undefined });
     }
   }, { dependencies: [open] });
 
