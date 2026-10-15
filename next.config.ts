@@ -12,10 +12,15 @@ const appVersion =
 const SEVEN_DAYS = 60 * 60 * 24 * 7;
 
 const nextConfig: NextConfig = {
+  // Não anuncia a tecnologia do servidor no cabeçalho X-Powered-By.
+  poweredByHeader: false,
   env: {
     NEXT_PUBLIC_APP_VERSION: appVersion,
   },
   images: {
+    // SVG remoto pode carregar script: o otimizador de imagens nunca serve SVG.
+    dangerouslyAllowSVG: false,
+    // Só o Storage público do nosso projeto Supabase (hostname exato, sem curinga).
     remotePatterns: [
       {
         protocol: 'https',
