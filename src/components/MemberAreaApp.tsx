@@ -900,7 +900,7 @@ export function MemberAreaApp({ skipInternalPreloader = false }: { skipInternalP
           >
             {/* Sidebar Header: Traffic Lights & Collapse Button */}
             <div 
-              className={`h-14 border-b border-white/12 bg-[#121216] flex items-center ${labelsShown ? 'px-3 justify-between' : 'px-0 justify-center'} select-none shrink-0 relative z-10 gap-1`}
+              className={`h-14 border-b border-white/12 bg-[#121216] flex items-center ${labelsShown ? 'px-3 justify-between md:min-w-72' : 'px-0 justify-center'} select-none shrink-0 relative z-10 gap-1`}
             >
               
               {/* Traffic Lights */}
@@ -950,7 +950,7 @@ export function MemberAreaApp({ skipInternalPreloader = false }: { skipInternalP
             </div>
 
             {/* Sidebar Content Tree */}
-            <div className="flex-1 py-3 px-2 space-y-3 custom-scrollbar overflow-y-auto relative z-10">
+            <div className={`flex-1 py-3 px-2 space-y-3 custom-scrollbar overflow-y-auto relative z-10 ${labelsShown ? 'md:min-w-72' : ''}`}>
               <div className="space-y-3 w-full">
                 <div className="space-y-1">
                   {labelsShown && (
