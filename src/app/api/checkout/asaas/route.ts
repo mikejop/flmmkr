@@ -6,7 +6,7 @@ import { provisionSupabaseUserAndProfile } from '@/services/userService';
 import { validateAndSanitizeBody } from '@/utils/security';
 import { getAsaasInstallmentNumber } from '@/utils/asaasPricing';
 import { isValidExpiredOfferToken } from '@/utils/promoToken';
-import { createHash } from 'node:crypto';
+import { createHash, randomUUID } from 'node:crypto';
 import { getClientIp } from '@/utils/clientIp';
 
 export const dynamic = 'force-dynamic';
@@ -265,18 +265,20 @@ export async function POST(req: NextRequest) {
 
     // 6. Se for PIX
     if (billingType === 'PIX') {
+      // Referência única do pedido: o webhook confere se bate antes de liberar o acesso.
+      const pixExternalReference = `pix_${randomUUID()}`;
       const payment = await asaasService.createPayment({
         customer: customer.id,
         billingType: 'PIX',
         value: productValue,
         dueDate: dueDateStr,
         description: productDescription,
-        externalReference: `pix_${Date.now()}`
+        externalReference: pixExternalReference
       });
 
       // Salvar na tabela de checkouts pendentes aguardando confirmação do PIX
       try {
-        await supabaseAdmin.from('pending_checkouts').upsert({
+        const pendingRow = {
           payment_id: payment.id,
           asaas_customer_id: customer.id,
           full_name: name,
@@ -287,6 +289,7 @@ export async function POST(req: NextRequest) {
           profession: profession || null,
           address: address || null,
           amount: productValue,
+          external_reference: pixExternalReference,
           status: 'PENDING',
           traffic_source: finalTrafficSource,
           device_fingerprint: finalDeviceFp,
@@ -294,7 +297,15 @@ export async function POST(req: NextRequest) {
           utm_source: finalUtmSource,
           referrer: finalReferrer,
           updated_at: new Date().toISOString()
-        }, { onConflict: 'payment_id' });
+        };
+        let { error: pendingError } = await supabaseAdmin.from('pending_checkouts').upsert(pendingRow, { onConflict: 'payment_id' });
+        if (pendingError && /external_reference/.test(pendingError.message || '')) {
+          // Migração ainda não aplicada: salva o pedido sem a referência (o webhook segue funcionando).
+          const { external_reference: _ignored, ...legacyRow } = pendingRow;
+          void _ignored;
+          ({ error: pendingError } = await supabaseAdmin.from('pending_checkouts').upsert(legacyRow, { onConflict: 'payment_id' }));
+        }
+        if (pendingError) console.error('Erro ao salvar pending_checkout:', pendingError.message);
       } catch (dbErr) {
         console.error('Erro ao salvar pending_checkout:', dbErr);
       }

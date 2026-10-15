@@ -67,6 +67,12 @@ interface AsaasCustomer {
 interface AsaasPayment {
   id: string;
   status: string;
+  /** Valor da cobrança (de cada parcela, quando for parcelada). */
+  value?: number;
+  externalReference?: string | null;
+  customer?: string;
+  installment?: string | null;
+  deleted?: boolean;
   invoiceUrl?: string;
   errors?: { description?: string }[];
   refusalReason?: string;
