@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getAuthenticatedUser } from '@/utils/supabase/authenticated';
 import { supabaseAdmin } from '@/utils/supabase/admin';
 import { LESSON_VIDEOS, findLessonVideo, pandaEmbedUrl, pandaThumbnailUrl } from '@/config/lessonVideos';
+import { createPandaDrmToken } from '@/utils/pandaDrm';
 
 interface PandaVideoInfo {
   id: string;
@@ -11,6 +12,7 @@ interface PandaVideoInfo {
   duration_formatted: string;
   embed_url: string;
   part_label?: string;
+  default_subtitle?: string;
 }
 
 // Cache em memória para evitar chamadas redundantes e garantir carregamento ultrarrápido
@@ -92,7 +94,7 @@ export async function GET(req: NextRequest) {
 
   const { data: profile, error: profileError } = await supabaseAdmin
     .from('profiles')
-    .select('has_access, payment_status, role')
+    .select('has_access, payment_status, role, full_name, first_name')
     .eq('id', user.id)
     .maybeSingle();
   if (profileError || !(profile?.role === 'admin' || (profile?.has_access === true && profile?.payment_status === 'CONFIRMED'))) {
@@ -109,11 +111,16 @@ export async function GET(req: NextRequest) {
 
   try {
     const videos = await Promise.all(ids.map((id) => fetchVideoOEmbed(id)));
-    return NextResponse.json({ success: true, lessonId: requestedLesson, videos }, { headers: { 'Cache-Control': 'private, no-store' } });
-  } catch (err: any) {
-    return NextResponse.json(
-      { success: false, error: err?.message || 'Falha ao buscar dados do PandaVideo' },
-      { status: 500 }
-    );
+    // Marca d'água DRM com o nome e o e-mail do aluno (válida por 2 h). O ID do vídeo só sai daqui para quem tem acesso.
+    const drmToken = createPandaDrmToken({ name: profile?.full_name || profile?.first_name, email: user.email });
+    const withAccess = videos.map((video) => ({
+      ...video,
+      embed_url: drmToken ? `${video.embed_url}${video.embed_url.includes('?') ? '&' : '?'}watermark=${encodeURIComponent(drmToken)}` : video.embed_url,
+      default_subtitle: findLessonVideo(video.id)?.defaultSubtitle,
+    }));
+    return NextResponse.json({ success: true, lessonId: requestedLesson, videos: withAccess }, { headers: { 'Cache-Control': 'private, no-store' } });
+  } catch (err) {
+    console.error('[panda-info] Falha ao montar a lista de vídeos:', err instanceof Error ? err.message : err);
+    return NextResponse.json({ success: false, error: 'Não foi possível carregar os vídeos agora.' }, { status: 500 });
   }
 }

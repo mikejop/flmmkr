@@ -39,7 +39,7 @@ import { LessonReleaseTooltip, LessonLockedPanel } from '@/components/LessonRele
 import GerenciamentoCoresArticle from '@/components/GerenciamentoCoresArticle';
 import GenericLessonArticle from '@/components/GenericLessonArticle';
 import PandaPlaylistPlayer from '@/components/PandaPlaylistPlayer';
-import { LESSON_VIDEOS } from '@/config/lessonVideos';
+import { hasLessonVideo } from '@/config/lessonsWithVideo';
 import FloatingCompleteButton from '@/components/FloatingCompleteButton';
 import ScrollShrinkVideo, { type ScrollShrinkVideoHandle } from '@/components/ScrollShrinkVideo';
 
@@ -1360,7 +1360,7 @@ export function MemberAreaApp({ skipInternalPreloader = false }: { skipInternalP
                   {/* Video Player on Top */}
                   <div id={LESSON_VIDEO_ANCHOR} className="w-full">
                     <ScrollShrinkVideo ref={shrinkRef} containerRef={lessonContainerRef} resetKey={activeLessonId} onRevealChange={setIsTitleStuck}>
-                    {Object.hasOwn(LESSON_VIDEOS, activeLessonId) ? (
+                    {hasLessonVideo(activeLessonId) ? (
                       // Mesmo player Panda em todas as aulas que têm vídeo (key reinicia o estado a cada aula)
                       <PandaPlaylistPlayer
                         key={activeLessonId}

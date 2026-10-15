@@ -13,8 +13,6 @@ import {
   X,
   Volume2
 } from 'lucide-react';
-import { LESSON_VIDEOS, pandaEmbedUrl, pandaThumbnailUrl, type LessonVideoSeed } from '@/config/lessonVideos';
-import { cachedJson } from '@/lib/clientCache';
 import { VideoProgressTracker, currentUserId } from '@/lib/videoProgress';
 
 export interface PandaVideoItem {
@@ -25,6 +23,7 @@ export interface PandaVideoItem {
   duration_formatted: string;
   embed_url: string;
   part_label?: string;
+  default_subtitle?: string;
 }
 
 interface PandaPlaylistPlayerProps {
@@ -35,23 +34,8 @@ interface PandaPlaylistPlayerProps {
   onPlay?: () => void;
 }
 
-const toItem = (seed: LessonVideoSeed): PandaVideoItem => ({
-  id: seed.id,
-  title: seed.title,
-  thumbnail_url: pandaThumbnailUrl(seed.id),
-  duration: seed.duration || 0,
-  duration_formatted: seed.duration
-    ? `${String(Math.floor(seed.duration / 60)).padStart(2, '0')}:${String(seed.duration % 60).padStart(2, '0')}`
-    : '',
-  embed_url: pandaEmbedUrl(seed.id),
-  part_label: seed.partLabel,
-});
-
 /** Azul da paleta do site (#0071e3), usado no botão de play grande e nos controles do player. */
 const PLAYER_COLOR = '0071e3';
-
-const seedsFor = (lessonId?: string): LessonVideoSeed[] =>
-  (lessonId && Object.hasOwn(LESSON_VIDEOS, lessonId) ? LESSON_VIDEOS[lessonId] : LESSON_VIDEOS['mod1-1']);
 
 type PandaWindow = typeof window & {
   PandaPlayer?: new (id: string, options: { onReady: () => void }) => {
@@ -60,13 +44,14 @@ type PandaWindow = typeof window & {
   pandascripttag?: Array<() => void>;
 };
 
-export default function PandaPlaylistPlayer({
+function PandaPlaylistPlayerInner({
   lessonId,
   studentName,
   onLessonEnded,
-  onPlay
-}: PandaPlaylistPlayerProps) {
-  const [videos, setVideos] = useState<PandaVideoItem[]>(() => seedsFor(lessonId).map(toItem));
+  onPlay,
+  initialVideos,
+}: PandaPlaylistPlayerProps & { initialVideos: PandaVideoItem[] }) {
+  const [videos] = useState<PandaVideoItem[]>(initialVideos);
   const [currentIndex, setCurrentIndex] = useState<number>(0);
   // A lista de vídeos começa minimizada (abre pelo botão ou ao passar o mouse na borda).
   const [isSidebarOpen, setIsSidebarOpen] = useState<boolean>(false);
@@ -104,7 +89,6 @@ export default function PandaPlaylistPlayer({
   const videosCountRef = useRef(videos.length);
 
   const activeVideo = videos[currentIndex] || videos[0];
-  const activeSeed = seedsFor(lessonId).find((v) => v.id === activeVideo.id);
   // Só aula com 2+ vídeos tem lista; com 1 vídeo aparece apenas o player.
   const hasPlaylist = videos.length > 1;
 
@@ -190,29 +174,6 @@ export default function PandaPlaylistPlayer({
     return () => io.disconnect();
   }, []);
 
-  // 1. Dados oficiais (título, miniatura, duração) via API do Panda. Os metadados quase não mudam:
-  // ficam 24 h no navegador (cache de até 7 dias, apagado no logout) para poupar o servidor.
-  useEffect(() => {
-    let isMounted = true;
-    const id = lessonId || 'mod1-1';
-    cachedJson<PandaVideoItem[]>(
-      `panda-info:${id}`,
-      async () => {
-        const res = await fetch(`/api/content/panda-info?lessonId=${encodeURIComponent(id)}`);
-        const data = await res.json();
-        return data.success && Array.isArray(data.videos) && data.videos.length > 0 ? (data.videos as PandaVideoItem[]) : null;
-      },
-      { freshMs: 24 * 60 * 60 * 1000 }
-    ).then((list) => {
-      if (isMounted && list) setVideos(list);
-    }).catch((err) => {
-      console.warn('Erro ao sincronizar informações do PandaVideo:', err);
-    });
-
-    return () => {
-      isMounted = false;
-    };
-  }, [lessonId]);
 
   // 1.1 Cria o rastreador de progresso e busca onde o aluno parou (espera no máx. 1,5 s pela nuvem)
   useEffect(() => {
@@ -223,7 +184,7 @@ export default function PandaPlaylistPlayer({
       if (!alive) return;
       created = new VideoProgressTracker(uid);
       await Promise.race([
-        created.loadRemote(seedsFor(lessonId).map((v) => v.id)),
+        created.loadRemote(initialVideos.map((v) => v.id)),
         new Promise((resolve) => setTimeout(resolve, 1500)),
       ]);
       if (alive) setTracker(created);
@@ -234,7 +195,7 @@ export default function PandaPlaylistPlayer({
       created?.dispose();
       setTracker(null);
     };
-  }, [lessonId]);
+  }, [lessonId, initialVideos]);
 
   // 2. Carrega o script oficial do PandaPlayer
   useEffect(() => {
@@ -346,7 +307,7 @@ export default function PandaPlaylistPlayer({
 
   // URL do iframe com parâmetro autoplay dinâmico e sem logo
   const embedSrc = `${activeVideo.embed_url}${
-    activeSeed?.defaultSubtitle ? `&defaultSubtitle=${encodeURIComponent(activeSeed.defaultSubtitle)}` : ''
+    activeVideo.default_subtitle ? `&defaultSubtitle=${encodeURIComponent(activeVideo.default_subtitle)}` : ''
   }${
     autoPlayNext ? '&autoplay=true' : ''
   }${
@@ -655,6 +616,65 @@ export default function PandaPlaylistPlayer({
             </div>
           </div>
         </main>
+      </div>
+    </div>
+  );
+}
+
+/**
+ * Busca os vídeos da aula no servidor: o ID do vídeo e a marca d'água só chegam ao navegador de quem tem acesso ativo
+ * (checado em /api/content/panda-info). Nada de vídeo é conhecido antes disso.
+ */
+export default function PandaPlaylistPlayer(props: PandaPlaylistPlayerProps) {
+  const lessonId = props.lessonId || 'mod1-1';
+  const [state, setState] = useState<{ status: 'loading' | 'error' | 'ready'; videos: PandaVideoItem[]; denied?: boolean }>({ status: 'loading', videos: [] });
+  const [attempt, setAttempt] = useState(0);
+
+  useEffect(() => {
+    let alive = true;
+    (async () => {
+      try {
+        const res = await fetch(`/api/content/panda-info?lessonId=${encodeURIComponent(lessonId)}`, { cache: 'no-store', credentials: 'same-origin' });
+        const data = await res.json().catch(() => null);
+        if (!alive) return;
+        if (res.ok && data?.success && Array.isArray(data.videos) && data.videos.length > 0) {
+          setState({ status: 'ready', videos: data.videos as PandaVideoItem[] });
+        } else {
+          setState({ status: 'error', videos: [], denied: res.status === 401 || res.status === 403 });
+        }
+      } catch {
+        if (alive) setState({ status: 'error', videos: [] });
+      }
+    })();
+    return () => { alive = false; };
+  }, [lessonId, attempt]);
+
+  if (state.status === 'ready') return <PandaPlaylistPlayerInner {...props} lessonId={lessonId} initialVideos={state.videos} />;
+
+  return (
+    <div className="w-full overflow-hidden rounded-2xl border border-white/10 bg-[#121318] shadow-2xl sm:rounded-3xl">
+      <div className="flex aspect-[1.54] w-full flex-col items-center justify-center gap-4 bg-black px-6 text-center">
+        {state.status === 'loading' ? (
+          <>
+            <span aria-hidden="true" className="h-12 w-12 animate-spin rounded-full border-4 border-white/15 border-t-[#0071e3] motion-reduce:animate-none" />
+            <span role="status" className="font-sans text-sm font-medium text-white/70">Carregando vídeo…</span>
+          </>
+        ) : (
+          <>
+            <p role="alert" className="max-w-sm font-sans text-sm text-white/80">
+              {state.denied ? 'O vídeo está disponível só para alunos com acesso ativo.' : 'Não foi possível carregar o vídeo agora.'}
+            </p>
+            {!state.denied && (
+              <button
+                type="button"
+                onClick={() => { setState({ status: 'loading', videos: [] }); setAttempt((n) => n + 1); }}
+                className="min-h-11 rounded-full bg-[#0071e3] px-5 font-sans text-sm font-semibold text-white transition-colors hover:bg-[#0077ed]"
+              >
+                Tentar de novo
+              </button>
+            )}
+          </>
+        )}
       </div>
     </div>
   );

@@ -1,4 +1,9 @@
+import 'server-only';
+
 /**
+ * Vídeos (Panda) de cada aula. SOMENTE SERVIDOR: os IDs não podem ir para o código do navegador.
+ * (A lista de aulas com vídeo para o navegador fica em config/lessonsWithVideo.ts.)
+ *
  * Vídeos (Panda) de cada aula. Fonte única usada pelo player e pela rota /api/content/panda-info.
  * Para adicionar um vídeo: inclua o ID (o trecho depois de `?v=` no embed) na aula certa.
  * Aula com 2+ vídeos mostra a lista "Aulas do módulo"; com 1 vídeo mostra só o player.
@@ -51,4 +56,13 @@ export function findLessonVideo(videoId: string): LessonVideoSeed | undefined {
     if (hit) return hit;
   }
   return undefined;
+}
+
+if (process.env.NODE_ENV !== 'production') {
+  // Garante que lessonsWithVideo.ts (navegador) e este arquivo (servidor) listam as mesmas aulas.
+  import('./lessonsWithVideo').then(({ LESSONS_WITH_VIDEO }) => {
+    const server = Object.keys(LESSON_VIDEOS).sort().join(',');
+    const client = [...LESSONS_WITH_VIDEO].sort().join(',');
+    if (server !== client) console.warn('[lessonVideos] config/lessonsWithVideo.ts está diferente das aulas com vídeo:', { server, client });
+  });
 }
