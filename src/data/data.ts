@@ -24,7 +24,7 @@ export const modulesData: CourseModule[] = [
       },
       {
         id: 'mod1-analise-tecnica',
-        title: 'Análise Técnica',
+        title: 'Análise da Imagem',
         isFree: true,
         concept: `Antes de iniciar o tratamento de cor, faça uma leitura técnica do material para entender como a imagem foi capturada e identificar possíveis limitações. Verifique o perfil e o espaço de cor da câmera, a exposição, o balanço de branco, o nível de ruído e a presença de áreas sem detalhe nas sombras ou nas altas luzes.`,
         steps: [
@@ -85,6 +85,13 @@ export const modulesData: CourseModule[] = [
           'Ative os backups automáticos com versionamento de timeline.'
         ],
         tips: ['Nomear cada nó com sua função (Ex: CST_In, Exp, WB, Contrast, Look, CST_Out) economiza horas nas revisões com clientes.']
+      },
+      {
+        id: 'mod1-dicas',
+        title: 'Dicas',
+        isFree: false,
+        concept: `Configurações do DaVinci Resolve que facilitam o color grading: renomear nodes com o Tab, Display Qualifier Focus, Skin Tone Indicator e a configuração da Waveform e do Parade.`,
+        steps: []
       }
     ],
     challenges: [
@@ -183,53 +190,42 @@ export const modulesData: CourseModule[] = [
     subtopics: [
       {
         id: 'mod3-1',
-        title: 'Criando um Look',
+        title: 'Criando Look sem Plugins',
         isFree: false,
-        concept: `O look criativo é a assinatura estética do filme comercial. Define a personalidade da marca através de contrastes tonais, relações de cores complementares e resposta analógica, podendo ser construído manualmente sem plugins ou potencializado por ferramentas dedicadas. Explore as três abordagens nas abas abaixo.`,
-        subtabs: [
-          {
-            id: 'sem_plugins',
-            label: 'Criando look sem plugins',
-            concept: `A construção de looks manuais nativos no DaVinci Resolve utiliza Custom Curves, Hue vs Hue/Sat/Lum, Color Warper e RGB Mixer. Proporciona controle total sobre a matemática das cores sem depender de plugins de terceiros, garantindo máxima compatibilidade e independência técnica.`,
-            steps: [
-              'Modele a curva de resposta tonal com formato em S nas curvas Custom, suavizando os extremos para evitar clipping.',
-              'Crie separação tonal de cores (Split Toning) resfriando as sombras e aquecendo as altas luzes.',
-              'Isole e refine os tons secundários nas curvas Hue vs Hue e Hue vs Sat.',
-              'Manipule o RGB Mixer para alterar o peso perceptual dos canais vermelho, verde e azul.'
-            ],
-            tips: ['Dominar o método sem plugins capacita você a atingir qualquer visual comercial em qualquer estação de trabalho.']
-          },
-          {
-            id: 'film_look_creator',
-            label: 'Film Look Creator',
-            concept: `O Film Look Creator é a ferramenta de emulação cinematográfica moderna do DaVinci Resolve Studio. Ele integra em um único painel a modelagem de contraste de película, halation, bloom, resposta espectral de filme negativo/print e grão fotoquímico.`,
-            steps: [
-              'Insira o nó Film Look Creator após a correção primária normalizada.',
-              'Escolha o perfil de película e ajuste a intensidade da emulação tonal.',
-              'Calibre os controles de Halation para gerar a dispersão de luz avermelhada nas bordas de contraste.',
-              'Adicione Bloom óptico suave para simular a difusão orgânica de lentes de cinema.'
-            ],
-            tips: ['O Film Look Creator oferece processamento acelerado por GPU nativo com preservação total de 32-bit float.']
-          },
-          {
-            id: 'dehancer_pro',
-            label: 'Dehancer Pro',
-            concept: `O Dehancer Pro é o plugin padrão da indústria para emulação analógica ultrarrealista. Simula com precisão física o processo fotoquímico completo: emulsão do filme (Kodak 5219, 5207, Fuji ETERNA), revelação química, halação na camada anti-halo, bloom nas altas luzes, grão analógico realista e compressão de filme print.`,
-            steps: [
-              'Selecione o perfil de filme de captura e o perfil de filme print desejado.',
-              'Ajuste a curva de densidade cromática para obter cores profundas e orgânicas no produto.',
-              'Configure os parâmetros de Halation e Bloom com máscaras baseadas em luminância.',
-              'Ajuste o tamanho e densidade do grão analógico de acordo com a resolução da timeline (4K vs 1080p).'
-            ],
-            tips: ['No Dehancer, reduza a intensidade do Grain para 15-25% em comerciais de produtos de luxo e beleza para manter textura sem perder nitidez.']
-          }
-        ],
+        concept: `A construção de looks manuais nativos no DaVinci Resolve utiliza Custom Curves, Hue vs Hue/Sat/Lum, Color Warper e RGB Mixer. Proporciona controle total sobre a matemática das cores sem depender de plugins de terceiros, garantindo máxima compatibilidade e independência técnica.`,
         steps: [
-          'Escolha a abordagem do look (manual sem plugins, Film Look Creator nativo ou Dehancer Pro).',
-          'Construa o contraste e a paleta respeitando a identidade da marca do produto.',
-          'Aplique textura cinematográfica e valide o resultado final em diferentes tipos de display.'
+          'Modele a curva de resposta tonal com formato em S nas curvas Custom, suavizando os extremos para evitar clipping.',
+          'Crie separação tonal de cores (Split Toning) resfriando as sombras e aquecendo as altas luzes.',
+          'Isole e refine os tons secundários nas curvas Hue vs Hue e Hue vs Sat.',
+          'Manipule o RGB Mixer para alterar o peso perceptual dos canais vermelho, verde e azul.'
         ],
-        tips: ['O look deve valorizar o produto, nunca sufocá-lo ou esconder seus detalhes.']
+        tips: ['Dominar o método sem plugins capacita você a atingir qualquer visual comercial em qualquer estação de trabalho.']
+      },
+      {
+        id: 'mod3-2',
+        title: 'Film Look Creator',
+        isFree: false,
+        concept: `O Film Look Creator é a ferramenta de emulação cinematográfica moderna do DaVinci Resolve Studio. Ele integra em um único painel a modelagem de contraste de película, halation, bloom, resposta espectral de filme negativo/print e grão fotoquímico.`,
+        steps: [
+          'Insira o nó Film Look Creator após a correção primária normalizada.',
+          'Escolha o perfil de película e ajuste a intensidade da emulação tonal.',
+          'Calibre os controles de Halation para gerar a dispersão de luz avermelhada nas bordas de contraste.',
+          'Adicione Bloom óptico suave para simular a difusão orgânica de lentes de cinema.'
+        ],
+        tips: ['O Film Look Creator oferece processamento acelerado por GPU nativo com preservação total de 32-bit float.']
+      },
+      {
+        id: 'mod3-3',
+        title: 'Dehancer Pro',
+        isFree: false,
+        concept: `O Dehancer Pro é o plugin padrão da indústria para emulação analógica ultrarrealista. Simula com precisão física o processo fotoquímico completo: emulsão do filme (Kodak 5219, 5207, Fuji ETERNA), revelação química, halação na camada anti-halo, bloom nas altas luzes, grão analógico realista e compressão de filme print.`,
+        steps: [
+          'Selecione o perfil de filme de captura e o perfil de filme print desejado.',
+          'Ajuste a curva de densidade cromática para obter cores profundas e orgânicas no produto.',
+          'Configure os parâmetros de Halation e Bloom com máscaras baseadas em luminância.',
+          'Ajuste o tamanho e densidade do grão analógico de acordo com a resolução da timeline (4K vs 1080p).'
+        ],
+        tips: ['No Dehancer, reduza a intensidade do Grain para 15-25% em comerciais de produtos de luxo e beleza para manter textura sem perder nitidez.']
       }
     ],
     challenges: [

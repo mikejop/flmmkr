@@ -4,6 +4,7 @@ import React from 'react';
 import { ArrowRight, Maximize2 } from 'lucide-react';
 import { ArticleToc, EditorialSection, type TocGroup } from './EditorialLayout';
 import { ImageLightbox } from './ImageLightbox';
+import { ScoredQuiz, type QuizQuestion } from './ScoredQuiz';
 
 /* ------------------------------------------------------------------ blocos de apoio */
 
@@ -198,14 +199,6 @@ function Flow({ steps }: { steps: FlowStep[] }) {
   );
 }
 
-function BulletList({ items }: { items: React.ReactNode[] }) {
-  return (
-    <ul className="list-disc pl-6 font-serif text-[16px] sm:text-[17px] leading-[1.6] text-neutral-800 sm:columns-2 gap-8 [&>li]:mb-2 [&>li]:break-inside-avoid">
-      {items.map((item, i) => <li key={i}>{item}</li>)}
-    </ul>
-  );
-}
-
 function ProsCons({
   pro,
   con,
@@ -302,47 +295,274 @@ const ARTICLE_IMAGES = {
 
 type ImageKey = keyof typeof ARTICLE_IMAGES;
 
+/* ------------------------------------------------------------------ tabela e ferramentas interativas */
+
+function DataTable({ caption, head, rows, minWidth = 560 }: { caption: string; head: string[]; rows: string[][]; minWidth?: number }) {
+  return (
+    <div className="overflow-x-auto rounded-xl border border-neutral-200 bg-white">
+      <table className="w-full border-collapse text-left font-sans text-sm" style={{ minWidth }}>
+        <caption className="sr-only">{caption}</caption>
+        <thead>
+          <tr className="bg-[#f5f5f7] text-neutral-900">
+            {head.map((h, i) => (
+              <th key={i} scope="col" className="p-3 font-bold">{h}</th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map((row) => (
+            <tr key={row[0]} className="border-t border-neutral-200 align-top">
+              <th scope="row" className="p-3 font-semibold text-neutral-900">{row[0]}</th>
+              {row.slice(1).map((cell, i) => (
+                <td key={i} className="p-3 font-serif text-[15px] text-neutral-800">{cell}</td>
+              ))}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+/** Cartão das ferramentas interativas. */
+function Interactive({ title, hint, children }: { title: string; hint: string; children: React.ReactNode }) {
+  return (
+    <section aria-label={title} className="space-y-5 rounded-2xl border border-[#0071e3]/30 bg-[#0071e3]/[0.04] p-5 font-sans sm:p-6">
+      <header className="space-y-1">
+        <h5 className="text-lg font-bold text-neutral-900">{title}</h5>
+        <p className="max-w-3xl text-sm text-neutral-600">{hint}</p>
+      </header>
+      {children}
+    </section>
+  );
+}
+
+const PILL = 'min-h-11 rounded-full border px-4 text-sm font-semibold transition-colors duration-150 active:scale-[0.97]';
+const PILL_OFF = 'border-neutral-300 bg-white text-neutral-800 hover:bg-neutral-100';
+const PILL_ON = 'border-[#0071e3] bg-[#0071e3] text-white';
+
+/** Grupo de botões de escolha única. */
+function Choice<T extends string>({ label, value, options, onChange }: { label: string; value: T; options: { id: T; label: string }[]; onChange: (id: T) => void }) {
+  return (
+    <div className="space-y-2">
+      <p className="text-sm font-bold text-neutral-900">{label}</p>
+      <div role="group" aria-label={label} className="flex flex-wrap gap-2">
+        {options.map((o) => (
+          <button key={o.id} type="button" aria-pressed={value === o.id} onClick={() => onChange(o.id)} className={`${PILL} ${value === o.id ? PILL_ON : PILL_OFF}`}>
+            {o.label}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/* ---- ferramenta: monte o fluxo do seu projeto ---- */
+
+type MethodId = 'rcm' | 'aces' | 'cst' | 'raw';
+type CameraId = 'sony' | 'fuji';
+type DeliveryId = 'sdr' | 'p3' | 'hdr';
+
+const CAMERAS: Record<CameraId, { label: string; profile: string }> = {
+  sony: { label: 'Sony (S-Log3)', profile: 'S-Gamut3.Cine / S-Log3' },
+  fuji: { label: 'Fuji (F-Log)', profile: 'F-Log' },
+};
+
+const DELIVERIES: Record<DeliveryId, { label: string; output: string }> = {
+  sdr: { label: 'TV e internet (SDR)', output: 'Rec.709 Gamma 2.4' },
+  p3: { label: 'Cinema (monitoramento)', output: 'P3' },
+  hdr: { label: 'HDR', output: 'Rec.2020 com PQ ou HLG, conforme a especificação de entrega' },
+};
+
+const METHODS: { id: MethodId; label: string }[] = [
+  { id: 'rcm', label: 'RCM' },
+  { id: 'aces', label: 'ACES' },
+  { id: 'cst', label: 'CST em nodes' },
+  { id: 'raw', label: 'Camera RAW' },
+];
+
+function buildFlow(method: MethodId, camera: CameraId, delivery: DeliveryId) {
+  const cam = CAMERAS[camera].profile;
+  const out = DELIVERIES[delivery].output;
+  switch (method) {
+    case 'rcm':
+      return {
+        where: 'Project Settings > Color Management (Shift + 9)',
+        steps: [
+          { title: 'Entrada', text: `Input Color Space: ${cam}. Com câmeras diferentes, atribua o perfil clipe a clipe no Media Pool (botão direito > Input Color Space).` },
+          { title: 'Trabalho', text: 'Timeline Color Space: DaVinci Wide Gamut / DaVinci Intermediate.' },
+          { title: 'Saída', text: `Output Color Space: ${out}.` },
+        ],
+        warning: 'Não adicione CSTs que repitam essas conversões: a imagem seria convertida duas vezes.',
+      };
+    case 'aces':
+      return {
+        where: 'Project Settings > Color Management, com Color Science em ACEScc ou ACEScct',
+        steps: [
+          { title: 'Entrada', text: `ACES Input Transform da câmera (${cam}).` },
+          { title: 'Trabalho', text: 'ACEScct (ou ACEScc): é onde acontece o grading.' },
+          { title: 'Saída', text: `ACES Output Transform para o destino: ${out}.` },
+        ],
+        warning: 'Em projeto compartilhado, use a versão do ACES que o pipeline pede, não a mais nova por padrão.',
+      };
+    case 'cst':
+      return {
+        where: 'Color Science do projeto em DaVinci YRGB (sem gerenciamento) e um node de CST em cada ponta',
+        steps: [
+          { title: 'Entrada', text: `CST de entrada no Group Pre-Clip: ${cam} para DaVinci Wide Gamut / DaVinci Intermediate.` },
+          { title: 'Trabalho', text: 'Primárias, secundárias, curvas, qualifiers, windows e look, tudo nos nodes de grading.' },
+          { title: 'Saída', text: `CST de saída no Timeline: DaVinci Wide Gamut / Intermediate para ${out}.` },
+        ],
+        warning: 'Se o projeto já usa RCM ou ACES, não coloque CSTs que repitam a mesma conversão.',
+      };
+    case 'raw':
+      return {
+        where: 'Palette Camera RAW, na página Color',
+        steps: [
+          { title: 'Entrada', text: 'Decodificação do RAW: mude de Camera Metadata para Clip (ou Project, para todos os clipes).' },
+          { title: 'Trabalho', text: 'O próprio Rec.709: a imagem já sai normalizada, sem um espaço log para o grading.' },
+          { title: 'Saída', text: 'Já sai em Rec.709, quando o formato oferece essa conversão.' },
+        ],
+        warning: 'Se já converteu para Rec.709 aqui, não aplique outra conversão para Rec.709 por cima.',
+      };
+  }
+}
+
+function ColorFlowBuilder() {
+  const [method, setMethod] = React.useState<MethodId>('rcm');
+  const [camera, setCamera] = React.useState<CameraId>('sony');
+  const [delivery, setDelivery] = React.useState<DeliveryId>('sdr');
+  const flow = buildFlow(method, camera, delivery);
+  const rawMismatch = method === 'raw' && delivery !== 'sdr';
+
+  return (
+    <Interactive
+      title="Monte o fluxo do seu projeto"
+      hint="Escolha o método, a câmera e a entrega para ver onde cada etapa é configurada."
+    >
+      <div className="grid gap-4 lg:grid-cols-3">
+        <Choice label="Método" value={method} options={METHODS} onChange={setMethod} />
+        <Choice label="Câmera" value={camera} options={(Object.keys(CAMERAS) as CameraId[]).map((id) => ({ id, label: CAMERAS[id].label }))} onChange={setCamera} />
+        <Choice label="Entrega" value={delivery} options={(Object.keys(DELIVERIES) as DeliveryId[]).map((id) => ({ id, label: DELIVERIES[id].label }))} onChange={setDelivery} />
+      </div>
+
+      <div role="status" aria-live="polite" className="space-y-3">
+        <p className="text-sm text-neutral-700"><strong className="text-neutral-900">Onde configurar:</strong> {flow.where}</p>
+        <ol className="grid gap-3 lg:grid-cols-3">
+          {flow.steps.map((s, i) => (
+            <li key={s.title} className="flex flex-col gap-1.5 rounded-xl border border-neutral-200 bg-white p-4">
+              <span className="flex items-center gap-2 text-base font-black text-[#0071e3]">
+                <span aria-hidden="true" className="flex h-6 w-6 items-center justify-center rounded-full bg-[#0071e3] text-xs text-white">{i + 1}</span>
+                {s.title}
+              </span>
+              <span className="font-serif text-[16px] leading-snug text-neutral-800">{s.text}</span>
+            </li>
+          ))}
+        </ol>
+        {rawMismatch && (
+          <p className="rounded-xl bg-amber-50 p-3 font-serif text-[16px] leading-snug text-amber-900">
+            <strong className="font-sans">Atenção:</strong> o Camera RAW direto para Rec.709 serve para entrega SDR. Para essa entrega, escolha outro método.
+          </p>
+        )}
+        <p className="rounded-xl bg-white p-3 font-serif text-[16px] leading-snug text-neutral-800">
+          <strong className="font-sans text-neutral-900">Cuidado:</strong> {flow.warning}
+        </p>
+      </div>
+    </Interactive>
+  );
+}
+
+/* ---- bancos de perguntas dos quizzes (cada rodada sorteia 5) ---- */
+
+const METHOD_OPTIONS = ['RCM', 'ACES', 'CST em nodes', 'Camera RAW'];
+
+const METHOD_QUIZ: QuizQuestion[] = [
+  { situation: 'Você vai fazer um comercial de perfume sozinho, com duas câmeras diferentes. Qual método costuma fazer mais sentido?', options: METHOD_OPTIONS, answer: 0, explain: 'No projeto de uma pessoa só, o RCM guarda tudo no Project Settings e deixa o node tree mais limpo.' },
+  { situation: 'O filme vai passar por VFX, por outro colorista e por uma plataforma que exige ACES. Qual método usar?', options: METHOD_OPTIONS, answer: 1, explain: 'O ACES faz mais sentido quando o material passa por várias mãos, com uma arquitetura padronizada.' },
+  { situation: 'Qual método deixa cada etapa da conversão visível em nodes, com opções que o RCM não tem, como as caixas de OOTF?', options: METHOD_OPTIONS, answer: 2, explain: 'No CST em nodes, cada etapa vira um node que você vê e controla.' },
+  { situation: 'Qual método converte a imagem já na decodificação do arquivo, deixando o fluxo simples para material RAW?', options: METHOD_OPTIONS, answer: 3, explain: 'O Camera RAW converte na decodificação do arquivo, mas as opções dependem do formato.' },
+  { situation: 'Você trabalha sozinho e precisa entregar uma versão SDR e outra HDR do mesmo projeto. Qual método facilita isso?', options: METHOD_OPTIONS, answer: 0, explain: 'O RCM facilita gerar versões SDR e HDR do mesmo projeto, trocando a saída.' },
+  { situation: 'Qual método tem uma arquitetura padronizada de entrada e saída, pensada para trocar imagens entre câmeras, VFX e exibição?', options: METHOD_OPTIONS, answer: 1, explain: 'É o ACES (Academy Color Encoding System).' },
+  { situation: 'Se um clipe vier com o perfil de câmera errado, qual método deixa você corrigir só o node de entrada, sem refazer o grade?', options: METHOD_OPTIONS, answer: 2, explain: 'No CST em nodes, a entrada fica separada dos nodes de correção.' },
+  { situation: 'Em qual método a configuração fica toda no Project Settings, deixando o node tree mais limpo?', options: METHOD_OPTIONS, answer: 0, explain: 'No RCM, a configuração fica toda num lugar só, no Project Settings (Shift + 9).' },
+  { situation: 'Qual método tem como desvantagem a perda da flexibilidade de trabalhar com uma imagem log no grading?', options: METHOD_OPTIONS, answer: 3, explain: 'Convertendo direto para uma curva de exibição no Camera RAW, você perde a imagem log para o grading.' },
+  { situation: 'Em qual método o CST de entrada pode ficar no Group Pre-Clip e o de saída no Timeline?', options: METHOD_OPTIONS, answer: 2, explain: 'É uma organização do CST em nodes: assim você não repete a conversão em cada clipe.' },
+  { situation: 'Qual método usa ACEScc ou ACEScct como espaço de trabalho?', options: METHOD_OPTIONS, answer: 1, explain: 'No ACES, o ambiente de trabalho é o ACEScc ou o ACEScct.' },
+  { situation: 'Em qual método o Color Science do projeto fica em DaVinci YRGB, sem gerenciamento?', options: METHOD_OPTIONS, answer: 2, explain: 'No CST em nodes, o gerenciamento é feito à mão, então o projeto fica em DaVinci YRGB.' },
+  { situation: 'Qual método depende do formato do arquivo e do decodificador, como BRAW, R3D, ARRIRAW e ProRes RAW?', options: METHOD_OPTIONS, answer: 3, explain: 'No Camera RAW, as opções variam conforme o formato e o fabricante.' },
+  { situation: 'Qual método tenta identificar a entrada sozinho, pelos metadados e pelo codec, no modo automático?', options: METHOD_OPTIONS, answer: 0, explain: 'No RCM automático, o Resolve tenta identificar o espaço de cor de entrada de cada clipe.' },
+];
+
+const ERROR_QUIZ: QuizQuestion[] = [
+  { situation: 'A imagem ficou leitosa, com a sombra esmagada e a cor estranha. Qual é o erro mais provável?', options: ['Input Color Space errado', 'Conversão duplicada', 'Rec.709 (Scene) na saída', 'Troca do color science no meio do projeto'], answer: 0, explain: 'O Resolve interpretou o arquivo com o perfil errado. Confirme a câmera e o perfil antes de tudo.' },
+  { situation: 'O gamut está certo, mas o contraste e a exposição saíram desviados. O que está errado?', options: ['A curva (gamma)', 'O gamut', 'A saída em P3', 'O projeto em ACES'], answer: 0, explain: 'Gamut certo e curva errada desvia contraste e exposição. Ligue Use Separate Color Space and Gamma e informe os dois.' },
+  { situation: 'Contraste e saturação ficaram exagerados num projeto em RCM que também tem CSTs nos nodes. O que aconteceu?', options: ['A imagem foi convertida duas vezes', 'O Input Color Space está errado', 'O Timeline Color Space está em Rec.709', 'A saída está em Rec.2020'], answer: 0, explain: 'Não misture RCM ou ACES com CSTs que fazem a mesma conversão.' },
+  { situation: 'A saída SDR ficou com contraste diferente do esperado e estava em Rec.709 (Scene). Qual é o problema?', options: ['Rec.709 (Scene) não é o mesmo que Rec.709 Gamma 2.4', 'O gamut da câmera está errado', 'Falta um CST de entrada', 'O color science foi trocado'], answer: 0, explain: 'A entrega SDR normalmente é Rec.709 Gamma 2.4. Os nomes parecem, mas não são intercambiáveis.' },
+  { situation: 'Você trocou o color science no meio do projeto e os grades já feitos mudaram. Por que isso acontece?', options: ['Os grades respondem diferente em cada sistema e precisam ser refeitos', 'O Resolve apagou o Input Color Space', 'A saída foi convertida duas vezes', 'A câmera mudou de perfil'], answer: 0, explain: 'Por isso o método deve ser escolhido no começo do projeto.' },
+  { situation: 'Numa entrega de cinema, você usou o P3 de monitoramento como se fosse a codificação final. Qual é o erro?', options: ['O P3 de monitoramento não é a codificação de um DCP, que normalmente usa XYZ', 'O P3 só serve para HDR', 'O DCP usa Rec.709 Gamma 2.4', 'O P3 não existe no Resolve'], answer: 0, explain: 'Siga a especificação de entrega: o DCP normalmente usa XYZ.' },
+  { situation: 'As altas luzes cortaram cedo num material log forte. O que dá mais margem para o grading?', options: ['Trabalhar num espaço amplo, como DaVinci Wide Gamut', 'Trabalhar em Rec.709', 'Desligar o Use Separate Color Space and Gamma', 'Converter para Rec.709 logo na entrada'], answer: 0, explain: 'O gamut amplo comporta mais cor, então nada corta antes da hora.' },
+  { situation: 'Você converteu para Rec.709 no Camera RAW e converteu de novo no projeto. O que acontece com a imagem?', options: ['Ela é convertida duas vezes', 'Ela fica mais fiel à câmera', 'O Resolve ignora a segunda conversão', 'A saída vira HDR'], answer: 0, explain: 'Escolha um lugar só para converter.' },
+  { situation: 'Você informou o gamut S-Gamut3.Cine, mas esqueceu a curva S-Log3. O que sai errado na imagem?', options: ['O contraste e a exposição', 'A cor', 'O frame rate', 'O tamanho do arquivo'], answer: 0, explain: 'Se acertar o gamut e errar a curva, a imagem vem com contraste e exposição errados.' },
+  { situation: 'A curva S-Log3 está certa, mas o gamut escolhido não é o da câmera. O que sai errado na imagem?', options: ['A cor', 'O contraste e a exposição', 'O frame rate', 'A resolução'], answer: 0, explain: 'Se acertar a curva e errar o gamut, a imagem vem com a cor errada.' },
+  { situation: 'O que é o Timeline Color Space?', options: ['O espaço de trabalho, onde o Resolve faz as contas da correção', 'O espaço de cor em que a câmera gravou', 'O padrão para o qual a imagem é entregue', 'Uma opção que só existe no ACES'], answer: 0, explain: 'Ele não é o espaço da câmera nem o da entrega.' },
+  { situation: 'Num projeto compartilhado em ACES, qual versão você deve usar?', options: ['A que o pipeline pede', 'Sempre a mais nova', 'Sempre o ACES 1.x', 'A que vier nos metadados do clipe'], answer: 0, explain: 'Em projeto compartilhado, use a versão que o pipeline pede, não a mais nova por padrão.' },
+  { situation: 'Num projeto novo em RCM, qual versão você deve usar?', options: ['O DaVinci YRGB Color Managed atual', 'O DaVinci YRGB Color Managed (Legacy)', 'O ACES 1.x', 'O Camera RAW'], answer: 0, explain: 'O Legacy existe para manter compatibilidade com projetos antigos.' },
+  { situation: 'Num fluxo com CST em nodes, um clipe foi interpretado com o perfil errado. O que fazer?', options: ['Corrigir só o CST de entrada', 'Refazer todo o grade', 'Trocar o color science do projeto', 'Converter de novo para Rec.709'], answer: 0, explain: 'Como a entrada está separada dos nodes de correção, você corrige só o CST de entrada.' },
+];
+
 /** Sumário do artigo: cada item leva à âncora do assunto (sem rolagem animada). */
 const TOC: TocGroup[] = [
+  { title: 'Introdução', id: 'introducao-gerenciamento' },
   {
-    title: 'Color Science e Color Space & Transforms',
+    title: 'Os conceitos',
+    id: 'conceitos-de-cor',
+    items: [
+      { label: 'Color Science', id: 'color-science' },
+      { label: 'Entrada, trabalho e saída', id: 'entrada-trabalho-e-saida' },
+      { label: 'Gamut e gamma são coisas diferentes', id: 'gamut-e-gamma-sao-coisas-diferentes' },
+    ],
+  },
+  {
+    title: 'O painel Color Space & Transforms',
     id: 'color-science-e-transforms',
     items: [
-      { label: 'O que é Color Science?', id: 'o-que-e-color-science' },
       { label: 'Use Separate Color Space and Gamma', id: 'use-separate-color-space-and-gamma' },
       { label: 'Input Color Space', id: 'input-color-space' },
       { label: 'Timeline Color Space', id: 'timeline-color-space' },
       { label: 'Output Color Space', id: 'output-color-space' },
-      { label: 'As três etapas em cada sistema', id: 'as-tres-etapas-em-cada-sistema' },
     ],
   },
+  { title: 'Método 1: RCM', id: 'metodo-rcm' },
   {
-    title: 'Configurar no Project Settings',
-    id: 'metodos-no-project-settings',
+    title: 'Método 2: ACES',
+    id: 'metodo-aces',
     items: [
-      { label: 'DaVinci YRGB Color Managed', id: 'davinci-yrgb-color-managed' },
-      { label: 'ACEScc e ACEScct', id: 'acescc-e-acescct' },
+      { label: 'ACEScc ou ACEScct?', id: 'acescc-ou-acescct' },
+      { label: 'ACES 2.0', id: 'aces-2-0' },
     ],
   },
   {
-    title: 'Camera RAW para Rec.709',
-    id: 'camera-raw',
-    items: [
-      { label: 'Como fazer', id: 'como-fazer' },
-      { label: 'Vantagens e desvantagens', id: 'vantagens-e-desvantagens-deste-metodo' },
-    ],
-  },
-  {
-    title: 'Nodes e CST',
+    title: 'Método 3: CST em nodes',
     id: 'fluxo-completo',
     items: [
       { label: 'CST de entrada', id: 'cst-de-entrada' },
       { label: 'Nodes de correção e grading', id: 'nodes-de-correcao-e-grading' },
       { label: 'CST de saída', id: 'cst-de-saida' },
-      { label: 'O fluxo completo em nodes', id: 'o-fluxo-completo-em-nodes' },
+      { label: 'O fluxo completo', id: 'o-fluxo-completo' },
     ],
   },
+  { title: 'Método 4: Camera RAW', id: 'camera-raw' },
+  { title: 'Qual método escolher?', id: 'qual-metodo' },
+  {
+    title: 'Na prática',
+    id: 'na-pratica-gerenciamento',
+    items: [{ label: 'E se tiver ColorChecker?', id: 'e-se-tiver-colorchecker' }],
+  },
+  { title: 'Erros comuns', id: 'erros-comuns-cor' },
+  { title: 'Conclusão', id: 'conclusao-gerenciamento' },
 ];
+
+const B = ({ children }: { children: React.ReactNode }) => <strong className="font-semibold text-neutral-900">{children}</strong>;
 
 export default function GerenciamentoCoresArticle() {
   const [lightboxOpen, setLightboxOpen] = React.useState(false);
@@ -368,219 +588,226 @@ export default function GerenciamentoCoresArticle() {
     <article className="relative w-full space-y-10 font-serif leading-relaxed text-[#111111] select-text">
       <ArticleToc groups={TOC} />
 
+      {/* ===================== INTRODUÇÃO ===================== */}
+      <EditorialSection
+        id="introducao-gerenciamento"
+        kickerLeft="FUNDAMENTOS · GERENCIAMENTO DE CORES"
+        kickerRight="INTRODUÇÃO"
+        title="GERENCIAMENTO DE CORES NO DAVINCI RESOLVE"
+      >
+        <Prose>
+          <p>
+            Lembra quando a gente falou que não tem como chegar no resultado sem saber como a imagem foi gravada? O gerenciamento de cores é onde essa informação vira configuração dentro do DaVinci Resolve. É ele que diz pro programa como ler o arquivo da câmera, em que espaço trabalhar e pra qual padrão entregar.
+          </p>
+          <p>
+            Errar aqui custa caro. Se o Resolve interpretar o arquivo errado, a imagem fica leitosa, ou com sombra esmagada, ou com a cor estranha, e você vai passar o grading inteiro brigando com um problema que não estava na gravação. No produto é pior ainda, porque a cor da marca começa errada antes de você mexer em qualquer roda.
+          </p>
+          <p>
+            Nesse artigo, a gente vai entender os conceitos (color science, gamut, gamma, entrada, trabalho e saída), o painel Color Space & Transforms e os quatro jeitos de gerenciar cor no Resolve: RCM, ACES, CST em nodes e Camera RAW. No final, tem uma comparação pra você escolher o método, um passo a passo num comercial de produto e os erros mais comuns.
+          </p>
+        </Prose>
+      </EditorialSection>
 
-      {/* ===================== COLOR SCIENCE E COLOR SPACE & TRANSFORMS ===================== */}
+      {/* ===================== CONCEITOS ===================== */}
+      <EditorialSection
+        id="conceitos-de-cor"
+        kickerLeft="FUNDAMENTOS · GERENCIAMENTO DE CORES"
+        kickerRight="CONCEITOS"
+        title="OS CONCEITOS: O QUE É GERENCIAR COR"
+      >
+        <Sub title="Color Science">
+          <Prose>
+            <p>
+              Color Science é o sistema que define como o Resolve interpreta, processa e mostra as cores do projeto. Escolher ele é o primeiro passo, porque determina como as transformações vão ser organizadas e o que você vai poder controlar. Fica em Project Settings &gt; Color Management (Shift + 9).
+            </p>
+          </Prose>
+        </Sub>
+
+        <Sub title="Entrada, trabalho e saída">
+          <Prose cols={1}>
+            <p>Qualquer método de gerenciamento de cor segue três etapas:</p>
+          </Prose>
+          <Flow
+            steps={[
+              { title: 'Entrada', sub: 'interpretar como a câmera gravou' },
+              { title: 'Trabalho', sub: 'corrigir e colorir num espaço adequado pro grading' },
+              { title: 'Saída', sub: 'converter o resultado pro padrão de exibição ou entrega' },
+            ]}
+          />
+          <Prose>
+            <p>
+              Exemplo: uma Sony gravando em S-Log3 / S-Gamut3.Cine. Na entrada, o Resolve interpreta esse log. No trabalho, você colore num espaço amplo, tipo DaVinci Wide Gamut. Na saída, o filme vira Rec.709 pra SDR.
+            </p>
+            <p>
+              Ou seja, a imagem passa por duas conversões: uma na entrada, pro espaço de trabalho, e outra na saída, pro padrão de entrega. No meio, você corrige a cor num espaço amplo, onde nada corta antes da hora.
+            </p>
+          </Prose>
+        </Sub>
+
+        <Sub title="Gamut e gamma são coisas diferentes">
+          <Prose>
+            <p>
+              O <B>color space</B> (ou gamut) define as cores primárias e, com isso, a faixa de cores que pode ser representada. O <B>gamma</B> é a curva de transferência: ela define como a luz da cena vira número no sinal.
+            </p>
+            <p>
+              Na Sony, S-Log3 é a curva (gamma), e S-Gamut3.Cine é o gamut. Pro Resolve interpretar direito, ele precisa saber os dois, tá? Se acertar o gamut e errar a curva, a imagem vem com contraste e exposição errados. Se acertar a curva e errar o gamut, vem com a cor errada.
+            </p>
+          </Prose>
+        </Sub>
+      </EditorialSection>
+
+      {/* ===================== PAINEL COLOR SPACE & TRANSFORMS ===================== */}
       <EditorialSection
         id="color-science-e-transforms"
         kickerLeft="FUNDAMENTOS · GERENCIAMENTO DE CORES"
         kickerRight="COLOR SCIENCE"
-        title="COLOR SCIENCE E COLOR SPACE & TRANSFORMS NO DAVINCI RESOLVE 21"
-      >
-        {/* Banner de borda a borda: anula o espaçamento interno da seção (p-6 / sm:p-10 / lg:p-12) */}
-        <figure className="-mx-6 overflow-hidden border-y border-neutral-200 bg-[#1e1e1e] sm:-mx-10 lg:-mx-12">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src="/images/gerenciamento-cores/color-space-transform.webp"
-              alt="Painel Color Space & Transforms das configurações do projeto no DaVinci Resolve, com as opções Color science, Use separate color space and gamma, Timeline color space e Output color space"
-              width={1658}
-              height={324}
-              loading="lazy"
-              decoding="async"
-              className="block h-auto w-full"
-            />
-          </figure>
-
-        <Sub title="1. O que é Color Science?">
-          <Prose>
-            <p>
-              Color Science é o sistema que define como o DaVinci Resolve interpreta, processa e apresenta as cores do projeto. Escolhê-lo é o primeiro passo do gerenciamento de cores, porque determina como as transformações serão organizadas e quais parâmetros você poderá controlar.
-            </p>
-            <p>
-              Em qualquer método, o trabalho segue três etapas: interpretar a gravação da câmera (entrada), trabalhar a imagem em um espaço de cor adequado ao grading (trabalho) e converter o resultado para o padrão de exibição ou entrega (saída). Uma gravação Sony em S-Log3 e S-Gamut3.Cine, por exemplo, é interpretada na entrada, corrigida no espaço de trabalho e entregue em Rec.709 para SDR.
-            </p>
-            <p>
-              O painel Color Space & Transforms, mostrado acima, reúne essas decisões. As próximas seções explicam cada opção dele e, depois, os métodos que as aplicam.
-            </p>
-          </Prose>
-        </Sub>
-
-        <Sub title="2. Use Separate Color Space and Gamma">
-          <Prose cols={3}>
-            <p>
-              Para entender essa opção, primeiro precisamos compreender que o espaço de cor e a curva de transferência são duas características diferentes da imagem. Embora trabalhem juntas, cada uma tem uma função específica na maneira como o DaVinci Resolve interpreta a gravação.
-            </p>
-            <p>
-              O <strong className="font-semibold text-neutral-900">Color Space</strong> define as primárias utilizadas para representar as cores e, consequentemente, o gamut, ou seja, a faixa de cores que pode ser representada naquele espaço. Já o <strong className="font-semibold text-neutral-900">Gamma</strong> define a curva de transferência utilizada para codificar os valores de luminosidade da imagem. É essa curva que determina como as informações de luz da cena são representadas numericamente no sinal.
-            </p>
-            <p>
-              No exemplo da câmera Sony, ao gravar em S-Log3 e S-Gamut3.Cine você está utilizando duas configurações diferentes: S-Log3 é a curva de transferência, enquanto S-Gamut3.Cine define o gamut. Para que o DaVinci Resolve interprete corretamente essa gravação, precisamos informar os dois parâmetros.
-            </p>
-            <p>
-              É justamente para isso que serve a opção <strong className="font-semibold text-neutral-900">Use Separate Color Space and Gamma</strong>. Quando ela está desativada, o Resolve apresenta combinações predefinidas de espaço de cor e curva de transferência. Ao ativá-la, você pode selecionar cada parâmetro separadamente, quando o método de gerenciamento escolhido permitir.
-            </p>
-            <p>
-              <strong className="font-semibold text-neutral-900">Quando devemos ativar essa opção?</strong> Quando precisamos especificar o gamut e a curva de transferência de forma independente, seja porque o material utiliza uma combinação específica da câmera, seja porque precisamos de maior controle sobre a interpretação da imagem.
-            </p>
-            <p>
-              O cuidado principal é selecionar os parâmetros correspondentes à gravação original. Se escolhermos o espaço de cor correto, mas atribuirmos uma curva de transferência diferente da utilizada pela câmera, o Resolve interpretará os valores de luminosidade de maneira incorreta. O resultado pode apresentar diferenças de contraste, exposição aparente e reprodução das cores.
-            </p>
-          </Prose>
-        </Sub>
-
-        <Sub title="3. Input Color Space">
-          <Prose>
-            <p>
-              O espaço de cor de entrada descreve como a imagem original foi registrada ou codificada. Ele precisa corresponder às características reais do material, tanto o gamut quanto a curva usados pela câmera.
-            </p>
-            <p>
-              No RCM personalizado, é possível definir o espaço de entrada padrão e atribuir perfis específicos aos clipes no Media Pool.
-            </p>
-          </Prose>
-        </Sub>
-
-        <Sub title="4. Timeline Color Space">
-          <Prose cols={3}>
-            <p>
-              O Timeline Color Space define o espaço de trabalho no qual o Resolve realiza as operações de correção de cor. Ele determina como os ajustes são processados matematicamente e não deve ser confundido com o espaço de cor da câmera nem com o da entrega final.
-            </p>
-            <p>
-              Uma opção muito versátil para o RCM é DaVinci Wide Gamut com DaVinci Intermediate. O gamut amplo permite trabalhar com uma faixa extensa de cores, enquanto a curva Intermediate oferece uma codificação logarítmica apropriada ao grading.
-            </p>
-            <p>
-              Também é possível trabalhar em Rec.709 quando o projeto exige uma abordagem mais direta para SDR, mas um espaço amplo oferece mais flexibilidade em determinados fluxos de trabalho.
-            </p>
-          </Prose>
-          <Note>
-            <strong className="font-sans font-bold text-neutral-900">Rec.709 (Scene)</strong> merece atenção especial: essa opção utiliza uma curva de transferência associada à representação scene-referred do Rec.709. Ela não é equivalente a Rec.709 Gamma 2.4, usado habitualmente como referência para exibição SDR. Os nomes não devem ser tratados como intercambiáveis.
-          </Note>
-        </Sub>
-
-        <Sub title="5. Output Color Space">
-          <Prose>
-            <p>
-              O Output Color Space determina o padrão de cor e a curva de saída para os quais a imagem será convertida no RCM.
-            </p>
-            <p>Alguns exemplos são:</p>
-          </Prose>
-          <BulletList
-            items={[
-              <><strong className="font-sans font-semibold text-neutral-900">Rec.709 Gamma 2.4:</strong> referência habitual para entregas SDR de broadcast.</>,
-              <><strong className="font-sans font-semibold text-neutral-900">P3:</strong> utilizado em diferentes contextos de cinema, monitoramento e distribuição de gamut amplo.</>,
-              <><strong className="font-sans font-semibold text-neutral-900">Rec.2020:</strong> padrão de gamut amplo usado em vídeo, incluindo fluxos HDR.</>,
-              <><strong className="font-sans font-semibold text-neutral-900">Saídas HDR com PQ ou HLG:</strong> utilizadas conforme a especificação de masterização e entrega.</>,
-            ]}
-          />
-          <Prose>
-            <p>
-              A saída deve corresponder aos requisitos técnicos do projeto. Para criar uma versão em outro padrão, você pode alterar o espaço de saída no RCM, mas precisa conferir a imagem e ajustar os planos quando necessário.
-            </p>
-          </Prose>
-        </Sub>
-
-        <Sub title="6. As três etapas em cada sistema">
-          <div className="overflow-x-auto rounded-2xl border border-neutral-200 bg-white">
-            <table className="w-full min-w-[640px] border-collapse text-left font-sans text-[15px]">
-              <thead>
-                <tr className="bg-[#f5f5f7] text-sm font-bold text-neutral-900">
-                  <th scope="col" className="px-5 py-3">Etapa</th>
-                  <th scope="col" className="px-5 py-3">RCM (Project Settings)</th>
-                  <th scope="col" className="px-5 py-3">CST (nodes)</th>
-                  <th scope="col" className="px-5 py-3">ACES</th>
-                </tr>
-              </thead>
-              <tbody className="align-top text-neutral-800 [&_td]:border-t [&_td]:border-neutral-200 [&_td]:px-5 [&_td]:py-3.5 [&_th]:border-t [&_th]:border-neutral-200 [&_th]:px-5 [&_th]:py-3.5">
-                <tr>
-                  <th scope="row" className="font-bold text-[#0071e3]">Entrada</th>
-                  <td>Input Color Space (automático ou por clipe)</td>
-                  <td>CST de entrada: Input Color Space e Input Gamma</td>
-                  <td>ACES Input Transform</td>
-                </tr>
-                <tr>
-                  <th scope="row" className="font-bold text-[#0071e3]">Trabalho</th>
-                  <td>Timeline Color Space, como DaVinci Wide Gamut / DaVinci Intermediate</td>
-                  <td>Espaço de trabalho escolhido no CST, com os nodes de grading entre os dois CSTs</td>
-                  <td>ACEScc ou ACEScct</td>
-                </tr>
-                <tr>
-                  <th scope="row" className="font-bold text-[#0071e3]">Saída</th>
-                  <td>Output Color Space, como Rec.709 Gamma 2.4</td>
-                  <td>CST de saída: Output Color Space e Output Gamma</td>
-                  <td>ACES Output Transform</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </Sub>
-      </EditorialSection>
-
-      <EditorialSection
-        id="metodos-no-project-settings"
-        kickerLeft="FUNDAMENTOS · GERENCIAMENTO DE CORES"
-        kickerRight="MÉTODOS"
-        title="COMO CONFIGURAR O GERENCIAMENTO DE CORES NO PROJETO"
+        title="O PAINEL COLOR SPACE & TRANSFORMS"
       >
         <Prose cols={1}>
           <p>
-            No Resolve 21, o Color Science oferece dois caminhos principais: o <strong className="font-semibold text-neutral-900">DaVinci YRGB Color Managed</strong> (RCM), o gerenciamento do próprio Resolve, e o <strong className="font-semibold text-neutral-900">ACEScc ou ACEScct</strong>, que seguem o padrão ACES. Os dois aplicam as três etapas automaticamente; muda quem define as regras e como as ferramentas respondem no grading.
+            Esse painel, dentro do Color Management, reúne as decisões de entrada, trabalho e saída. Bora ver cada opção.
           </p>
         </Prose>
 
-        <Sub title="1. DaVinci YRGB Color Managed">
+        {/* Banner de borda a borda: anula o espaçamento interno da seção (p-6 / sm:p-10 / lg:p-12) */}
+        <figure className="-mx-6 overflow-hidden border-y border-neutral-200 bg-[#1e1e1e] sm:-mx-10 lg:-mx-12">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/images/gerenciamento-cores/color-space-transform.webp"
+            alt="Painel Color Space & Transforms das configurações do projeto no DaVinci Resolve, com as opções Color science, Use separate color space and gamma, Timeline color space e Output color space"
+            width={1658}
+            height={324}
+            loading="lazy"
+            decoding="async"
+            className="block h-auto w-full"
+          />
+        </figure>
+
+        <Sub title="Use Separate Color Space and Gamma">
           <Prose>
             <p>
-              O DaVinci YRGB Color Managed, também conhecido como RCM (Resolve Color Management), automatiza as transformações entre o espaço de cor da câmera, o espaço de trabalho e o formato de saída.
-            </p>
-            <p>
-              No modo automático, o Resolve tenta identificar o espaço de cor de entrada conforme os metadados, formatos e codecs disponíveis. No modo personalizado, você tem mais controle sobre as configurações de entrada, o espaço de trabalho e a saída.
+              Desligada, o Resolve mostra combinações prontas de gamut e curva. Ligada, você escolhe cada um separado. Ative quando precisar informar exatamente o gamut e a curva da câmera, ou quando quiser mais controle sobre a interpretação. O cuidado é sempre bater com a gravação original.
             </p>
           </Prose>
-          <Steps
-            title="Como configurar"
-            items={[
-              { text: 'Abra Project Settings > Color Management.', action: viewImage('projectSettings') },
-              { text: 'Em Color Science, selecione DaVinci YRGB Color Managed.', action: viewImage('yrgbColorManaged') },
-              { text: 'Escolha entre o gerenciamento automático e o gerenciamento personalizado.', action: viewImage('automaticColor') },
-              { text: 'Defina o espaço de trabalho e o formato de saída de acordo com o projeto.', action: viewImage('outputColorSpace') },
-              'Confira se cada clipe está sendo interpretado corretamente.',
-            ]}
-          />
-          <ProsCons
-            proLabel="Vantagens"
-            conLabel="Desvantagens"
-            pro="O RCM reduz a necessidade de aplicar transformações manuais em cada clipe. Também facilita a mistura de câmeras diferentes e a criação de versões SDR e HDR de um mesmo projeto."
-            con="É necessário atribuir corretamente os espaços de cor de entrada. Uma identificação incorreta pode gerar diferenças de contraste, saturação e matiz. Além disso, os ajustes de grading podem responder de maneira diferente quando comparados a projetos que utilizam outro sistema."
-          />
+        </Sub>
+
+        <Sub title="Input Color Space">
+          <Prose>
+            <p>
+              É como a imagem foi gravada. Precisa corresponder ao material real: gamut e curva da câmera. No RCM personalizado, você define um padrão pro projeto e, se tiver câmeras diferentes, atribui o perfil certo em cada clipe no Media Pool (botão direito &gt; Input Color Space).
+            </p>
+          </Prose>
+        </Sub>
+
+        <Sub title="Timeline Color Space">
+          <Prose>
+            <p>
+              É o espaço de trabalho, onde o Resolve faz as contas da correção. Não confunda com o espaço da câmera nem com o da entrega, tá?
+            </p>
+            <p>
+              Uma opção muito versátil é <B>DaVinci Wide Gamut / DaVinci Intermediate</B>. O gamut amplo comporta mais cor do que o Rec.709, então nada corta antes da hora; a curva Intermediate é logarítmica, boa pra grading; e câmeras de marcas diferentes caem todas no mesmo espaço. E, se um dia precisar de uma versão HDR, o mesmo grade serve de base.
+            </p>
+            <p>
+              Dá pra trabalhar em Rec.709 quando o projeto é só SDR e mais direto, mas o espaço amplo dá mais flexibilidade.
+            </p>
+          </Prose>
           <Note>
-            <strong className="font-sans font-bold text-neutral-900">DaVinci YRGB Color Managed (Legacy):</strong> essa opção existe para preservar a compatibilidade com projetos antigos que utilizam a versão anterior do gerenciamento de cores do Resolve. Para projetos novos, normalmente é preferível utilizar o sistema atual, salvo quando houver uma exigência específica de compatibilidade.
+            Atenção com o <strong className="font-sans font-bold text-neutral-900">Rec.709 (Scene)</strong>: ele usa uma curva scene-referred e não é a mesma coisa que Rec.709 Gamma 2.4, que é a referência de exibição SDR. Os nomes parecem, mas não são intercambiáveis.
           </Note>
         </Sub>
 
-        <Sub title="2. ACEScc e ACEScct">
-          <Prose>
-            <p>
-              ACES significa Academy Color Encoding System. É um sistema de gerenciamento de cores criado para facilitar a troca de imagens entre câmeras, departamentos de pós-produção, empresas de efeitos visuais e ambientes de exibição, com uma arquitetura padronizada que organiza a interpretação da imagem de origem e sua conversão para o destino.
-            </p>
-            <p>No ACES, o percurso da imagem é este:</p>
+        <Sub title="Output Color Space">
+          <Prose cols={1}>
+            <p>É o padrão pro qual a imagem vai ser convertida no final:</p>
           </Prose>
-          <Flow
-            steps={[
-              { title: 'ACES Input Transform', sub: 'Color Space da Câmera → ACEScc ou ACEScct' },
-              { title: 'Ambiente de trabalho ACES', sub: 'correção de cor e grading' },
-              { title: 'ACES Output Transform', sub: 'ACEScc ou ACEScct → Rec.709 BT.1886' },
+          <DataTable
+            caption="Saídas possíveis e onde cada uma é usada"
+            head={['Saída', 'Onde usa']}
+            rows={[
+              ['Rec.709 Gamma 2.4', 'Referência habitual pra SDR de broadcast'],
+              ['P3', 'Cinema, monitoramento e distribuição de gamut amplo'],
+              ['Rec.2020', 'Gamut amplo em vídeo, incluindo HDR'],
+              ['PQ ou HLG', 'Saídas HDR, conforme a especificação de entrega'],
             ]}
+            minWidth={420}
           />
           <Prose cols={1}>
             <p>
-              Para o grading, o ambiente de trabalho usa uma de duas codificações, o ACEScc ou o ACEScct. Veja a diferença entre elas.
+              A saída tem que bater com o que o projeto pede. Dá pra gerar outra versão trocando a saída no RCM, mas confira a imagem e ajuste os planos quando precisar.
             </p>
           </Prose>
+        </Sub>
+      </EditorialSection>
 
+      {/* ===================== MÉTODO 1: RCM ===================== */}
+      <EditorialSection
+        id="metodo-rcm"
+        kickerLeft="FUNDAMENTOS · GERENCIAMENTO DE CORES"
+        kickerRight="MÉTODO 1"
+        title="MÉTODO 1: DAVINCI YRGB COLOR MANAGED (RCM)"
+      >
+        <Prose>
+          <p>
+            O RCM (Resolve Color Management) é o gerenciamento do próprio Resolve. Ele automatiza as transformações entre câmera, espaço de trabalho e saída. No modo automático, o Resolve tenta identificar a entrada pelos metadados e pelo codec; no modo personalizado, você controla entrada, trabalho e saída.
+          </p>
+        </Prose>
+
+        <Steps
+          title="Como configurar o RCM"
+          items={[
+            { text: 'Abra Project Settings > Color Management (Shift + 9).', action: viewImage('projectSettings') },
+            { text: 'Em Color Science, escolha DaVinci YRGB Color Managed.', action: viewImage('yrgbColorManaged') },
+            { text: 'Escolha entre automático e personalizado.', action: viewImage('automaticColor') },
+            { text: 'Defina o espaço de trabalho e a saída de acordo com o projeto.', action: viewImage('outputColorSpace') },
+            'Confira se cada clipe está sendo interpretado direito.',
+          ]}
+        />
+
+        <ProsCons
+          proLabel="Vantagem"
+          conLabel="Desvantagem"
+          pro="A configuração fica toda num lugar só, e o node tree fica mais limpo. Facilita misturar câmeras diferentes e gerar versões SDR e HDR do mesmo projeto."
+          con="Você enxerga menos o que está acontecendo. Se a entrada de algum clipe for identificada errado, aparecem diferenças de contraste, saturação e matiz. E as ferramentas de grading podem responder diferente de um projeto em outro sistema."
+        />
+
+        <Prose cols={1}>
+          <p>
+            O RCM costuma fazer sentido em projetos em que só você mexe no material, como comercial, YouTube e corporativo.
+          </p>
+        </Prose>
+        <Note>
+          <strong className="font-sans font-bold text-neutral-900">E o Legacy?</strong> O DaVinci YRGB Color Managed (Legacy) existe pra manter compatibilidade com projetos antigos. Pra projeto novo, use o atual.
+        </Note>
+      </EditorialSection>
+
+      {/* ===================== MÉTODO 2: ACES ===================== */}
+      <EditorialSection
+        id="metodo-aces"
+        kickerLeft="FUNDAMENTOS · GERENCIAMENTO DE CORES"
+        kickerRight="MÉTODO 2"
+        title="MÉTODO 2: ACES"
+      >
+        <Prose>
+          <p>
+            ACES significa Academy Color Encoding System. É um padrão criado pra facilitar a troca de imagens entre câmeras, pós-produção, efeitos visuais e exibição, com uma arquitetura padronizada de entrada e saída.
+          </p>
+          <p>O caminho da imagem no ACES é este:</p>
+        </Prose>
+        <Flow
+          steps={[
+            { title: 'ACES Input Transform', sub: 'do espaço da câmera pro ACES' },
+            { title: 'Ambiente de trabalho ACES', sub: 'ACEScc ou ACEScct: correção e grading' },
+            { title: 'ACES Output Transform', sub: 'do ACES pro destino, tipo Rec.709' },
+          ]}
+        />
+
+        <Sub title="ACEScc ou ACEScct?">
           <div className="grid items-start gap-8 lg:grid-cols-2 lg:gap-12">
             <div className="space-y-4">
               <h5 className="font-sans text-xl font-bold text-[#0071e3]">ACEScc</h5>
               <Prose cols={1}>
                 <p>
-                  O ACEScc utiliza uma codificação logarítmica para o trabalho de correção de cor. Sua estrutura é baseada em uma codificação log do tipo Cineon, adaptada ao ambiente ACES.
+                  Codificação logarítmica pra grading, com um corte mais seco nas sombras.
                 </p>
               </Prose>
             </div>
@@ -588,121 +815,60 @@ export default function GerenciamentoCoresArticle() {
               <h5 className="font-sans text-xl font-bold text-[#0071e3]">ACEScct</h5>
               <Prose cols={1}>
                 <p>
-                  O ACEScct é uma variação do ACEScc que modifica a região inicial da curva, próxima do preto. Essa característica torna alguns ajustes de elevação e abertura das sombras mais familiares para quem trabalha com imagens logarítmicas tradicionais.
+                  Muda o começo da curva, perto do preto, com um &ldquo;pé&rdquo; (toe) que deixa o ajuste das sombras mais parecido com o de uma imagem log tradicional. Na prática, costuma ser mais intuitivo, e é o recomendado pela Netflix.
                 </p>
-                <p>Na prática, é frequentemente uma opção mais intuitiva para o grading convencional.</p>
               </Prose>
             </div>
           </div>
           <Note>
-            Nenhum dos dois métodos garante uma imagem artisticamente superior. A principal diferença está na codificação utilizada para o processamento e na maneira como os ajustes respondem.
+            Os dois dão imagens equivalentes do ponto de vista artístico. O que muda é como os ajustes respondem.
           </Note>
+        </Sub>
 
-          <Steps
-            title="Como configurar o ACES"
-            items={[
-              { text: 'Abra o Project Settings clicando na engrenagem ou pressionando Shift+9.', action: viewImage('projectSettings') },
-              { text: 'No Project Settings, vá até a aba Color Management.', action: viewImage('colorManagement') },
-              { text: 'Em Color Science, selecione ACEScc ou ACEScct.', action: viewImage('acesColorScience') },
-              { text: 'Configure o ACES Input Transform correspondente à câmera ou ao formato de origem.', action: viewImage('acesInput') },
-              { text: 'Configure o ACES Output Transform para o destino de exibição ou entrega.', action: viewImage('acesOutput') },
-              'Salve as configurações e confira a interpretação dos clipes.',
-            ]}
-          />
+        <Steps
+          title="Como configurar o ACES"
+          items={[
+            { text: 'Abra o Project Settings (Shift + 9).', action: viewImage('projectSettings') },
+            { text: 'Vá em Color Management.', action: viewImage('colorManagement') },
+            { text: 'Em Color Science, escolha ACEScc ou ACEScct.', action: viewImage('acesColorScience') },
+            { text: 'Configure o ACES Input Transform da câmera ou do formato.', action: viewImage('acesInput') },
+            { text: 'Configure o ACES Output Transform pro destino.', action: viewImage('acesOutput') },
+            'Salve e confira a interpretação dos clipes.',
+          ]}
+        />
+
+        <Sub title="ACES 2.0">
           <Prose>
             <p>
-              O Resolve 21 oferece suporte a versões da especificação até ACES 2.0. Em projetos compartilhados, mantenha a versão exigida pelo pipeline em vez de escolher automaticamente a mais recente, para evitar diferenças de processamento.
+              O Resolve 21 suporta até o ACES 2.0, que suaviza a transição das altas luzes e reduz o desvio de matiz que deixava pele amarelada no ACES 1.x. Em projeto compartilhado, use a versão que o pipeline pede, não a mais nova por padrão.
+            </p>
+            <p>
+              O ACES faz mais sentido quando o material passa por várias mãos: VFX, outro colorista, estúdio, entrega pra plataforma que exige ACES.
             </p>
           </Prose>
         </Sub>
       </EditorialSection>
 
-      <EditorialSection
-        id="camera-raw"
-        kickerLeft="FUNDAMENTOS · GERENCIAMENTO DE CORES"
-        kickerRight="CAMERA RAW"
-        title="COMO CONVERTER ARQUIVOS RAW PARA REC.709 USANDO O CAMERA RAW"
-      >
-        <Prose>
-          <p>
-            Existe ainda uma alternativa que não passa pelo gerenciamento de cores do projeto: converter a imagem já na decodificação do arquivo RAW. O Camera RAW permite controlar como o DaVinci Resolve interpreta e decodifica os dados capturados por diferentes câmeras. Dependendo do formato, é possível escolher o espaço de cor e a curva de transferência utilizados na conversão, obtendo diretamente uma imagem normalizada para exibição SDR.
-          </p>
-        </Prose>
-
-        <Sub title="Como fazer">
-          <TitledSteps
-            items={[
-              {
-                title: 'Selecione o arquivo RAW',
-                body: [
-                  <>
-                    Na página Color, selecione o clipe e abra a paleta Camera RAW. Os controles disponíveis variam conforme o formato e o fabricante da câmera.{' '}
-                    {viewImage('select')}
-                  </>,
-                ],
-              },
-              {
-                title: 'Defina o método de decodificação',
-                body: [
-                  <>
-                    Escolha se deseja utilizar as configurações individuais do clipe, as configurações do projeto ou os metadados da câmera, conforme as opções disponíveis. Para configurar um plano individualmente, utilize o modo Clip.{' '}
-                    {viewImage('decode')}
-                  </>,
-                ],
-              },
-              {
-                title: 'Configure a conversão para Rec.709',
-                body: [
-                  <>
-                    Procure os controles Color Space e Gamma, ou seus equivalentes no decodificador da câmera.{' '}
-                    {viewImage('convert')}
-                  </>,
-                  'Quando disponíveis, selecione Rec.709 como espaço de cor e a curva de transferência apropriada para a saída SDR. Alguns formatos oferecem opções como Rec.709, Video ou outras curvas específicas do fabricante. Escolha a combinação compatível com o decodificador e o resultado desejado, sem presumir que nomes semelhantes sejam matematicamente idênticos.',
-                ],
-              },
-              {
-                title: 'Confira o resultado',
-                body: [
-                  'Observe contraste, saturação, tons de pele e detalhes nas altas luzes e sombras. Se necessário, ajuste a interpretação do arquivo antes de iniciar o grading.',
-                ],
-              },
-            ]}
-          />
-        </Sub>
-
-        <Sub title="Vantagens e desvantagens deste método">
-          <ProsCons
-            pro="A principal vantagem é realizar a conversão durante a decodificação, simplificando o fluxo de trabalho e reduzindo a necessidade de transformações adicionais."
-            con="A desvantagem é que as possibilidades dependem do formato RAW e do decodificador. Além disso, uma conversão direta para uma curva de exibição oferece menos flexibilidade visual para trabalhar com uma imagem log durante o grading."
-          />
-          <Note>
-            O ponto fundamental é verificar quais conversões cada câmera disponibiliza, escolher as configurações corretas e evitar aplicar uma segunda transformação para Rec.709 sobre uma imagem que já foi normalizada.
-          </Note>
-        </Sub>
-      </EditorialSection>
-
+      {/* ===================== MÉTODO 3: CST EM NODES ===================== */}
       <EditorialSection
         id="fluxo-completo"
         kickerLeft="FUNDAMENTOS · GERENCIAMENTO DE CORES"
-        kickerRight="FLUXO"
-        title="GERENCIAMENTO DE CORES UTILIZANDO NODES E CST"
+        kickerRight="MÉTODO 3"
+        title="MÉTODO 3: CST EM NODES"
       >
         <Prose cols={1}>
           <p>
-            Quando não usamos o RCM nem o ACES, podemos montar o gerenciamento de cores manualmente, com nodes de Color Space Transform, o CST. As três etapas continuam as mesmas (entrada, trabalho e saída), mas cada uma passa a ser um node que você configura e controla.
+            Quando a gente não usa o RCM nem o ACES, dá pra montar o gerenciamento na mão, com nodes de Color Space Transform (CST). As três etapas são as mesmas, mas cada uma vira um node que você enxerga e controla. Pra isso, o Color Science do projeto fica em DaVinci YRGB (sem gerenciamento).
           </p>
         </Prose>
 
         <Sub title="1. CST de entrada">
           <Prose>
             <p>
-              O primeiro node informa ao Resolve como a imagem foi gravada. No efeito Color Space Transform, isso é feito com o <strong className="font-semibold text-neutral-900">Input Color Space</strong> e o <strong className="font-semibold text-neutral-900">Input Gamma</strong>, que devem corresponder ao espaço de cor e à curva de transferência da câmera; em seguida, escolhemos o espaço de cor e a curva para os quais a imagem será convertida.
+              O primeiro node diz como a imagem foi gravada. No Input Color Space e no Input Gamma vai o perfil da câmera; no Output Color Space e no Output Gamma, o espaço de trabalho.
             </p>
             <p>
-              No exemplo da Sony, o CST recebe S-Gamut3.Cine / S-Log3 e converte para DaVinci Wide Gamut / DaVinci Intermediate, o espaço de trabalho. Assim, câmeras diferentes passam a ter uma base comum, desde que a transformação corresponda ao perfil real da gravação.
-            </p>
-            <p>
-              Atenção: um CST que converte direto para DaVinci Wide Gamut não é, em sentido estrito, um ACES Input Transform, que tem como destino o ACES2065-1.
+              No exemplo da Sony: entra S-Gamut3.Cine / S-Log3, sai DaVinci Wide Gamut / DaVinci Intermediate. Assim, câmeras diferentes passam a ter uma base comum.
             </p>
           </Prose>
         </Sub>
@@ -710,10 +876,7 @@ export default function GerenciamentoCoresArticle() {
         <Sub title="2. Nodes de correção e grading">
           <Prose>
             <p>
-              Depois do CST de entrada, ficam os nodes de primárias, secundárias, curvas, qualifiers, Power Windows e as demais ferramentas. Primeiro estabelecemos consistência entre os planos, ajustando exposição, balanço de branco, contraste e saturação; depois isolamos regiões, modificamos cores e construímos a aparência artística. Todos esses ajustes acontecem no espaço de trabalho definido no primeiro CST.
-            </p>
-            <p>
-              Manter a entrada separada dos nodes de correção mostra onde termina a interpretação da câmera e onde começa o trabalho criativo. Se um clipe foi interpretado com o perfil errado, corrigimos só o CST de entrada, sem refazer a cadeia de grading.
+              No meio ficam as primárias, as secundárias, as curvas, os qualifiers, as windows e o look, tudo no espaço de trabalho. Separar a entrada dos nodes de correção mostra onde termina a interpretação da câmera e onde começa o trabalho criativo. Se um clipe foi interpretado com o perfil errado, você corrige só o CST de entrada, sem refazer o grade.
             </p>
           </Prose>
         </Sub>
@@ -721,68 +884,251 @@ export default function GerenciamentoCoresArticle() {
         <Sub title="3. CST de saída">
           <Prose>
             <p>
-              O último node converte a imagem do espaço de trabalho para o padrão de exibição ou entrega. Ele inverte a lógica do primeiro: o <strong className="font-semibold text-neutral-900">Input Color Space</strong> e o <strong className="font-semibold text-neutral-900">Input Gamma</strong> passam a ser o espaço de trabalho, e o <strong className="font-semibold text-neutral-900">Output Color Space</strong> e o <strong className="font-semibold text-neutral-900">Output Gamma</strong> correspondem ao destino, como Rec.709 com Gamma 2.4 em um fluxo de referência SDR convencional.
+              O último node faz o caminho contrário: entra DaVinci Wide Gamut / Intermediate e sai Rec.709 / Gamma 2.4, por exemplo. Essa conversão adapta luz e cor ao padrão de exibição, com tone mapping e gamut mapping quando for o caso.
             </p>
             <p>
-              Essa conversão não serve apenas para alterar a aparência: ela adapta luminosidade e cores ao espaço de saída, respeitando o padrão de exibição. Para isso, podem ser usados tone mapping e gamut mapping, quando apropriado.
-            </p>
-            <p>
-              Se o destino for um monitoramento P3 para cinema, a saída precisa corresponder à especificação de exibição usada. O P3 de monitoramento não deve ser confundido com a codificação final de um DCP, que normalmente utiliza XYZ.
+              E, se o destino for monitoramento P3 pra cinema, atenção: o P3 de monitoramento não é a mesma coisa que a codificação final de um DCP, que normalmente usa XYZ.
             </p>
           </Prose>
         </Sub>
 
-        <Sub title="4. O fluxo completo em nodes">
+        <Sub title="4. O fluxo completo">
           <Flow
             steps={[
               {
                 title: 'CST de entrada',
                 sub: [
-                  'Input Color Space → Color Space da Câmera',
-                  'Input Gamma → Gamma da Câmera',
-                  'Output Color Space → DaVinci Wide Gamut',
-                  'Output Gamma → DaVinci Intermediate',
+                  'Input: gamut e curva da câmera',
+                  'Output: DaVinci Wide Gamut / DaVinci Intermediate',
                 ],
               },
-              { title: 'Espaço de trabalho', sub: 'nodes de correção e grading' },
+              { title: 'Nodes de grading', sub: 'espaço de trabalho' },
               {
                 title: 'CST de saída',
                 sub: [
-                  'Input Color Space → DaVinci Wide Gamut',
-                  'Input Gamma → DaVinci Intermediate',
-                  'Output Color Space → Rec.709',
-                  'Output Gamma → Gamma 2.4',
+                  'Input: DaVinci Wide Gamut / DaVinci Intermediate',
+                  'Output: Rec.709 / Gamma 2.4',
                 ],
               },
             ]}
           />
           <Note>
-            Esse fluxo pressupõe transformações manuais. Se o projeto já usa o Resolve Color Management ou o gerenciamento ACES nas configurações, não adicione CSTs que repitam as mesmas transformações: isso provocaria conversões duplicadas. O ACES completo, aliás, não se resume a dois nodes de conversão: ele tem uma arquitetura própria de transformações de entrada e saída.
+            Num comercial, o CST de entrada pode ir no Group Pre-Clip e o de saída no Timeline, assim você não repete em cada clipe.
           </Note>
+          <ProsCons
+            proLabel="Vantagem"
+            conLabel="Desvantagem"
+            pro="Você vê e ajusta cada etapa, e tem opções que não existem no RCM, como as caixas de OOTF."
+            con="Mais nodes e mais conhecimento de espaço de cor. E nunca misture: se o projeto já está em RCM ou ACES, não coloque CSTs que repetem a mesma conversão, senão você converte duas vezes."
+          />
         </Sub>
+      </EditorialSection>
+
+      {/* ===================== MÉTODO 4: CAMERA RAW ===================== */}
+      <EditorialSection
+        id="camera-raw"
+        kickerLeft="FUNDAMENTOS · GERENCIAMENTO DE CORES"
+        kickerRight="MÉTODO 4"
+        title="MÉTODO 4: CAMERA RAW DIRETO PRA REC.709"
+      >
+        <Prose>
+          <p>
+            Tem ainda um caminho que não passa pelo gerenciamento de cores do projeto: converter a imagem já na decodificação do arquivo RAW. A palette Camera RAW, na página Color, controla como o Resolve lê os dados do sensor. Dependendo do formato (BRAW, R3D, ARRIRAW, ProRes RAW), dá pra escolher o gamut e a curva da conversão e já sair com uma imagem normalizada pra SDR.
+          </p>
+        </Prose>
+
+        <TitledSteps
+          items={[
+            {
+              title: 'Selecione o clipe RAW',
+              body: [
+                <>
+                  Na página Color, selecione o clipe e abra a palette Camera RAW. Os controles disponíveis variam conforme o formato e o fabricante da câmera.{' '}
+                  {viewImage('select')}
+                </>,
+              ],
+            },
+            {
+              title: 'Mude a decodificação',
+              body: [
+                <>
+                  Em Camera RAW, mude a decodificação de Camera Metadata pra Clip (ou Project, pra todos os clipes).{' '}
+                  {viewImage('decode')}
+                </>,
+              ],
+            },
+            {
+              title: 'Escolha o Rec.709',
+              body: [
+                <>
+                  Quando disponível, escolha Rec.709 como gamut e a curva adequada pra SDR. Cada fabricante tem opções próprias, como Video ou curvas específicas, e nomes parecidos não são necessariamente iguais.{' '}
+                  {viewImage('convert')}
+                </>,
+              ],
+            },
+            {
+              title: 'Confira o resultado',
+              body: ['Confira contraste, saturação, pele e detalhes nas altas luzes e nas sombras antes de começar o grading.'],
+            },
+          ]}
+        />
+
+        <ProsCons
+          proLabel="Vantagem"
+          conLabel="Desvantagem"
+          pro="A conversão acontece na decodificação, o fluxo fica simples e você dispensa transformações extras."
+          con="As opções dependem do formato e do decodificador. E, convertendo direto pra uma curva de exibição, você perde a flexibilidade de trabalhar com uma imagem log no grading."
+        />
+        <Note>
+          O cuidado principal: se já converteu pra Rec.709 no Camera RAW, não aplique outra conversão pra Rec.709 por cima, tá?
+        </Note>
+      </EditorialSection>
+
+      {/* ===================== QUAL MÉTODO ESCOLHER ===================== */}
+      <EditorialSection
+        id="qual-metodo"
+        kickerLeft="FUNDAMENTOS · GERENCIAMENTO DE CORES"
+        kickerRight="COMPARAÇÃO"
+        title="QUAL MÉTODO ESCOLHER?"
+      >
+        <Prose cols={1}>
+          <p>
+            Os métodos chegam no mesmo lugar, e nenhum é o melhor em absoluto. Cada um muda só o caminho.
+          </p>
+        </Prose>
+
+        <DataTable
+          caption="Comparação entre RCM, ACES, CST em nodes e Camera RAW"
+          head={['Critério', 'RCM', 'ACES', 'CST em nodes', 'Camera RAW']}
+          rows={[
+            ['Entrada', 'Input Color Space (auto ou por clipe)', 'ACES Input Transform', 'CST de entrada', 'Decodificação do RAW'],
+            ['Trabalho', 'Timeline Color Space (ex.: DWG / Intermediate)', 'ACEScc ou ACEScct', 'Espaço escolhido no CST', 'O próprio Rec.709'],
+            ['Saída', 'Output Color Space (ex.: Rec.709 Gamma 2.4)', 'ACES Output Transform', 'CST de saída', 'Já sai em Rec.709'],
+            ['Controle', 'Médio, tudo no Project Settings', 'Padronizado', 'Total, visível nos nodes', 'Limitado ao decodificador'],
+            ['Melhor pra', 'Comercial, YouTube, projeto de uma pessoa', 'Várias empresas, VFX, plataformas', 'Quem quer ver e controlar cada etapa', 'Fluxo rápido com RAW'],
+          ]}
+          minWidth={760}
+        />
+
+        <Note>
+          Uma regra que vale pra todos: escolha o método no começo do projeto. Trocar o color science no meio não é um ajuste simples, porque os grades já feitos vão responder diferente e você vai ter que refazer.
+        </Note>
+
+        <ColorFlowBuilder />
+        <ScoredQuiz
+          title="Qual método eu uso?"
+          hint="Leia cada pergunta e escolha o método. As respostas vêm do artigo."
+          pool={METHOD_QUIZ}
+        />
+      </EditorialSection>
+
+      {/* ===================== NA PRÁTICA ===================== */}
+      <EditorialSection
+        id="na-pratica-gerenciamento"
+        kickerLeft="FUNDAMENTOS · GERENCIAMENTO DE CORES"
+        kickerRight="NA PRÁTICA"
+        title="NA PRÁTICA: CONFIGURANDO UM COMERCIAL DE PRODUTO"
+      >
+        <Prose cols={1}>
+          <p>
+            Bora pra prática. Imagina um comercial de perfume com duas câmeras: uma Sony em S-Log3 / S-Gamut3.Cine pro packshot em estúdio, e uma Fuji em F-Log pros planos com modelo. A entrega é pra TV e internet em SDR.
+          </p>
+        </Prose>
+
+        <div className="grid items-start gap-8 lg:grid-cols-2">
+          <Steps
+            title="Com RCM"
+            items={[
+              'Shift + 9 > Color Management > Color Science: DaVinci YRGB Color Managed, modo personalizado.',
+              'Timeline Color Space: DaVinci Wide Gamut / DaVinci Intermediate.',
+              'Output Color Space: Rec.709 Gamma 2.4.',
+              'No Media Pool, selecione os clipes da Sony > botão direito > Input Color Space: S-Gamut3.Cine / S-Log3. Faça o mesmo com a Fuji, escolhendo F-Log.',
+              'Na Color, confira os scopes: os pretos e as altas luzes estão num lugar coerente? O frasco tem a cor esperada?',
+            ]}
+          />
+          <Steps
+            title="Com CST em nodes"
+            items={[
+              'Color Science: DaVinci YRGB.',
+              'Crie um grupo pra Sony e outro pra Fuji. No Group Pre-Clip de cada um, um CST de entrada com o perfil da câmera, saindo em DaVinci Wide Gamut / Intermediate.',
+              'No Timeline, um CST de saída de DaVinci Wide Gamut / Intermediate pra Rec.709 / Gamma 2.4.',
+              'Faça as primárias, o matching, as secundárias e o look nos nodes de clipe e no grupo, tudo no espaço de trabalho.',
+            ]}
+          />
+        </div>
+
+        <Prose cols={1}>
+          <p>
+            Nos dois casos, as duas câmeras caem no mesmo espaço de trabalho. Isso deixa o shot matching muito mais fácil, porque você compara coisa com coisa, sem misturar duas interpretações diferentes de log.
+          </p>
+        </Prose>
+
+        <Sub title="E se tiver ColorChecker?">
+          <Prose cols={1}>
+            <p>
+              Se a produção filmou a cartela, use o Color Match depois da conversão de entrada, pra deixar as câmeras ainda mais próximas antes das primárias.
+            </p>
+          </Prose>
+        </Sub>
+      </EditorialSection>
+
+      {/* ===================== ERROS COMUNS ===================== */}
+      <EditorialSection
+        id="erros-comuns-cor"
+        kickerLeft="FUNDAMENTOS · GERENCIAMENTO DE CORES"
+        kickerRight="ATENÇÃO"
+        title="ERROS COMUNS NO GERENCIAMENTO DE CORES"
+      >
+        <DataTable
+          caption="Erros comuns, o que acontece e como evitar"
+          head={['Erro', 'O que acontece', 'Como evitar']}
+          rows={[
+            ['Input Color Space errado', 'Imagem leitosa, sombras esmagadas, cor estranha', 'Confirme a câmera e o perfil antes de tudo'],
+            ['Gamut certo e curva errada (ou o contrário)', 'Contraste, exposição ou cor desviados', 'Use Separate Color Space and Gamma e informe os dois'],
+            ['Conversão duplicada', 'Contraste e saturação exagerados', 'Não misture RCM ou ACES com CSTs que fazem o mesmo'],
+            ['Rec.709 (Scene) no lugar de Gamma 2.4', 'Contraste diferente do esperado na saída', 'Entrega SDR normalmente é Rec.709 Gamma 2.4'],
+            ['Converter pra Rec.709 no Camera RAW e de novo no projeto', 'Imagem convertida duas vezes', 'Escolha um lugar só pra converter'],
+            ['Trocar o color science no meio do projeto', 'Os grades mudam e precisam ser refeitos', 'Decida o método no início'],
+            ['Trabalhar em Rec.709 com material log forte', 'Altas luzes cortando cedo e menos margem', 'Use um espaço amplo como DaVinci Wide Gamut'],
+            ['Achar que P3 de monitoramento é DCP', 'Entrega de cinema errada', 'Siga a especificação de entrega (DCP usa XYZ)'],
+          ]}
+          minWidth={680}
+        />
+
+        <ScoredQuiz
+          title="Teste seus conhecimentos"
+          hint="Leia cada pergunta e escolha a resposta certa. As respostas vêm do artigo."
+          pool={ERROR_QUIZ}
+        />
+      </EditorialSection>
+
+      {/* ===================== CONCLUSÃO ===================== */}
+      <EditorialSection
+        id="conclusao-gerenciamento"
+        kickerLeft="FUNDAMENTOS · GERENCIAMENTO DE CORES"
+        kickerRight="CONCLUSÃO"
+        title="CONCLUSÃO"
+      >
+        <Prose>
+          <p>
+            Gerenciar cor é dizer pro Resolve três coisas: como a imagem foi gravada, onde você vai trabalhar e pra onde ela vai. RCM, ACES, CST ou Camera RAW são só jeitos diferentes de fazer isso. Escolha um no começo, configure direito e confira nos scopes.
+          </p>
+          <p>
+            Quando essa base está certa, todo o resto do fluxo de trabalho fica mais fácil, tá? As câmeras conversam, o matching anda rápido e a cor do produto começa no lugar certo.
+          </p>
+        </Prose>
 
         <p className="font-sans text-sm leading-relaxed text-neutral-700">
           <strong className="font-semibold text-neutral-900">Referências:</strong>{' '}
           <a href="https://documents.blackmagicdesign.com/UserManuals/DaVinci-Resolve-20-Colorist-Guide.pdf" target="_blank" rel="noreferrer noopener" className="text-[#0071e3] hover:underline">Colorist Guide to DaVinci Resolve, da Blackmagic Design</a>,{' '}
           <a href="https://docs.acescentral.com/system-components/input-transforms/" target="_blank" rel="noreferrer noopener" className="text-[#0071e3] hover:underline">documentação ACES sobre Input Transforms</a>,{' '}
           <a href="https://docs.acescentral.com/system-components/output-transforms/" target="_blank" rel="noreferrer noopener" className="text-[#0071e3] hover:underline">documentação ACES sobre Output Transforms</a>,{' '}
-          <a
-            href="https://www.imaster.org/docs/davinci-resolve-21-manual/part-2-setup-and-workflows/ch.-6-project-settings"
-            target="_blank"
-            rel="noreferrer noopener"
-            className="text-[#0071e3] hover:underline"
-          >
-            Manual do DaVinci Resolve 21, capítulo 6: Project Settings
-          </a>{' '}
+          <a href="https://www.imaster.org/docs/davinci-resolve-21-manual/part-2-setup-and-workflows/ch.-6-project-settings" target="_blank" rel="noreferrer noopener" className="text-[#0071e3] hover:underline">Manual do DaVinci Resolve 21, capítulo 6: Project Settings</a>,{' '}
+          <a href="https://docs.imaster.org/davinci-resolve-21-manual/part-2-setup-and-workflows/ch.-9-data-levels,-color-management,-and-aces" target="_blank" rel="noreferrer noopener" className="text-[#0071e3] hover:underline">capítulo 9: Data Levels, Color Management, and ACES</a>,{' '}
+          <a href="https://blog.frame.io/2024/10/07/should-you-use-resolve-color-management-or-color-space-transforms-csts/" target="_blank" rel="noreferrer noopener" className="text-[#0071e3] hover:underline">Frame.io: Should You Use Resolve Color Management or CSTs?</a>,{' '}
+          <a href="https://tryuncle.com/learn/davinci-resolve/resolve-color-management-vs-aces-which-should-i-use" target="_blank" rel="noreferrer noopener" className="text-[#0071e3] hover:underline">Uncle: Resolve Color Management vs ACES</a>{' '}
           e{' '}
-          <a
-            href="https://docs.imaster.org/davinci-resolve-21-manual/part-2-setup-and-workflows/ch.-9-data-levels,-color-management,-and-aces"
-            target="_blank"
-            rel="noreferrer noopener"
-            className="text-[#0071e3] hover:underline"
-          >
-            capítulo 9: Data Levels, Color Management, and ACES
-          </a>
+          <a href="https://gamut.io/why-davinci-wide-gamut-matters/" target="_blank" rel="noreferrer noopener" className="text-[#0071e3] hover:underline">Gamut: Why DaVinci Wide Gamut Matters</a>
           .
         </p>
       </EditorialSection>

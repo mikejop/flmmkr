@@ -30,8 +30,12 @@ import LessonComments from '@/components/LessonComments';
 import NotificationsDropdown from '@/components/NotificationsDropdown';
 import LessonCompletionTransition from '@/components/LessonCompletionTransition';
 import IntroducaoDaVinciArticle from '@/components/IntroducaoDaVinciArticle';
-import NodeWorkflowGraph from '@/components/NodeWorkflowGraph';
-import AnaliseTecnicaArticle from '@/components/AnaliseTecnicaArticle';
+import AnaliseImagemArticle from '@/components/AnaliseImagemArticle';
+import FluxoTrabalhoArticle from '@/components/FluxoTrabalhoArticle';
+import PrimariasArticle from '@/components/PrimariasArticle';
+import DicasArticle from '@/components/DicasArticle';
+import { useLessonRelease } from '@/hooks/useLessonRelease';
+import { LessonReleaseTooltip, LessonLockedPanel } from '@/components/LessonReleaseTooltip';
 import GerenciamentoCoresArticle from '@/components/GerenciamentoCoresArticle';
 import GenericLessonArticle from '@/components/GenericLessonArticle';
 import PandaPlaylistPlayer from '@/components/PandaPlaylistPlayer';
@@ -40,6 +44,8 @@ import FloatingCompleteButton from '@/components/FloatingCompleteButton';
 import ScrollShrinkVideo, { type ScrollShrinkVideoHandle } from '@/components/ScrollShrinkVideo';
 
 // Lazy load heavy interactive tools for instant initial render and 0 lag
+// Conteúdo completo de "Análise da Imagem": só é baixado para quem pode vê-lo (ver canSeeFullAnalysis).
+const AnaliseImagemCompletaArticle = lazy(() => import('@/components/AnaliseImagemCompletaArticle'));
 const ExposureCalculator = lazy(() => import('@/components/ExposureCalculator'));
 const ColorwheelsGrading = lazy(() => import('@/components/ColorwheelsGrading'));
 const DeliverExporter = lazy(() => import('@/components/DeliverExporter'));
@@ -144,6 +150,10 @@ export function MemberAreaApp({ skipInternalPreloader = false }: { skipInternalP
   const [isMaximized, setIsMaximized] = useState<boolean>(false);
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [mainEl, setMainEl] = useState<HTMLElement | null>(null);
+  // Aulas liberadas por data (hora do servidor): isReleaseLocked(id) = ainda bloqueada.
+  const { isLocked: isReleaseLocked } = useLessonRelease();
+  const [releaseTip, setReleaseTip] = useState<{ id: string; rect: DOMRect } | null>(null);
+  const activeLocked = isReleaseLocked(activeLessonId);
   // Título/módulo da aula ficam numa barra fixa no topo do quadro assim que o conteúdo aparece (fim do modo cinema).
   const [isTitleStuck, setIsTitleStuck] = useState<boolean>(false);
   const [isSearchOpen, setIsSearchOpen] = useState<boolean>(false);
@@ -255,6 +265,21 @@ export function MemberAreaApp({ skipInternalPreloader = false }: { skipInternalP
   const percentComplete = useMemo(() => {
     return Math.min(100, Math.round((progress.completedLessons.length / (totalLessonsCount || 1)) * 100));
   }, [progress.completedLessons.length, totalLessonsCount]);
+
+  // Conteúdo completo de "Análise da Imagem": oculto até a pessoa concluir 100% das aulas (todas marcadas como
+  // concluídas; assistir o vídeo até o fim já marca a aula). Vale para todos, inclusive admin.
+  // Para o admin revisar sem concluir tudo: troque por `isMasterAdmin || percentComplete >= 100`.
+  const canSeeFullAnalysis = percentComplete >= 100;
+
+  // Cor do número do progresso: 0% branco → 50% azul-ciano (a cor de antes) → 100% verde.
+  const progressColor = useMemo(() => {
+    const stops: [number, number, number][] = [[255, 255, 255], [0, 199, 252], [48, 209, 88]];
+    const t = Math.min(100, Math.max(0, percentComplete)) / 50; // 0..2
+    const i = Math.min(1, Math.floor(t));
+    const f = t - i;
+    const [a, b] = [stops[i], stops[i + 1]];
+    return `rgb(${[0, 1, 2].map((k) => Math.round(a[k] + (b[k] - a[k]) * f)).join(' ')})`;
+  }, [percentComplete]);
 
   // 1. Initial Load & Auth State
   useEffect(() => {
@@ -574,6 +599,9 @@ export function MemberAreaApp({ skipInternalPreloader = false }: { skipInternalP
       }
     }
 
+    // Se a próxima aula ainda não foi liberada, a tela de transição não oferece o avanço.
+    if (nextLessonInfo && isReleaseLocked(nextLessonInfo.id)) nextLessonInfo = null;
+
     // 3. Abrir tela de transição com confetes dentro da tela de conteúdo
     if (lessonContainerRef.current) {
       lessonContainerRef.current.scrollTo({ top: 0, behavior: 'instant' });
@@ -649,6 +677,7 @@ export function MemberAreaApp({ skipInternalPreloader = false }: { skipInternalP
     const currentIndex = activeModule.subtopics.findIndex(s => s.id === activeLessonId);
     if (currentIndex < activeModule.subtopics.length - 1) {
       const nextLesson = activeModule.subtopics[currentIndex + 1];
+      if (isReleaseLocked(nextLesson.id)) return;
       setActiveLessonId(nextLesson.id);
       saveReadingState({
         lastModuleId: activeModuleId,
@@ -660,6 +689,7 @@ export function MemberAreaApp({ skipInternalPreloader = false }: { skipInternalP
       const nextModIndex = modulesData.findIndex(m => m.id === activeModuleId) + 1;
       if (nextModIndex < modulesData.length) {
         const nextMod = modulesData[nextModIndex];
+        if (isReleaseLocked(nextMod.subtopics[0].id)) return;
         setActiveModuleId(nextMod.id);
         setActiveLessonId(nextMod.subtopics[0].id);
         setExpandedEmenta({ [nextMod.id]: true });
@@ -677,6 +707,7 @@ export function MemberAreaApp({ skipInternalPreloader = false }: { skipInternalP
     const currentIndex = activeModule.subtopics.findIndex(s => s.id === activeLessonId);
     if (currentIndex > 0) {
       const prevLesson = activeModule.subtopics[currentIndex - 1];
+      if (isReleaseLocked(prevLesson.id)) return;
       setActiveLessonId(prevLesson.id);
       saveReadingState({
         lastModuleId: activeModuleId,
@@ -689,6 +720,7 @@ export function MemberAreaApp({ skipInternalPreloader = false }: { skipInternalP
       if (prevModIndex >= 0) {
         const prevMod = modulesData[prevModIndex];
         const lastLesson = prevMod.subtopics[prevMod.subtopics.length - 1];
+        if (isReleaseLocked(lastLesson.id)) return;
         setActiveModuleId(prevMod.id);
         setActiveLessonId(lastLesson.id);
         setExpandedEmenta({ [prevMod.id]: true });
@@ -747,6 +779,7 @@ export function MemberAreaApp({ skipInternalPreloader = false }: { skipInternalP
   }, [searchQuery]);
 
   const handleSelectSearchResult = (modId: ModuleId, lessonId: string) => {
+    if (isReleaseLocked(lessonId)) return;
     setActiveModuleId(modId);
     setActiveLessonId(lessonId);
     setExpandedEmenta({ [modId]: true });
@@ -1011,12 +1044,24 @@ export function MemberAreaApp({ skipInternalPreloader = false }: { skipInternalP
                                 const isCurrentLesson = activeLessonId === sub.id;
                                 const isCompleted = progress.completedLessons.includes(sub.id);
                                 const isLockedLesson = !sub.isFree && !mod.isFree && !isPaidUser;
+                                const releaseLocked = isReleaseLocked(sub.id);
 
                                 return (
                                   <button
                                     key={sub.id}
                                     aria-current={isCurrentLesson ? 'page' : undefined}
-                                    onClick={() => {
+                                    aria-disabled={releaseLocked || undefined}
+                                    onMouseEnter={releaseLocked ? (e) => setReleaseTip({ id: sub.id, rect: e.currentTarget.getBoundingClientRect() }) : undefined}
+                                    onFocus={releaseLocked ? (e) => setReleaseTip({ id: sub.id, rect: e.currentTarget.getBoundingClientRect() }) : undefined}
+                                    onMouseLeave={releaseLocked ? () => setReleaseTip(null) : undefined}
+                                    onBlur={releaseLocked ? () => setReleaseTip(null) : undefined}
+                                    onClick={(e) => {
+                                      if (releaseLocked) {
+                                        // No celular não existe hover: o toque abre e fecha o tooltip.
+                                        const rect = e.currentTarget.getBoundingClientRect();
+                                        setReleaseTip((cur) => (cur?.id === sub.id ? null : { id: sub.id, rect }));
+                                        return;
+                                      }
                                       if (isLockedLesson) {
                                         setIsCheckoutModalOpen(true);
                                         return;
@@ -1031,14 +1076,16 @@ export function MemberAreaApp({ skipInternalPreloader = false }: { skipInternalP
                                         scrollTop: 0
                                       });
                                     }}
-                                    className={`w-full flex items-center justify-between gap-2 px-3 py-2.5 min-h-10 rounded-[8px] text-[13px] transition-colors text-left cursor-pointer ${
+                                    className={`w-full flex items-center justify-between gap-2 px-3 py-2.5 min-h-10 rounded-[8px] text-[13px] transition-colors text-left ${releaseLocked ? 'cursor-not-allowed opacity-60' : 'cursor-pointer'} ${
                                       isCurrentLesson
                                         ? 'bg-[#0071e3] text-white font-medium shadow-sm'
                                         : 'text-[#c7c7cc] hover:text-white hover:bg-white/10'
                                     }`}
                                   >
                                     <span className="truncate pr-1">{sub.title.replace(/^\d+\.\s*/, '')}</span>
-                                    {isLockedLesson ? (
+                                    {releaseLocked ? (
+                                      <Lock size={13} aria-label="Bloqueada até a data de liberação" className="text-[#c7c7cc] shrink-0 ml-1" />
+                                    ) : isLockedLesson ? (
                                       <Lock size={13} aria-label="Bloqueada" className="text-[#c7c7cc] shrink-0 ml-1" />
                                     ) : (
                                       isCompleted && (
@@ -1082,9 +1129,13 @@ export function MemberAreaApp({ skipInternalPreloader = false }: { skipInternalP
                 {modulesData.find(m => m.id === activeFlyoutModule)?.subtopics.map(sub => (
                   <button
                     key={sub.id}
+                    aria-disabled={isReleaseLocked(sub.id) || undefined}
+                    onMouseEnter={isReleaseLocked(sub.id) ? (e) => setReleaseTip({ id: sub.id, rect: e.currentTarget.getBoundingClientRect() }) : undefined}
+                    onMouseLeave={isReleaseLocked(sub.id) ? () => setReleaseTip(null) : undefined}
                     onClick={() => {
                       const targetMod = modulesData.find(m => m.id === activeFlyoutModule);
                       const isLocked = !sub.isFree && !targetMod?.isFree && !isPaidUser;
+                      if (isReleaseLocked(sub.id)) return;
                       if (isLocked) {
                         setIsCheckoutModalOpen(true);
                         return;
@@ -1096,7 +1147,9 @@ export function MemberAreaApp({ skipInternalPreloader = false }: { skipInternalP
                     className="w-full text-left px-2.5 py-2 rounded text-[13px] text-neutral-200 hover:text-white hover:bg-white/10 flex justify-between items-center transition-colors"
                   >
                     <span className="truncate">{sub.title}</span>
-                    {progress.completedLessons.includes(sub.id) && <CheckCircle2 size={10} className="text-[#30d158]" />}
+                    {isReleaseLocked(sub.id)
+                      ? <Lock size={10} aria-label="Bloqueada até a data de liberação" className="shrink-0 text-[#c7c7cc]" />
+                      : progress.completedLessons.includes(sub.id) && <CheckCircle2 size={10} className="text-[#30d158]" />}
                   </button>
                 ))}
               </div>
@@ -1152,21 +1205,21 @@ export function MemberAreaApp({ skipInternalPreloader = false }: { skipInternalP
 
               {/* Center Progress Meter */}
               {isLoggedIn && (
-                <div role="progressbar" aria-label="Progresso do curso" aria-valuemin={0} aria-valuemax={100} aria-valuenow={percentComplete} className="hidden lg:flex items-center gap-3 bg-white/[0.05] hover:bg-white/[0.08] px-3.5 py-1.5 rounded-full border border-white/10 backdrop-blur-md shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] relative z-10 transition-colors">
-                  <span className="text-[13px] font-bold tracking-tight text-white uppercase leading-none">Progresso</span>
+                <div role="progressbar" aria-label="Progresso do curso" aria-valuemin={0} aria-valuemax={100} aria-valuenow={percentComplete} className="hidden lg:flex items-center gap-3 relative z-10">
+                  <span className="text-[11px] font-bold tracking-tight text-white uppercase leading-none">Progresso</span>
                   <div className="w-32 h-1.5 rounded-full bg-white/10 overflow-hidden">
                     <div 
-                      className="h-full bg-gradient-to-r from-[#0071e3] to-[#00c7fc] transition-all duration-300 shadow-[0_0_8px_rgba(0,199,252,0.5)]"
-                      style={{ width: `${percentComplete}%` }}
+                      className="h-full rounded-full transition-[width,background-color,box-shadow] duration-700 ease-out"
+                      style={{ width: `${percentComplete}%`, backgroundColor: progressColor, boxShadow: `0 0 8px ${progressColor}` }}
                     />
                   </div>
-                  <span className="text-[13px] font-bold text-[#00c7fc] font-mono leading-none">{percentComplete}%</span>
+                  <span className="text-[11px] font-bold font-mono leading-none transition-colors duration-700 ease-out" style={{ color: progressColor }}>{percentComplete}%</span>
                 </div>
               )}
 
               {/* Progresso compacto (celular e tablet) */}
               {isLoggedIn && (
-                <span className="lg:hidden text-[13px] font-bold text-[#00c7fc] font-mono tabular-nums bg-white/[0.06] border border-white/10 rounded-full px-2.5 py-1">
+                <span className="lg:hidden text-[13px] font-bold font-mono tabular-nums bg-white/[0.06] border border-white/10 rounded-full px-2.5 py-1" style={{ color: progressColor }}>
                   {percentComplete}%<span className="sr-only"> do curso concluído</span>
                 </span>
               )}
@@ -1190,6 +1243,7 @@ export function MemberAreaApp({ skipInternalPreloader = false }: { skipInternalP
                 <NotificationsDropdown
                   userId={currentUserId}
                   onNavigateToLesson={(modId, lesId, commentId) => {
+                    if (lesId && isReleaseLocked(lesId)) return;
                     if (modId) setActiveModuleId(modId as ModuleId);
                     if (lesId) setActiveLessonId(lesId);
                     setCompletionTransitionData(null);
@@ -1298,7 +1352,10 @@ export function MemberAreaApp({ skipInternalPreloader = false }: { skipInternalP
                 className="sticky top-0 z-30 w-full max-w-[1536px] mx-auto px-4 sm:px-6 lg:px-10 pt-[4.5rem] pb-8 flex-1 space-y-8"
               >
                 
-                {/* Lesson Body: Video on Top, Editorial Article Below */}
+                {/* Aula ainda não liberada: mostra só o aviso com a contagem (o vídeo e o conteúdo nem são carregados) */}
+                {activeLocked ? (
+                  <LessonLockedPanel lessonId={activeLessonId} title={activeLesson.title} />
+                ) : (
                 <div className="space-y-8">
                   {/* Video Player on Top */}
                   <div id={LESSON_VIDEO_ANCHOR} className="w-full">
@@ -1343,9 +1400,18 @@ export function MemberAreaApp({ skipInternalPreloader = false }: { skipInternalP
                     {activeLessonId === 'mod1-1' ? (
                       <IntroducaoDaVinciArticle />
                     ) : activeLessonId === 'mod1-analise-tecnica' ? (
-                      <AnaliseTecnicaArticle />
+                      <>
+                        <AnaliseImagemArticle />
+                        {canSeeFullAnalysis && <AnaliseImagemCompletaArticle />}
+                      </>
                     ) : activeLessonId === 'mod1-2' ? (
                       <GerenciamentoCoresArticle />
+                    ) : activeLessonId === 'mod1-4' ? (
+                      <FluxoTrabalhoArticle />
+                    ) : activeLessonId === 'mod1-dicas' ? (
+                      <DicasArticle />
+                    ) : activeLessonId === 'mod2-1' ? (
+                      <PrimariasArticle />
                     ) : (
                       activeLesson.subtabs && activeLesson.subtabs.length > 0 ? (
                         // Sem botões de aba: o conteúdo de cada variação (ex.: CST e ACES) aparece em sequência.
@@ -1363,7 +1429,6 @@ export function MemberAreaApp({ skipInternalPreloader = false }: { skipInternalP
                     )}
                   </Suspense>
                   </TocRegistryContext.Provider>
-                  {activeLessonId === 'mod1-4' && <NodeWorkflowGraph />}
 
                   {/* Botão de Conclusão e Avanço no final da aula */}
                   <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-center gap-3 pt-8 pb-4">
@@ -1393,6 +1458,7 @@ export function MemberAreaApp({ skipInternalPreloader = false }: { skipInternalP
                     )}
                   </div>
                 </div>
+                )}
 
               </div>
 
@@ -1430,7 +1496,7 @@ export function MemberAreaApp({ skipInternalPreloader = false }: { skipInternalP
             </div>
           </div>
           {timelineGroups.length > 0 && <LessonTimeline groups={timelineGroups} containerRef={lessonContainerRef} />}
-          {isLoggedIn && !completionTransitionData && !progress.completedLessons.includes(activeLessonId) && (
+          {isLoggedIn && !activeLocked && !completionTransitionData && !progress.completedLessons.includes(activeLessonId) && (
             <div data-hero-hide className={`absolute right-6 z-30 transition-[opacity,top] duration-300 ${isTitleStuck ? 'top-[112px]' : 'top-[72px]'}`}>
               <FloatingCompleteButton onComplete={() => handleCompleteAndNext(activeLessonId)} />
             </div>
@@ -1438,6 +1504,8 @@ export function MemberAreaApp({ skipInternalPreloader = false }: { skipInternalP
           </main>
 
       </div>
+
+      {releaseTip && isReleaseLocked(releaseTip.id) && <LessonReleaseTooltip lessonId={releaseTip.id} anchor={releaseTip.rect} />}
 
       {/* SEARCH MODAL */}
       {isSearchOpen && (

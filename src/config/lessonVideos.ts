@@ -27,6 +27,15 @@ export const LESSON_VIDEOS: Record<string, LessonVideoSeed[]> = {
     { id: 'daedd222-f8da-4bf6-8a22-2c94904c6ed3', title: 'Gerenciamento de Cores', partLabel: 'Parte 01', defaultSubtitle: 'pt-BR' },
     { id: '31660bf7-6714-4d63-83bc-bc2624b97db7', title: 'Gerenciamento de Cores', partLabel: 'Parte 02' },
   ],
+  'mod1-dicas': [
+    { id: '322a76fb-62bf-456c-a605-577de2e64556', title: 'Dicas' },
+  ],
+  'mod2-1': [
+    { id: '38db0a7a-34df-4fb7-bbcc-3ee9aeaf01ed', title: 'Primárias' },
+  ],
+  'mod1-4': [
+    { id: '8722e60a-944d-49e3-bb21-d45c6a50297b', title: 'Fluxo de Trabalho' },
+  ],
 };
 
 export const pandaEmbedUrl = (id: string) =>

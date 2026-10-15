@@ -68,6 +68,9 @@ const findSectionTitle = (node: Node | null, container: HTMLElement | null): str
   return 'Conteúdo Geral';
 };
 
+/** O trecho saiu da área visível (rolou para cima ou para baixo da tela). */
+const isOutOfView = (rect: DOMRect) => rect.bottom < 0 || rect.top > window.innerHeight;
+
 export const TextHighlighterTool: React.FC<TextHighlighterToolProps> = ({ lessonId, containerRef, trailing, portalTarget }) => {
   const [highlights, setHighlights] = useState<HighlightItem[]>([]);
   const [selectionRange, setSelectionRange] = useState<{
@@ -76,6 +79,8 @@ export const TextHighlighterTool: React.FC<TextHighlighterToolProps> = ({ lesson
     suffix: string;
     section_title: string;
     rect: DOMRect;
+    /** Trecho selecionado: a posição do menu é recalculada a partir dele quando a página rola. */
+    anchor: Range;
   } | null>(null);
 
   const [selectedColor, setSelectedColor] = useState<HighlightItem['color']>('yellow');
@@ -84,7 +89,15 @@ export const TextHighlighterTool: React.FC<TextHighlighterToolProps> = ({ lesson
   const [activeHighlightPopover, setActiveHighlightPopover] = useState<{
     highlight: HighlightItem;
     rect: DOMRect;
+    anchor: HTMLElement;
   } | null>(null);
+
+  const selectionAnchorRef = useRef<Range | undefined>(undefined);
+  const popoverAnchorRef = useRef<HTMLElement | undefined>(undefined);
+  useEffect(() => {
+    selectionAnchorRef.current = selectionRange?.anchor;
+    popoverAnchorRef.current = activeHighlightPopover?.anchor;
+  }, [selectionRange, activeHighlightPopover]);
 
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [isZoomBarExpanded, setIsZoomBarExpanded] = useState(false);
@@ -214,7 +227,7 @@ export const TextHighlighterTool: React.FC<TextHighlighterToolProps> = ({ lesson
         ? fullText.substring(idx + text.length, idx + text.length + 15) 
         : '';
 
-      setSelectionRange({ text, prefix, suffix, section_title, rect });
+      setSelectionRange({ text, prefix, suffix, section_title, rect, anchor: range.cloneRange() });
       setIsAddingNote(false);
       setNoteText('');
       setActiveHighlightPopover(null);
@@ -243,6 +256,30 @@ export const TextHighlighterTool: React.FC<TextHighlighterToolProps> = ({ lesson
     document.addEventListener('mouseup', onMouseUp);
     return () => document.removeEventListener('mouseup', onMouseUp);
   }, [handleSelection]);
+
+  // Os menus ficam travados no texto: a posição é refeita direto no elemento, no mesmo quadro da rolagem
+  // (sem passar pelo React), para não haver atraso nenhum ao rolar.
+  const hasMenu = !!selectionRange || !!activeHighlightPopover;
+  useEffect(() => {
+    if (!hasMenu) return;
+    const place = (menu: HTMLElement | null, anchor: Range | HTMLElement | undefined, offsetY: number, offsetX: number) => {
+      if (!menu || !anchor) return;
+      const rect = anchor.getBoundingClientRect();
+      menu.style.top = `${Math.max(10, rect.top - offsetY)}px`;
+      menu.style.left = `${Math.min(window.innerWidth - 300, Math.max(20, rect.left + rect.width / 2 - offsetX))}px`;
+      menu.style.visibility = isOutOfView(rect) ? 'hidden' : 'visible';
+    };
+    const follow = () => {
+      place(popupRef.current, selectionAnchorRef.current, 55, 140);
+      place(activePopoverRef.current, popoverAnchorRef.current, 60, 130);
+    };
+    document.addEventListener('scroll', follow, { capture: true, passive: true });
+    window.addEventListener('resize', follow);
+    return () => {
+      document.removeEventListener('scroll', follow, { capture: true });
+      window.removeEventListener('resize', follow);
+    };
+  }, [hasMenu]);
 
   // Apply highlights into DOM
   useEffect(() => {
@@ -291,7 +328,7 @@ export const TextHighlighterTool: React.FC<TextHighlighterToolProps> = ({ lesson
             mark.onclick = (e) => {
               e.stopPropagation();
               const rect = mark.getBoundingClientRect();
-              setActiveHighlightPopover({ highlight: item, rect });
+              setActiveHighlightPopover({ highlight: item, rect, anchor: mark });
               setSelectionRange(null);
             };
 
@@ -360,8 +397,9 @@ export const TextHighlighterTool: React.FC<TextHighlighterToolProps> = ({ lesson
         <div
           ref={popupRef}
           style={{
-            top: `${Math.max(10, selectionRange.rect.top + window.scrollY - 55)}px`,
-            left: `${Math.min(window.innerWidth - 300, Math.max(20, selectionRange.rect.left + window.scrollX + selectionRange.rect.width / 2 - 140))}px`,
+            top: `${Math.max(10, selectionRange.rect.top - 55)}px`,
+            left: `${Math.min(window.innerWidth - 300, Math.max(20, selectionRange.rect.left + selectionRange.rect.width / 2 - 140))}px`,
+            visibility: isOutOfView(selectionRange.rect) ? 'hidden' : 'visible',
           }}
           className="fixed z-50 bg-[#1c1c1e] text-white p-2.5 rounded-2xl shadow-2xl border border-neutral-700/80 flex flex-col gap-2 animate-in fade-in zoom-in-95 duration-150 max-w-sm"
         >
@@ -424,8 +462,9 @@ export const TextHighlighterTool: React.FC<TextHighlighterToolProps> = ({ lesson
         <div
           ref={activePopoverRef}
           style={{
-            top: `${Math.max(10, activeHighlightPopover.rect.top + window.scrollY - 60)}px`,
-            left: `${Math.min(window.innerWidth - 300, Math.max(20, activeHighlightPopover.rect.left + window.scrollX + activeHighlightPopover.rect.width / 2 - 130))}px`,
+            top: `${Math.max(10, activeHighlightPopover.rect.top - 60)}px`,
+            left: `${Math.min(window.innerWidth - 300, Math.max(20, activeHighlightPopover.rect.left + activeHighlightPopover.rect.width / 2 - 130))}px`,
+            visibility: isOutOfView(activeHighlightPopover.rect) ? 'hidden' : 'visible',
           }}
           className="fixed z-50 bg-[#1c1c1e] text-white p-3 rounded-2xl shadow-2xl border border-neutral-700 max-w-xs flex flex-col gap-2 animate-in fade-in duration-150"
         >

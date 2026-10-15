@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import {
   ChevronLeft,
   ChevronRight,
@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import { LESSON_VIDEOS, pandaEmbedUrl, pandaThumbnailUrl, type LessonVideoSeed } from '@/config/lessonVideos';
 import { cachedJson } from '@/lib/clientCache';
+import { VideoProgressTracker, currentUserId } from '@/lib/videoProgress';
 
 export interface PandaVideoItem {
   id: string;
@@ -45,6 +46,9 @@ const toItem = (seed: LessonVideoSeed): PandaVideoItem => ({
   embed_url: pandaEmbedUrl(seed.id),
   part_label: seed.partLabel,
 });
+
+/** Azul da paleta do site (#0071e3), usado no botão de play grande e nos controles do player. */
+const PLAYER_COLOR = '0071e3';
 
 const seedsFor = (lessonId?: string): LessonVideoSeed[] =>
   (lessonId && Object.hasOwn(LESSON_VIDEOS, lessonId) ? LESSON_VIDEOS[lessonId] : LESSON_VIDEOS['mod1-1']);
@@ -88,6 +92,8 @@ export default function PandaPlaylistPlayer({
     setRailProximity((prev) => (prev === next ? prev : next));
   };
   const [completedVideos, setCompletedVideos] = useState<string[]>([]);
+  // Progresso do aluno: guardado primeiro no aparelho e resumido para o banco (ver lib/videoProgress).
+  const [tracker, setTracker] = useState<VideoProgressTracker | null>(null);
   const [iframeKey, setIframeKey] = useState<number>(0);
   // Chave do iframe que já terminou de carregar (preloader aparece enquanto for diferente da chave atual)
   const [loadedKey, setLoadedKey] = useState<string>('');
@@ -208,6 +214,28 @@ export default function PandaPlaylistPlayer({
     };
   }, [lessonId]);
 
+  // 1.1 Cria o rastreador de progresso e busca onde o aluno parou (espera no máx. 1,5 s pela nuvem)
+  useEffect(() => {
+    let alive = true;
+    let created: VideoProgressTracker | null = null;
+    (async () => {
+      const uid = await currentUserId();
+      if (!alive) return;
+      created = new VideoProgressTracker(uid);
+      await Promise.race([
+        created.loadRemote(seedsFor(lessonId).map((v) => v.id)),
+        new Promise((resolve) => setTimeout(resolve, 1500)),
+      ]);
+      if (alive) setTracker(created);
+      else created.dispose();
+    })();
+    return () => {
+      alive = false;
+      created?.dispose();
+      setTracker(null);
+    };
+  }, [lessonId]);
+
   // 2. Carrega o script oficial do PandaPlayer
   useEffect(() => {
     if (!document.querySelector('script[src="https://player.pandavideo.com.br/api.v2.js"]')) {
@@ -223,7 +251,8 @@ export default function PandaPlaylistPlayer({
     const w = window as PandaWindow;
     const playerId = `panda-${activeVideo.id}`;
     const init = () => {
-      if (!w.PandaPlayer) return;
+      // O iframe só existe depois que o rastreador de progresso fica pronto.
+      if (!w.PandaPlayer || !document.getElementById(playerId)) return;
       const player = new w.PandaPlayer(playerId, {
         onReady: () => {},
       });
@@ -234,7 +263,7 @@ export default function PandaPlaylistPlayer({
       w.pandascripttag = w.pandascripttag || [];
       w.pandascripttag.push(init);
     }
-  }, [activeVideo.id, iframeKey]);
+  }, [activeVideo.id, iframeKey, tracker]);
 
   // 3. Listener de Autoplay Sequencial: ao terminar um vídeo, passa automaticamente para o outro
   useEffect(() => {
@@ -244,6 +273,11 @@ export default function PandaPlaylistPlayer({
         let msgData = event.data;
         if (typeof msgData === 'string' && msgData.startsWith('{')) {
           msgData = JSON.parse(msgData);
+        }
+
+        if (tracker && msgData?.message && typeof msgData.message === 'string') {
+          const frame = document.getElementById(`panda-${activeVideo.id}`) as HTMLIFrameElement | null;
+          if (frame?.contentWindow === event.source) tracker.handle(activeVideo.id, lessonId || 'mod1-1', msgData, activeVideo.duration || undefined);
         }
 
         const isEnded =
@@ -283,10 +317,11 @@ export default function PandaPlaylistPlayer({
     return () => {
       window.removeEventListener('message', handlePandaMessage);
     };
-  }, [currentIndex, videos.length, activeVideo.id, onLessonEnded, onPlay]);
+  }, [currentIndex, videos.length, activeVideo.id, activeVideo.duration, lessonId, tracker, onLessonEnded, onPlay]);
 
   const handleSelectVideo = (index: number) => {
     if (index === currentIndex) return;
+    tracker?.flush(true);
     setCurrentIndex(index);
     setIsPlaying(false);
     setAutoPlayNext(true);
@@ -294,7 +329,7 @@ export default function PandaPlaylistPlayer({
   };
 
   const currentKey = `${activeVideo.id}-${iframeKey}`;
-  const isPlayerLoading = loadedKey !== currentKey;
+  const isPlayerLoading = !tracker || loadedKey !== currentKey;
 
   // Rede de segurança: se o evento de carregamento não chegar, libera o player após 15 s
   useEffect(() => {
@@ -302,12 +337,21 @@ export default function PandaPlaylistPlayer({
     return () => clearTimeout(timer);
   }, [currentKey]);
 
+  // Retoma de onde o aluno parou (calculado uma vez por vídeo aberto)
+  const startAt = useMemo(
+    () => tracker?.getResume(activeVideo.id, activeVideo.duration || undefined) ?? 0,
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [tracker, currentKey],
+  );
+
   // URL do iframe com parâmetro autoplay dinâmico e sem logo
   const embedSrc = `${activeVideo.embed_url}${
     activeSeed?.defaultSubtitle ? `&defaultSubtitle=${encodeURIComponent(activeSeed.defaultSubtitle)}` : ''
   }${
     autoPlayNext ? '&autoplay=true' : ''
-  }&initQuality=2160p&controls=play-large,play,progress,current-time,mute,volume,captions,settings,pip,airplay,cast,fullscreen`;
+  }${
+    startAt > 0 ? `&startTime=${startAt}` : ''
+  }&color=${PLAYER_COLOR}&saveProgress=false&alternativeProgress=false&disableForward=false&initQuality=2160p&controls=play-large,play,progress,current-time,mute,volume,captions,settings,pip,airplay,cast,fullscreen`;
 
   return (
     <div className="w-full bg-[#121318] border border-white/10 rounded-2xl sm:rounded-3xl shadow-2xl overflow-hidden selection:bg-[#0071e3] selection:text-white transition-all">
@@ -356,7 +400,7 @@ export default function PandaPlaylistPlayer({
                 </button>
               </div>
             )}
-            <iframe
+            {tracker && <iframe
               key={`panda-iframe-${activeVideo.id}-${iframeKey}`}
               id={`panda-${activeVideo.id}`}
               src={embedSrc}
@@ -366,7 +410,7 @@ export default function PandaPlaylistPlayer({
               allowFullScreen={true}
               onLoad={() => setLoadedKey(currentKey)}
               {...({ fetchPriority: 'high' } as Record<string, string>)}
-            />
+            />}
 
             {/* Preloader: cobre o player até o vídeo carregar e então some */}
             <div

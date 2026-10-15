@@ -162,7 +162,8 @@ const ScrollShrinkVideo = forwardRef<ScrollShrinkVideoHandle, ScrollShrinkVideoP
 
   return (
     <div className="w-full">
-      <div ref={wrapRef} className="relative will-change-transform">
+      {/* Sem will-change/transform em repouso: eles virariam o "bloco de referência" do mini player (position: fixed) */}
+      <div ref={wrapRef} className="relative">
         {children}
       </div>
     </div>

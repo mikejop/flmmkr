@@ -1,1118 +1,872 @@
 'use client';
 
+import React, { useState } from 'react';
 import { getMediaUrl } from '@/lib/storage';
+import { ScoredQuiz, type QuizQuestion } from './ScoredQuiz';
+import { ArticleToc, EditorialSection, type TocGroup } from './EditorialLayout';
+import { Sub, Prose, Note, Bullets, NumberedSteps, DataTable } from './ArticleBlocks';
 
-import React from 'react';
-import Image from 'next/image';
-import {
-  EditorialSection,
-  ArticleToc,
-  type TocGroup,
-  TwoColumnText,
-  ImageAndText,
-  EditorialQuote,
-  FullWidthImage,
-} from './EditorialLayout';
+/**
+ * Conteúdo da aula "Introdução ao DaVinci Resolve": "Introdução ao DaVinci Resolve para color grading".
+ *
+ * Ferramenta interativa (onde ajuda a entender o texto):
+ *  - NodeQuiz     → "Qual node resolve isso?": situações tiradas da tabela dos tipos de node.
+ */
 
-type NodeDiagram = { src: string; alt: string; width: number; height: number };
+/* ------------------------------------------------------------------ blocos de apoio */
 
-function NodeTypeCard({ title, children, use, images = [] }: { title: string; children: React.ReactNode; use: string; images?: NodeDiagram[] }) {
+const IMG = 'assets/artigos/introducao-davinci/';
+
+/** Imagem da interface do Resolve, na largura do bloco, junto do assunto que ela mostra. */
+function Fig({ file, alt }: { file: string; alt: string }) {
   return (
-    <section className="space-y-3 rounded-2xl border border-neutral-200 bg-white p-5 sm:p-6">
-      <h4 className="font-sans text-lg font-bold text-neutral-900">{title}</h4>
-      {images.length > 0 && <div className={`grid gap-3 ${images.length > 1 ? 'grid-cols-2' : 'grid-cols-1'}`}>
-        {images.map((image) => <div key={image.src} className="flex aspect-[3/2] items-center justify-center overflow-hidden rounded-xl border border-neutral-200 bg-neutral-50 p-2">
-          <Image src={image.src} alt={image.alt} width={image.width} height={image.height} sizes="(max-width: 1024px) 90vw, 44vw" className="h-full w-full object-contain" />
-        </div>)}
-      </div>}
-      <div className="space-y-3 font-serif text-[15px] leading-[1.65] text-neutral-800 [&_p]:text-justify">{children}</div>
-      <p className="border-t border-neutral-200 pt-3 font-serif text-sm leading-relaxed text-neutral-700"><strong className="font-sans text-neutral-900">Quando usar:</strong> {use}</p>
-    </section>
+    <figure className="overflow-hidden rounded-2xl border border-neutral-200 bg-neutral-950">
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img src={getMediaUrl(IMG + file)} alt={alt} loading="lazy" decoding="async" className="block h-auto w-full" />
+    </figure>
   );
 }
 
-const TOC: TocGroup[] = [
-  { title: "Primeiro, vamos entender o DaVinci Resolve", id: "primeiro-vamos-entender-o-davinci-resolve" },
-  { title: "A aba Color", id: "a-aba-color" },
-  { title: "Os Nodes", id: "os-nodes", items: [{ label: "Tipos de nodes", id: "tipos-de-nodes" }, { label: "Como organizar os nodes", id: "como-organizar-os-nodes" }] },
-  { title: "Primárias", id: "primarias", items: [{ label: "Primaries", id: "primaries" }, { label: "Color Wheels", id: "color-wheels" }, { label: "Log Wheels", id: "log-wheels" }] },
-  { title: "Ferramentas específicas", id: "ferramentas-especificas", items: [{ label: "HDR", id: "hdr" }, { label: "RGB Mixer", id: "rgb-mixer" }, { label: "Curves", id: "curves" }] },
-  { title: "Isolamento", id: "isolamento", items: [{ label: "Qualifier", id: "qualifier" }, { label: "Power Windows", id: "power-windows" }] },
-  { title: "Tracker", id: "tracker" },
-  { title: "Magic Mask", id: "magic-mask" },
-  { title: "Blur e Sharpen", id: "blur-e-sharpen" },
-  { title: "Key", id: "key" },
-  { title: "Sizing", id: "sizing" },
-  { title: "Scopes", id: "scopes" },
-  { title: "Split Screen", id: "split-screen" },
-  { title: "Gallery", id: "gallery" },
-  { title: "Color Match", id: "color-match" },
-  { title: "Atalhos que você precisa começar a usar", id: "atalhos-que-voce-precisa-comecar-a-usar", items: [{ label: "Navegação e reprodução", id: "navegacao-e-reproducao" }, { label: "Nodes (atalhos)", id: "nodes-atalhos" }, { label: "Análise e comparação", id: "analise-e-comparacao" }, { label: "Gallery e Stills", id: "gallery-e-stills" }, { label: "Versions", id: "versions" }, { label: "Uma regra simples", id: "uma-regra-simples" }] },
+type Hotspot = { name: string; color: string; box: [number, number, number, number] };
+
+/** Imagem com áreas destacadas: ao passar o mouse (ou tocar/focar) a borda colorida e o nome da área aparecem. */
+function AnnotatedFig({ file, alt, width, height, spots }: { file: string; alt: string; width: number; height: number; spots: Hotspot[] }) {
+  const [active, setActive] = useState<string | null>(null);
+  return (
+    <figure className="overflow-hidden rounded-2xl border border-neutral-200 bg-neutral-950">
+      <div className="relative">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src={getMediaUrl(IMG + file)} alt={alt} width={width} height={height} loading="lazy" decoding="async" className="block h-auto w-full" />
+        {spots.map((s) => {
+          const [x0, y0, x1, y1] = s.box;
+          const on = active === s.name;
+          return (
+            <button
+              key={s.name}
+              type="button"
+              aria-label={s.name}
+              aria-pressed={on}
+              onMouseEnter={() => setActive(s.name)}
+              onMouseLeave={() => setActive((a) => (a === s.name ? null : a))}
+              onFocus={() => setActive(s.name)}
+              onBlur={() => setActive((a) => (a === s.name ? null : a))}
+              onClick={() => setActive((a) => (a === s.name ? null : s.name))}
+              className="group absolute cursor-pointer rounded-md outline-none"
+              style={{
+                left: `${(x0 / width) * 100}%`,
+                top: `${(y0 / height) * 100}%`,
+                width: `${((x1 - x0) / width) * 100}%`,
+                height: `${((y1 - y0) / height) * 100}%`,
+                border: `3px solid ${on ? s.color : 'transparent'}`,
+                backgroundColor: on ? `${s.color}1f` : 'transparent',
+                transition: 'border-color 150ms, background-color 150ms',
+              }}
+            >
+              <span
+                className={`pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 whitespace-nowrap rounded-md px-2 py-0.5 font-sans text-[11px] font-black uppercase tracking-wide transition-opacity duration-150 sm:px-3 sm:py-1 sm:text-base lg:text-xl ${on ? 'opacity-100' : 'opacity-0'}`}
+                style={{ color: s.color, textShadow: '0 1px 6px rgba(0,0,0,0.9)' }}
+              >
+                {s.name}
+              </span>
+            </button>
+          );
+        })}
+      </div>
+    </figure>
+  );
+}
+
+const COLOR_PAGE_SPOTS: Hotspot[] = [
+  { name: 'Gallery', color: '#2dd4bf', box: [100, 10, 196, 48] },
+  { name: 'Viewer', color: '#ffc700', box: [22, 72, 878, 618] },
+  { name: 'Nodes', color: '#1e90ff', box: [880, 72, 1580, 618] },
+  { name: 'Inspector', color: '#a855f7', box: [1583, 50, 1983, 618] },
+  { name: 'Timeline', color: '#22c55e', box: [22, 625, 1330, 760] },
+  { name: 'Color Wheels', color: '#fb923c', box: [20, 815, 755, 1215] },
+  { name: 'Curves', color: '#f472b6', box: [758, 815, 1262, 1215] },
+  { name: 'Scopes', color: '#ef4444', box: [1493, 815, 1983, 1215] },
+  { name: 'Páginas', color: '#e5e5e5', box: [640, 1217, 1960, 1246] },
 ];
+
+/** Diagramas de nodes lado a lado, com legenda. */
+function NodeDiagrams({ items }: { items: { file: string; alt: string; label: string }[] }) {
+  return (
+    <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+      {items.map((d) => (
+        <figure key={d.file} className="flex flex-col gap-2 rounded-xl border border-neutral-200 bg-neutral-50 p-3">
+          <div className="flex aspect-[3/2] items-center justify-center overflow-hidden rounded-lg bg-white p-2">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={getMediaUrl(IMG + d.file)} alt={d.alt} loading="lazy" decoding="async" className="h-full w-full object-contain" />
+          </div>
+          <figcaption className="font-sans text-xs font-semibold text-neutral-700">{d.label}</figcaption>
+        </figure>
+      ))}
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------------ dados das tabelas */
+
+const COLOR_AREAS: { id: string; name: string; where: string; use: string }[] = [
+  { id: 'viewer', name: 'Viewer', where: 'Centro', use: 'A imagem, que precisa ser observada o tempo inteiro' },
+  { id: 'gallery', name: 'Gallery', where: 'Esquerda', use: 'Stills, referências e grades salvos' },
+  { id: 'nodes', name: 'Nodes', where: 'Direita', use: 'A estrutura da correção e a ordem de cada ajuste' },
+  { id: 'timeline', name: 'Timeline e thumbnails', where: 'Meio, abaixo do viewer', use: 'Navegar pelo projeto e escolher os planos' },
+  { id: 'palettes', name: 'Ferramentas (palettes)', where: 'Parte de baixo', use: 'Rodas, curvas, qualifier, windows, tracker, key, sizing' },
+  { id: 'scopes', name: 'Scopes', where: 'Parte de baixo, à direita, ou em janela separada', use: 'Leitura objetiva de luz e cor' },
+];
+
+interface NodeType {
+  id: string;
+  name: string;
+  how: string;
+  when: string;
+  /** Situação, vista pelo aluno no quiz (sem citar o nome do node). */
+  situation: string;
+}
+
+const NODE_TYPES: NodeType[] = [
+  { id: 'serial', name: 'Serial', how: 'Um depois do outro; cada um recebe a imagem já tratada', when: 'Primárias, balanço, contraste, look. É a estrutura principal', situation: 'Você vai fazer as primárias, o balanço, o contraste e o look, um ajuste depois do outro, cada um sobre a imagem já tratada.' },
+  { id: 'parallel', name: 'Parallel', how: 'Vários partem da mesma imagem e são somados no Parallel Mixer', when: 'Secundárias independentes: pele, céu, produto', situation: 'Você quer secundárias independentes, de pele, de céu e de produto, todas partindo da mesma imagem.' },
+  { id: 'layer', name: 'Layer Mixer', how: 'Combina ramos por camadas, com prioridade', when: 'Sobrepor regiões corrigidas separadamente', situation: 'Duas regiões foram corrigidas separadamente e você precisa sobrepor uma à outra, com prioridade.' },
+  { id: 'outside', name: 'Outside', how: 'Inverte a seleção do node anterior', when: 'Tratar tudo que está fora do produto ou do rosto', situation: 'Você já selecionou o produto e agora quer tratar tudo que está fora dele.' },
+  { id: 'splitter', name: 'Splitter/Combiner', how: 'Separa R, G e B e junta de novo', when: 'Tratamentos avançados por canal', situation: 'Você precisa de um tratamento avançado, trabalhando o vermelho, o verde e o azul separadamente.' },
+  { id: 'keymixer', name: 'Key Mixer', how: 'Junta seleções, não imagens', when: 'Combinar dois qualifiers ou máscaras', situation: 'Você fez dois qualifiers, ou duas máscaras, e quer juntar as seleções numa só.' },
+  { id: 'shared', name: 'Shared Node', how: 'Uma correção ligada em vários clipes', when: 'Mesmo ajuste em todos os takes de uma câmera', situation: 'Você quer o mesmo ajuste em todos os takes de uma câmera, ligado a vários clipes de uma vez.' },
+  { id: 'compound', name: 'Compound Node', how: 'Agrupa vários nodes num só', when: 'Deixar um node tree grande mais limpo', situation: 'O seu node tree ficou enorme e você quer deixá-lo mais limpo, agrupando vários nodes num só.' },
+];
+
+/* ------------------------------------------------------------------ barra das páginas do Resolve */
+
+type ResolvePage = { name: string; what: string; use: string; level: 'yes' | 'some' | 'rare' | 'no'; icon: React.ReactNode };
+
+const LEVEL_DOT: Record<ResolvePage['level'], string> = { yes: 'bg-[#34c759]', some: 'bg-[#ff9f0a]', rare: 'bg-[#8e8e93]', no: 'bg-[#ff3b30]' };
+
+const ICON = { viewBox: '0 0 24 24', 'aria-hidden': true, className: 'h-6 w-6 fill-none stroke-current sm:h-[26px] sm:w-[26px]', strokeWidth: 1.6, strokeLinecap: 'round', strokeLinejoin: 'round' } as const;
+
+const RESOLVE_PAGES: ResolvePage[] = [
+  { name: 'Media', level: 'yes', what: 'Trazer os arquivos do computador pro projeto e organizar no Media Pool', use: 'Sim, no começo',
+    icon: <svg {...ICON}><rect x="3" y="6" width="18" height="13" rx="1.5" /><path d="M5 3.5h14" /><circle cx="8.5" cy="10.5" r="1.4" /><path d="M4 17l5-4.5 3.5 3 3-2.5L20 17" /></svg> },
+  { name: 'Photo', level: 'rare', what: 'Tratamento de fotos com as ferramentas de cor do Resolve', use: 'Raramente',
+    icon: <svg {...ICON}><rect x="3" y="7" width="18" height="13" rx="3" /><circle cx="12" cy="13.5" r="3.6" /><path d="M8 7l1.5-2.5h5L16 7" /></svg> },
+  { name: 'Cut', level: 'rare', what: 'Montagem rápida, pra prazo curto', use: 'Raramente',
+    icon: <svg {...ICON}><rect x="9" y="5" width="12" height="14" rx="1.5" /><path d="M13 5v14M17 5v14" /><path d="M2 9h5M3 12h4M2 15h5" /></svg> },
+  { name: 'Edit', level: 'some', what: 'Montagem completa do filme na timeline', use: 'Às vezes, pra conferir o corte',
+    icon: <svg {...ICON}><path d="M12 3v18" /><rect x="4" y="6" width="6" height="3" rx="1" /><rect x="14" y="6" width="6" height="3" rx="1" /><rect x="3" y="11" width="7" height="3" rx="1" /><rect x="14" y="11" width="4" height="3" rx="1" /><rect x="5" y="16" width="5" height="3" rx="1" /><rect x="14" y="16" width="7" height="3" rx="1" /></svg> },
+  { name: 'Fusion', level: 'rare', what: 'Efeitos visuais e motion graphics', use: 'Raramente',
+    icon: <svg {...ICON}><path d="M5 20l9-9" /><path d="M14 11l2-5 2 5-2 1z" /><path d="M6 5v3M4.5 6.5h3M10 3v2M9 4h2M19 15v3M17.5 16.5h3" /></svg> },
+  { name: 'Color', level: 'yes', what: 'Correção de cor e color grading', use: 'Sim, o tempo todo',
+    icon: <svg viewBox="0 0 24 24" aria-hidden="true" className="h-6 w-6 sm:h-[26px] sm:w-[26px]"><circle cx="12" cy="4.5" r="2" fill="#ff453a" /><circle cx="17.3" cy="6.7" r="2" fill="#ff9f0a" /><circle cx="19.5" cy="12" r="2" fill="#ffd60a" /><circle cx="17.3" cy="17.3" r="2" fill="#32d74b" /><circle cx="12" cy="19.5" r="2" fill="#64d2ff" /><circle cx="6.7" cy="17.3" r="2" fill="#0a84ff" /><circle cx="4.5" cy="12" r="2" fill="#bf5af2" /><circle cx="6.7" cy="6.7" r="2" fill="#ff375f" /></svg> },
+  { name: 'Fairlight', level: 'no', what: 'Áudio: edição e mixagem', use: 'Não',
+    icon: <svg {...ICON}><path d="M9 18V6l11-2v12" /><circle cx="6.5" cy="18" r="2.5" /><circle cx="17.5" cy="16" r="2.5" /></svg> },
+  { name: 'Deliver', level: 'yes', what: 'Exportar o filme final', use: 'Sim, no final',
+    icon: <svg {...ICON}><path d="M14.5 4.5c3-1.5 5.5-1 5.5-1s.5 2.5-1 5.5l-6 6-4.5-4.5z" /><circle cx="15.5" cy="8.5" r="1.4" /><path d="M8.5 10.5L5 11l-2 3 4 .5M13.5 15.5L13 19l-3 2-.5-4" /><path d="M6 18l-2 2" /></svg> },
+];
+
+function PageTip({ page }: { page: ResolvePage }) {
+  return (
+    <>
+      <p className="font-sans text-base font-black leading-tight text-neutral-900">{page.name}</p>
+      <p className="mt-1.5 font-serif text-[16px] leading-snug text-neutral-800">{page.what}</p>
+      <p className="mt-2.5 flex items-center gap-2 border-t border-neutral-200 pt-2.5 font-sans text-xs text-neutral-600">
+        <span aria-hidden="true" className={`h-2 w-2 shrink-0 rounded-full ${LEVEL_DOT[page.level]}`} />
+        <span>O colorista usa? <strong className="font-bold text-neutral-900">{page.use}</strong></span>
+      </p>
+    </>
+  );
+}
+
+function ResolvePagesBar() {
+  const [active, setActive] = useState('Color');
+  const [shown, setShown] = useState('Color'); // painel para telas pequenas (sem hover)
+  const shownPage = RESOLVE_PAGES.find((p) => p.name === shown)!;
+  const last = RESOLVE_PAGES.length - 1;
+
+  return (
+    <div className="space-y-3 pb-2 sm:pb-36">
+      <nav aria-label="Páginas do DaVinci Resolve" className="flex rounded-t-md border-b border-[#2a2a2c] bg-[#1c1c1e] font-sans">
+        {RESOLVE_PAGES.map((page, i) => {
+          const isActive = active === page.name;
+          const edge = i === 0 ? 'left-0' : i === last ? 'right-0' : 'left-1/2 -translate-x-1/2';
+          const arrow = i === 0 ? 'left-10' : i === last ? 'right-10' : 'left-1/2 -translate-x-1/2';
+          return (
+            <button
+              key={page.name}
+              type="button"
+              aria-current={isActive ? 'page' : undefined}
+              onClick={() => { setActive(page.name); setShown(page.name); }}
+              onMouseEnter={() => setShown(page.name)}
+              onFocus={() => setShown(page.name)}
+              className={`group relative flex min-w-0 flex-1 cursor-pointer flex-col items-center gap-1.5 px-0.5 pb-2 pt-2.5 outline-none transition-colors duration-150 sm:px-1 ${
+                isActive ? 'bg-black font-semibold text-white' : 'text-[#8e8e93] hover:text-[#d1d1d6] focus-visible:text-[#d1d1d6]'
+              }`}
+            >
+              {page.icon}
+              <span className="text-[10px] tracking-[0.01em] sm:text-[15px]">{page.name}</span>
+              {isActive && <span aria-hidden="true" className="absolute inset-x-0 -bottom-px h-[3px] bg-[#e5534b]" />}
+
+              <span
+                role="tooltip"
+                className={`pointer-events-none invisible absolute top-[calc(100%+12px)] z-20 hidden w-[270px] translate-y-1.5 rounded-2xl border border-neutral-200 bg-white p-4 text-left font-normal opacity-0 shadow-xl transition-[opacity,transform] duration-200 group-hover:visible group-hover:translate-y-0 group-hover:opacity-100 group-focus-visible:visible group-focus-visible:translate-y-0 group-focus-visible:opacity-100 motion-reduce:transition-none sm:block ${edge}`}
+              >
+                <span aria-hidden="true" className={`absolute -top-1.5 h-3 w-3 rotate-45 border-l border-t border-neutral-200 bg-white ${arrow}`} />
+                <PageTip page={page} />
+              </span>
+            </button>
+          );
+        })}
+      </nav>
+
+      {/* Telas pequenas: sem passar o mouse, a explicação aparece aqui embaixo */}
+      <div role="status" aria-live="polite" className="rounded-2xl border border-neutral-200 bg-white p-4 sm:hidden">
+        <PageTip page={shownPage} />
+      </div>
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------------ ferramenta: qual node resolve isso? */
+
+const NODE_QUIZ: QuizQuestion[] = [
+  ...NODE_TYPES.map((n, i) => ({
+    situation: `${n.situation.replace(/\.$/, '')}. Qual tipo de node resolve isso?`,
+    options: NODE_TYPES.map((o) => o.name),
+    answer: i,
+    explain: `${n.name}: ${n.how.charAt(0).toLowerCase() + n.how.slice(1)}.`,
+    why: NODE_TYPES.map((o) => `O ${o.name} serve para: ${o.when.charAt(0).toLowerCase() + o.when.slice(1)}.`),
+  })),
+  { situation: 'Qual mixer combina seleções, como dois qualifiers ou duas máscaras?', options: ['Parallel Mixer', 'Layer Mixer', 'Key Mixer', 'Compound Node'], answer: 2, explain: 'O Key Mixer junta seleções. O Parallel Mixer soma correções e o Layer Mixer sobrepõe camadas.' },
+  { situation: 'Qual mixer soma as correções de nodes que partem da mesma imagem?', options: ['Parallel Mixer', 'Layer Mixer', 'Key Mixer', 'Shared Node'], answer: 0, explain: 'O Parallel Mixer soma as correções paralelas.' },
+  { situation: 'Qual mixer sobrepõe camadas, com prioridade entre elas?', options: ['Parallel Mixer', 'Layer Mixer', 'Key Mixer', 'Outside'], answer: 1, explain: 'O Layer Mixer sobrepõe camadas.' },
+  { situation: 'Qual node só organiza o node tree, sem reaproveitar a correção em outros lugares?', options: ['Shared Node', 'Compound Node', 'Serial', 'Parallel'], answer: 1, explain: 'O Compound só organiza. Quem reaproveita uma correção em vários lugares é o Shared.' },
+  { situation: 'Em qual estágio do grupo fica a parte técnica que vale para todos os clipes?', options: ['Pre-Clip', 'Clip', 'Post-Clip', 'Timeline'], answer: 0, explain: 'O Pre-Clip cuida da parte técnica que vale para todos.' },
+  { situation: 'Em qual estágio do grupo fica o look do grupo?', options: ['Pre-Clip', 'Clip', 'Post-Clip', 'Timeline'], answer: 2, explain: 'O Post-Clip guarda o look do grupo e permite mexer no look do filme inteiro num lugar só.' },
+  { situation: 'Qual atalho liga e desliga um node, para você ver o que ele está fazendo?', options: ['Command/Ctrl + D', 'Shift + 6', 'Shift + 8', 'Command/Ctrl + Z'], answer: 0, explain: 'Command/Ctrl + D liga e desliga o node selecionado.' },
+];
+
+function NodeQuiz() {
+  return (
+    <ScoredQuiz
+      title="Qual node resolve isso?"
+      hint="Leia cada pergunta e escolha a resposta certa. As respostas vêm do artigo."
+      pool={NODE_QUIZ}
+    />
+  );
+}
+
+/* ------------------------------------------------------------------ sumário */
+
+const TOC: TocGroup[] = [
+  { title: 'Introdução', id: 'introducao-resolve' },
+  { title: 'As páginas do Resolve', id: 'paginas-do-resolve' },
+  {
+    title: 'Organização',
+    id: 'organizacao-resolve',
+    items: [
+      { label: 'O Project Manager', id: 'o-project-manager' },
+      { label: 'Banco de dados, não arquivo', id: 'o-resolve-nao-salva-arquivo-salva-em-banco-de-dados' },
+      { label: 'Backup', id: 'backup-nao-deixe-pra-depois' },
+      { label: 'Exportar x arquivar', id: 'exportar-x-arquivar' },
+      { label: 'Media Pool e gerenciamento de cor', id: 'media-pool-e-gerenciamento-de-cor' },
+    ],
+  },
+  { title: 'A página Color', id: 'pagina-color' },
+  {
+    title: 'Nodes',
+    id: 'nodes-resolve',
+    items: [
+      { label: 'A ordem importa', id: 'a-ordem-importa' },
+      { label: 'Os tipos de node', id: 'os-tipos-de-node' },
+      { label: 'Grupos e o node tree do filme', id: 'grupos-e-o-node-tree-do-filme-inteiro' },
+    ],
+  },
+  {
+    title: 'Primárias e ferramentas específicas',
+    id: 'primarias-resolve',
+    items: [
+      { label: 'Color Wheels', id: 'color-wheels-lift-gamma-gain-e-offset' },
+      { label: 'Primary Bars e Log Wheels', id: 'primary-bars-e-log-wheels' },
+      { label: 'HDR', id: 'hdr-ajuste-preciso-por-faixa-tonal' },
+      { label: 'RGB Mixer', id: 'rgb-mixer-os-canais-de-cor' },
+      { label: 'Curves', id: 'curves-contraste-matiz-e-saturacao' },
+    ],
+  },
+  {
+    title: 'Isolamento',
+    id: 'isolamento-resolve',
+    items: [
+      { label: 'Qualifier', id: 'qualifier-selecao-por-cor' },
+      { label: 'Power Windows', id: 'power-windows-selecao-por-forma' },
+      { label: 'Tracker', id: 'tracker-acompanhando-o-movimento' },
+      { label: 'Magic Mask', id: 'magic-mask-selecao-por-inteligencia-artificial' },
+      { label: 'Key', id: 'key-a-forca-do-seu-node' },
+      { label: 'Blur, Sharpen e Sizing', id: 'blur-sharpen-e-sizing' },
+    ],
+  },
+  {
+    title: 'Análise e comparação',
+    id: 'analise-e-comparacao-resolve',
+    items: [
+      { label: 'Scopes', id: 'scopes' },
+      { label: 'Split Screen', id: 'split-screen' },
+      { label: 'Gallery', id: 'gallery' },
+      { label: 'Color Match', id: 'color-match' },
+      { label: 'Versions', id: 'versions' },
+    ],
+  },
+  { title: 'Na prática: num comercial de produto', id: 'resolve-na-pratica' },
+  { title: 'Atalhos', id: 'atalhos-resolve' },
+  { title: 'Conclusão', id: 'conclusao-resolve' },
+];
+
+/* ------------------------------------------------------------------ artigo */
 
 export default function IntroducaoDaVinciArticle() {
   return (
-    <article className="w-full text-[#111111] font-serif select-text leading-relaxed relative space-y-10">
+    <article className="relative w-full space-y-10 font-serif leading-relaxed text-[#111111] select-text">
       <ArticleToc groups={TOC} />
 
-
-      {/* ===================================================================
-          SEÇÃO 1 — PRIMEIRO, VAMOS ENTENDER O DAVINCI RESOLVE
-          =================================================================== */}
-      <EditorialSection id="primeiro-vamos-entender-o-davinci-resolve"
-        kickerLeft="FUNDAMENTOS · INTRODUÇÃO"
-        kickerRight="VISÃO GERAL"
-        title="PRIMEIRO, VAMOS ENTENDER O DAVINCI RESOLVE"
-        subtitle="COMO O PROGRAMA ESTÁ ORGANIZADO E ONDE VOCÊ VAI TRABALHAR"
+      {/* ===================== INTRODUÇÃO ===================== */}
+      <EditorialSection
+        id="introducao-resolve"
+        kickerLeft="FUNDAMENTOS · DAVINCI RESOLVE"
+        kickerRight="COLOR GRADING"
+        title="INTRODUÇÃO AO DAVINCI RESOLVE PARA COLOR GRADING"
       >
-        <FullWidthImage
-          src={getMediaUrl('assets/artigos/introducao-davinci/davinci-resolve.webp')}
-          alt="DaVinci Resolve"
-          loading="eager"
-          fetchPriority="high"
+        <Prose>
+          <p>
+            Antes de começar a mexer na imagem, bora entender como o DaVinci Resolve funciona. Principalmente se você ainda não está muito familiarizado com o programa, porque a interface pode parecer meio confusa no começo: tem bastante coisa na tela e, principalmente, tem ferramenta pra caramba.
+          </p>
+          <p>
+            E não precisa querer aprender tudo agora, tá? O Resolve tem um milhão de ferramentas, e é impossível falar de todas elas. Aqui você vai entender como o programa está organizado, como manter seus projetos em ordem e onde ficam as ferramentas que a gente usa no fluxo de trabalho do color grading.
+          </p>
+          <p>
+            Nesse artigo, a gente começa pela organização (Project Manager, bancos de dados, backups e gerenciamento de cor) e depois entra na página Color: nodes, primárias, ferramentas de isolamento, scopes e comparação. No final, tem um passo a passo mostrando onde cada ferramenta entra num comercial de produto e os atalhos que você precisa começar a usar.
+          </p>
+        </Prose>
+        <Fig file="davinci-resolve.webp" alt="DaVinci Resolve" />
+      </EditorialSection>
+
+      {/* ===================== AS PÁGINAS ===================== */}
+      <EditorialSection
+        id="paginas-do-resolve"
+        kickerLeft="PÓS-PRODUÇÃO"
+        kickerRight="ONDE O COLORISTA TRABALHA"
+        title="AS PÁGINAS DO RESOLVE: ONDE O COLORISTA TRABALHA"
+      >
+        <Prose>
+          <p>
+            O Resolve é dividido em páginas, e cada uma tem uma função dentro da pós-produção. Elas ficam na barra de baixo da tela, na ordem em que o trabalho costuma acontecer.
+          </p>
+        </Prose>
+
+        <DataTable
+          caption="As páginas do Resolve, para que servem e se o colorista as usa"
+          head={['Página', 'Pra que serve', 'O colorista usa?']}
+          rows={[
+            ['Media', 'Trazer os arquivos do computador pro projeto e organizar no Media Pool', 'Sim, no começo'],
+            ['Cut', 'Montagem rápida, pra prazo curto', 'Raramente'],
+            ['Edit', 'Montagem completa do filme na timeline', 'Às vezes, pra conferir o corte'],
+            ['Fusion', 'Efeitos visuais e motion graphics', 'Raramente'],
+            ['Color', 'Correção de cor e color grading', 'Sim, o tempo todo'],
+            ['Fairlight', 'Áudio: edição e mixagem', 'Não'],
+            ['Deliver', 'Exportar o filme final', 'Sim, no final'],
+          ]}
         />
 
-        <TwoColumnText
-          left={
-            <>
-              <p>
-                Antes de começar a mexer na imagem, vamos entender um pouco como o DaVinci Resolve funciona. Principalmente se você ainda não está muito familiarizado com o programa, porque a interface pode parecer meio confusa no começo. Tem bastante coisa na tela e, principalmente, tem ferramenta pra caramba.
-              </p>
-              <p className="font-sans font-bold text-neutral-900 text-xl">
-                E não precisa querer aprender tudo agora.
-              </p>
-              <p>
-                O DaVinci Resolve tem um milhão de ferramentas. É impossível falar sobre todas elas em um curso. Então a ideia aqui é outra: você vai entender como o DaVinci Resolve está organizado e onde ficam as ferramentas que a gente vai usar no nosso trabalho de color grading.
-              </p>
-            </>
-          }
-          right={
-            <>
-              <p>
-                O Resolve é dividido em diferentes páginas, e cada uma delas tem uma função dentro do processo de pós-produção. A Media, por exemplo, é onde você vai trabalhar com os arquivos do projeto, trazendo para dentro do programa os arquivos que estão no computador. Depois você tem as outras áreas do programa, cada uma voltada para uma etapa do trabalho.
-              </p>
-              <EditorialQuote
-                quote="Mas, para o que a gente vai fazer aqui, a página que mais interessa é a Color. É nela que você vai passar a maior parte do tempo."
-              />
-              <p>
-                Quando você abre a Color, vai encontrar a imagem, a timeline, a Gallery, os nodes, os scopes e todas aquelas ferramentas de correção na parte inferior. No começo pode parecer muita coisa, mas cada ferramenta tem uma função bem específica.
-              </p>
-            </>
-          }
-        />
+        <ResolvePagesBar />
 
-        <div className="bg-[#f5f5f7] p-5 rounded-2xl border border-neutral-200 text-neutral-800 text-base font-serif italic text-center">
-          “A ideia é você terminar essa parte olhando para a página Color e já sabendo onde está cada coisa e para que ela serve. Aí sim a gente começa a trabalhar a imagem.”
-        </div>
-      </EditorialSection>
-
-      {/* ===================================================================
-          SEÇÃO 2 — A ABA COLOR
-          =================================================================== */}
-      <EditorialSection id="a-aba-color"
-        kickerLeft="FUNDAMENTOS"
-        kickerRight="ESTRUTURA DA TELA"
-        title="A ABA COLOR"
-        subtitle="É AQUI QUE A IMAGEM COMEÇA A TOMAR FORMA"
-      >
-        <ImageAndText
-          imageSrc={getMediaUrl('assets/artigos/introducao-davinci/color-page.webp')}
-          imageAlt="Interface Principal da Página Color"
-          imagePosition="left"
-        >
+        <Prose>
           <p>
-            Quando você chega à página Color do DaVinci Resolve, encontra um ambiente pensado especificamente para transformar e finalizar a imagem. Diferente da página Edit, onde a principal preocupação é organizar e montar o filme, aqui cada elemento da interface existe para permitir que você analise, controle e construa a aparência de cada plano.
+            Pra o que a gente vai fazer aqui, a página que mais interessa é a Color. É nela que você vai passar a maior parte do tempo. A Media e a Deliver entram nas pontas: uma pra trazer o material, a outra pra entregar o filme.
           </p>
+        </Prose>
+        <Note>Um atalho que ajuda: as páginas têm números. Shift + 6 te leva direto pra Color, e Shift + 8 pra Deliver.</Note>
+      </EditorialSection>
+
+      {/* ===================== ORGANIZAÇÃO ===================== */}
+      <EditorialSection
+        id="organizacao-resolve"
+        kickerLeft="ANTES DE COLORIR"
+        kickerRight="PROJETOS E BACKUP"
+        title="ORGANIZAÇÃO: ANTES DE COLORIR, ARRUME A CASA"
+      >
+        <Prose>
           <p>
-            A imagem ocupa o centro da tela porque é ela que precisa ser observada o tempo inteiro. Na parte inferior, a timeline permite navegar pelo projeto e selecionar os planos. À esquerda, a Gallery reúne stills, referências e grades que podem ser reutilizadas ao longo do trabalho. À direita, os nodes mostram a estrutura da correção, tornando visível a ordem em que cada transformação acontece.
+            Antes de abrir a Color, a gente precisa entender onde o Resolve guarda o trabalho e como manter tudo organizado. Isso parece burocracia, mas é o que salva você quando o cliente volta três meses depois pedindo uma versão nova, ou quando o computador resolve dar problema.
           </p>
-          <p>
-            Na parte inferior ficam as ferramentas que você vai usar para modificar a imagem: rodas de cor, curvas, seletores, qualifiers, janelas, tracking e uma série de outros recursos que permitem trabalhar desde uma simples correção de exposição até transformações muito mais complexas.
-          </p>
-        </ImageAndText>
-      </EditorialSection>
+        </Prose>
 
-      {/* ===================================================================
-          SEÇÃO 3 — OS NODES
-          =================================================================== */}
-      <EditorialSection id="os-nodes"
-        kickerLeft="FUNDAMENTOS"
-        kickerRight="FLUXO SEQUENCIAL"
-        title="OS NODES"
-        subtitle="A IMAGEM PASSA POR AQUI"
-      >
-        <ImageAndText
-          imageSrc={getMediaUrl('assets/artigos/introducao-davinci/NODES.webp')}
-          imageAlt="Node Graph no DaVinci Resolve"
-          imagePosition="right"
-        >
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 lg:gap-8 font-serif text-[16px] sm:text-[17px] text-neutral-800 leading-[1.6]">
-            <div className="space-y-3.5">
-              <p>
-                No DaVinci Resolve, o tratamento da imagem é construído por meio de uma sequência de nodes. Cada node recebe o sinal de imagem, aplica uma ou mais operações e envia o resultado para a etapa seguinte. Essa estrutura permite dividir o processo de correção e criação do look em partes independentes e organizadas.
-              </p>
-              <p>
-                Um node pode ser responsável pelo gerenciamento de cor, outro pela exposição, outro pelo balanço de branco, outro pelo contraste e outros por ajustes específicos, como correções de pele, controle de saturação, recuperação de determinadas áreas ou construção do look. A combinação dessas etapas forma o node tree, que representa o percurso da imagem dentro do processo de color grading.
-              </p>
-            </div>
-            <div className="space-y-3.5">
-              <h4 className="font-sans font-bold text-lg text-neutral-900 tracking-tight not-italic">
-                A ordem importa
-              </h4>
-              <p>
-                As operações realizadas nos nodes acontecem na ordem em que estão conectadas. Uma alteração feita no início da cadeia modifica o sinal que será recebido pelos nodes seguintes. Por essa razão, a organização do node tree acompanha a lógica do processo de tratamento da imagem.
-              </p>
-              <p>
-                Uma estrutura simples pode começar com a transformação do espaço de cor do material de origem, passar pelas correções primárias, seguir para ajustes secundários e terminar na construção do look e na transformação de saída. Cada etapa ocupa uma posição determinada dentro desse fluxo.
-              </p>
-              <p>
-                Essa organização facilita a leitura do projeto e permite localizar com precisão cada intervenção feita na imagem.
-              </p>
-            </div>
-          </div>
-        </ImageAndText>
+        <Sub title="O Project Manager">
+          <Prose>
+            <p>
+              O Project Manager é a tela onde ficam todos os seus projetos. Você abre ele com Shift + 1 ou clicando no ícone de casinha no canto inferior direito. Ali você cria, abre, renomeia, organiza em pastas, exporta e arquiva projetos.
+            </p>
+            <p>
+              Uma dica de organização: crie pastas por cliente ou por ano, e dê nomes que façam sentido, tipo “2026_MarcaX_Comercial30s”. Em pouco tempo você vai ter dezenas de projetos, e achar o certo vira um problema.
+            </p>
+          </Prose>
+        </Sub>
 
-        <div className="space-y-5 border-t border-neutral-200 pt-7">
-          <div className="space-y-3 font-serif text-[16px] leading-relaxed text-neutral-800 [&_p]:text-justify">
-            <h4 id="tipos-de-nodes" className="scroll-mt-4 font-sans text-xl font-bold text-neutral-900">Tipos de nodes no DaVinci Resolve</h4>
-            <p>Na página Color, os nodes são a estrutura usada para organizar e executar correções e tratamentos da imagem. Cada node funciona como uma etapa do processamento e pode conter ajustes primários, correções seletivas, máscaras, efeitos e outras operações.</p>
-            <p>Separar o tratamento em etapas independentes ajuda a organizar a ordem das operações e facilita a revisão. Você pode, por exemplo, dedicar nodes diferentes ao balanço de cor, contraste, ajustes de pele e criação do look. As conexões formam a <em>node tree</em> (árvore de nodes): a saída de um node pode alimentar outro, dividir-se em ramificações ou ser combinada com outras operações.</p>
-            <p>As estruturas abaixo têm comportamentos diferentes. Entendê-las ajuda a montar árvores de nodes organizadas e escolher o fluxo adequado sem adicionar complexidade desnecessária.</p>
-          </div>
+        <Sub title="O Resolve não salva arquivo, salva em banco de dados">
+          <Prose>
+            <p>
+              Aqui tem uma diferença importante pra quem vem do Premiere ou do Final Cut, tá? O Resolve não salva cada projeto como um arquivo solto no seu computador. Os projetos ficam dentro de um banco de dados central, chamado Project Library.
+            </p>
+            <p>
+              Você pode ter mais de uma library: uma pros trabalhos de cliente, outra pros estudos, por exemplo. Elas aparecem no painel lateral do Project Manager, em Show/Hide Project Libraries.
+            </p>
+          </Prose>
+        </Sub>
 
-          <div className="grid gap-5 lg:grid-cols-2">
-            <NodeTypeCard title="1. Serial Node · Nó serial" use="correções primárias, balanço de branco, exposição, contraste, saturação, criação de looks e ajustes finais. É uma boa estrutura principal para começar." images={[{ src: getMediaUrl('assets/artigos/introducao-davinci/nodes/serial.png'), alt: 'Diagrama de nodes conectados em série', width: 664, height: 388 }]}>
-              <p>É a estrutura mais comum e o ponto de partida da maioria dos trabalhos. Os nodes são conectados em sequência: a imagem passa pelo primeiro, cuja saída alimenta o segundo, e assim por diante.</p>
-              <p>Cada node recebe a imagem já processada pelas etapas anteriores, por isso a ordem importa. Se o primeiro node ajusta o balanço de branco, o segundo trabalha o contraste sobre essa imagem balanceada, e o terceiro ajusta a saturação depois das duas operações anteriores.</p>
-              <p>Separar o tratamento em etapas lógicas facilita localizar problemas, comparar ajustes e revisar o trabalho.</p>
-            </NodeTypeCard>
-
-            <NodeTypeCard title="2. Parallel Node · Node paralelo" use="correções seletivas de pele, céu, vegetação, objetos e outras áreas que precisam de ajustes independentes." images={[{ src: getMediaUrl('assets/artigos/introducao-davinci/nodes/paralelo.png'), alt: 'Diagrama de nodes paralelos conectados a um mixer', width: 624, height: 444 }]}>
-              <p>Os nodes paralelos partem de uma mesma imagem de origem e têm seus resultados combinados por um Parallel Mixer. Cada node faz sua própria correção sem receber diretamente a saída corrigida dos outros.</p>
-              <p>Por exemplo, você pode ajustar a pele, controlar a saturação do céu e modificar a vegetação em ramificações separadas. Isso facilita controlar cada intervenção e reduz a interferência em cadeia entre elas.</p>
-              <p>O resultado ainda depende de como o Parallel Mixer combina as correções e as respectivas informações de chaveamento.</p>
-            </NodeTypeCard>
-
-            <NodeTypeCard title="3. Layer Mixer · Mixer de camadas" use="compor correções com máscaras e combinar regiões que tenham prioridades diferentes." images={[{ src: getMediaUrl('assets/artigos/introducao-davinci/nodes/layer.png'), alt: 'Diagrama de nodes combinados em camadas', width: 716, height: 464 }]}>
-              <p>O Layer Mixer combina ramificações com uma lógica de sobreposição: entradas de maior prioridade podem aparecer sobre as anteriores, conforme as informações de chaveamento e transparência.</p>
-              <p>Imagine uma correção para o fundo e outra para um objeto em primeiro plano. Cada ramificação pode ter seus próprios ajustes e uma máscara para definir onde aparece; o mixer combina as camadas respeitando essa prioridade.</p>
-              <p>Ele é indicado quando o tratamento depende da sobreposição de regiões corrigidas separadamente.</p>
-            </NodeTypeCard>
-
-            <NodeTypeCard title="4. Outside Node · Node externo" use="tratar o fundo ou o entorno de uma área selecionada, como reduzir a saturação fora da pele ou ajustar o contraste fora de uma janela." images={[{ src: getMediaUrl('assets/artigos/introducao-davinci/nodes/outside.png'), alt: 'Diagrama de Outside Node aplicado após uma seleção', width: 712, height: 322 }]}>
-              <p>Aplica uma correção à região oposta à seleção criada no node anterior. Ele inverte as informações de chaveamento, ou <em>key</em>, para direcionar o ajuste à área externa.</p>
-              <p>Se um Qualifier seleciona a pele, você pode corrigir essa seleção no node original e usar o Outside Node para tratar o restante da imagem. O mesmo princípio vale para uma Power Window que isola um rosto.</p>
-              <p>O Outside Node não encontra automaticamente o fundo ou o objeto: ele inverte a seleção anterior, então a qualidade dessa seleção continua sendo essencial.</p>
-            </NodeTypeCard>
-
-            <NodeTypeCard title="5. Splitter/Combiner · Separação e combinação de canais" use="tratamentos avançados por canal RGB, correção de dominantes e efeitos cromáticos específicos." images={[{ src: getMediaUrl('assets/artigos/introducao-davinci/nodes/spliter.png'), alt: 'Diagrama de Splitter separando os canais da imagem', width: 1824, height: 964 }, { src: getMediaUrl('assets/artigos/introducao-davinci/nodes/combiner.png'), alt: 'Diagrama de Combiner reunindo os canais da imagem', width: 1134, height: 878 }]}>
-              <p>O Splitter separa os componentes vermelho, verde e azul para que cada canal seja processado de forma independente. O Combiner reúne os canais tratados em uma única imagem.</p>
-              <p>Essa estrutura permite atuar diretamente nos componentes RGB. Por exemplo, você pode alterar a contribuição de um canal para corrigir uma dominante ou criar um efeito cromático particular.</p>
-              <p>É uma abordagem avançada e pouco necessária nas correções primárias comuns. Em muitos casos, o RGB Mixer e as curvas oferecem um caminho mais direto.</p>
-            </NodeTypeCard>
-
-            <NodeTypeCard title="6. Key Mixer · Mixer de chaves" use="combinar vários Qualifiers ou máscaras para formar uma seleção mais complexa." images={[{ src: getMediaUrl('assets/artigos/introducao-davinci/nodes/key%20mixer.png'), alt: 'Diagrama de nodes conectados a um Key Mixer', width: 944, height: 480 }]}>
-              <p>O Key Mixer combina informações de chaveamento — as seleções que definem onde uma correção pode atuar. Sua função principal é reunir seleções, não combinar as imagens corrigidas.</p>
-              <p>Um Qualifier pode selecionar parte de um objeto e outro completar as áreas que ficaram de fora. As duas chaves podem ser combinadas para criar uma seleção mais útil; o mesmo vale para máscaras diferentes.</p>
-              <p>Não confunda os mixers: o Parallel Mixer combina resultados de correções paralelas, o Layer Mixer combina imagens em camadas e o Key Mixer combina seleções.</p>
-            </NodeTypeCard>
-
-            <NodeTypeCard title="7. Shared Node · Node compartilhado" use="aplicar a mesma correção a vários clipes, como uma transformação de cor ou ajuste comum a planos da mesma produção.">
-              <p>Compartilha uma correção entre diferentes nodes ou clipes. Quando você altera o Shared Node, a mudança aparece em todas as instâncias vinculadas.</p>
-              <p>Em uma entrevista com várias câmeras, por exemplo, ele permite manter um ajuste comum sem repeti-lo manualmente em cada clipe. Isso ajuda a preservar a consistência visual e agiliza revisões.</p>
-              <p>Use com critério: se os planos precisarem de ajustes diferentes, uma mudança no node compartilhado afetará todas as instâncias conectadas.</p>
-            </NodeTypeCard>
-
-            <NodeTypeCard title="8. Compound Node · Node composto" use="agrupar correções complexas e deixar mais limpo um node tree extenso.">
-              <p>Reúne vários nodes em uma única estrutura visual no node tree principal. A estrutura interna continua existindo, mas fica agrupada em uma unidade mais compacta.</p>
-              <p>Uma correção de pele, por exemplo, pode incluir Qualifier, Power Window, ajustes de cor, redução de saturação e controle de contraste. Agrupá-los facilita a leitura do fluxo principal.</p>
-              <p>Não confunda com Shared Node: o Compound organiza várias operações em um grupo; o Shared reutiliza uma correção em diferentes instâncias.</p>
-            </NodeTypeCard>
-          </div>
-
-          <div className="rounded-2xl border border-neutral-200 bg-[#f5f5f7] p-5 sm:p-6">
-            <h4 id="como-organizar-os-nodes" className="scroll-mt-4 font-sans text-lg font-bold text-neutral-900">Como organizar os nodes em um trabalho real</h4>
-            <p className="mt-2 font-serif text-[16px] leading-relaxed text-neutral-800">Um fluxo serial simples pode começar pelo tratamento técnico da imagem, seguir para balanço de branco e exposição, avançar para contraste e saturação e terminar com a criação do look e os ajustes finais.</p>
-            <p className="mt-3 font-serif text-[16px] leading-relaxed text-neutral-800">Quando precisar de correções seletivas independentes, use uma estrutura paralela. Para tratar a região externa de uma seleção, considere o Outside Node; para unir máscaras, o Key Mixer; para sobrepor regiões corrigidas, o Layer Mixer.</p>
-            <p className="mt-3 font-serif text-[16px] leading-relaxed text-neutral-800">Não existe uma única árvore ideal para todas as cenas. A melhor estrutura é a que permite fazer os ajustes necessários com clareza, controle e flexibilidade, sem tornar o processo mais complexo do que o projeto exige.</p>
-          </div>
-        </div>
-      </EditorialSection>
-
-      {/* ===================================================================
-          SEÇÃO 4 — PRIMARIES
-          =================================================================== */}
-      <EditorialSection id="primarias"
-        kickerLeft="FUNDAMENTOS"
-        kickerRight="AJUSTE DE BASE · FERRAMENTAS PRIMÁRIAS"
-        title="PRIMÁRIAS"
-        subtitle="PRIMARIES, COLOR WHEELS E LOG WHEELS"
-      >
-        <h4 id="primaries" className="scroll-mt-4 border-t border-neutral-200 pt-6 font-sans text-xl font-bold text-neutral-900">Primaries</h4>
-        <ImageAndText
-          imageSrc={getMediaUrl('assets/artigos/introducao-davinci/PRIMARIES.webp')}
-          imageAlt="Painel Primaries no DaVinci Resolve"
-          imagePosition="left"
-        >
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 lg:gap-8 font-serif text-[16px] sm:text-[17px] text-neutral-800 leading-[1.6]">
-            <div className="space-y-3.5">
-              <p>
-                As Primaries são o primeiro conjunto de ferramentas utilizado na construção da imagem dentro do processo de color grading. Elas permitem trabalhar a estrutura geral do plano, estabelecendo relações de exposição, contraste, balanço de cor e saturação antes das correções mais específicas.
-              </p>
-              <p>
-                O objetivo dessa etapa é criar uma base sólida para a imagem. A partir dela, o colorista consegue equilibrar os planos, corrigir diferenças de exposição ou temperatura de cor e estabelecer uma reprodução mais próxima da intenção visual do projeto.
-              </p>
-            </div>
-            <div className="space-y-3.5">
-              <p>
-                No DaVinci Resolve, as ferramentas de primárias estão organizadas em diferentes modos de controle, cada um com uma forma específica de atuar sobre a imagem. Color Wheels, Primary Bars e Log Wheels oferecem maneiras diferentes de controlar as regiões tonais e cromáticas, permitindo escolher a abordagem mais adequada para cada situação.
-              </p>
-              <p>
-                O trabalho com primárias exige uma leitura constante da imagem. Antes de buscar um look, é preciso entender como a luz está distribuída, onde estão as sombras, os tons médios e as altas luzes, como as cores estão se relacionando e quais características do material precisam ser preservadas ou ajustadas.
-              </p>
-            </div>
-          </div>
-        </ImageAndText>
-
-        <h4 id="color-wheels" className="scroll-mt-4 border-t border-neutral-200 pt-6 font-sans text-xl font-bold text-neutral-900">Color Wheels <span className="font-normal text-neutral-600">· Lift, Gamma, Gain e Offset</span></h4>
-        <ImageAndText
-          imageSrc={getMediaUrl('assets/artigos/introducao-davinci/COLOR WHEELS.webp')}
-          imageAlt="Painel das Color Wheels no DaVinci Resolve"
-          imagePosition="left"
-        >
-          <div className="grid grid-cols-1 gap-6 font-serif text-[16px] leading-[1.6] text-neutral-800 sm:grid-cols-2 lg:gap-8 sm:text-[17px]">
-            <div className="space-y-3.5">
-              <p>
-                As Color Wheels são uma das principais interfaces de controle das Primaries no DaVinci Resolve. Elas permitem trabalhar simultaneamente a luminância e a crominância de diferentes regiões da escala tonal, oferecendo uma forma visual e intuitiva de construir o equilíbrio da imagem.
-              </p>
-              <p>
-                As rodas são divididas em áreas tonais. Essa separação permite fazer alterações direcionadas às sombras, aos tons médios e às altas luzes, enquanto o controle global atua sobre toda a imagem. Ao deslocar o ponto dentro de uma roda, você modifica a distribuição de cor daquela região tonal. Ao alterar seu nível, controla a quantidade de luz presente nela.
-              </p>
-              <p>
-                O valor das Color Wheels está justamente na possibilidade de trabalhar cor e luminância de forma relacionada, observando como uma alteração em uma região da escala tonal afeta a percepção geral da imagem.
-              </p>
-            </div>
-            <div className="space-y-3.5">
-              <p>
-                Esse comportamento torna as Color Wheels especialmente úteis para estabelecer o balanço cromático e a estrutura tonal de um plano. Uma pequena alteração nas sombras, por exemplo, pode mudar a sensação de temperatura da cena sem interferir da mesma maneira nas altas luzes. Da mesma forma, um ajuste nos tons médios pode modificar a reprodução de pele e outros elementos importantes sem necessariamente alterar todo o quadro.
-              </p>
-              <p>
-                No processo de grading, elas são usadas tanto para correções técnicas quanto para decisões estéticas. O mesmo controle que pode neutralizar uma dominante de cor também pode ser utilizado para criar relações cromáticas deliberadas entre sombras, médios e altas luzes.
-              </p>
-            </div>
-          </div>
-        </ImageAndText>
-
-        <h4 id="log-wheels" className="scroll-mt-4 border-t border-neutral-200 pt-6 font-sans text-xl font-bold text-neutral-900">Log Wheels <span className="font-normal text-neutral-600">· Shadow, Midtone e Highlight</span></h4>
-        <ImageAndText
-          imageSrc={getMediaUrl('assets/artigos/introducao-davinci/LOG WHEELS.webp')}
-          imageAlt="Painel das Log Wheels no DaVinci Resolve"
-          imagePosition="left"
-        >
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 lg:gap-8 font-serif text-[16px] sm:text-[17px] text-neutral-800 leading-[1.6]">
-            <div className="space-y-3.5">
-              <p>
-                As Log Wheels permitem trabalhar regiões mais específicas da escala tonal. Em comparação com as Color Wheels tradicionais, suas faixas de atuação são mais estreitas e definidas, possibilitando realizar ajustes com maior isolamento entre sombras, tons médios e altas luzes.
-              </p>
-              <p>
-                Essa característica é especialmente útil quando uma determinada região da imagem precisa ser modificada sem provocar alterações perceptíveis nas regiões vizinhas.
-              </p>
-            </div>
-            <div className="space-y-3.5">
-              <p>
-                O colorista pode, por exemplo, trabalhar uma faixa de sombras mantendo os tons médios mais estáveis, ou ajustar uma área de altas luzes sem interferir da mesma maneira no restante da imagem.
-              </p>
-              <p>
-                As Log Wheels são particularmente importantes em etapas de refinamento. Depois de estabelecer a estrutura geral do plano com as ferramentas primárias, elas permitem fazer ajustes mais precisos dentro dessa estrutura, controlando de maneira mais localizada a relação entre luminância e cor.
-              </p>
-            </div>
-          </div>
-        </ImageAndText>
-      </EditorialSection>
-
-      {/* ===================================================================
-          SEÇÃO 5 — FERRAMENTAS ESPECÍFICAS
-          =================================================================== */}
-      <EditorialSection id="ferramentas-especificas"
-        kickerLeft="PÁGINA COLOR"
-        kickerRight="RECURSOS DE AJUSTE"
-        title="FERRAMENTAS ESPECÍFICAS"
-        subtitle="HDR, RGB MIXER E CURVES"
-      >
-        <h4 id="hdr" className="scroll-mt-4 border-t border-neutral-200 pt-6 font-sans text-xl font-bold text-neutral-900">HDR <span className="font-normal text-neutral-600">· Ajustes precisos por faixa tonal</span></h4>
-        <ImageAndText
-          imageSrc={getMediaUrl('assets/artigos/introducao-davinci/HDR.webp')}
-          imageAlt="Painel HDR Palette com zonas zonais"
-          imagePosition="right"
-        >
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 lg:gap-8 font-serif text-[16px] sm:text-[17px] text-neutral-800 leading-[1.6]">
-            <div className="space-y-3.5">
-              <p>
-                A ferramenta HDR do DaVinci Resolve permite controlar a imagem por meio de uma divisão mais precisa da faixa tonal. Em vez de trabalhar apenas com grandes grupos como sombras, médios e altas luzes, o HDR Palette oferece uma série de zonas tonais que podem ser ajustadas de forma independente.
-              </p>
-              <p>
-                Essa organização permite separar com maior precisão regiões como Black, Dark, Shadow, Light, Highlight e Specular, além do Global, que atua sobre toda a imagem. Cada zona possui controles próprios de luminância e cor, permitindo modificar uma determinada faixa tonal sem alterar de maneira significativa as áreas adjacentes.
-              </p>
-            </div>
-            <div className="space-y-3.5">
-              <p>
-                A principal vantagem está na capacidade de refinar a estrutura da imagem. É possível, por exemplo, recuperar ou aprofundar determinadas regiões das sombras, controlar a densidade dos médios, trabalhar as altas luzes ou preservar detalhes especulares enquanto outras partes do quadro são modificadas.
-              </p>
-              <p>
-                A ferramenta também oferece controles específicos de Exposure, Contrast e Saturation para essas regiões, tornando o ajuste mais preciso e permitindo construir transições tonais mais suaves.
-              </p>
-              <p>
-                No fluxo de trabalho, o HDR pode ser utilizado tanto para correções quanto para decisões estéticas, especialmente quando é necessário controlar a distribuição da luz com maior precisão.
-              </p>
-            </div>
-          </div>
-        </ImageAndText>
-        <h4 id="rgb-mixer" className="scroll-mt-4 border-t border-neutral-200 pt-6 font-sans text-xl font-bold text-neutral-900">RGB Mixer <span className="font-normal text-neutral-600">· Canais de cor</span></h4>
-        <ImageAndText
-          imageSrc={getMediaUrl('assets/artigos/introducao-davinci/RGB MIXER.webp')}
-          imageAlt="RGB Mixer no DaVinci Resolve"
-          imagePosition="left"
-        >
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 lg:gap-8 font-serif text-[16px] sm:text-[17px] text-neutral-800 leading-[1.6]">
-            <div className="space-y-3.5">
-              <p>
-                O RGB Mixer permite controlar como os canais Red, Green e Blue contribuem para cada canal de saída da imagem. Em vez de trabalhar diretamente sobre as regiões tonais, como nas Color Wheels, ele atua sobre a relação entre os próprios canais RGB.
-              </p>
-              <p>
-                Na prática, cada canal de saída possui uma combinação dos três canais de entrada. Ao alterar essas proporções, você pode modificar a maneira como a informação de cor é distribuída pela imagem, criando mudanças de matiz, saturação e separação cromática.
-              </p>
-            </div>
-            <div className="space-y-3.5">
-              <p>
-                Isso torna o RGB Mixer uma ferramenta muito útil para ajustes de balanço, manipulação cromática e criação de looks. Ele também permite explorar técnicas como a mistura entre canais e o tratamento de uma imagem monocromática a partir da contribuição específica de cada canal.
-              </p>
-              <p>
-                Por trabalhar diretamente com a estrutura RGB do sinal, pequenas alterações podem produzir mudanças bastante amplas na aparência da imagem. Por isso, seu uso costuma estar relacionado a decisões mais específicas dentro do node tree.
-              </p>
-            </div>
-          </div>
-        </ImageAndText>
-        <h4 id="curves" className="scroll-mt-4 border-t border-neutral-200 pt-6 font-sans text-xl font-bold text-neutral-900">Curves <span className="font-normal text-neutral-600">· Contraste, matiz e saturação</span></h4>
-        <ImageAndText
-          imageSrc={getMediaUrl('assets/artigos/introducao-davinci/CURVES.webp')}
-          imageAlt="Curvas Custom e Curvas HSL no DaVinci Resolve"
-          imagePosition="right"
-        >
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 lg:gap-8 font-serif text-[16px] sm:text-[17px] text-neutral-800 leading-[1.6]">
-            <div className="space-y-3.5">
-              <p>
-                As Curves permitem modificar a relação entre os valores de entrada e os valores de saída da imagem por meio de uma representação gráfica. O eixo horizontal mostra o valor original e o eixo vertical mostra o resultado depois do ajuste. A partir dessa relação, é possível controlar com grande precisão a luminância e a informação cromática.
-              </p>
-              <p>
-                Na Custom Curve, por exemplo, a diagonal representa a relação original entre entrada e saída. Ao adicionar pontos e deslocá-los, você pode alterar regiões específicas da escala tonal. Isso permite construir contrastes com muito controle, comprimir ou expandir determinadas zonas e criar transições mais suaves entre sombras, tons médios e altas luzes.
-              </p>
-              <p>
-                As curvas também podem trabalhar diretamente sobre os canais RGB, permitindo modificar individualmente a contribuição de vermelho, verde e azul e realizar ajustes cromáticos com grande precisão.
-              </p>
-            </div>
-            <div className="space-y-3.5">
-              <p>
-                O DaVinci Resolve amplia esse conceito com curvas que relacionam diferentes propriedades da imagem, como Hue vs Hue, Hue vs Saturation, Hue vs Luminance, Luminance vs Saturation e Saturation vs Saturation. Essas ferramentas permitem selecionar uma característica da imagem e alterar outra a partir dela. Uma determinada faixa de matiz pode ter sua saturação reduzida, uma cor pode ser deslocada para outra ou uma região de luminância pode receber um tratamento específico.
-              </p>
-              <p>
-                Esse conjunto de ferramentas faz das Curves um dos recursos mais precisos para refinar a estrutura tonal e cromática da imagem. Elas podem participar tanto da construção das primárias quanto das correções seletivas e da criação do look.
-              </p>
-            </div>
-          </div>
-        </ImageAndText>
-      </EditorialSection>
-
-      {/* ===================================================================
-          SEÇÃO 6 — ISOLAMENTO
-          =================================================================== */}
-      <EditorialSection id="isolamento"
-        kickerLeft="CORREÇÕES SECUNDÁRIAS"
-        kickerRight="SELEÇÃO DE ÁREAS"
-        title="ISOLAMENTO"
-        subtitle="QUALIFIER E POWER WINDOWS"
-      >
-        <h4 id="qualifier" className="scroll-mt-4 border-t border-neutral-200 pt-6 font-sans text-xl font-bold text-neutral-900">Qualifier <span className="font-normal text-neutral-600">· Seleção por cor</span></h4>
-        <ImageAndText
-          imageSrc={getMediaUrl('assets/artigos/introducao-davinci/QUALIFIER.webp')}
-          imageAlt="Qualifier no DaVinci Resolve"
-          imagePosition="left"
-        >
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 lg:gap-8 font-serif text-[16px] sm:text-[17px] text-neutral-800 leading-[1.6]">
-            <div className="space-y-3.5">
-              <p>
-                O Qualifier é uma ferramenta de seleção que permite isolar partes da imagem a partir de características específicas da cor e da luminância. A seleção pode ser construída utilizando Hue, Saturation e Luminance, definindo com precisão quais valores serão incluídos ou excluídos da área selecionada.
-              </p>
-              <p>
-                A partir dessa seleção, o ajuste realizado no node pode afetar apenas aquela região da imagem. Isso permite trabalhar uma cor, um objeto ou uma faixa tonal de maneira independente do restante do quadro.
-              </p>
-              <p>
-                Em uma correção de pele, por exemplo, o Qualifier pode ser utilizado para selecionar os tons correspondentes à pele e, a partir dessa seleção, ajustar temperatura, matiz, saturação ou luminância.
-              </p>
-            </div>
-            <div className="space-y-3.5">
-              <p>
-                O mesmo princípio pode ser aplicado a produtos, roupas, cenários e outras áreas que possuam características cromáticas bem definidas.
-              </p>
-              <p>
-                A qualidade da seleção depende da precisão dos parâmetros utilizados e da própria imagem. Por isso, o Resolve oferece ferramentas como Matte Finesse, Denoise, Blur Radius e Clean Black / Clean White, que ajudam a refinar o matte e controlar as transições da seleção.
-              </p>
-              <p>
-                O Qualifier ocupa um papel importante nas correções secundárias, quando a imagem já possui uma base estabelecida e determinadas áreas precisam receber tratamentos diferentes.
-              </p>
-            </div>
-          </div>
-        </ImageAndText>
-        <h4 id="power-windows" className="scroll-mt-4 border-t border-neutral-200 pt-6 font-sans text-xl font-bold text-neutral-900">Power Windows <span className="font-normal text-neutral-600">· Máscaras geométricas e vetoriais</span></h4>
-        <ImageAndText
-          imageSrc={getMediaUrl('assets/artigos/introducao-davinci/POWER WINDOWS.webp')}
-          imageAlt="Power Windows no DaVinci: Linear, Circular e Polígono"
-          imagePosition="right"
-        >
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 lg:gap-8 font-serif text-[16px] sm:text-[17px] text-neutral-800 leading-[1.6]">
-            <div className="space-y-3.5">
-              <p>
-                As Power Windows são ferramentas de seleção espacial que permitem definir uma área específica do quadro para receber um tratamento independente. Diferentemente de uma seleção baseada apenas em cor, a Power Window utiliza a posição e a forma dentro da imagem para determinar onde o ajuste será aplicado.
-              </p>
-              <p>
-                O DaVinci Resolve oferece diferentes formas geométricas, como círculos, quadrados, polígonos e curvas personalizadas, que podem ser combinadas para acompanhar a estrutura de um objeto ou de uma cena. A seleção também pode receber ajustes de feather, permitindo criar transições suaves entre a área afetada e o restante da imagem.
-              </p>
-            </div>
-            <div className="space-y-3.5">
-              <p>
-                Elas são utilizadas para direcionar a atenção, equilibrar a luminosidade e criar separação entre elementos. Um rosto pode receber uma pequena compensação de exposição, o fundo pode ser reduzido para ganhar profundidade ou uma área específica do produto pode receber um tratamento diferente do restante do quadro.
-              </p>
-              <p>
-                Quando o elemento se movimenta, o Tracker permite acompanhar seu deslocamento ao longo do plano. Combinadas ao Qualifier e controles de cor, formam a base de correções secundárias com alta precisão espacial.
-              </p>
-            </div>
-          </div>
-        </ImageAndText>
-      </EditorialSection>
-
-      {/* ===================================================================
-          SEÇÃO 7 — TRACKER
-          =================================================================== */}
-      <EditorialSection id="tracker"
-        kickerLeft="AUTOMAÇÃO"
-        kickerRight="TRACKING DE MOVIMENTO"
-        title="TRACKER"
-        subtitle="ACOMPANHANDO O MOVIMENTO DO OBJETO"
-      >
-        <ImageAndText
-          imageSrc={getMediaUrl('assets/artigos/introducao-davinci/TRACKER.webp')}
-          imageAlt="Painel Tracker no DaVinci Resolve"
-          imagePosition="left"
-        >
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 lg:gap-8 font-serif text-[16px] sm:text-[17px] text-neutral-800 leading-[1.6]">
-            <div className="space-y-3.5">
-              <p>
-                O Tracker é a ferramenta responsável por acompanhar o movimento de elementos dentro do plano. Ele analisa o deslocamento, a escala e a perspectiva de uma determinada área da imagem e utiliza essas informações para fazer com que uma correção acompanhe esse movimento ao longo do tempo.
-              </p>
-              <p>
-                No color grading, isso permite manter uma Power Window, um ponto de correção ou outro elemento de seleção associado ao objeto que está se deslocando. Em vez de reposicionar manualmente a área em cada quadro, o Tracker calcula o movimento do elemento e reproduz esse deslocamento dentro do node.
-              </p>
-            </div>
-            <div className="space-y-3.5">
-              <p>
-                O Tracker é especialmente útil em planos com movimento de câmera ou de elementos dentro da cena. Pode acompanhar, por exemplo, o rosto de uma pessoa, um produto em movimento ou uma região específica do enquadramento que precisa receber uma correção localizada.
-              </p>
-              <p>
-                O resultado do tracking depende da informação visual disponível no elemento acompanhado. Áreas com contraste, textura e características visuais bem definidas tendem a oferecer informações mais consistentes para o rastreamento. Quando necessário, o resultado pode ser ajustado manualmente para corrigir pequenas imprecisões.
-              </p>
-            </div>
-          </div>
-        </ImageAndText>
-      </EditorialSection>
-
-      {/* ===================================================================
-          SEÇÃO 8 — MAGIC MASK
-          =================================================================== */}
-      <EditorialSection id="magic-mask"
-        kickerLeft="RECURSO STUDIO"
-        kickerRight="INTELIGÊNCIA ARTIFICIAL"
-        title="MAGIC MASK"
-        subtitle="SELEÇÃO AUTOMÁTICA POR INTELIGÊNCIA ARTIFICIAL"
-      >
-        <ImageAndText
-          imageSrc={getMediaUrl('assets/artigos/introducao-davinci/MAGIC MASK.webp')}
-          imageAlt="Magic Mask com DaVinci Neural Engine"
-          imagePosition="right"
-        >
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 lg:gap-8 font-serif text-[16px] sm:text-[17px] text-neutral-800 leading-[1.6]">
-            <div className="space-y-3.5">
-              <p>
-                O Magic Mask é uma ferramenta de seleção baseada em inteligência artificial que permite isolar pessoas, objetos e elementos específicos da imagem. A partir de uma indicação feita pelo usuário, o DaVinci Resolve identifica o elemento selecionado e gera uma máscara que pode ser utilizada para aplicar correções de forma independente.
-              </p>
-              <p>
-                Essa seleção permite trabalhar características específicas de um elemento sem precisar construir manualmente toda a máscara. Uma pessoa pode receber um ajuste de exposição, um produto pode ter sua cor modificada ou um objeto pode ser separado do fundo para receber um tratamento diferente.
-              </p>
-            </div>
-            <div className="space-y-3.5">
-              <p>
-                Depois de criada a seleção, o Magic Mask pode acompanhar o elemento ao longo do plano, mantendo a máscara conforme o movimento acontece. O resultado pode ser refinado para melhorar a definição das bordas e reduzir áreas que tenham sido incluídas ou excluídas incorretamente.
-              </p>
-              <p>
-                Dentro do fluxo de color grading, o Magic Mask é especialmente útil quando a separação entre elementos seria trabalhosa utilizando apenas ferramentas tradicionais. Ele amplia as possibilidades das correções secundárias e permite trabalhar objetos complexos diretamente dentro do node tree.
-              </p>
-            </div>
-          </div>
-        </ImageAndText>
-      </EditorialSection>
-
-      {/* ===================================================================
-          SEÇÃO 9 — BLUR E SHARPEN
-          =================================================================== */}
-      <EditorialSection id="blur-e-sharpen"
-        kickerLeft="TRATAMENTO ÓPTICO"
-        kickerRight="NITIDEZ E TEXTURA"
-        title="BLUR E SHARPEN"
-        subtitle="NITIDEZ, TEXTURA E DESFOQUE"
-      >
-        <ImageAndText
-          imageSrc={getMediaUrl('assets/artigos/introducao-davinci/BLUR E SHARPEN.webp')}
-          imageAlt="Blur e Sharpen no DaVinci Resolve"
-          imagePosition="left"
-        >
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 lg:gap-8 font-serif text-[16px] sm:text-[17px] text-neutral-800 leading-[1.6]">
-            <div className="space-y-3.5">
-              <p>
-                Blur e Sharpen controlam a percepção de definição e suavidade da imagem. Enquanto o Blur reduz a definição dos detalhes, o Sharpen aumenta a percepção de nitidez ao reforçar informações de alta frequência.
-              </p>
-              <p>
-                O Blur pode ser utilizado para suavizar detalhes, reduzir a aparência de pequenas imperfeições ou controlar a definição de uma área específica do plano.
-              </p>
-            </div>
-            <div className="space-y-3.5">
-              <p>
-                Em conjunto com máscaras e seleções, também permite criar diferenças de foco aparente entre elementos do quadro. O Sharpen atua reforçando contornos e detalhes, aumentando a sensação de definição. Seu uso exige controle, especialmente em imagens com ruído ou compressão.
-              </p>
-              <p>
-                Dentro do color grading, esses controles participam principalmente do refinamento da textura e da percepção de detalhe. A quantidade de definição aplicada influencia diretamente a aparência de materiais, pele e objetos, além da relação visual entre primeiro plano e fundo.
-              </p>
-            </div>
-          </div>
-        </ImageAndText>
-      </EditorialSection>
-
-      {/* ===================================================================
-          SEÇÃO 10 — KEY
-          =================================================================== */}
-      <EditorialSection id="key"
-        kickerLeft="CONTROLE DE FLUXO"
-        kickerRight="OPACIDADE E MÁSCARA"
-        title="KEY"
-        subtitle="A OPACIDADE DO SEU NODE"
-      >
-        <ImageAndText
-          imageSrc={getMediaUrl('assets/artigos/introducao-davinci/KEY.webp')}
-          imageAlt="Painel Key no DaVinci Resolve"
-          imagePosition="right"
-        >
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 lg:gap-8 font-serif text-[16px] sm:text-[17px] text-neutral-800 leading-[1.6]">
-            <div className="space-y-3.5">
-              <p>
-                O Key controla a intensidade e o comportamento das informações de máscara, ou key, utilizadas dentro dos nodes. Essas informações determinam quanto de uma correção será aplicado à imagem e podem ser geradas por ferramentas como Qualifier, Power Windows e Magic Mask.
-              </p>
-              <p>
-                Na paleta Key, o colorista consegue ajustar com precisão a força da seleção que entra no node e a força da saída desse node.
-              </p>
-            </div>
-            <div className="space-y-3.5">
-              <p>
-                O Key Output Gain, por exemplo, controla a intensidade com que a correção daquele node participa do resultado final. Um valor menor reduz a influência da intervenção sem alterar os parâmetros que foram utilizados para construí-la.
-              </p>
-              <p>
-                Esse controle é fundamental em correções secundárias: depois de criar uma seleção precisa, você ajusta sua influência para que o ajuste se integre perfeitamente à imagem. A mesma lógica se aplica quando diferentes nodes são combinados em estruturas paralelas ou em um Layer Mixer.
-              </p>
-            </div>
-          </div>
-        </ImageAndText>
-      </EditorialSection>
-
-      {/* ===================================================================
-          SEÇÃO 11 — SIZING
-          =================================================================== */}
-      <EditorialSection id="sizing"
-        kickerLeft="ENQUADRAMENTO"
-        kickerRight="GEOMETRIA"
-        title="SIZING"
-        subtitle="REPOSICIONANDO A IMAGEM"
-      >
-        <ImageAndText
-          imageSrc={getMediaUrl('assets/artigos/introducao-davinci/SIZING.webp')}
-          imageAlt="Painel Sizing do DaVinci Resolve"
-          imagePosition="left"
-        >
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 lg:gap-8 font-serif text-[16px] sm:text-[17px] text-neutral-800 leading-[1.6]">
-            <div className="space-y-3.5">
-              <p>
-                O Sizing reúne os controles responsáveis pela geometria e pelo enquadramento da imagem dentro do DaVinci Resolve. A ferramenta permite alterar a posição, escala, rotação e proporção do plano, além de controlar parâmetros relacionados ao enquadramento.
-              </p>
-              <p>
-                Esses ajustes são realizados diretamente sobre a imagem e podem ser utilizados para corrigir pequenos problemas de enquadramento, reposicionar elementos, ajustar a escala do plano ou preparar diferentes versões de uma mesma imagem.
-              </p>
-            </div>
-            <div className="space-y-3.5">
-              <p>
-                O Sizing também pode participar do processo de finalização quando o projeto exige alterações de formato, reenquadramentos ou adaptações para diferentes proporções de tela.
-              </p>
-              <p>
-                Como esses parâmetros fazem parte do processamento da imagem, sua posição dentro do fluxo de trabalho deve ser considerada de acordo com a função que o ajuste desempenha.
-              </p>
-            </div>
-          </div>
-        </ImageAndText>
-      </EditorialSection>
-
-      {/* ===================================================================
-          SEÇÃO 12 — SCOPES
-          =================================================================== */}
-      <EditorialSection id="scopes"
-        kickerLeft="CALIBRAÇÃO E TÉCNICA"
-        kickerRight="MONITORAMENTO DO SINAL"
-        title="SCOPES"
-        subtitle="NÃO CONFIE SÓ NO SEU MONITOR"
-      >
-        <ImageAndText
-          imageSrc={getMediaUrl('assets/artigos/introducao-davinci/SCOPES.webp')}
-          imageAlt="Scopes de Sinal: Waveform, Parade e Vectorscope"
-          imagePosition="right"
-        >
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 lg:gap-8 font-serif text-[16px] sm:text-[17px] text-neutral-800 leading-[1.6]">
-            <div className="space-y-3.5">
-              <p>
-                Os Scopes são ferramentas de análise que representam matematicamente as características do sinal de vídeo. Eles permitem avaliar informações de luminância, distribuição de cor, saturação e relação entre os canais RGB, oferecendo uma referência objetiva para as decisões de color grading.
-              </p>
-              <p>
-                Enquanto a imagem na tela mostra como o plano é percebido visualmente, os Scopes mostram como o sinal está distribuído. Essa leitura é indispensável para avaliar exposição e consistência.
-              </p>
-            </div>
-            <div className="space-y-3.5">
-              <p>
-                O DaVinci Resolve oferece diferentes tipos de Scopes: Waveform, Parade, Vectorscope e Histogram apresentam a mesma imagem sob perspectivas complementares e, em conjunto, permitem compreender com máxima precisão o comportamento da cor e da luz.
-              </p>
-              <p>
-                Eles também são essenciais para comparar planos. Ao analisar duas imagens lado a lado, é possível identificar diferenças de balanço, contraste ou níveis de preto e branco que seriam difíceis de detectar apenas olhando o monitor.
-              </p>
-            </div>
-          </div>
-        </ImageAndText>
-      </EditorialSection>
-
-      {/* ===================================================================
-          SEÇÃO 13 — SPLIT SCREEN
-          =================================================================== */}
-      <EditorialSection id="split-screen"
-        kickerLeft="CONSISTÊNCIA"
-        kickerRight="COMPARAÇÃO DIRETA"
-        title="SPLIT SCREEN"
-        subtitle="COMPARANDO CLIPES LADO A LADO"
-      >
-        <ImageAndText
-          imageSrc={getMediaUrl('assets/artigos/introducao-davinci/SPLIT SCREEN.webp')}
-          imageAlt="Split Screen no DaVinci Resolve"
-          imagePosition="left"
-        >
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 lg:gap-8 font-serif text-[16px] sm:text-[17px] text-neutral-800 leading-[1.6]">
-            <div className="space-y-3.5">
-              <p>
-                O Split Screen é uma ferramenta de comparação dentro da página Color. Ele permite visualizar duas ou mais imagens simultaneamente no Viewer, facilitando a análise das diferenças entre planos, versões ou referências.
-              </p>
-              <p>
-                Durante o color grading, a comparação é fundamental para manter continuidade e consistência entre tomadas vizinhas.
-              </p>
-            </div>
-            <div className="space-y-3.5">
-              <p>
-                Um plano pode parecer equilibrado quando visto isoladamente, mas revelar diferenças evidentes de exposição, contraste, saturação ou temperatura quando colocado lado a lado com outro plano da mesma sequência.
-              </p>
-              <p>
-                O Split Screen também é utilizado para comparar o resultado atual com referências, testar versões do mesmo plano ou analisar múltiplos frames simultaneamente. Assim, o colorista avalia a imagem dentro do contexto real da narrativa.
-              </p>
-            </div>
-          </div>
-        </ImageAndText>
-      </EditorialSection>
-
-      {/* ===================================================================
-          SEÇÃO 14 — GALLERY
-          =================================================================== */}
-      <EditorialSection id="gallery"
-        kickerLeft="MEMÓRIA VISUAL"
-        kickerRight="STILLS E REFERÊNCIAS"
-        title="GALLERY"
-        subtitle="GUARDANDO REFERÊNCIAS E COPIANDO TRATAMENTOS"
-      >
-        <ImageAndText
-          imageSrc={getMediaUrl('assets/artigos/introducao-davinci/GALLERY.webp')}
-          imageAlt="Gallery do DaVinci Resolve com Stills"
-          imagePosition="right"
-        >
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 lg:gap-8 font-serif text-[16px] sm:text-[17px] text-neutral-800 leading-[1.6]">
-            <div className="space-y-3.5">
-              <p>
-                A Gallery reúne as referências visuais e os tratamentos de cor salvos durante o trabalho. Nela, o colorista pode guardar stills dos planos, comparar diferentes versões e reutilizar grades em outros planos ou projetos.
-              </p>
-              <p>
-                Durante o grading, a Gallery funciona como uma memória visual do projeto. Um frame pode ser salvo como referência de uma determinada cena, de uma correção ou de um look e permanecer disponível para comparação enquanto outros planos são trabalhados. Isso facilita o processo de matching, principalmente quando diferentes planos precisam manter a mesma relação de cor e contraste.
-              </p>
-            </div>
-            <div className="space-y-3.5">
-              <p>
-                Os stills também podem ser organizados em álbuns e utilizados para copiar tratamentos entre planos. O PowerGrade amplia essa possibilidade, permitindo manter grades e estruturas de nodes disponíveis para outros projetos dentro da mesma biblioteca.
-              </p>
-              <p>
-                A Gallery, portanto, participa diretamente do processo de construção e continuidade da imagem. Ela permite que o colorista tenha referências concretas ao longo do trabalho e mantenha um registro das decisões tomadas durante o grading.
-              </p>
-            </div>
-          </div>
-        </ImageAndText>
-      </EditorialSection>
-
-      {/* ===================================================================
-          SEÇÃO 15 — COLOR MATCH
-          =================================================================== */}
-      <EditorialSection id="color-match"
-        kickerLeft="TÉCNICA DE CALIBRAÇÃO"
-        kickerRight="EQUALIZAÇÃO DE CÂMERAS"
-        title="COLOR MATCH"
-        subtitle="DEIXANDO AS CÂMERAS NO MESMO PONTO DE PARTIDA"
-      >
-        <ImageAndText
-          imageSrc={getMediaUrl('assets/artigos/introducao-davinci/COLOR MATCH.webp')}
-          imageAlt="Color Match no DaVinci Resolve"
-          imagePosition="left"
-        >
-          <p>
-            Quando você trabalha com duas ou três câmeras diferentes na mesma gravação, cada sensor tem uma resposta de cor particular. O Color Match utiliza cartelas de cor padronizadas (<strong className="font-sans text-neutral-900">ColorChecker</strong>) filmadas no set para fazer o alinhamento técnico inicial.
-          </p>
-          <EditorialQuote
-            quote="Primeiro você iguala todo mundo. Depois você cria o estilo do filme."
+        <Sub title="Backup: não deixe pra depois">
+          <Prose>
+            <p>
+              Como tudo fica num banco de dados só, se ele der problema, você perde tudo de uma vez. Por isso, configure o backup logo no primeiro dia:
+            </p>
+          </Prose>
+          <Bullets
+            single
+            items={[
+              { label: 'Live Save:', text: 'em Preferences > User > Project Save and Load, ative o Live Save. Ele salva cada alteração na hora.' },
+              { label: 'Project Backups:', text: 'na mesma tela, ative os backups automáticos e escolha a frequência e a pasta. Pra restaurar, é no Project Manager, com o botão direito em Project Backups.' },
+              { label: 'Backup da library:', text: 'de tempos em tempos, faça o backup manual da library inteira, pelo ícone de detalhes no painel de libraries. Ele gera um arquivo .diskdb que você restaura em outro computador.' },
+            ]}
           />
-          <p>
-            Você encaixa o grid da cartela sobre o ColorChecker na tela e o Resolve calibra as cores automaticamente para um espaço cromático de referência. Com todas as câmeras equalizadas na mesma base neutra, a etapa artística do Creative Grade flui com muito mais coerência.
-          </p>
-        </ImageAndText>
+        </Sub>
+
+        <Sub title="Exportar x arquivar">
+          <Prose>
+            <p>São duas coisas diferentes, e vale entender a diferença:</p>
+          </Prose>
+          <Bullets
+            single
+            items={[
+              { label: 'Export Project:', text: 'gera um arquivo pequeno com o projeto, mas sem as mídias, só com os links pra elas. Serve pra mandar pra outro colorista que tem acesso ao mesmo material.' },
+              { label: 'Export Project Archive:', text: 'gera uma pasta com o projeto e uma cópia de todas as mídias usadas. É o ideal pra guardar o trabalho depois de aprovado, porque tudo fica junto. Só que é pesado e demora.' },
+            ]}
+          />
+        </Sub>
+
+        <Sub title="Media Pool e gerenciamento de cor">
+          <Prose>
+            <p>
+              Na página Media, você traz os arquivos pro Media Pool. Organize em bins (pastas): material bruto, referências, áudio, gráficos. No color, as referências do cliente, como fotos do produto e o manual da marca, ficam fáceis de achar.
+            </p>
+            <p>
+              Antes de colorir, configure também o gerenciamento de cor do projeto em Project Settings &gt; Color Management: o espaço de entrada, o de trabalho e o de saída. A gente já falou disso na análise técnica, e é aqui que essa informação vira configuração.
+            </p>
+          </Prose>
+        </Sub>
       </EditorialSection>
 
-      {/* ===================================================================
-          SEÇÃO 16 — ATALHOS QUE VOCÊ PRECISA COMEÇAR A USAR
-          =================================================================== */}
-      <EditorialSection id="atalhos-que-voce-precisa-comecar-a-usar"
-        kickerLeft="PRODUTIVIDADE"
-        kickerRight="TECLADO DO COLORISTA"
-        title="ATALHOS QUE VOCÊ PRECISA COMEÇAR A USAR"
-        subtitle="ACELERE SEU FLUXO DE TRABALHO NO DIA A DIA"
+      {/* ===================== PÁGINA COLOR ===================== */}
+      <EditorialSection
+        id="pagina-color"
+        kickerLeft="O AMBIENTE"
+        kickerRight="ONDE A IMAGEM TOMA FORMA"
+        title="A PÁGINA COLOR: É AQUI QUE A IMAGEM TOMA FORMA"
       >
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 lg:gap-8 font-serif text-[16px] sm:text-[17px] text-neutral-800 leading-[1.6] mb-10">
-          <div className="space-y-3.5">
-            <p>
-              O trabalho de color grading envolve centenas de pequenas ações repetidas ao longo de um projeto. Criar nodes, navegar entre planos, comparar imagens, ativar máscaras, salvar referências e verificar o resultado são operações que aparecem continuamente durante uma sessão de grading.
-            </p>
-          </div>
-          <div className="space-y-3.5">
-            <p>
-              Os atalhos permitem manter o fluxo de trabalho concentrado na imagem e reduzir a quantidade de movimentos entre teclado, mouse e interface. Alguns deles passam a fazer parte da rotina desde os primeiros projetos.
-            </p>
-            <p className="text-base text-neutral-600">
-              A lista abaixo reúne os atalhos mais importantes para trabalhar na página Color do DaVinci Resolve. O Resolve permite personalizar praticamente todos os comandos pelo <em>Keyboard Customization</em>, portanto a combinação pode variar caso o teclado tenha sido modificado.
-            </p>
-          </div>
-        </div>
+        <Prose>
+          <p>
+            Quando você chega na página Color, encontra um ambiente pensado pra transformar e finalizar a imagem. Diferente da Edit, onde a preocupação é montar o filme, aqui cada elemento existe pra você analisar, controlar e construir a aparência de cada plano.
+          </p>
+          <p>No começo pode parecer muita coisa, mas cada área tem uma função bem específica:</p>
+        </Prose>
+        <AnnotatedFig file="color-page.webp" alt="Interface da página Color" width={2000} height={1264} spots={COLOR_PAGE_SPOTS} />
 
-        {/* Tabelas de Atalhos Organizadas */}
-        <div className="space-y-8 max-w-4xl font-sans not-italic">
-          {/* NAVEGAÇÃO E REPRODUÇÃO */}
-          <div className="bg-white rounded-2xl border border-neutral-200/90 shadow-2xs overflow-hidden">
-            <div className="bg-neutral-100/75 px-5 py-3 border-b border-neutral-200/80">
-              <h4 id="navegacao-e-reproducao" className="scroll-mt-4 text-xs font-bold tracking-widest text-neutral-700 uppercase">Navegação e Reprodução</h4>
-            </div>
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-sm">
-                <thead>
-                  <tr className="border-b border-neutral-200/60 text-neutral-500 font-medium text-xs bg-neutral-50/50">
-                    <th className="py-2.5 px-5">Comando</th>
-                    <th className="py-2.5 px-5 w-40">macOS</th>
-                    <th className="py-2.5 px-5 w-40">Windows</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-neutral-100 text-neutral-800">
-                  <tr>
-                    <td className="py-2.5 px-5 font-medium">Página Color</td>
-                    <td className="py-2.5 px-5"><kbd className="px-2 py-0.5 rounded bg-neutral-100 border border-neutral-300 font-mono text-xs">Shift + 6</kbd></td>
-                    <td className="py-2.5 px-5"><kbd className="px-2 py-0.5 rounded bg-neutral-100 border border-neutral-300 font-mono text-xs">Shift + 6</kbd></td>
-                  </tr>
-                  <tr>
-                    <td className="py-2.5 px-5 font-medium">Reproduzir / Pausar</td>
-                    <td className="py-2.5 px-5"><kbd className="px-2 py-0.5 rounded bg-neutral-100 border border-neutral-300 font-mono text-xs">Space</kbd></td>
-                    <td className="py-2.5 px-5"><kbd className="px-2 py-0.5 rounded bg-neutral-100 border border-neutral-300 font-mono text-xs">Space</kbd></td>
-                  </tr>
-                  <tr>
-                    <td className="py-2.5 px-5 font-medium">Reproduzir para frente</td>
-                    <td className="py-2.5 px-5"><kbd className="px-2 py-0.5 rounded bg-neutral-100 border border-neutral-300 font-mono text-xs">L</kbd></td>
-                    <td className="py-2.5 px-5"><kbd className="px-2 py-0.5 rounded bg-neutral-100 border border-neutral-300 font-mono text-xs">L</kbd></td>
-                  </tr>
-                  <tr>
-                    <td className="py-2.5 px-5 font-medium">Reproduzir para trás</td>
-                    <td className="py-2.5 px-5"><kbd className="px-2 py-0.5 rounded bg-neutral-100 border border-neutral-300 font-mono text-xs">J</kbd></td>
-                    <td className="py-2.5 px-5"><kbd className="px-2 py-0.5 rounded bg-neutral-100 border border-neutral-300 font-mono text-xs">J</kbd></td>
-                  </tr>
-                  <tr>
-                    <td className="py-2.5 px-5 font-medium">Pausar</td>
-                    <td className="py-2.5 px-5"><kbd className="px-2 py-0.5 rounded bg-neutral-100 border border-neutral-300 font-mono text-xs">K</kbd></td>
-                    <td className="py-2.5 px-5"><kbd className="px-2 py-0.5 rounded bg-neutral-100 border border-neutral-300 font-mono text-xs">K</kbd></td>
-                  </tr>
-                  <tr>
-                    <td className="py-2.5 px-5 font-medium">Próximo frame</td>
-                    <td className="py-2.5 px-5"><kbd className="px-2 py-0.5 rounded bg-neutral-100 border border-neutral-300 font-mono text-xs">→</kbd></td>
-                    <td className="py-2.5 px-5"><kbd className="px-2 py-0.5 rounded bg-neutral-100 border border-neutral-300 font-mono text-xs">→</kbd></td>
-                  </tr>
-                  <tr>
-                    <td className="py-2.5 px-5 font-medium">Frame anterior</td>
-                    <td className="py-2.5 px-5"><kbd className="px-2 py-0.5 rounded bg-neutral-100 border border-neutral-300 font-mono text-xs">←</kbd></td>
-                    <td className="py-2.5 px-5"><kbd className="px-2 py-0.5 rounded bg-neutral-100 border border-neutral-300 font-mono text-xs">←</kbd></td>
-                  </tr>
-                  <tr>
-                    <td className="py-2.5 px-5 font-medium">Próximo clip</td>
-                    <td className="py-2.5 px-5"><kbd className="px-2 py-0.5 rounded bg-neutral-100 border border-neutral-300 font-mono text-xs">↓</kbd></td>
-                    <td className="py-2.5 px-5"><kbd className="px-2 py-0.5 rounded bg-neutral-100 border border-neutral-300 font-mono text-xs">↓</kbd></td>
-                  </tr>
-                  <tr>
-                    <td className="py-2.5 px-5 font-medium">Clip anterior</td>
-                    <td className="py-2.5 px-5"><kbd className="px-2 py-0.5 rounded bg-neutral-100 border border-neutral-300 font-mono text-xs">↑</kbd></td>
-                    <td className="py-2.5 px-5"><kbd className="px-2 py-0.5 rounded bg-neutral-100 border border-neutral-300 font-mono text-xs">↑</kbd></td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
+        <DataTable
+          caption="As áreas da página Color, onde ficam e para que servem"
+          head={['Área', 'Onde fica', 'Pra que serve']}
+          rows={COLOR_AREAS.map((a) => [a.name, a.where, a.use])}
+        />
 
-          {/* NODES */}
-          <div className="bg-white rounded-2xl border border-neutral-200/90 shadow-2xs overflow-hidden">
-            <div className="bg-neutral-100/75 px-5 py-3 border-b border-neutral-200/80">
-              <h4 id="nodes-atalhos" className="scroll-mt-4 text-xs font-bold tracking-widest text-neutral-700 uppercase">Nodes</h4>
-            </div>
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-sm">
-                <thead>
-                  <tr className="border-b border-neutral-200/60 text-neutral-500 font-medium text-xs bg-neutral-50/50">
-                    <th className="py-2.5 px-5">Comando</th>
-                    <th className="py-2.5 px-5 w-48">macOS</th>
-                    <th className="py-2.5 px-5 w-48">Windows</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-neutral-100 text-neutral-800">
-                  <tr>
-                    <td className="py-2.5 px-5 font-medium">Adicionar Serial Node</td>
-                    <td className="py-2.5 px-5"><kbd className="px-2 py-0.5 rounded bg-neutral-100 border border-neutral-300 font-mono text-xs">Option + S</kbd></td>
-                    <td className="py-2.5 px-5"><kbd className="px-2 py-0.5 rounded bg-neutral-100 border border-neutral-300 font-mono text-xs">Alt + S</kbd></td>
-                  </tr>
-                  <tr>
-                    <td className="py-2.5 px-5 font-medium">Adicionar Serial Node antes do atual</td>
-                    <td className="py-2.5 px-5"><kbd className="px-2 py-0.5 rounded bg-neutral-100 border border-neutral-300 font-mono text-xs">Option + Shift + S</kbd></td>
-                    <td className="py-2.5 px-5"><kbd className="px-2 py-0.5 rounded bg-neutral-100 border border-neutral-300 font-mono text-xs">Alt + Shift + S</kbd></td>
-                  </tr>
-                  <tr>
-                    <td className="py-2.5 px-5 font-medium">Adicionar Parallel Node</td>
-                    <td className="py-2.5 px-5"><kbd className="px-2 py-0.5 rounded bg-neutral-100 border border-neutral-300 font-mono text-xs">Option + P</kbd></td>
-                    <td className="py-2.5 px-5"><kbd className="px-2 py-0.5 rounded bg-neutral-100 border border-neutral-300 font-mono text-xs">Alt + P</kbd></td>
-                  </tr>
-                  <tr>
-                    <td className="py-2.5 px-5 font-medium">Adicionar Layer Node</td>
-                    <td className="py-2.5 px-5"><kbd className="px-2 py-0.5 rounded bg-neutral-100 border border-neutral-300 font-mono text-xs">Option + L</kbd></td>
-                    <td className="py-2.5 px-5"><kbd className="px-2 py-0.5 rounded bg-neutral-100 border border-neutral-300 font-mono text-xs">Alt + L</kbd></td>
-                  </tr>
-                  <tr>
-                    <td className="py-2.5 px-5 font-medium">Adicionar Outside Node</td>
-                    <td className="py-2.5 px-5"><kbd className="px-2 py-0.5 rounded bg-neutral-100 border border-neutral-300 font-mono text-xs">Option + O</kbd></td>
-                    <td className="py-2.5 px-5"><kbd className="px-2 py-0.5 rounded bg-neutral-100 border border-neutral-300 font-mono text-xs">Alt + O</kbd></td>
-                  </tr>
-                  <tr>
-                    <td className="py-2.5 px-5 font-medium">Adicionar Splitter / Combiner</td>
-                    <td className="py-2.5 px-5"><kbd className="px-2 py-0.5 rounded bg-neutral-100 border border-neutral-300 font-mono text-xs">Option + Y</kbd></td>
-                    <td className="py-2.5 px-5"><kbd className="px-2 py-0.5 rounded bg-neutral-100 border border-neutral-300 font-mono text-xs">Alt + Y</kbd></td>
-                  </tr>
-                  <tr>
-                    <td className="py-2.5 px-5 font-medium">Ativar / desativar node selecionado</td>
-                    <td className="py-2.5 px-5"><kbd className="px-2 py-0.5 rounded bg-neutral-100 border border-neutral-300 font-mono text-xs">Command + D</kbd></td>
-                    <td className="py-2.5 px-5"><kbd className="px-2 py-0.5 rounded bg-neutral-100 border border-neutral-300 font-mono text-xs">Ctrl + D</kbd></td>
-                  </tr>
-                  <tr>
-                    <td className="py-2.5 px-5 font-medium">Desativar todos os grades</td>
-                    <td className="py-2.5 px-5"><kbd className="px-2 py-0.5 rounded bg-neutral-100 border border-neutral-300 font-mono text-xs">Shift + D</kbd></td>
-                    <td className="py-2.5 px-5"><kbd className="px-2 py-0.5 rounded bg-neutral-100 border border-neutral-300 font-mono text-xs">Shift + D</kbd></td>
-                  </tr>
-                  <tr>
-                    <td className="py-2.5 px-5 font-medium">Resetar o node selecionado</td>
-                    <td className="py-2.5 px-5"><kbd className="px-2 py-0.5 rounded bg-neutral-100 border border-neutral-300 font-mono text-xs">Shift + Home</kbd></td>
-                    <td className="py-2.5 px-5"><kbd className="px-2 py-0.5 rounded bg-neutral-100 border border-neutral-300 font-mono text-xs">Shift + Home</kbd></td>
-                  </tr>
-                  <tr>
-                    <td className="py-2.5 px-5 font-medium">Resetar todo o grade</td>
-                    <td className="py-2.5 px-5"><kbd className="px-2 py-0.5 rounded bg-neutral-100 border border-neutral-300 font-mono text-xs">Command + Shift + Home</kbd></td>
-                    <td className="py-2.5 px-5"><kbd className="px-2 py-0.5 rounded bg-neutral-100 border border-neutral-300 font-mono text-xs">Ctrl + Shift + Home</kbd></td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-            <div className="p-4 bg-neutral-50/70 border-t border-neutral-200/60 font-serif text-sm text-neutral-600">
-              Os atalhos para criação e controle de nodes são particularmente importantes porque a estrutura do node tree acompanha praticamente todo o processo de construção da imagem.
-            </div>
-          </div>
-
-          {/* ANÁLISE E COMPARAÇÃO */}
-          <div className="bg-white rounded-2xl border border-neutral-200/90 shadow-2xs overflow-hidden">
-            <div className="bg-neutral-100/75 px-5 py-3 border-b border-neutral-200/80">
-              <h4 id="analise-e-comparacao" className="scroll-mt-4 text-xs font-bold tracking-widest text-neutral-700 uppercase">Análise e Comparação</h4>
-            </div>
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-sm">
-                <thead>
-                  <tr className="border-b border-neutral-200/60 text-neutral-500 font-medium text-xs bg-neutral-50/50">
-                    <th className="py-2.5 px-5">Comando</th>
-                    <th className="py-2.5 px-5 w-48">macOS</th>
-                    <th className="py-2.5 px-5 w-48">Windows</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-neutral-100 text-neutral-800">
-                  <tr>
-                    <td className="py-2.5 px-5 font-medium">Highlight / visualizar máscara</td>
-                    <td className="py-2.5 px-5"><kbd className="px-2 py-0.5 rounded bg-neutral-100 border border-neutral-300 font-mono text-xs">Shift + H</kbd></td>
-                    <td className="py-2.5 px-5"><kbd className="px-2 py-0.5 rounded bg-neutral-100 border border-neutral-300 font-mono text-xs">Shift + H</kbd></td>
-                  </tr>
-                  <tr>
-                    <td className="py-2.5 px-5 font-medium">Wipe de referência</td>
-                    <td className="py-2.5 px-5"><kbd className="px-2 py-0.5 rounded bg-neutral-100 border border-neutral-300 font-mono text-xs">Command + W</kbd></td>
-                    <td className="py-2.5 px-5"><kbd className="px-2 py-0.5 rounded bg-neutral-100 border border-neutral-300 font-mono text-xs">Ctrl + W</kbd></td>
-                  </tr>
-                  <tr>
-                    <td className="py-2.5 px-5 font-medium">Inverter Wipe</td>
-                    <td className="py-2.5 px-5"><kbd className="px-2 py-0.5 rounded bg-neutral-100 border border-neutral-300 font-mono text-xs">Option + W</kbd></td>
-                    <td className="py-2.5 px-5"><kbd className="px-2 py-0.5 rounded bg-neutral-100 border border-neutral-300 font-mono text-xs">Alt + W</kbd></td>
-                  </tr>
-                  <tr>
-                    <td className="py-2.5 px-5 font-medium">Bypass de todos os grades</td>
-                    <td className="py-2.5 px-5"><kbd className="px-2 py-0.5 rounded bg-neutral-100 border border-neutral-300 font-mono text-xs">Shift + D</kbd></td>
-                    <td className="py-2.5 px-5"><kbd className="px-2 py-0.5 rounded bg-neutral-100 border border-neutral-300 font-mono text-xs">Shift + D</kbd></td>
-                  </tr>
-                  <tr>
-                    <td className="py-2.5 px-5 font-medium">Desfazer</td>
-                    <td className="py-2.5 px-5"><kbd className="px-2 py-0.5 rounded bg-neutral-100 border border-neutral-300 font-mono text-xs">Command + Z</kbd></td>
-                    <td className="py-2.5 px-5"><kbd className="px-2 py-0.5 rounded bg-neutral-100 border border-neutral-300 font-mono text-xs">Ctrl + Z</kbd></td>
-                  </tr>
-                  <tr>
-                    <td className="py-2.5 px-5 font-medium">Refazer</td>
-                    <td className="py-2.5 px-5"><kbd className="px-2 py-0.5 rounded bg-neutral-100 border border-neutral-300 font-mono text-xs">Command + Shift + Z</kbd></td>
-                    <td className="py-2.5 px-5"><kbd className="px-2 py-0.5 rounded bg-neutral-100 border border-neutral-300 font-mono text-xs">Ctrl + Shift + Z</kbd></td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-            <div className="p-4 bg-neutral-50/70 border-t border-neutral-200/60 font-serif text-sm text-neutral-600">
-              O <strong>Shift + H</strong> merece atenção especial: ele permite visualizar a área selecionada por qualifiers e máscaras, tornando a avaliação da seleção muito mais rápida e precisa.
-            </div>
-          </div>
-
-          {/* GALLERY E STILLS & VERSIONS */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="bg-white rounded-2xl border border-neutral-200/90 shadow-2xs overflow-hidden flex flex-col justify-between">
-              <div>
-                <div className="bg-neutral-100/75 px-5 py-3 border-b border-neutral-200/80">
-                  <h4 id="gallery-e-stills" className="scroll-mt-4 text-xs font-bold tracking-widest text-neutral-700 uppercase">Gallery e Stills</h4>
-                </div>
-                <table className="w-full text-left text-sm">
-                  <tbody className="divide-y divide-neutral-100 text-neutral-800">
-                    <tr>
-                      <td className="py-2.5 px-4 font-medium">Capturar Still</td>
-                      <td className="py-2.5 px-4 text-right"><kbd className="px-2 py-0.5 rounded bg-neutral-100 border border-neutral-300 font-mono text-xs">⌥⌘G / Ctrl+Alt+G</kbd></td>
-                    </tr>
-                    <tr>
-                      <td className="py-2.5 px-4 font-medium">Próximo Still</td>
-                      <td className="py-2.5 px-4 text-right"><kbd className="px-2 py-0.5 rounded bg-neutral-100 border border-neutral-300 font-mono text-xs">⌥⌘N / Ctrl+Alt+N</kbd></td>
-                    </tr>
-                    <tr>
-                      <td className="py-2.5 px-4 font-medium">Still anterior</td>
-                      <td className="py-2.5 px-4 text-right"><kbd className="px-2 py-0.5 rounded bg-neutral-100 border border-neutral-300 font-mono text-xs">⌥⌘B / Ctrl+Alt+B</kbd></td>
-                    </tr>
-                    <tr>
-                      <td className="py-2.5 px-4 font-medium">Wipe do Still</td>
-                      <td className="py-2.5 px-4 text-right"><kbd className="px-2 py-0.5 rounded bg-neutral-100 border border-neutral-300 font-mono text-xs">⌘W / Ctrl+W</kbd></td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-              <div className="p-3.5 bg-neutral-50/70 border-t border-neutral-200/60 font-serif text-xs text-neutral-600">
-                Stills e memórias podem ser associados a atalhos personalizados, acelerando comparações e aplicação repetida de grades.
-              </div>
-            </div>
-
-            <div className="bg-white rounded-2xl border border-neutral-200/90 shadow-2xs overflow-hidden flex flex-col justify-between">
-              <div>
-                <div className="bg-neutral-100/75 px-5 py-3 border-b border-neutral-200/80">
-                  <h4 id="versions" className="scroll-mt-4 text-xs font-bold tracking-widest text-neutral-700 uppercase">Versions</h4>
-                </div>
-                <table className="w-full text-left text-sm">
-                  <tbody className="divide-y divide-neutral-100 text-neutral-800">
-                    <tr>
-                      <td className="py-2.5 px-4 font-medium">Nova Version</td>
-                      <td className="py-2.5 px-4 text-right"><kbd className="px-2 py-0.5 rounded bg-neutral-100 border border-neutral-300 font-mono text-xs">⌘Y / Ctrl+Y</kbd></td>
-                    </tr>
-                    <tr>
-                      <td className="py-2.5 px-4 font-medium">Voltar para Default Version</td>
-                      <td className="py-2.5 px-4 text-right"><kbd className="px-2 py-0.5 rounded bg-neutral-100 border border-neutral-300 font-mono text-xs">⌘U / Ctrl+U</kbd></td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-              <div className="p-3.5 bg-neutral-50/70 border-t border-neutral-200/60 font-serif text-xs text-neutral-600">
-                Versions permitem testar caminhos criativos alternativos no mesmo clipe sem perder o tratamento base anterior.
-              </div>
-            </div>
-          </div>
-
-          {/* UMA REGRA SIMPLES */}
-          <div className="mt-10 p-6 md:p-8 rounded-2xl bg-neutral-100/70 border border-neutral-200">
-            <h4 id="uma-regra-simples" className="scroll-mt-4 text-xs font-bold tracking-widest text-neutral-500 uppercase mb-4">Uma Regra Simples</h4>
-            <p className="font-serif text-lg text-neutral-800 leading-relaxed mb-4">
-              Aprenda primeiro os atalhos que correspondem às ações que você repete o tempo inteiro:
-            </p>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm font-sans mb-6">
-              <div className="flex items-center gap-2">
-                <kbd className="px-2 py-1 rounded bg-white border border-neutral-300 font-mono text-xs font-bold text-neutral-900 shadow-2xs shrink-0">Option + S</kbd>
-                <span className="text-neutral-700">para criar nodes</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <kbd className="px-2 py-1 rounded bg-white border border-neutral-300 font-mono text-xs font-bold text-neutral-900 shadow-2xs shrink-0">Command + D</kbd>
-                <span className="text-neutral-700">para verificar um node isoladamente</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <kbd className="px-2 py-1 rounded bg-white border border-neutral-300 font-mono text-xs font-bold text-neutral-900 shadow-2xs shrink-0">Shift + D</kbd>
-                <span className="text-neutral-700">para comparar o grade com o original</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <kbd className="px-2 py-1 rounded bg-white border border-neutral-300 font-mono text-xs font-bold text-neutral-900 shadow-2xs shrink-0">Shift + H</kbd>
-                <span className="text-neutral-700">para visualizar máscaras</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <kbd className="px-2 py-1 rounded bg-white border border-neutral-300 font-mono text-xs font-bold text-neutral-900 shadow-2xs shrink-0">Command + W</kbd>
-                <span className="text-neutral-700">para comparar referências</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <kbd className="px-2 py-1 rounded bg-white border border-neutral-300 font-mono text-xs font-bold text-neutral-900 shadow-2xs shrink-0">⌥ + ⌘ + G</kbd>
-                <span className="text-neutral-700">para salvar um Still</span>
-              </div>
-              <div className="flex items-center gap-2 sm:col-span-2">
-                <kbd className="px-2 py-1 rounded bg-white border border-neutral-300 font-mono text-xs font-bold text-neutral-900 shadow-2xs shrink-0">J / K / L</kbd>
-                <span className="text-neutral-700">para navegar pelo material na timeline</span>
-              </div>
-            </div>
-            <p className="font-serif text-base text-neutral-700 leading-relaxed border-t border-neutral-200 pt-4">
-              Depois que essas combinações passam a fazer parte da memória muscular, a interface começa a desaparecer do processo. Você consegue permanecer muito mais tempo olhando para a imagem e tomando decisões sobre ela.
-            </p>
-          </div>
-        </div>
+        <Prose>
+          <p>
+            A ideia é você terminar esse artigo olhando pra página Color e já sabendo onde está cada coisa e pra que ela serve. Aí sim a gente começa a trabalhar a imagem.
+          </p>
+        </Prose>
       </EditorialSection>
 
+      {/* ===================== NODES ===================== */}
+      <EditorialSection
+        id="nodes-resolve"
+        kickerLeft="A ESTRUTURA"
+        kickerRight="O CAMINHO DA IMAGEM"
+        title="NODES: A IMAGEM PASSA POR AQUI"
+      >
+        <Prose>
+          <p>
+            No Resolve, o tratamento da imagem é construído numa sequência de nodes. Cada node recebe a imagem, aplica um ou mais ajustes e manda o resultado pro próximo. Um node pode cuidar do gerenciamento de cor, outro da exposição, outro do balanço de branco, outro do look. A combinação disso tudo forma o node tree, que é o caminho da imagem dentro do color grading.
+          </p>
+        </Prose>
+        <Fig file="NODES.webp" alt="Node Graph no DaVinci Resolve" />
+
+        <Sub title="A ordem importa">
+          <Prose>
+            <p>
+              Os ajustes acontecem na ordem em que os nodes estão ligados. Uma mudança no começo da cadeia muda o que chega nos nodes seguintes. Por isso, a organização do node tree acompanha o fluxo de trabalho: transformação de entrada, primárias, secundárias, look e transformação de saída.
+            </p>
+            <p>
+              A regra prática é: uma ideia por node, com nome. Assim você liga e desliga cada um (Command/Ctrl + D) pra ver o que ele está fazendo de verdade.
+            </p>
+          </Prose>
+        </Sub>
+
+        <Sub title="Os tipos de node">
+          <DataTable
+            caption="Os tipos de node, como funcionam e quando usar"
+            head={['Node', 'Como funciona', 'Quando usar']}
+            rows={NODE_TYPES.map((n) => [n.name, n.how, n.when])}
+          />
+          <Prose>
+            <p>
+              Não confunda os mixers, tá? O Parallel Mixer soma correções, o Layer Mixer sobrepõe camadas e o Key Mixer junta seleções. E também não confunda Shared com Compound: o Shared reaproveita uma correção em vários lugares; o Compound só organiza.
+            </p>
+          </Prose>
+          <NodeDiagrams
+            items={[
+              { file: 'nodes/serial.png', alt: 'Diagrama de nodes conectados em série', label: 'Serial' },
+              { file: 'nodes/paralelo.png', alt: 'Diagrama de nodes paralelos ligados a um Parallel Mixer', label: 'Parallel' },
+              { file: 'nodes/layer.png', alt: 'Diagrama de nodes combinados em camadas', label: 'Layer Mixer' },
+              { file: 'nodes/outside.png', alt: 'Diagrama de Outside Node depois de uma seleção', label: 'Outside' },
+              { file: 'nodes/spliter.png', alt: 'Diagrama de Splitter separando os canais', label: 'Splitter' },
+              { file: 'nodes/combiner.png', alt: 'Diagrama de Combiner reunindo os canais', label: 'Combiner' },
+              { file: 'nodes/key%20mixer.png', alt: 'Diagrama de nodes ligados a um Key Mixer', label: 'Key Mixer' },
+            ]}
+          />
+          <NodeQuiz />
+        </Sub>
+
+        <Sub title="Grupos e o node tree do filme inteiro">
+          <Prose>
+            <p>
+              Além dos nodes de cada clipe, o Resolve tem os grupos, com três estágios: Pre-Clip (a parte técnica que vale pra todos), Clip (o ajuste de cada take) e Post-Clip (o look do grupo). Num comercial, isso permite mexer no look do filme inteiro num lugar só.
+            </p>
+            <p>
+              Não existe uma árvore ideal pra todas as cenas. A melhor estrutura é a que te deixa fazer os ajustes com clareza e controle, sem complicar mais do que o projeto precisa. Quando achar a sua, salve como template e use em todo projeto.
+            </p>
+          </Prose>
+        </Sub>
+      </EditorialSection>
+
+      {/* ===================== PRIMÁRIAS ===================== */}
+      <EditorialSection
+        id="primarias-resolve"
+        kickerLeft="IMAGEM INTEIRA"
+        kickerRight="FERRAMENTAS ESPECÍFICAS"
+        title="PRIMÁRIAS E FERRAMENTAS ESPECÍFICAS"
+      >
+        <Prose>
+          <p>
+            As primárias são o primeiro conjunto de ferramentas que a gente usa. Elas trabalham a imagem inteira: exposição, contraste, balanço de cor e saturação. O objetivo aqui é criar uma base sólida, deixando os planos equilibrados e neutros antes das correções mais específicas.
+          </p>
+        </Prose>
+        <Fig file="PRIMARIES.webp" alt="Painel Primaries no DaVinci Resolve" />
+
+        <Sub title="Color Wheels: Lift, Gamma, Gain e Offset">
+          <Prose>
+            <p>
+              As Color Wheels são a interface mais usada nas primárias. Cada roda cuida de uma região: Lift nas sombras, Gamma nos médios, Gain nas altas luzes e Offset na imagem toda. Você mexe no ponto dentro da roda pra mudar a cor daquela região, e na barra de baixo pra mudar a quantidade de luz.
+            </p>
+            <p>
+              O legal é que o mesmo controle serve pra corrigir e pra criar. A roda que neutraliza uma dominante nas sombras também pode, no creative grade, deixar as sombras um pouco mais frias de propósito.
+            </p>
+          </Prose>
+          <Fig file="COLOR WHEELS.webp" alt="Painel das Color Wheels" />
+        </Sub>
+
+        <Sub title="Primary Bars e Log Wheels">
+          <Prose>
+            <p>
+              As Primary Bars fazem a mesma coisa que as rodas, mas com barras separadas por canal, o que dá mais precisão num ajuste fino. Já as Log Wheels (Shadow, Midtone e Highlight) trabalham faixas mais estreitas da escala tonal. Elas servem pra mexer nas sombras sem mexer tanto nos médios, por exemplo. São ótimas pra refinar depois que a base está pronta.
+            </p>
+          </Prose>
+          <Fig file="LOG WHEELS.webp" alt="Painel das Log Wheels" />
+        </Sub>
+
+        <Sub title="HDR: ajuste preciso por faixa tonal">
+          <Prose>
+            <p>
+              A palette HDR divide a imagem em mais zonas: Black, Dark, Shadow, Light, Highlight e Specular, além do Global. Cada zona tem seu controle de luz e cor, então dá pra mexer numa faixa sem afetar as vizinhas. No produto, isso ajuda muito a segurar o brilho especular de um vidro ou de um metal sem escurecer o resto.
+            </p>
+          </Prose>
+          <Fig file="HDR.webp" alt="Painel HDR" />
+        </Sub>
+
+        <Sub title="RGB Mixer: os canais de cor">
+          <Prose>
+            <p>
+              O RGB Mixer controla como os canais vermelho, verde e azul contribuem pra cada canal de saída. Ele é útil pra balanço, separação de cor e criação de look, e também pra transformar a imagem em preto e branco escolhendo quanto de cada canal entra. Como ele mexe direto na estrutura do sinal, pequenas mudanças fazem bastante diferença, tá?
+            </p>
+          </Prose>
+          <Fig file="RGB MIXER.webp" alt="Painel RGB Mixer" />
+        </Sub>
+
+        <Sub title="Curves: contraste, matiz e saturação">
+          <Prose>
+            <p>
+              As curvas relacionam o valor de entrada com o de saída. Na Custom Curve você constrói contraste com muito controle, adicionando pontos na diagonal. Além dela, o Resolve tem as curvas que relacionam uma propriedade com outra:
+            </p>
+          </Prose>
+          <Fig file="CURVES.webp" alt="Painel Curves" />
+          <Bullets
+            single
+            items={[
+              { label: 'Hue vs Hue:', text: 'muda uma cor pra outra, tipo puxar um vermelho alaranjado de volta pro vermelho da marca.' },
+              { label: 'Hue vs Sat:', text: 'muda a saturação de uma cor só.' },
+              { label: 'Hue vs Lum:', text: 'clareia ou escurece uma cor só.' },
+              { label: 'Lum vs Sat:', text: 'controla a saturação por faixa de luz, tipo tirar cor das sombras.' },
+              { label: 'Sat vs Sat:', text: 'segura o que já está muito saturado.' },
+            ]}
+          />
+          <Prose>
+            <p>No filme de produto, essas curvas são uma mão na roda pra acertar a cor da embalagem sem precisar de máscara.</p>
+          </Prose>
+        </Sub>
+      </EditorialSection>
+
+      {/* ===================== ISOLAMENTO ===================== */}
+      <EditorialSection
+        id="isolamento-resolve"
+        kickerLeft="SECUNDÁRIAS"
+        kickerRight="SÓ NUM PEDAÇO DA IMAGEM"
+        title="ISOLAMENTO: MEXER SÓ NUM PEDAÇO DA IMAGEM"
+      >
+        <Prose>
+          <p>
+            As ferramentas de isolamento são as que a gente usa nas secundárias. Elas definem onde um ajuste vai acontecer, seja por cor, por forma ou por inteligência artificial.
+          </p>
+        </Prose>
+
+        <Sub title="Qualifier: seleção por cor">
+          <Prose>
+            <p>
+              O Qualifier seleciona partes da imagem por matiz, saturação e luminosidade (HSL). Você escolhe a cor, e o ajuste do node passa a valer só ali. Serve pra pele, céu, vegetação e, no nosso caso, pro produto: a cor de uma lata, de um rótulo, de uma embalagem.
+            </p>
+            <p>
+              A qualidade da seleção depende da imagem (lembra da amostragem 4:2:0?) e dos ajustes. Pra limpar a seleção, use o Matte Finesse: Denoise, Blur Radius, Clean Black e Clean White. E aperte Shift + H pra ver exatamente o que está selecionado.
+            </p>
+          </Prose>
+          <Fig file="QUALIFIER.webp" alt="Painel Qualifier" />
+        </Sub>
+
+        <Sub title="Power Windows: seleção por forma">
+          <Prose>
+            <p>
+              As Power Windows são máscaras: círculo, retângulo, polígono, curva livre e gradiente linear. Aqui o que define a área é a posição e a forma, não a cor. Com o feather, você suaviza a borda pra o ajuste não parecer recortado.
+            </p>
+            <p>
+              Elas servem pra direcionar o olhar, equilibrar luz e separar elementos: escurecer um pouco o fundo, dar uma luz no rótulo, recuperar uma área estourada.
+            </p>
+          </Prose>
+          <Fig file="POWER WINDOWS.webp" alt="Painel Power Windows" />
+        </Sub>
+
+        <Sub title="Tracker: acompanhando o movimento">
+          <Prose>
+            <p>
+              Quando o produto ou a câmera se mexem, o Tracker acompanha o movimento e faz a window ir junto, quadro a quadro, sem você reposicionar na mão. Ele funciona melhor em áreas com contraste e textura. Se errar em algum trecho, dá pra corrigir manualmente.
+            </p>
+          </Prose>
+          <Fig file="TRACKER.webp" alt="Painel Tracker" />
+        </Sub>
+
+        <Sub title="Magic Mask: seleção por inteligência artificial">
+          <Prose>
+            <p>
+              O Magic Mask usa inteligência artificial pra isolar pessoas e objetos. Você marca o elemento e o Resolve gera a máscara e acompanha o movimento. No Resolve 20 ele ganhou uma nova versão, com marcação por pontos e re-rastreamento. Ele é ótimo quando separar um produto do fundo daria muito trabalho com window e qualifier.
+            </p>
+          </Prose>
+          <Fig file="MAGIC MASK.webp" alt="Painel Magic Mask" />
+        </Sub>
+
+        <Sub title="Key: a força do seu node">
+          <Prose>
+            <p>
+              A palette Key controla a intensidade da seleção que entra no node e da correção que sai dele. O Key Output Gain, por exemplo, diminui a força de um ajuste sem você precisar mexer nos parâmetros. É tipo uma opacidade do node, e ajuda muito a integrar uma secundária na imagem.
+            </p>
+          </Prose>
+          <Fig file="KEY.webp" alt="Painel Key" />
+        </Sub>
+
+        <Sub title="Blur, Sharpen e Sizing">
+          <Prose>
+            <p>
+              O Blur suaviza detalhes, e o Sharpen reforça contornos. Em produto, um pouco de sharpen pode valorizar a textura de um tecido ou de um rótulo, mas cuidado com ruído e compressão, porque ele realça os defeitos também. Já o Sizing cuida de posição, escala e rotação, útil pra pequenos reenquadramentos e pras versões em outros formatos, como o vertical pras redes.
+            </p>
+          </Prose>
+          <Fig file="BLUR E SHARPEN.webp" alt="Painel Blur e Sharpen" />
+          <Fig file="SIZING.webp" alt="Painel Sizing" />
+        </Sub>
+      </EditorialSection>
+
+      {/* ===================== ANÁLISE E COMPARAÇÃO ===================== */}
+      <EditorialSection
+        id="analise-e-comparacao-resolve"
+        kickerLeft="MEDIR E COMPARAR"
+        kickerRight="SCOPES, STILLS E VERSIONS"
+        title="ANÁLISE E COMPARAÇÃO: NÃO CONFIE SÓ NO SEU MONITOR"
+      >
+        <Prose>
+          <p>
+            O olho engana, tá? Depois de alguns minutos olhando uma imagem, ele se acostuma com uma dominante e para de enxergar. Por isso a gente tem ferramentas pra medir e pra comparar.
+          </p>
+        </Prose>
+
+        <Sub title="Scopes">
+          <Prose>
+            <p>
+              Os scopes mostram matematicamente como o sinal está distribuído. Enquanto a imagem mostra como o plano é percebido, o scope mostra o que realmente está lá.
+            </p>
+          </Prose>
+          <Fig file="SCOPES.webp" alt="Scopes no DaVinci Resolve" />
+          <DataTable
+            caption="Os scopes, o que mostram e para que a gente usa"
+            head={['Scope', 'O que mostra', 'Pra que a gente usa']}
+            rows={[
+              ['Waveform', 'A luz da imagem, da esquerda pra direita', 'Exposição, pretos, altas luzes, clipping'],
+              ['Parade', 'Waveform separado em R, G e B', 'Balanço de branco e dominantes'],
+              ['Vectorscope', 'Matiz e saturação num círculo', 'Neutros, saturação e cor do produto'],
+              ['Histogram', 'Quantos pixels tem em cada nível de luz', 'Distribuição geral de tons'],
+            ]}
+          />
+          <Prose>
+            <p>
+              Eles ajudam a comparar planos: diferenças de balanço, contraste e níveis de preto que passam batido no monitor aparecem na hora no scope.
+            </p>
+          </Prose>
+        </Sub>
+
+        <Sub title="Split Screen">
+          <Prose>
+            <p>
+              O Split Screen mostra duas ou mais imagens ao mesmo tempo no viewer. Um plano pode parecer equilibrado sozinho e mostrar uma diferença clara quando você coloca do lado de outro da mesma sequência. Ele também serve pra comparar com referências e testar versões.
+            </p>
+          </Prose>
+          <Fig file="SPLIT SCREEN.webp" alt="Split Screen no DaVinci Resolve" />
+        </Sub>
+
+        <Sub title="Gallery">
+          <Prose>
+            <p>
+              A Gallery é a memória visual do projeto. Ali você guarda stills dos planos (Option/Ctrl + Alt + G), compara com o wipe (Command/Ctrl + W) e copia grades de um plano pro outro. No produto, o still do packshot aprovado vira a régua do filme inteiro.
+            </p>
+            <p>
+              Os stills podem ser organizados em álbuns. E as PowerGrades guardam grades e estruturas de nodes pra usar em outros projetos, como os seus templates de node tree.
+            </p>
+          </Prose>
+          <Fig file="GALLERY.webp" alt="Gallery no DaVinci Resolve" />
+        </Sub>
+
+        <Sub title="Color Match">
+          <Prose>
+            <p>
+              Quando o projeto tem duas ou três câmeras, cada sensor responde de um jeito. O Color Match usa uma cartela de cor (ColorChecker) filmada no set pra alinhar todas as câmeras numa base neutra. Você encaixa o grid sobre a cartela e o Resolve faz o ajuste. Primeiro você iguala todo mundo, depois cria o estilo do filme.
+            </p>
+          </Prose>
+          <Fig file="COLOR MATCH.webp" alt="Painel Color Match" />
+        </Sub>
+
+        <Sub title="Versions">
+          <Prose>
+            <p>
+              As Versions deixam você testar caminhos diferentes no mesmo clipe sem perder o tratamento anterior. Command/Ctrl + Y cria uma versão nova. Perfeito pra quando o cliente quer ver duas ou três opções de look.
+            </p>
+          </Prose>
+        </Sub>
+      </EditorialSection>
+
+      {/* ===================== NA PRÁTICA ===================== */}
+      <EditorialSection
+        id="resolve-na-pratica"
+        kickerLeft="NA PRÁTICA"
+        kickerRight="COMERCIAL DE PRODUTO"
+        title="NA PRÁTICA: ONDE CADA FERRAMENTA ENTRA NUM COMERCIAL DE PRODUTO"
+      >
+        <Prose>
+          <p>
+            Bora juntar tudo. Imagina aquele VT de 30 segundos de um energético, com lata em estúdio, take em parque, take em balada e o packshot final. Olha onde cada ferramenta aparece:
+          </p>
+        </Prose>
+        <NumberedSteps
+          items={[
+            { title: 'Project Manager.', text: 'Crie o projeto com um nome claro, na pasta do cliente, e confira se o Live Save e os backups estão ligados.' },
+            { title: 'Project Settings.', text: 'Configure o gerenciamento de cor: entrada no log da câmera e saída em Rec.709.' },
+            { title: 'Media.', text: 'Importe o material e as referências da marca. Organize em bins.' },
+            { title: 'Color: nodes.', text: 'Aplique seu template de node tree em todos os takes e coloque o VT num grupo.' },
+            { title: 'Primary wheels, HDR e scopes.', text: 'Faça as primárias de todos os takes olhando waveform e parade.' },
+            { title: 'Gallery e Split Screen.', text: 'Salve um still do packshot (o hero) e iguale os outros takes a ele com o wipe.' },
+            { title: 'Qualifier, Power Windows, Tracker e Magic Mask.', text: 'Isole a lata e acerte a cor da marca em todos os takes. Use Shift + H pra conferir a seleção.' },
+            { title: 'Curves e Key.', text: 'Use Hue vs Hue e Hue vs Sat pra ajustes finos de cor, e o Key Output Gain pra dosar.' },
+            { title: 'Group Post-Clip e Versions.', text: 'Monte o look no grupo e crie duas ou três versões pro cliente escolher.' },
+            { title: 'Deliver.', text: 'Exporte nos formatos pedidos e, depois de aprovado, arquive o projeto pelo Project Manager.' },
+          ]}
+        />
+        <Prose>
+          <p>
+            Cada ferramenta tem um momento certo, então não precisa aprender todas de uma vez. Aprendendo essas, você já consegue fazer um comercial do começo ao fim.
+          </p>
+        </Prose>
+      </EditorialSection>
+
+      {/* ===================== ATALHOS ===================== */}
+      <EditorialSection
+        id="atalhos-resolve"
+        kickerLeft="VELOCIDADE"
+        kickerRight="MEMÓRIA MUSCULAR"
+        title="ATALHOS QUE VOCÊ PRECISA COMEÇAR A USAR"
+      >
+        <Prose>
+          <p>
+            O color grading tem centenas de pequenas ações repetidas: criar node, trocar de plano, comparar, ver máscara, salvar still. Os atalhos deixam você concentrado na imagem em vez de ficar caçando botão. Dá pra personalizar tudo em Keyboard Customization, então se o seu teclado foi modificado, as combinações podem mudar.
+          </p>
+        </Prose>
+
+        <DataTable
+          caption="Atalhos do Resolve no macOS e no Windows"
+          head={['Ação', 'macOS', 'Windows']}
+          rows={[
+            ['Abrir o Project Manager', 'Shift + 1', 'Shift + 1'],
+            ['Ir pra página Color', 'Shift + 6', 'Shift + 6'],
+            ['Reproduzir pra trás / pausar / pra frente', 'J / K / L', 'J / K / L'],
+            ['Próximo clipe / clipe anterior', '↓ / ↑', '↓ / ↑'],
+            ['Novo Serial Node', 'Option + S', 'Alt + S'],
+            ['Novo Parallel Node', 'Option + P', 'Alt + P'],
+            ['Novo Layer Node', 'Option + L', 'Alt + L'],
+            ['Novo Outside Node', 'Option + O', 'Alt + O'],
+            ['Ligar / desligar o node', 'Command + D', 'Ctrl + D'],
+            ['Ligar / desligar todo o grade', 'Shift + D', 'Shift + D'],
+            ['Resetar o node', 'Shift + Home', 'Shift + Home'],
+            ['Ver a máscara (highlight)', 'Shift + H', 'Shift + H'],
+            ['Salvar still', 'Option + Command + G', 'Ctrl + Alt + G'],
+            ['Wipe com o still', 'Command + W', 'Ctrl + W'],
+            ['Nova Version', 'Command + Y', 'Ctrl + Y'],
+          ]}
+          minWidth={520}
+        />
+
+        <Note>
+          Aprenda primeiro os que você repete o tempo inteiro: Option/Alt + S pra criar node, Command/Ctrl + D pra conferir um node, Shift + D pra comparar com o original, Shift + H pra ver máscara, Command/Ctrl + W pra comparar referência e J, K, L pra navegar. Depois que isso vira memória muscular, a interface meio que some e você passa muito mais tempo olhando pra imagem.
+        </Note>
+      </EditorialSection>
+
+      {/* ===================== CONCLUSÃO ===================== */}
+      <EditorialSection
+        id="conclusao-resolve"
+        kickerLeft="RESUMO"
+        kickerRight="UM MOMENTO CERTO PARA CADA FERRAMENTA"
+        title="CONCLUSÃO"
+      >
+        <Prose>
+          <p>
+            O DaVinci Resolve parece assustador no começo, mas ele é bem organizado: cada página tem uma função, e cada ferramenta da página Color tem um momento certo dentro do fluxo de trabalho. Organização e backup primeiro, primárias depois, isolamento nas secundárias, scopes e comparação o tempo todo.
+          </p>
+          <p>
+            Não tenta aprender tudo de uma vez, tá? Domina essas ferramentas, cria o seu template de nodes e decora os atalhos principais. O resto vem com a prática.
+          </p>
+        </Prose>
+      </EditorialSection>
     </article>
   );
 }

@@ -130,7 +130,7 @@ export const LESSON_SEO: LessonSeo[] = [
     "moduleSlug": "fundamentos",
     "moduleTitle": "Fundamentos",
     "slug": "analise-tecnica",
-    "title": "Análise Técnica",
+    "title": "Análise da Imagem",
     "metaDescription": "Antes de iniciar o tratamento de cor, faça uma leitura técnica do material para entender como a imagem foi capturada e identificar possíveis limitações.…",
     "learningOutcomes": [],
     "topics": [
