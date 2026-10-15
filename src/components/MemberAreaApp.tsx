@@ -929,6 +929,7 @@ export function MemberAreaApp({ skipInternalPreloader = false }: { skipInternalP
               {/* Collapse Trigger Button */}
               {labelsShown ? (
                 <button 
+                  key="sidebar-collapse"
                   onClick={() => setIsSidebarExpanded(false)}
                   aria-label="Recolher barra lateral"
                   className="sb-fade text-[#a1a1a6] hover:text-white transition-colors p-2.5 rounded-md hover:bg-white/5 cursor-pointer shrink-0 hidden md:block"
@@ -938,6 +939,7 @@ export function MemberAreaApp({ skipInternalPreloader = false }: { skipInternalP
                 </button>
               ) : (
                 <button 
+                  key="sidebar-expand"
                   onClick={() => setIsSidebarExpanded(true)}
                   aria-label="Expandir barra lateral"
                   className="text-[#a1a1a6] hover:text-white transition-colors p-2.5 rounded-md hover:bg-white/10 cursor-pointer shrink-0 flex items-center justify-center"

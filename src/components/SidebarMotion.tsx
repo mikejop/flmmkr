@@ -58,6 +58,8 @@ export function useSidebarMotion(expanded: boolean) {
     const finishClose = contextSafe(() => {
       if (expandedRef.current) return;
       gsap.set(el, { width: SIDEBAR_WIDTH_CLOSED });
+      // Elementos reaproveitados pelo React (ex.: botão de recolher vira o de expandir) não podem ficar com opacity 0 do fade.
+      gsap.set(el.querySelectorAll('.sb-fade'), { clearProps: 'opacity,transform' });
       setLabelsShown(false);
     });
 
