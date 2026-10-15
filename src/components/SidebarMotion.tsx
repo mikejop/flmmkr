@@ -14,12 +14,16 @@ export const SIDEBAR_WIDTH_CLOSED = 64;
 /**
  * Anima a largura do menu lateral e o aparecer/sumir dos textos.
  * `expanded` é o destino; `labelsShown` é o que está desenhado (textos continuam visíveis enquanto o menu fecha).
+ * O elemento vem por callback ref (`setAside`): se o menu monta depois (ou é remontado), a animação se ajusta sozinha.
  * No celular (gaveta) a largura muda sem animar; só os textos entram com fade.
  */
-export function useSidebarMotion(asideRef: React.RefObject<HTMLElement | null>, expanded: boolean) {
+export function useSidebarMotion(expanded: boolean) {
+  const [aside, setAside] = useState<HTMLElement | null>(null);
   const [labelsShown, setLabelsShown] = useState(expanded);
-  const first = useRef(true);
   const [prevExpanded, setPrevExpanded] = useState(expanded);
+  const initializedFor = useRef<HTMLElement | null>(null);
+  const expandedRef = useRef(expanded);
+  const stuckGuard = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Ao abrir, desenha os textos já (o fade de entrada roda na hora); ao fechar, só depois da animação.
   if (expanded !== prevExpanded) {
@@ -28,24 +32,35 @@ export function useSidebarMotion(asideRef: React.RefObject<HTMLElement | null>, 
   }
 
   useGSAP((_, contextSafe) => {
-    const el = asideRef.current;
+    expandedRef.current = expanded;
+    if (stuckGuard.current) { clearTimeout(stuckGuard.current); stuckGuard.current = null; }
+    const el = aside;
     if (!el || !contextSafe) return;
-    const desktop = window.matchMedia('(min-width: 768px)').matches;
-    const target = expanded ? Math.min(SIDEBAR_WIDTH_OPEN, window.innerWidth * 0.85) : SIDEBAR_WIDTH_CLOSED;
-    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-    if (first.current) {
-      first.current = false;
+    const desktop = window.matchMedia('(min-width: 768px)').matches;
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const target = expanded ? Math.min(SIDEBAR_WIDTH_OPEN, window.innerWidth * 0.85) : SIDEBAR_WIDTH_CLOSED;
+
+    // Primeira vez com este elemento: vai direto ao estado certo, sem animar.
+    if (initializedFor.current !== el) {
+      initializedFor.current = el;
       gsap.set(el, { width: target });
+      setLabelsShown(expanded);
       return;
     }
     if (!desktop || reduce) {
       gsap.set(el, { width: target });
-      if (!expanded) setLabelsShown(false);
+      setLabelsShown(expanded);
       return;
     }
 
-    const done = contextSafe(() => setLabelsShown(false));
+    // Termina o fechamento: nunca deixa o menu estreito com os textos desenhados.
+    const finishClose = contextSafe(() => {
+      if (expandedRef.current) return;
+      gsap.set(el, { width: SIDEBAR_WIDTH_CLOSED });
+      setLabelsShown(false);
+    });
+
     if (expanded) {
       gsap.to(el, { width: target, duration: 0.5, ease: SIDEBAR_EASE, overwrite: 'auto' });
       // Os textos entram quando o menu já abriu um pouco, em cascata curta.
@@ -56,11 +71,13 @@ export function useSidebarMotion(asideRef: React.RefObject<HTMLElement | null>, 
       );
     } else {
       gsap.to(el.querySelectorAll('.sb-fade'), { opacity: 0, x: -6, duration: 0.16, ease: 'power2.in', stagger: 0.01, overwrite: 'auto' });
-      gsap.to(el, { width: target, duration: 0.45, ease: SIDEBAR_EASE, delay: 0.06, overwrite: 'auto', onComplete: done });
+      gsap.to(el, { width: target, duration: 0.45, ease: SIDEBAR_EASE, delay: 0.06, overwrite: 'auto', onComplete: finishClose, onInterrupt: finishClose });
+      // Rede de segurança: se por qualquer motivo a animação não terminar, o fechamento é concluído mesmo assim.
+      stuckGuard.current = setTimeout(finishClose, 900);
     }
-  }, { dependencies: [expanded], scope: asideRef });
+  }, { dependencies: [expanded, aside] });
 
-  return labelsShown;
+  return { setAside, labelsShown };
 }
 
 /** Abre e fecha uma lista com altura animada (GSAP). Só monta o conteúdo enquanto aberto ou animando o fechamento. */

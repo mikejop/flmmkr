@@ -163,12 +163,11 @@ export function MemberAreaApp({ skipInternalPreloader = false }: { skipInternalP
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState<boolean>(false);
   const isSidebarExpanded = sidebarPref || isMobileMenuOpen;
   const lessonContainerRef = useRef<HTMLDivElement>(null);
-  const asideRef = useRef<HTMLElement>(null);
   const flyoutRef = useRef<HTMLDivElement>(null);
   // Largura inicial (sem salto na primeira pintura); depois quem anima é o GSAP.
   const [initialSidebarWidth] = useState(() => (isSidebarExpanded ? SIDEBAR_WIDTH_OPEN : SIDEBAR_WIDTH_CLOSED));
   // Textos do menu: continuam desenhados enquanto o menu fecha, para sumirem em fade em vez de cortar de uma vez.
-  const labelsShown = useSidebarMotion(asideRef, isSidebarExpanded);
+  const { setAside, labelsShown } = useSidebarMotion(isSidebarExpanded);
   const [articleToc, setArticleToc] = useState<TocGroup[]>([]);
   const timelineGroups = useMemo<TocGroup[]>(
     () => (articleToc.length ? [{ title: 'Vídeo da aula', id: LESSON_VIDEO_ANCHOR }, ...articleToc] : []),
@@ -892,7 +891,7 @@ export function MemberAreaApp({ skipInternalPreloader = false }: { skipInternalP
 
           {/* SIDEBAR com Glassmorphism Apple (gaveta sobreposta no celular) */}
           <aside 
-            ref={asideRef}
+            ref={setAside}
             style={{ width: initialSidebarWidth }}
             aria-label="Módulos e aulas"
             className={`max-w-[85vw] md:max-w-none ${isMobileMenuOpen ? 'flex fixed inset-y-0 left-0 z-40 md:relative md:z-auto' : 'hidden md:flex'} bg-[#121216] border-r border-white/12 flex-col shrink-0 select-none relative will-change-[width] overflow-hidden`}
