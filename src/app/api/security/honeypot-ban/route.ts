@@ -38,7 +38,8 @@ export async function POST(req: NextRequest) {
       user_agent: userAgent || req.headers.get('user-agent') || null,
       request_headers: null,
       is_banned: true,
-      notes: 'Bloqueio automático acionado pelo middleware do Honeypot.'
+      expires_at: new Date(Date.now() + 60 * 60 * 1000).toISOString(),
+      notes: 'Bloqueio temporário (1 hora) acionado pelo middleware do Honeypot.'
     });
     if (error) throw error;
 

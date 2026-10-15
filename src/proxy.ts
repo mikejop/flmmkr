@@ -1,7 +1,8 @@
 import { type NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/utils/supabase/middleware';
 import { detectSqlInjection } from '@/utils/security';
-import { banAttacker, isAttackerBanned, isHoneypotPath } from '@/services/honeypotService';
+import { banAttacker, isAttackerBanned, isHoneypotPath, isAutoLoadedResource, BLOCK_DURATION_MS } from '@/services/honeypotService';
+import { consumeRateLimit } from '@/utils/rateLimit';
 import { randomBytes } from 'node:crypto';
 import { getClientIp } from '@/utils/clientIp';
 
@@ -35,9 +36,9 @@ const BANNED_RESPONSE_HTML = `<!DOCTYPE html>
 <body style="margin:0;padding:0;display:flex;align-items:center;justify-content:center;height:100vh;background:#070709;color:#fff;font-family:-apple-system,BlinkMacSystemFont,sans-serif;text-align:center;">
   <div style="max-width:440px;padding:32px 24px;border:1px solid rgba(255,69,58,0.25);border-radius:16px;background:#121318;">
     <div style="font-size:36px;margin-bottom:12px;">🚫</div>
-    <h1 style="color:#ff453a;font-size:20px;font-weight:700;margin:0 0 10px 0;">403 — Acesso Permanentemente Bloqueado</h1>
+    <h1 style="color:#ff453a;font-size:20px;font-weight:700;margin:0 0 10px 0;">403 — Acesso bloqueado temporariamente</h1>
     <p style="color:#a1a1a6;font-size:13px;line-height:1.6;margin:0 0 16px 0;">
-      Este endereço IP e dispositivo foram bloqueados indefinidamente por acionamento de armadilha de segurança (Honeypot) ou violação das regras do servidor.
+      Este endereço IP foi bloqueado por 1 hora após atividade suspeita no servidor. Se isso foi um engano, tente novamente mais tarde.
     </p>
     <div style="font-size:11px;color:#636366;font-family:monospace;">
       FLMMKR Security Gateway • Incident Recorded
@@ -86,10 +87,27 @@ export async function proxy(request: NextRequest) {
     }));
   }
 
-  // 2. DETECÇÃO E DISPARO DE HONEYPOT
-  // Se o atacante acessar qualquer rota de armadilha (ex: /wp-admin, /.env, /dump.sql, /phpmyadmin)
-  // O sistema bloqueia o IP e MAC indefinidamente em todo o site desde a raiz.
+  // 2. HONEYPOT: bloqueio TEMPORÁRIO (1 hora).
+  // Métodos de escrita (POST/PUT/PATCH/DELETE) em rota-armadilha bloqueiam na hora.
+  // Leituras (GET/HEAD) só bloqueiam na 3ª vez em 10 minutos; antes disso respondem 404.
+  // Recursos carregados automaticamente pelo navegador nunca contam.
   if (isHoneypotPath(decodedPath)) {
+    const unsafeMethod = !['GET', 'HEAD', 'OPTIONS'].includes(request.method);
+    if (!unsafeMethod && isAutoLoadedResource(request.headers)) {
+      return applyReportOnly(new NextResponse('Not found', { status: 404 }));
+    }
+
+    let shouldBlock = unsafeMethod;
+    if (!unsafeMethod) {
+      // Contador: 2 tentativas permitidas por janela de 10 min; a 3ª estoura e bloqueia.
+      const allowed = await consumeRateLimit(request, 'honeypot-hits', 2, 600);
+      shouldBlock = allowed === false;
+    }
+
+    if (!shouldBlock) {
+      return applyReportOnly(new NextResponse('Not found', { status: 404 }));
+    }
+
     const userAgent = request.headers.get('user-agent') || '';
     await banAttacker({ ip, mac, honeypotPath: decodedPath, userAgent });
 
@@ -101,10 +119,9 @@ export async function proxy(request: NextRequest) {
       }
     });
 
-    // Grava o cookie indelével de banimento permanente (10 anos)
     banResponse.cookies.set('flmmkr_banned', '1', {
       path: '/',
-      maxAge: 315360000,
+      maxAge: Math.floor(BLOCK_DURATION_MS / 1000),
       httpOnly: true,
       sameSite: 'strict',
       secure: process.env.NODE_ENV === 'production'
