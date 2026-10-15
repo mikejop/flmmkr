@@ -74,6 +74,14 @@ interface AsaasPayment {
   installment?: string | null;
   deleted?: boolean;
   invoiceUrl?: string;
+  transactionReceiptUrl?: string | null;
+  billingType?: string;
+  description?: string | null;
+  /** Datas civis (YYYY-MM-DD). O Asaas pode omitir confirmedDate em alguns meios; use a primeira que existir. */
+  confirmedDate?: string | null;
+  paymentDate?: string | null;
+  clientPaymentDate?: string | null;
+  chargeback?: { status?: string } | null;
   errors?: { description?: string }[];
   refusalReason?: string;
 }
@@ -195,5 +203,33 @@ export const asaasService = {
    */
   async getPaymentStatus(paymentId: string): Promise<AsaasPayment> {
     return asaasFetch<AsaasPayment>(`/payments/${paymentId}`);
-  }
+  },
+
+  /** Alias com nome mais claro para a consulta completa de uma cobrança. */
+  async getPayment(paymentId: string): Promise<AsaasPayment> {
+    return asaasFetch<AsaasPayment>(`/payments/${encodeURIComponent(paymentId)}`);
+  },
+
+  /** Parcelamento (valor total e quantidade de parcelas). */
+  async getInstallment(installmentId: string): Promise<{ id: string; value?: number; installmentCount?: number }> {
+    return asaasFetch(`/installments/${encodeURIComponent(installmentId)}`);
+  },
+
+  /** Estorno integral de cobrança paga com cartão (à vista) ou Pix. POST /payments/{id}/refund */
+  async refundPayment(paymentId: string, description?: string): Promise<AsaasPayment> {
+    return asaasFetch<AsaasPayment>(`/payments/${encodeURIComponent(paymentId)}/refund`, {
+      method: 'POST',
+      body: JSON.stringify(description ? { description } : {}),
+    });
+  },
+
+  /** Estorno de boleto: devolve o link em que o pagador informa os dados bancários. POST /payments/{id}/bankSlip/refund */
+  async refundBankSlip(paymentId: string): Promise<{ requestUrl?: string }> {
+    return asaasFetch(`/payments/${encodeURIComponent(paymentId)}/bankSlip/refund`, { method: 'POST', body: JSON.stringify({}) });
+  },
+
+  /** Estorno integral de parcelamento no cartão. POST /installments/{id}/refund */
+  async refundInstallment(installmentId: string): Promise<unknown> {
+    return asaasFetch(`/installments/${encodeURIComponent(installmentId)}/refund`, { method: 'POST', body: JSON.stringify({}) });
+  },
 };

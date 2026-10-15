@@ -126,3 +126,30 @@ FLMMKR - Color Master® | Produtos`;
 
   return true;
 }
+
+/**
+ * Alerta operacional para o administrador (ADMIN_ALERT_EMAIL). Texto simples, sem dado pessoal além do necessário.
+ * Nunca lança. Sem ADMIN_ALERT_EMAIL ou sem Resend, só registra no log do servidor.
+ */
+export async function sendAdminAlert({ subject, text }: { subject: string; text: string }): Promise<void> {
+  const to = process.env.ADMIN_ALERT_EMAIL?.trim();
+  console.warn('[admin-alert]', subject);
+  if (!to) {
+    console.error('[admin-alert] ADMIN_ALERT_EMAIL ausente: alerta não enviado.');
+    return;
+  }
+  try {
+    const resendApiKey = await getServerSecret('resendApiKey');
+    const { Resend } = await import('resend');
+    const resend = new Resend(resendApiKey);
+    const { error } = await resend.emails.send({
+      from: process.env.EMAIL_FROM || 'FLMMKR <contato@flmmkr.site>',
+      to: [to],
+      subject: `[FLMMKR] ${subject}`.slice(0, 150),
+      text,
+    });
+    if (error) console.error('[admin-alert] falha ao enviar:', error);
+  } catch (err) {
+    console.error('[admin-alert] exceção ao enviar:', err instanceof Error ? err.message : err);
+  }
+}
