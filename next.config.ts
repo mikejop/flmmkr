@@ -2,7 +2,8 @@ import type { NextConfig } from 'next';
 import { buildPublicCsp } from './src/utils/csp';
 
 // A3: em build de produção na Vercel, faltar chave de segurança derruba o build (melhor que subir um checkout desprotegido).
-if (process.env.VERCEL_ENV === 'production' && process.env.NEXT_PHASE === 'phase-production-build') {
+function assertProductionSecurityEnv() {
+  if (process.env.VERCEL_ENV !== 'production') return;
   const required = [
     'TURNSTILE_SECRET_KEY',
     'NEXT_PUBLIC_TURNSTILE_SITE_KEY',
@@ -142,4 +143,7 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default nextConfig;
+export default (phase: string): NextConfig => {
+  if (phase === 'phase-production-build') assertProductionSecurityEnv();
+  return nextConfig;
+};
