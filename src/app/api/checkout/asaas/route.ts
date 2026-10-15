@@ -363,7 +363,7 @@ export async function POST(req: NextRequest) {
     }
 
     return NextResponse.json(
-      { error: error?.message || 'Falha ao processar pagamento.' },
+      { error: error?.name === 'AsaasApiError' && error?.message ? error.message : 'Falha ao processar pagamento.' },
       { status: 500 }
     );
   }

@@ -159,7 +159,7 @@ export async function POST(req: NextRequest) {
   } catch (err: any) {
     console.error('[API /api/auth/first-access Exception]:', err);
     return NextResponse.json(
-      { success: false, error: err?.message || 'Falha ao ativar primeiro acesso.' },
+      { success: false, error: 'Falha ao ativar primeiro acesso.' },
       { status: 500 }
     );
   }

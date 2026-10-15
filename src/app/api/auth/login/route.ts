@@ -250,7 +250,7 @@ export async function POST(req: NextRequest) {
   } catch (err: any) {
     console.error('[API /api/auth/login Error]:', err);
     return NextResponse.json(
-      { success: false, error: err?.message || 'Falha ao processar solicitação de login.' },
+      { success: false, error: 'Falha ao processar solicitação de login.' },
       { status: 500 }
     );
   }

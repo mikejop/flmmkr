@@ -100,7 +100,9 @@ async function asaasFetch<T>(endpoint: string, options: RequestInit = {}): Promi
       data?.errors?.[0]?.description ||
       data?.message ||
       (typeof data === 'string' ? data : 'Erro ao processar requisição no Asaas');
-    throw new Error(errorMessage);
+    const apiError = new Error(errorMessage);
+    apiError.name = 'AsaasApiError'; // mensagem do Asaas (ex.: cartão recusado) pode ser mostrada ao comprador
+    throw apiError;
   }
 
   return data as T;

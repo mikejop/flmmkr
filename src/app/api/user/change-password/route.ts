@@ -67,7 +67,7 @@ export async function POST(req: NextRequest) {
   } catch (err: any) {
     console.error('[Change Password Error]:', err);
     return NextResponse.json(
-      { error: err?.message || 'Erro interno ao alterar senha.' },
+      { error: 'Erro interno ao alterar senha.' },
       { status: 500 }
     );
   }
