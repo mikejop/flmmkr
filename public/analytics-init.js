@@ -1,4 +1,7 @@
 // Inicialização de GA, Clarity e GTM. Fica em arquivo próprio para a CSP não precisar de script inline.
+// Páginas com link secreto na URL (primeiro acesso, definir senha) não carregam analytics: o token não pode vazar para terceiros.
+(function () {
+  if (/^\/(primeiro-acesso|definir-senha)(\/|$)/.test(location.pathname)) return;
 window.dataLayer = window.dataLayer || [];
 function gtag() { window.dataLayer.push(arguments); }
 window.gtag = gtag;
@@ -17,3 +20,4 @@ gtag('config', 'G-RD157QZHM5');
   j.async = true; j.src = 'https://www.googletagmanager.com/gtm.js?id=' + i;
   f.parentNode.insertBefore(j, f);
 })(window, document, 'script', 'dataLayer', 'GTM-TZ3FJT5D');
+})();

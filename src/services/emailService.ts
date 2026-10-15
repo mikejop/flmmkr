@@ -124,7 +124,19 @@ FLMMKR - Color Master® | Produtos`;
     console.error('[Email Service] Exceção ao enviar via Resend SDK:', resendErr);
   }
 
-  return true;
+  // Falha real: quem chama precisa saber (o aluno pagou e não recebeu o link). Avisa o administrador.
+  try {
+    await supabaseAdmin.from('security_audit_logs').insert({
+      event_type: 'activation_email_failed',
+      email: normalizedEmail,
+      details: { timestamp: new Date().toISOString() }
+    });
+  } catch { /* só registro */ }
+  await sendAdminAlert({
+    subject: 'E-mail de ativação NÃO foi enviado',
+    text: `Um aluno pagou e o e-mail de primeiro acesso falhou (${normalizedEmail}). O sistema tenta de novo no reenvio do webhook; se persistir, envie o link manualmente ou peça para ele usar "Enviar novo link" na página de primeiro acesso.`,
+  });
+  return false;
 }
 
 /**

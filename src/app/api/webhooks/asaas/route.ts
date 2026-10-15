@@ -140,7 +140,7 @@ export async function POST(req: NextRequest) {
 
       if (pending && pending.status !== 'CONFIRMED') {
         // A conta é criada aqui, no servidor, só depois do pagamento confirmado (se já existir, só libera o acesso).
-        await provisionSupabaseUserAndProfile({
+        const provisioned = await provisionSupabaseUserAndProfile({
           email: pending.email,
           name: pending.full_name,
           phone: pending.phone,
@@ -150,6 +150,8 @@ export async function POST(req: NextRequest) {
           asaasCustomerId: pending.asaas_customer_id,
           asaasPaymentId: paymentId,
         });
+        // Outro processo (checkout com cartão) está criando a conta agora: responde erro para o Asaas reenviar depois.
+        if (provisioned.status === 'in_progress') throw new Error('Provisionamento em andamento.');
 
         const { error: checkoutUpdateError } = await supabaseAdmin
           .from('pending_checkouts')
@@ -161,7 +163,7 @@ export async function POST(req: NextRequest) {
         const { asaasService } = await import('@/services/asaas');
         const customer = await asaasService.getCustomer(verification.payment.customer);
         if (!customer?.email) throw new Error('Não foi possível localizar o pagador associado ao pagamento.');
-        await provisionSupabaseUserAndProfile({
+        const provisionedDirect = await provisionSupabaseUserAndProfile({
           email: customer.email,
           name: customer.name || 'Aluno FLMMKR',
           phone: customer.mobilePhone || customer.phone || undefined,
@@ -177,6 +179,7 @@ export async function POST(req: NextRequest) {
           asaasCustomerId: customer.id,
           asaasPaymentId: paymentId,
         });
+        if (provisionedDirect.status === 'in_progress') throw new Error('Provisionamento em andamento.');
       } else if (!pending) {
         throw new Error('Checkout pendente não encontrado e o pagamento não possui cliente associado.');
       }

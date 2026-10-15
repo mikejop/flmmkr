@@ -220,18 +220,23 @@ export async function POST(req: NextRequest) {
         const isApproved = payment.status === 'CONFIRMED' || payment.status === 'RECEIVED';
 
         if (isApproved) {
-          // Criar ou atualizar usuário no Supabase Auth e tabela profiles
-          await provisionSupabaseUserAndProfile({
-            email,
-            name,
-            phone,
-            birthDate,
-            age: age ? Number(age) : null,
-            profession,
-            address,
-            asaasCustomerId: customer.id,
-            asaasPaymentId: payment.id
-          });
+          // Criar ou atualizar usuário no Supabase Auth e tabela profiles. O pagamento já foi aprovado: se algo
+          // falhar aqui (ex.: e-mail), o aluno não pode ver "pagamento recusado". O webhook do Asaas refaz o envio.
+          try {
+            await provisionSupabaseUserAndProfile({
+              email,
+              name,
+              phone,
+              birthDate,
+              age: age ? Number(age) : null,
+              profession,
+              address,
+              asaasCustomerId: customer.id,
+              asaasPaymentId: payment.id
+            });
+          } catch (provisionError) {
+            console.error('[checkout] pagamento aprovado, mas a criação da conta/e-mail falhou; o webhook tentará de novo:', provisionError instanceof Error ? provisionError.message : provisionError);
+          }
 
           return NextResponse.json({
             success: true,
