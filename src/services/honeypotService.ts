@@ -69,6 +69,37 @@ function isCachedBlock(ip: string): boolean {
   return true;
 }
 
+/** Expande um IPv6 (com "::") para 8 grupos de 4 dígitos; null se não for IPv6 válido. */
+function expandIpv6(ip: string): string[] | null {
+  if (!ip.includes(':')) return null;
+  const [head, tail] = ip.split('::');
+  const h = head ? head.split(':') : [];
+  const t = tail !== undefined && tail ? tail.split(':') : [];
+  const missing = 8 - h.length - t.length;
+  if (ip.includes('::') ? missing < 0 : h.length !== 8) return null;
+  const groups = [...h, ...(ip.includes('::') ? Array(missing).fill('0') : []), ...t];
+  return groups.length === 8 ? groups.map((g) => g.toLowerCase().padStart(4, '0')) : null;
+}
+
+/**
+ * IPs do dono/testador que NUNCA são bloqueados pelo honeypot (variável HONEYPOT_ALLOWLIST_IPS, separada por vírgula).
+ * Aceita IPv4 exato, IPv6 exato e IPv6 com prefixo "/64" (endereços IPv6 temporários mudam só os últimos 64 bits).
+ */
+export function isAllowlistedIp(ip: string): boolean {
+  const clean = (ip || '').trim().toLowerCase();
+  if (!clean) return false;
+  const entries = (process.env.HONEYPOT_ALLOWLIST_IPS || '').split(',').map((e) => e.trim().toLowerCase()).filter(Boolean);
+  for (const entry of entries) {
+    if (entry === clean) return true;
+    if (entry.endsWith('/64')) {
+      const prefix = expandIpv6(entry.slice(0, -3));
+      const candidate = expandIpv6(clean);
+      if (prefix && candidate && prefix.slice(0, 4).join(':') === candidate.slice(0, 4).join(':')) return true;
+    }
+  }
+  return false;
+}
+
 /**
  * Verifica se o caminho requisitado é um honeypot
  */
@@ -101,6 +132,7 @@ export async function banAttacker({
   headers?: Record<string, string>;
 }): Promise<void> {
   const cleanIp = (ip || '').trim();
+  if (isAllowlistedIp(cleanIp)) return; // IP do dono/testador: nunca bloqueia
   const cleanMac = (mac || '').trim();
   const expiresAt = new Date(Date.now() + BLOCK_DURATION_MS);
 
@@ -129,17 +161,15 @@ export async function banAttacker({
  * Verifica se o IP está com bloqueio temporário ativo
  */
 export async function isAttackerBanned({
-  ip,
-  hasBannedCookie
+  ip
 }: {
   ip: string;
   mac?: string;
-  hasBannedCookie?: boolean;
 }): Promise<boolean> {
-  // 1. Cookie de bloqueio (expira junto com o bloqueio)
-  if (hasBannedCookie) return true;
-
+  // O cookie "flmmkr_banned" deixou de valer: ele era permanente, forjável e prendia o próprio dono do site.
+  // A decisão vem só do IP (cache em memória + tabela com validade).
   const cleanIp = (ip || '').trim();
+  if (isAllowlistedIp(cleanIp)) return false;
 
   // 2. Checagem ultra-rápida em memória
   if (cleanIp && isCachedBlock(cleanIp)) return true;

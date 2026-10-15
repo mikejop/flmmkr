@@ -1,7 +1,7 @@
 import { type NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/utils/supabase/middleware';
 import { detectSqlInjection } from '@/utils/security';
-import { banAttacker, isAttackerBanned, isHoneypotPath, isAutoLoadedResource, BLOCK_DURATION_MS } from '@/services/honeypotService';
+import { banAttacker, isAttackerBanned, isHoneypotPath, isAutoLoadedResource, isAllowlistedIp, BLOCK_DURATION_MS } from '@/services/honeypotService';
 import { consumeRateLimit } from '@/utils/rateLimit';
 import { buildCsp, usesNonceCsp } from '@/utils/csp';
 import { randomBytes } from 'node:crypto';
@@ -43,7 +43,10 @@ export async function proxy(request: NextRequest) {
     forwardedHeaders.set('Content-Security-Policy', csp);
     forwardedHeaders.set('x-nonce', nonce);
   }
+  const hadLegacyBanCookie = request.cookies.has('flmmkr_banned');
   const applyReportOnly = (response: NextResponse) => {
+    // Apaga o cookie de banimento antigo (era permanente) de quem ainda o carrega.
+    if (hadLegacyBanCookie) response.cookies.set('flmmkr_banned', '', { path: '/', maxAge: 0 });
     if (!withCsp) return response;
     response.headers.set(enforce ? 'Content-Security-Policy' : 'Content-Security-Policy-Report-Only', csp);
     // Política paralela mais estrita, só para observação (sem 'unsafe-inline' em estilos).
@@ -62,12 +65,7 @@ export async function proxy(request: NextRequest) {
   const mac = request.cookies.get('flmmkr_device_mac')?.value || '';
 
   // 1. CHECAGEM DE BANIMENTO PRÉVIO (cookie, cache e registro no banco)
-  const bannedCookie = request.cookies.get('flmmkr_banned');
-  const banned = await isAttackerBanned({
-    ip,
-    mac,
-    hasBannedCookie: bannedCookie?.value === '1',
-  });
+  const banned = await isAttackerBanned({ ip, mac });
   if (banned) {
     return applyReportOnly(new NextResponse(BANNED_RESPONSE_HTML, {
       status: 403,
@@ -83,6 +81,8 @@ export async function proxy(request: NextRequest) {
   // Leituras (GET/HEAD) só bloqueiam na 3ª vez em 10 minutos; antes disso respondem 404.
   // Recursos carregados automaticamente pelo navegador nunca contam.
   if (isHoneypotPath(decodedPath)) {
+    // IP do dono/testador (HONEYPOT_ALLOWLIST_IPS): testa as armadilhas à vontade, nunca é bloqueado.
+    if (isAllowlistedIp(ip)) return applyReportOnly(new NextResponse('Not found', { status: 404 }));
     const unsafeMethod = !['GET', 'HEAD', 'OPTIONS'].includes(request.method);
     if (!unsafeMethod && isAutoLoadedResource(request.headers)) {
       return applyReportOnly(new NextResponse('Not found', { status: 404 }));
@@ -108,14 +108,6 @@ export async function proxy(request: NextRequest) {
         'Content-Type': 'text/html; charset=utf-8',
         'Cache-Control': 'no-store, max-age=0'
       }
-    });
-
-    banResponse.cookies.set('flmmkr_banned', '1', {
-      path: '/',
-      maxAge: Math.floor(BLOCK_DURATION_MS / 1000),
-      httpOnly: true,
-      sameSite: 'strict',
-      secure: process.env.NODE_ENV === 'production'
     });
 
     return applyReportOnly(banResponse);
