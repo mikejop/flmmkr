@@ -139,7 +139,8 @@ function updateMemoryCache(record: UserTimerRecord) {
  */
 export async function resolveOfferTimerSession(clientIdentifier: string): Promise<UserTimerRecord> {
   const normalizedIdentifier = clientIdentifier.trim();
-  if (!/^[a-f0-9-]{36}$/i.test(normalizedIdentifier)) throw new Error('Sessão de oferta inválida.');
+  // Os chamadores passam o SHA-256 (64 caracteres hexadecimais) do cookie da oferta.
+  if (!/^[a-f0-9]{64}$/i.test(normalizedIdentifier)) throw new Error('Sessão de oferta inválida.');
   const now = Date.now();
   const supabase = getSupabaseAdmin();
   if (!supabase) throw new Error('Supabase não configurado para persistir a oferta.');
