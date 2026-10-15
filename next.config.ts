@@ -124,6 +124,19 @@ const nextConfig: NextConfig = {
           }]
         : []),
       {
+        // Nada pessoal em cache compartilhado: APIs (menos consultas públicas de CEP e empresas), área de membros, login e fluxo de senha.
+        source: '/api/:path((?!cep|empresas)[^/]+.*)',
+        headers: [{ key: 'Cache-Control', value: 'private, no-store' }],
+      },
+      {
+        source: '/:area(color-master-produto|conteudo|login|primeiro-acesso|definir-senha)/:path*',
+        headers: [{ key: 'Cache-Control', value: 'private, no-store' }],
+      },
+      {
+        source: '/:area(color-master-produto|conteudo|login|primeiro-acesso|definir-senha)',
+        headers: [{ key: 'Cache-Control', value: 'private, no-store' }],
+      },
+      {
         // O proxy de cache nunca pode ficar preso: o navegador revalida o sw.js a cada visita.
         source: '/sw.js',
         headers: [
