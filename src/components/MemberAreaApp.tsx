@@ -226,9 +226,12 @@ export function MemberAreaApp({ skipInternalPreloader = false }: { skipInternalP
   });
 
   // Current selected lesson and module (memoized for instant access)
+  // A aula aberta manda: o módulo exibido é sempre o dono dela, mesmo que activeModuleId tenha mudado (ex.: clique no nome de um módulo).
   const activeModule = useMemo(() => {
-    return modulesData.find(m => m.id === activeModuleId) || modulesData[0];
-  }, [activeModuleId]);
+    return modulesData.find(m => m.subtopics.some(s => s.id === activeLessonId))
+      || modulesData.find(m => m.id === activeModuleId)
+      || modulesData[0];
+  }, [activeModuleId, activeLessonId]);
 
   const activeLesson = useMemo(() => {
     return activeModule.subtopics.find(s => s.id === activeLessonId) || activeModule.subtopics[0];
