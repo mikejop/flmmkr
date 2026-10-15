@@ -6,12 +6,10 @@
     "dev": "next dev --webpack -p 2383",
     "build": "next build --webpack",
     "start": "next start -p 2383",
-    "lint": "eslint",
-    "postinstall": "prisma skills sync || exit 0"
+    "lint": "eslint"
   },
   "dependencies": {
     "@gsap/react": "^2.1.2",
-    "@prisma/client": "^7.10.0",
     "@supabase/server": "^1.9.0",
     "@supabase/ssr": "^0.12.7",
     "@supabase/supabase-js": "^2.117.2",
@@ -36,7 +34,6 @@
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "16.4.1",
-    "prisma": "^8.0.0-rc.22",
     "puppeteer": "^25.13.0",
     "tailwindcss": "^4",
     "typescript": "^5"
