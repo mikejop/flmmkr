@@ -8,6 +8,8 @@ import { getAsaasInstallmentNumber } from '@/utils/asaasPricing';
 import { isValidExpiredOfferToken } from '@/utils/promoToken';
 import { createHash, randomUUID } from 'node:crypto';
 import { getClientIp } from '@/utils/clientIp';
+import { consumeRateLimit, consumeKeyRateLimit } from '@/utils/rateLimit';
+import { verifyTurnstile } from '@/utils/turnstile';
 
 export const dynamic = 'force-dynamic';
 
@@ -61,6 +63,23 @@ export async function POST(req: NextRequest) {
     }
 
     const ip = getClientIp(req) || 'UNKNOWN';
+
+    // Anti-abuso: Turnstile + 5 tentativas a cada 15 min por IP e por e-mail.
+    const turnstile = await verifyTurnstile(requestData.turnstileToken, ip === 'UNKNOWN' ? null : ip);
+    if (!turnstile.ok) {
+      return NextResponse.json({ error: 'Não foi possível validar a verificação de segurança. Atualize a página e tente de novo.' }, { status: 403 });
+    }
+    const emailKey = String(email).trim().toLowerCase().slice(0, 254);
+    const [ipAllowed, emailAllowed] = await Promise.all([
+      consumeRateLimit(req, 'checkout:ip', 5, 900),
+      consumeKeyRateLimit(emailKey, 'checkout:email', 5, 900),
+    ]);
+    if (ipAllowed === null || emailAllowed === null) {
+      console.warn('[checkout] rate limit indisponível (RATE_LIMIT_HMAC_SECRET ausente ou erro no banco).');
+    }
+    if (ipAllowed === false || emailAllowed === false) {
+      return NextResponse.json({ error: 'Muitas tentativas. Aguarde alguns minutos e tente novamente.' }, { status: 429, headers: { 'Retry-After': '900' } });
+    }
 
     // Recuperar atribuição de tráfego (origem, UTM, device fingerprint)
     const cookieAttrRaw = req.cookies.get('flmmkr_attribution')?.value;

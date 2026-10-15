@@ -46,3 +46,17 @@ export async function consumeUserRateLimit(userId: string, bucket: string, limit
   if (error || typeof data !== 'boolean') return null;
   return data;
 }
+
+/** Rate limit por identificador livre (ex.: e-mail normalizado). null = indisponível. */
+export async function consumeKeyRateLimit(identifier: string, bucket: string, limit: number, windowSeconds: number): Promise<boolean | null> {
+  const secret = process.env.RATE_LIMIT_HMAC_SECRET?.trim();
+  if (!identifier || !secret) return null;
+  const key = createHmac('sha256', secret).update(`${bucket}:key:${identifier}`).digest('hex');
+  const { data, error } = await supabaseAdmin.rpc('consume_api_rate_limit', {
+    p_key: key,
+    p_max_requests: limit,
+    p_window_seconds: windowSeconds,
+  });
+  if (error || typeof data !== 'boolean') return null;
+  return data;
+}

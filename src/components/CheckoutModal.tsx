@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
+import TurnstileWidget from '@/components/TurnstileWidget';
 import {
   X,
   CreditCard,
@@ -104,6 +105,8 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [acceptedTerms, setAcceptedTerms] = useState(false);
+  const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
+  const [turnstileReset, setTurnstileReset] = useState(0);
   const [isTermsModalOpen, setIsTermsModalOpen] = useState(false);
 
   // Accordion / Wizard Steps: 1 = Dados de Cadastro | 2 = Endereço | 3 = Método de Pagamento
@@ -584,6 +587,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
             address: studentAddress,
             billingType: 'PIX',
             billingInfo,
+            turnstileToken,
             macAddress,
             isExpired,
             hasDiscount25,
@@ -594,6 +598,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
         });
 
         const data = await res.json();
+        setTurnstileReset((n) => n + 1);
 
         if (!res.ok || !data.success) {
           throw new Error(data?.error || 'Erro ao gerar cobrança Pix no Asaas.');
@@ -638,6 +643,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
               ccv: cardCvv
             },
             billingInfo,
+            turnstileToken,
             macAddress,
             isExpired,
             hasDiscount25,
@@ -648,6 +654,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
         });
 
         const data = await res.json();
+        setTurnstileReset((n) => n + 1);
 
         if (!res.ok || !data.success) {
           throw new Error(data?.error || 'Pagamento recusado pela operadora do cartão.');
@@ -1113,6 +1120,8 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                 }}
               >
                 <div className="pt-2 border-t border-white/5">
+
+              <TurnstileWidget onToken={setTurnstileToken} resetKey={turnstileReset} />
 
               {/* Selector Buttons */}
               <div className="grid grid-cols-2 gap-3 mb-4">
