@@ -926,29 +926,18 @@ export function MemberAreaApp({ skipInternalPreloader = false }: { skipInternalP
                 </button>
               )}
 
-              {/* Collapse Trigger Button */}
-              {labelsShown ? (
-                <button 
-                  key="sidebar-collapse"
-                  onClick={() => setIsSidebarExpanded(false)}
-                  aria-label="Recolher barra lateral"
-                  className="sb-fade text-[#a1a1a6] hover:text-white transition-colors p-2.5 rounded-md hover:bg-white/5 cursor-pointer shrink-0 hidden md:block"
-                  title="Recolher Barra"
-                >
-                  <PanelLeftClose size={15} />
-                </button>
-              ) : (
-                <button 
-                  key="sidebar-expand"
-                  onClick={() => setIsSidebarExpanded(true)}
-                  aria-label="Expandir barra lateral"
-                  className="text-[#a1a1a6] hover:text-white transition-colors p-2.5 rounded-md hover:bg-white/10 cursor-pointer shrink-0 flex items-center justify-center"
-                  title="Expandir Barra"
-                >
-                  <PanelLeft size={16} />
-                </button>
-              )}
             </div>
+
+            {/* Botão de recolher/expandir: fica preso à borda direita do menu, então acompanha a largura e nunca some durante a animação */}
+            <button
+              type="button"
+              onClick={() => setIsSidebarExpanded(!isSidebarExpanded)}
+              aria-label={isSidebarExpanded ? 'Recolher barra lateral' : 'Expandir barra lateral'}
+              title={isSidebarExpanded ? 'Recolher Barra' : 'Expandir Barra'}
+              className={`absolute right-3 top-[10px] z-20 h-9 w-9 items-center justify-center rounded-md text-[#a1a1a6] hover:text-white hover:bg-white/10 transition-colors cursor-pointer ${isSidebarExpanded ? 'hidden md:flex' : 'flex'}`}
+            >
+              {isSidebarExpanded ? <PanelLeftClose size={15} /> : <PanelLeft size={16} />}
+            </button>
 
             {/* Sidebar Content Tree */}
             <div className={`flex-1 py-3 px-2 space-y-3 custom-scrollbar overflow-y-auto relative z-10 ${labelsShown ? 'md:min-w-72' : ''}`}>
