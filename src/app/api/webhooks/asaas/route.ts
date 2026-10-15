@@ -5,6 +5,7 @@ import { getServerSecret } from '@/utils/serverSecrets';
 import { readJsonLimited } from '@/utils/rateLimit';
 import { verifyPaidPayment } from '@/services/asaasPaymentVerification';
 import { invalidateUserAccess } from '@/utils/accessCache';
+import { hasBlockingRefund, completeRefund } from '@/services/refundService';
 
 export const dynamic = 'force-dynamic';
 
@@ -129,6 +130,12 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ received: true, ignored: true });
       }
 
+      // Reembolso já pedido para este pagamento: o evento de pagamento pago não devolve o acesso.
+      if (await hasBlockingRefund(paymentId)) {
+        await markEvent('processed', 'reembolso solicitado: acesso não concedido');
+        return NextResponse.json({ received: true, ignored: true });
+      }
+
       const { provisionSupabaseUserAndProfile } = await import('@/services/userService');
 
       if (pending && pending.status !== 'CONFIRMED') {
@@ -209,6 +216,9 @@ export async function POST(req: NextRequest) {
         .eq('is_active', true);
       if (sessionsError) throw sessionsError;
     }
+
+    // Estorno concluído: fecha o pedido de reembolso (a exclusão de conta ligada a ele continua na Sprint 3).
+    if (event === 'PAYMENT_REFUNDED') await completeRefund(paymentId);
 
     await markEvent('processed');
     return NextResponse.json({ received: true });

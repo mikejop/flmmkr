@@ -5,7 +5,8 @@ import { useDialogA11y } from '@/hooks/useDialogA11y';
 import { X, Camera, Lock, User, Mail, Phone, Eye, EyeOff, CheckCircle2, AlertCircle, Loader2, ShieldCheck, ShieldAlert, CreditCard, Bell, FileLock2 } from 'lucide-react';
 import { getMediaUrl } from '@/lib/storage';
 import { PhoneInputWithDdi } from '@/components/PhoneInputWithDdi';
-import { PurchasesTab } from '@/components/account/PurchasesTab';
+import { PurchasesTab, type PurchaseView } from '@/components/account/PurchasesTab';
+import { RefundDialog } from '@/components/account/RefundDialog';
 
 interface UserProfile {
   id?: string;
@@ -33,6 +34,8 @@ export const AccountSettingsModal: React.FC<AccountSettingsModalProps> = ({
   userId,
   onProfileUpdated,
 }) => {
+  const [refundTarget, setRefundTarget] = useState<PurchaseView | null>(null);
+  const [purchasesVersion, setPurchasesVersion] = useState(0);
   const [activeTab, setActiveTab] = useState<'perfil' | 'senha' | 'compras' | 'notificacoes' | 'privacidade'>('perfil');
 
   // Form Profile State
@@ -597,7 +600,27 @@ export const AccountSettingsModal: React.FC<AccountSettingsModalProps> = ({
         )}
 
         {/* TAB 3: COMPRAS & ACESSO */}
-        {activeTab === 'compras' && <PurchasesTab />}
+        {activeTab === 'compras' && (
+          <PurchasesTab
+            key={purchasesVersion}
+            renderActions={(p) => p.status === 'active' && p.refundOpen ? (
+              <button
+                type="button"
+                onClick={() => setRefundTarget(p)}
+                className="px-3.5 py-1.5 rounded-xl text-[11px] font-semibold text-red-300 border border-red-500/30 hover:bg-red-500/10 transition-colors cursor-pointer"
+              >
+                Solicitar reembolso
+              </button>
+            ) : null}
+          />
+        )}
+        {refundTarget && (
+          <RefundDialog
+            purchase={refundTarget}
+            onClose={() => { setRefundTarget(null); setPurchasesVersion((v) => v + 1); }}
+            onDone={() => setPurchasesVersion((v) => v + 1)}
+          />
+        )}
 
         {/* TAB 4: NOTIFICAÇÕES (Sprint 5) */}
         {activeTab === 'notificacoes' && (

@@ -9,6 +9,7 @@
 import { asaasService } from '@/services/asaas';
 import { supabaseAdmin } from '@/utils/supabase/admin';
 import { cacheGet, cacheSet } from '@/utils/redis';
+import { hasBlockingRefund } from '@/services/refundService';
 import { ACCESS_CACHE_TTL_SECONDS, accessKey, invalidateUserAccess } from '@/utils/accessCache';
 
 export interface PaymentVerificationResult {
@@ -121,6 +122,12 @@ export async function verifyAndSyncPaymentAccess({
         asaasPaymentId,
         reason: `Status no Asaas é "${asaasStatus}" (não confirmado). Acesso negado.`
       };
+    }
+
+    // Reembolso pedido (em andamento, concluído ou falho): o pagamento ainda aparece como pago no Asaas até o estorno
+    // terminar, mas o acesso NÃO pode voltar a ser concedido por aqui.
+    if (await hasBlockingRefund(asaasPaymentId)) {
+      return { isAllowed: false, status: 'REFUND_REQUESTED', asaasPaymentId, reason: 'Reembolso solicitado para este pagamento.' };
     }
 
     // Se no Asaas está PAGO:
