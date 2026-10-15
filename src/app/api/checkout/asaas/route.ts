@@ -10,6 +10,7 @@ import { createHash, randomUUID } from 'node:crypto';
 import { getClientIp } from '@/utils/clientIp';
 import { consumeRateLimit, consumeKeyRateLimit } from '@/utils/rateLimit';
 import { verifyTurnstile } from '@/utils/turnstile';
+import { isProductionRuntime } from '@/utils/runtimeEnv';
 
 export const dynamic = 'force-dynamic';
 
@@ -67,6 +68,9 @@ export async function POST(req: NextRequest) {
     // Anti-abuso: Turnstile + 5 tentativas a cada 15 min por IP e por e-mail.
     const turnstile = await verifyTurnstile(requestData.turnstileToken, ip === 'UNKNOWN' ? null : ip);
     if (!turnstile.ok) {
+      if (turnstile.reason === 'misconfigured') {
+        return NextResponse.json({ error: 'Pagamento temporariamente indisponível. Tente novamente em instantes.' }, { status: 503 });
+      }
       return NextResponse.json({ error: 'Não foi possível validar a verificação de segurança. Atualize a página e tente de novo.' }, { status: 403 });
     }
     const emailKey = String(email).trim().toLowerCase().slice(0, 254);
@@ -75,7 +79,12 @@ export async function POST(req: NextRequest) {
       consumeKeyRateLimit(emailKey, 'checkout:email', 5, 900),
     ]);
     if (ipAllowed === null || emailAllowed === null) {
-      console.warn('[checkout] rate limit indisponível (RATE_LIMIT_HMAC_SECRET ausente ou erro no banco).');
+      // Redis e Postgres indisponíveis (ou sem RATE_LIMIT_HMAC_SECRET): em produção o limite nunca é desligado, então recusa.
+      if (isProductionRuntime()) {
+        console.error('[checkout] rate limit indisponível em produção: checkout recusado.');
+        return NextResponse.json({ error: 'Pagamento temporariamente indisponível. Tente novamente em instantes.' }, { status: 503 });
+      }
+      console.warn('[checkout] rate limit indisponível (fora de produção): seguindo sem limite.');
     }
     if (ipAllowed === false || emailAllowed === false) {
       return NextResponse.json({ error: 'Muitas tentativas. Aguarde alguns minutos e tente novamente.' }, { status: 429, headers: { 'Retry-After': '900' } });

@@ -1,6 +1,24 @@
 import type { NextConfig } from 'next';
 import { buildPublicCsp } from './src/utils/csp';
 
+// A3: em build de produção na Vercel, faltar chave de segurança derruba o build (melhor que subir um checkout desprotegido).
+if (process.env.VERCEL_ENV === 'production' && process.env.NEXT_PHASE === 'phase-production-build') {
+  const required = [
+    'TURNSTILE_SECRET_KEY',
+    'NEXT_PUBLIC_TURNSTILE_SITE_KEY',
+    'UPSTASH_REDIS_REST_URL',
+    'UPSTASH_REDIS_REST_TOKEN',
+    'RATE_LIMIT_HMAC_SECRET',
+  ];
+  const missing = required.filter((name) => !process.env[name]?.trim());
+  if (missing.length) {
+    throw new Error(
+      `Build de produção bloqueado: faltam variáveis de ambiente de segurança: ${missing.join(', ')}. ` +
+        'Cadastre-as na Vercel (Settings > Environment Variables > Production) e rode o deploy de novo.'
+    );
+  }
+}
+
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://gnqqaskurjkrllnhjygt.supabase.co';
 const supabaseHostname = new URL(supabaseUrl).hostname;
 
