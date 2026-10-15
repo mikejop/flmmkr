@@ -147,6 +147,9 @@ const ScrollShrinkVideo = forwardRef<ScrollShrinkVideoHandle, ScrollShrinkVideoP
     container.addEventListener('touchstart', stopReveal, { passive: true });
     const ro = new ResizeObserver(() => { measure(); onScroll(); render(); });
     ro.observe(container);
+    // O espaço do vídeo muda de altura quando o player termina de carregar (a busca dos vídeos é assíncrona).
+    // Sem isto, o tamanho "cheio" calculado no primeiro desenho ficava desatualizado até a próxima rolagem.
+    ro.observe(slot);
 
     return () => {
       ro.disconnect();
