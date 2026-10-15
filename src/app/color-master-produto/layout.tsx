@@ -1,5 +1,8 @@
 import type { Metadata } from 'next';
 
+// Rota com CSP por nonce: precisa de renderização dinâmica (o nonce muda a cada requisição).
+export const dynamic = 'force-dynamic';
+
 export const metadata: Metadata = {
   title: {
     absolute: 'Color Master® | Produtos',

@@ -1,17 +1,10 @@
-import { headers } from 'next/headers';
 import { Suspense } from 'react';
-import { detectSocialBrowser } from '@/utils/detectBrowser';
 import { MainClientSwitcher } from '@/components/MainClientSwitcher';
 
-export const revalidate = 0; // Dynamic server rendering for header detection
+// Página pública estática: a detecção do navegador interno (Instagram/TikTok) roda no cliente, em MainClientSwitcher.
+export const revalidate = 3600;
 
-export default async function HomePage() {
-  const headersList = await headers();
-  const userAgent = headersList.get('user-agent') || '';
-  const referer = headersList.get('referer') || '';
-
-  const initialDetection = detectSocialBrowser(userAgent, referer);
-
+export default function HomePage() {
   return (
     <Suspense
       fallback={
@@ -20,10 +13,7 @@ export default async function HomePage() {
         </div>
       }
     >
-      <MainClientSwitcher
-        initialPlatform={initialDetection.platform}
-        initialIsInApp={initialDetection.isInAppBrowser}
-      />
+      <MainClientSwitcher />
     </Suspense>
   );
 }

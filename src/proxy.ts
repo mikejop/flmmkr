@@ -3,7 +3,7 @@ import { createClient } from '@/utils/supabase/middleware';
 import { detectSqlInjection } from '@/utils/security';
 import { banAttacker, isAttackerBanned, isHoneypotPath, isAutoLoadedResource, BLOCK_DURATION_MS } from '@/services/honeypotService';
 import { consumeRateLimit } from '@/utils/rateLimit';
-import { buildCsp } from '@/utils/csp';
+import { buildCsp, usesNonceCsp } from '@/utils/csp';
 import { randomBytes } from 'node:crypto';
 import { getClientIp } from '@/utils/clientIp';
 
@@ -30,15 +30,21 @@ const BANNED_RESPONSE_HTML = `<!DOCTYPE html>
 
 export async function proxy(request: NextRequest) {
   const nonce = randomBytes(18).toString('base64');
+  // CSP com nonce só na área de membros, login e fluxo de senha. As demais rotas que passam pelo proxy
+  // (API e armadilhas do honeypot) não recebem CSP; as páginas públicas estáticas ficam com a CSP do next.config.
+  const withCsp = usesNonceCsp(request.nextUrl.pathname);
   const csp = buildCsp(nonce);
   const strictCsp = buildCsp(nonce, { strictStyles: true });
   // Em produção a política é aplicada (Content-Security-Policy). Em desenvolvimento só relata, para não quebrar o HMR.
   const enforce = process.env.NODE_ENV === 'production';
   const forwardedHeaders = new Headers(request.headers);
-  // Next lê o nonce do CSP da requisição para marcar seus próprios scripts.
-  forwardedHeaders.set('Content-Security-Policy', csp);
-  forwardedHeaders.set('x-nonce', nonce);
+  if (withCsp) {
+    // Next lê o nonce do CSP da requisição para marcar seus próprios scripts.
+    forwardedHeaders.set('Content-Security-Policy', csp);
+    forwardedHeaders.set('x-nonce', nonce);
+  }
   const applyReportOnly = (response: NextResponse) => {
+    if (!withCsp) return response;
     response.headers.set(enforce ? 'Content-Security-Policy' : 'Content-Security-Policy-Report-Only', csp);
     // Política paralela mais estrita, só para observação (sem 'unsafe-inline' em estilos).
     if (enforce) response.headers.set('Content-Security-Policy-Report-Only', strictCsp);
@@ -154,11 +160,21 @@ export async function proxy(request: NextRequest) {
   return applyReportOnly(createClient(request, forwardedHeaders));
 }
 
+// O proxy roda só onde é necessário: área de membros/login (CSP com nonce e sessão), APIs e as armadilhas do honeypot.
+// Páginas públicas ficam de fora para continuarem estáticas e em cache. Mantenha as armadilhas em sincronia com HONEYPOT_PATHS.
 export const config = {
   matcher: [
-    /*
-     * Match all request paths except for static files:
-     */
-    '/((?!_next/static|_next/image|favicon.ico|sw\\.js$|fonts/|.*\\.(?:svg|png|jpg|jpeg|gif|webp|avif|woff2?|ttf|otf|webm|mp4)$).*)',
+    '/color-master-produto/:path*',
+    '/conteudo/:path*',
+    '/login/:path*',
+    '/primeiro-acesso/:path*',
+    '/definir-senha/:path*',
+    '/api/:path*',
+    '/wp-admin/:path*', '/wp-login.php', '/wp-login', '/xmlrpc.php', '/wp-content/:path*', '/wp-includes/:path*',
+    '/.env', '/.env.local', '/.env.production', '/.git/:path*', '/.aws/:path*', '/.ssh/:path*', '/.DS_Store', '/web.config',
+    '/phpmyadmin/:path*', '/pma/:path*', '/adminer.php', '/adminer/:path*', '/mysql/:path*', '/myadmin/:path*',
+    '/dump.sql', '/backup.sql', '/db.sql', '/database.sql',
+    '/telescope/:path*', '/_profiler/:path*', '/actuator/:path*', '/console/:path*', '/shell/:path*', '/eval/:path*', '/solr/:path*',
+    '/internal-metrics-v1/:path*', '/flmmkr-admin-trap/:path*',
   ],
 };

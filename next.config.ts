@@ -1,4 +1,5 @@
 import type { NextConfig } from 'next';
+import { buildPublicCsp } from './src/utils/csp';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://gnqqaskurjkrllnhjygt.supabase.co';
 const supabaseHostname = new URL(supabaseUrl).hostname;
@@ -14,6 +15,10 @@ const SEVEN_DAYS = 60 * 60 * 24 * 7;
 const nextConfig: NextConfig = {
   // Não anuncia a tecnologia do servidor no cabeçalho X-Powered-By.
   poweredByHeader: false,
+  experimental: {
+    // Hash (SRI) nos scripts do Next: permite CSP sem nonce e sem 'unsafe-inline' nas páginas estáticas.
+    sri: { algorithm: 'sha256' },
+  },
   env: {
     NEXT_PUBLIC_APP_VERSION: appVersion,
   },
@@ -89,6 +94,16 @@ const nextConfig: NextConfig = {
           },
         ],
       },
+      ...(process.env.NODE_ENV === 'production'
+        ? [{
+            // Páginas públicas (estáticas): CSP sem nonce. A área de membros e o login usam a CSP com nonce do proxy.
+            source: '/((?!(?:color-master-produto|conteudo|login|primeiro-acesso|definir-senha|api)(?:/|$)).*)',
+            headers: [
+              { key: 'Content-Security-Policy', value: buildPublicCsp() },
+              { key: 'Content-Security-Policy-Report-Only', value: buildPublicCsp({ strictStyles: true }) },
+            ],
+          }]
+        : []),
       {
         // O proxy de cache nunca pode ficar preso: o navegador revalida o sw.js a cada visita.
         source: '/sw.js',
