@@ -1,8 +1,5 @@
 'use client';
 
-import { useCoupon } from '@/hooks/useCoupon';
-import { useAnimatedPrice, formatPriceBR } from '@/hooks/useAnimatedPrice';
-import CouponBox from '@/components/CouponBox';
 import { getLegacyPublicVideoUrl, getMediaUrl } from '@/lib/storage';
 
 import React, { useState, useEffect, useRef } from 'react';
@@ -642,12 +639,6 @@ export const ColorMasterLanding: React.FC = () => {
     ? Math.round(baseBatchPrice * 0.75)
     : baseBatchPrice;
 
-  // Cupom de desconto (campo na seção de preços; o servidor valida e calcula). Compartilhado com o modal de compra.
-  const couponCtl = useCoupon(`${displayPrice}-${isExpired}`);
-  const priceTarget = couponCtl.coupon ? couponCtl.coupon.final : displayPrice;
-  const animatedPrice = useAnimatedPrice(priceTarget);
-  const priceText = formatPriceBR(animatedPrice, priceTarget);
-
   return (
     <div className="min-h-screen bg-[#f5f5f7] text-[#1d1d1f] font-sans antialiased selection:bg-[#0071e3]/20 selection:text-[#0071e3]">
       {/* Brand Transition Preloader */}
@@ -665,7 +656,6 @@ export const ColorMasterLanding: React.FC = () => {
         isExpired={isExpired}
         macAddress={deviceMac}
         hasDiscount25={hasDiscount25}
-        couponController={couponCtl}
       />
 
       {/* Modais de Alerta (1:30) */}
@@ -1722,10 +1712,10 @@ export const ColorMasterLanding: React.FC = () => {
                     De R$ 195 por apenas:
                   </span>
                   <div className="text-[39px] leading-tight sm:text-5xl md:text-6xl font-extrabold text-[#1d1d1f] tracking-tight mt-1">
-                    R$ {priceText} <span className="text-base sm:text-xl font-normal text-[#6e6e73]">no Pix</span>
+                    R$ {priceData.promoPrice} <span className="text-base sm:text-xl font-normal text-[#6e6e73]">no Pix</span>
                   </div>
                   <div className="text-[15px] sm:text-lg font-bold text-[#0071e3] mt-1.5 sm:mt-2">
-                    ou em {formatInstallment(priceTarget)} no cartão
+                    ou em {formatInstallment(priceData.promoPrice)} no cartão
                   </div>
                   <span className="text-[12px] sm:text-sm font-medium text-[#86868b] mt-1.5 block">
                     {priceData.batchName} (Garantido até 16/10/2026 às 23:59)
@@ -1740,10 +1730,10 @@ export const ColorMasterLanding: React.FC = () => {
                     De R$ {priceData.currentBatchPrice || 195} por apenas:
                   </span>
                   <div className="text-[39px] leading-tight sm:text-5xl md:text-6xl font-extrabold text-[#1d1d1f] tracking-tight mt-1">
-                    R$ {priceText} <span className="text-base sm:text-xl font-normal text-[#6e6e73]">no Pix</span>
+                    R$ {priceData.promoPrice} <span className="text-base sm:text-xl font-normal text-[#6e6e73]">no Pix</span>
                   </div>
                   <div className="text-[15px] sm:text-lg font-bold text-[#0071e3] mt-1.5 sm:mt-2">
-                    ou em {formatInstallment(priceTarget)} no cartão
+                    ou em {formatInstallment(priceData.promoPrice)} no cartão
                   </div>
                   <span className="text-[12px] sm:text-sm font-medium text-[#86868b] mt-1.5 block">
                     Condição Especial de {timerMinutes} Minutos: {promoPct}% de desconto sobre o valor real de R$ {priceData.regularPrice}
@@ -1760,10 +1750,10 @@ export const ColorMasterLanding: React.FC = () => {
                         De R$ {baseBatchPrice} por apenas:
                       </span>
                       <div className="text-[39px] leading-tight sm:text-5xl md:text-6xl font-extrabold text-[#1d1d1f] tracking-tight">
-                        R$ {priceText} <span className="text-base sm:text-xl font-normal text-[#6e6e73]">no Pix</span>
+                        R$ {displayPrice} <span className="text-base sm:text-xl font-normal text-[#6e6e73]">no Pix</span>
                       </div>
                       <div className="text-[15px] sm:text-lg font-bold text-emerald-600 mt-1.5 sm:mt-2">
-                        ou em {formatInstallment(priceTarget)} no cartão
+                        ou em {formatInstallment(displayPrice)} no cartão
                       </div>
                       <span className="text-[12px] sm:text-sm font-medium text-emerald-600 mt-1.5 block">
                         25% de Desconto Garantido no Checkout
@@ -1778,10 +1768,10 @@ export const ColorMasterLanding: React.FC = () => {
                         Preço Vigente Oficial
                       </span>
                       <div className="text-[39px] leading-tight sm:text-5xl md:text-6xl font-extrabold text-[#1d1d1f] tracking-tight">
-                        R$ {priceText} <span className="text-base sm:text-xl font-normal text-[#6e6e73]">no Pix</span>
+                        R$ {displayPrice} <span className="text-base sm:text-xl font-normal text-[#6e6e73]">no Pix</span>
                       </div>
                       <div className="text-[15px] sm:text-lg font-bold text-[#0071e3] mt-1.5 sm:mt-2">
-                        ou em {formatInstallment(priceTarget)} no cartão
+                        ou em {formatInstallment(displayPrice)} no cartão
                       </div>
                       <span className="text-[12px] sm:text-sm font-medium text-[#86868b] mt-1.5 block">
                         {priceData.batchName} {priceData.nextPriceDate ? `(Válido até ${priceData.nextPriceDate})` : ''}
@@ -1791,9 +1781,6 @@ export const ColorMasterLanding: React.FC = () => {
                 </>
               )}
             </div>
-
-            {/* Cupom de desconto na seção de preços */}
-            <CouponBox ctl={couponCtl} variant="light" className="mt-5 mb-4 mx-auto w-full max-w-[340px] text-left" />
 
             {/* Primary Buy CTA */}
             <button
