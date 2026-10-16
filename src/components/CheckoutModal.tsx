@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
+import gsap from 'gsap';
 import TurnstileWidget from '@/components/TurnstileWidget';
 import {
   X,
@@ -123,7 +124,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
         setCouponError(null);
       } else {
         setCoupon(null);
-        setCouponError(data?.error || 'Cupom inválido ou inativo.');
+        setCouponError(data?.error || 'O cupom que você digitou não existe.');
       }
     } catch {
       if (!silent) setCouponError('Não foi possível validar o cupom agora. Tente de novo.');
@@ -132,6 +133,32 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
     }
   };
   const removeCoupon = () => { setCoupon(null); setCouponError(null); setCouponInput(''); };
+
+  // Preço mostrado no topo: ao aplicar o cupom os números "descem" rápido do valor atual até o valor com desconto.
+  const targetPrice = coupon ? coupon.final : price;
+  const [shownPrice, setShownPrice] = useState<number>(targetPrice);
+  const shownPriceRef = useRef<number>(targetPrice);
+  useEffect(() => {
+    const reduce = typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (reduce || shownPriceRef.current === targetPrice) {
+      shownPriceRef.current = targetPrice;
+      setShownPrice(targetPrice);
+      return;
+    }
+    const counter = { v: shownPriceRef.current };
+    const tween = gsap.to(counter, {
+      v: targetPrice,
+      duration: 0.85,
+      ease: 'power2.out',
+      onUpdate: () => {
+        const v = Math.round(counter.v * 100) / 100;
+        shownPriceRef.current = v;
+        setShownPrice(v);
+      },
+      onComplete: () => { shownPriceRef.current = targetPrice; setShownPrice(targetPrice); },
+    });
+    return () => { tween.kill(); };
+  }, [targetPrice]);
 
   // O preço do site muda (cronômetro acabou, nova fase): o desconto é recalculado no servidor sobre o novo preço.
   const couponCodeApplied = coupon?.code;
@@ -715,7 +742,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
   if (!isOpen && !visible) return null;
 
   // `price` já vem do servidor/landing com o valor certo (promoção ativa ou preço da fase); nunca troca por 195.
-  const currentPrice = coupon ? coupon.final : price;
+  const currentPrice = targetPrice;
   const money = (v: number) => (Number.isInteger(v) ? String(v) : v.toFixed(2).replace('.', ','));
 
   return (
@@ -772,7 +799,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
             </h2>
             <div className="mt-2.5 flex items-baseline gap-2">
               <span className="text-[28px] sm:text-[32px] font-bold text-white tracking-tight leading-none">
-                R$ {money(currentPrice)}
+                R$ {shownPrice === currentPrice ? money(currentPrice) : shownPrice.toFixed(2).replace('.', ',')}
               </span>
               {(coupon || price < regularPrice) && (
                 <span className="text-[13px] text-[#86868b] line-through leading-none">
@@ -800,13 +827,16 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                     id="checkout-coupon"
                     type="text"
                     value={couponInput}
-                    onChange={(e) => { setCouponInput(e.target.value.slice(0, 40)); setCouponError(null); }}
+                    onChange={(e) => { setCouponInput(e.target.value.toUpperCase().replace(/[^A-Z0-9_-]/g, '').slice(0, 32)); setCouponError(null); }}
                     onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); if (couponInput.trim()) void requestCoupon(couponInput.trim()); } }}
                     autoComplete="off"
                     autoCapitalize="characters"
                     spellCheck={false}
-                    placeholder="Digite seu cupom"
-                    className="flex-1 min-w-0 h-[40px] px-3.5 rounded-xl bg-white/[0.06] border border-white/12 text-white placeholder-white/25 text-[13px] uppercase focus:outline-none focus:border-[#0071e3] transition-all"
+                    placeholder="DIGITE SEU CUPOM"
+                    maxLength={32}
+                    inputMode="text"
+                    aria-invalid={couponError ? true : undefined}
+                    className="flex-1 min-w-0 h-[40px] px-3.5 rounded-xl bg-white/[0.06] border border-white/12 text-white placeholder-white/25 text-[13px] font-semibold tracking-wider uppercase focus:outline-none focus:border-[#0071e3] transition-all"
                   />
                   <button
                     type="button"

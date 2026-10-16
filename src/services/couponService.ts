@@ -17,8 +17,8 @@ export type CouponQuote =
   | { ok: false; reason: 'invalid' | 'unavailable' | CouponRejection; message: string };
 
 const MESSAGES: Record<string, string> = {
-  invalid: 'Cupom inválido ou inativo.',
-  inactive: 'Cupom inválido ou inativo.',
+  invalid: 'O cupom que você digitou não existe.',
+  inactive: 'O cupom que você digitou não existe.',
   not_started: 'Este cupom ainda não está valendo.',
   expired: 'Este cupom expirou.',
   limit_reached: 'Este cupom atingiu o limite de usos.',
@@ -39,7 +39,7 @@ export async function quoteCoupon(rawCode: unknown, basePrice: number): Promise<
     console.error('[coupons] falha ao consultar cupom:', error.message);
     return { ok: false, reason: 'unavailable', message: MESSAGES.unavailable };
   }
-  // Cupom que não existe e cupom inativo têm a mesma resposta: ninguém descobre códigos por tentativa.
+  // Cupom que não existe e cupom inativo têm a mesma resposta ("não existe"): ninguém distingue um do outro por tentativa.
   if (!data) return { ok: false, reason: 'invalid', message: MESSAGES.invalid };
 
   const check = evaluateCoupon({
