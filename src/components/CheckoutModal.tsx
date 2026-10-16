@@ -1,7 +1,9 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
-import gsap from 'gsap';
+import { useCoupon, type CouponController } from '@/hooks/useCoupon';
+import { useAnimatedPrice, formatPriceBR } from '@/hooks/useAnimatedPrice';
+import CouponBox from '@/components/CouponBox';
 import TurnstileWidget from '@/components/TurnstileWidget';
 import {
   X,
@@ -33,6 +35,8 @@ interface CheckoutModalProps {
   isExpired?: boolean;
   macAddress?: string;
   hasDiscount25?: boolean;
+  /** Estado do cupom vindo da página (campo na seção de preços). Sem ele, o modal usa o próprio. */
+  couponController?: CouponController;
 }
 
 const PROFESSIONS = [
@@ -51,7 +55,8 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
   regularPrice = 195,
   isExpired = false,
   macAddress,
-  hasDiscount25 = false
+  hasDiscount25 = false,
+  couponController
 }) => {
   // Modal visibility & animation
   const [visible, setVisible] = useState(false);
@@ -102,70 +107,12 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
   const [cardCvv, setCardCvv] = useState('');
   const [installments, setInstallments] = useState(1);
 
-  // Cupom de desconto: o servidor calcula tudo (o navegador só manda o código)
-  const [couponInput, setCouponInput] = useState('');
-  const [coupon, setCoupon] = useState<{ code: string; original: number; discount: number; final: number; percent: number } | null>(null);
-  const [couponBusy, setCouponBusy] = useState(false);
-  const [couponError, setCouponError] = useState<string | null>(null);
-
-  const requestCoupon = async (code: string, silent = false) => {
-    if (!silent) { setCouponBusy(true); setCouponError(null); }
-    try {
-      const res = await fetch('/api/checkout/coupon', {
-        method: 'POST',
-        credentials: 'same-origin',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ code, productId: 'color-master-produto' }),
-      });
-      const data = await res.json().catch(() => null);
-      if (res.ok && data?.valid) {
-        setCoupon({ code: data.code, original: data.original, discount: data.discount, final: data.final, percent: data.percent });
-        setCouponInput('');
-        setCouponError(null);
-      } else {
-        setCoupon(null);
-        setCouponError(data?.error || 'O cupom que você digitou não existe.');
-      }
-    } catch {
-      if (!silent) setCouponError('Não foi possível validar o cupom agora. Tente de novo.');
-    } finally {
-      if (!silent) setCouponBusy(false);
-    }
-  };
-  const removeCoupon = () => { setCoupon(null); setCouponError(null); setCouponInput(''); };
-
-  // Preço mostrado no topo: ao aplicar o cupom os números "descem" rápido do valor atual até o valor com desconto.
+  // Cupom de desconto: o estado pode vir da página (campo na seção de preços) ou ser próprio do modal.
+  const ownCoupon = useCoupon(`${price}-${isExpired}`);
+  const couponCtl = couponController ?? ownCoupon;
+  const coupon = couponCtl.coupon;
   const targetPrice = coupon ? coupon.final : price;
-  const [shownPrice, setShownPrice] = useState<number>(targetPrice);
-  const shownPriceRef = useRef<number>(targetPrice);
-  useEffect(() => {
-    const reduce = typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    if (reduce || shownPriceRef.current === targetPrice) {
-      shownPriceRef.current = targetPrice;
-      setShownPrice(targetPrice);
-      return;
-    }
-    const counter = { v: shownPriceRef.current };
-    const tween = gsap.to(counter, {
-      v: targetPrice,
-      duration: 0.85,
-      ease: 'power2.out',
-      onUpdate: () => {
-        const v = Math.round(counter.v * 100) / 100;
-        shownPriceRef.current = v;
-        setShownPrice(v);
-      },
-      onComplete: () => { shownPriceRef.current = targetPrice; setShownPrice(targetPrice); },
-    });
-    return () => { tween.kill(); };
-  }, [targetPrice]);
-
-  // O preço do site muda (cronômetro acabou, nova fase): o desconto é recalculado no servidor sobre o novo preço.
-  const couponCodeApplied = coupon?.code;
-  useEffect(() => {
-    if (couponCodeApplied) void requestCoupon(couponCodeApplied, true);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [price, isExpired]);
+  const shownPrice = useAnimatedPrice(targetPrice);
 
   // Process States
   const [loading, setLoading] = useState(false);
@@ -741,6 +688,36 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
 
   if (!isOpen && !visible) return null;
 
+  // Termos de uso: ficam ABAIXO do botão de pagamento (Pix ou cartão)
+  const termsCheckbox = (
+    <div className="pt-2 pb-1">
+      <label className="flex items-start gap-3 p-3 rounded-2xl bg-white/[0.04] border border-white/10 hover:border-white/20 transition-all cursor-pointer select-none">
+        <input
+          type="checkbox"
+          checked={acceptedTerms}
+          onChange={(e) => setAcceptedTerms(e.target.checked)}
+          className="mt-0.5 w-4 h-4 rounded border-white/20 text-[#0071e3] focus:ring-[#0071e3] focus:ring-offset-0 bg-white/10 cursor-pointer shrink-0"
+        />
+        <span className="text-[12px] sm:text-[13px] text-white/80 leading-snug">
+          Li e aceito os{' '}
+          <button
+            type="button"
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              setIsTermsModalOpen(true);
+            }}
+            className="text-[#2997ff] hover:text-[#0071e3] underline underline-offset-2 font-medium cursor-pointer"
+          >
+            Termos de Uso e a Política de Privacidade
+          </button>
+          .
+        </span>
+      </label>
+    </div>
+  );
+
+
   // `price` já vem do servidor/landing com o valor certo (promoção ativa ou preço da fase); nunca troca por 195.
   const currentPrice = targetPrice;
   const money = (v: number) => (Number.isInteger(v) ? String(v) : v.toFixed(2).replace('.', ','));
@@ -799,7 +776,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
             </h2>
             <div className="mt-2.5 flex items-baseline gap-2">
               <span className="text-[28px] sm:text-[32px] font-bold text-white tracking-tight leading-none">
-                R$ {shownPrice === currentPrice ? money(currentPrice) : shownPrice.toFixed(2).replace('.', ',')}
+                R$ {formatPriceBR(shownPrice, currentPrice)}
               </span>
               {(coupon || price < regularPrice) && (
                 <span className="text-[13px] text-[#86868b] line-through leading-none">
@@ -812,44 +789,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
             </div>
 
             {/* Cupom de desconto */}
-            {coupon ? (
-              <div className="mt-3 flex items-center justify-between gap-2 rounded-xl bg-emerald-500/10 border border-emerald-500/25 px-3 py-2 text-[12px]">
-                <span className="text-emerald-300">
-                  Cupom <strong className="font-bold">{coupon.code}</strong> aplicado: <strong>−R$ {money(coupon.discount)}</strong>
-                </span>
-                <button type="button" onClick={removeCoupon} className="text-white/60 hover:text-white underline underline-offset-2 cursor-pointer shrink-0">Remover</button>
-              </div>
-            ) : (
-              <div className="mt-3">
-                <label htmlFor="checkout-coupon" className="block text-[12px] font-medium text-white/70 mb-1 ml-0.5">Cupom de desconto</label>
-                <div className="flex gap-2">
-                  <input
-                    id="checkout-coupon"
-                    type="text"
-                    value={couponInput}
-                    onChange={(e) => { setCouponInput(e.target.value.toUpperCase().replace(/[^A-Z0-9_-]/g, '').slice(0, 32)); setCouponError(null); }}
-                    onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); if (couponInput.trim()) void requestCoupon(couponInput.trim()); } }}
-                    autoComplete="off"
-                    autoCapitalize="characters"
-                    spellCheck={false}
-                    placeholder="DIGITE SEU CUPOM"
-                    maxLength={32}
-                    inputMode="text"
-                    aria-invalid={couponError ? true : undefined}
-                    className="flex-1 min-w-0 h-[40px] px-3.5 rounded-xl bg-white/[0.06] border border-white/12 text-white placeholder-white/25 text-[13px] font-semibold tracking-wider uppercase focus:outline-none focus:border-[#0071e3] transition-all"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => void requestCoupon(couponInput.trim())}
-                    disabled={couponBusy || !couponInput.trim()}
-                    className="h-[40px] px-4 rounded-xl bg-white/10 hover:bg-white/15 text-white text-[13px] font-semibold transition-colors cursor-pointer disabled:opacity-50 shrink-0"
-                  >
-                    {couponBusy ? 'Validando…' : 'Aplicar'}
-                  </button>
-                </div>
-                {couponError && <p role="alert" className="mt-1.5 ml-0.5 text-[12px] text-red-300">{couponError}</p>}
-              </div>
-            )}
+            <CouponBox ctl={couponCtl} variant="dark" className="mt-3" />
           </div>
 
           {/* Error Alert */}
@@ -1017,13 +957,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
             <div className="rounded-2xl border border-white/10 bg-white/[0.03] overflow-hidden transition-all duration-500 ease-in-out">
               <button
                 type="button"
-                onClick={() => {
-                  if (activeStep === 1) {
-                    handleAdvanceToAddress();
-                  } else {
-                    setActiveStep(2);
-                  }
-                }}
+                onClick={() => setActiveStep(2)}
                 className="w-full p-4 flex items-center justify-between text-left hover:bg-white/[0.03] transition-colors cursor-pointer"
               >
                 <div className="flex items-center gap-2.5">
@@ -1178,15 +1112,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
             <div className="rounded-2xl border border-white/10 bg-white/[0.03] overflow-hidden transition-all duration-500 ease-in-out">
               <button
                 type="button"
-                onClick={() => {
-                  if (activeStep === 1) {
-                    handleAdvanceToAddress();
-                  } else if (activeStep === 2) {
-                    handleAdvanceToPayment();
-                  } else {
-                    setActiveStep(3);
-                  }
-                }}
+                onClick={() => setActiveStep(3)}
                 className="w-full p-4 flex items-center justify-between text-left hover:bg-white/[0.03] transition-colors cursor-pointer"
               >
                 <div className="flex items-center gap-2.5">
@@ -1275,32 +1201,31 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                     Dados do Titular de Pagamento / Cobrança:
                   </span>
                   
-                  {/* Segmented Switch (Apple Style) */}
-                  <div className="grid grid-cols-2 p-1 rounded-xl bg-black/40 border border-white/10">
+                  {/* Switch compacto (estilo Apple) */}
+                  <div role="radiogroup" aria-label="Dados do titular" className="inline-flex p-0.5 rounded-full bg-black/40 border border-white/10">
                     <button
                       type="button"
+                      role="radio"
+                      aria-checked={billingMode === 'same'}
                       onClick={() => setBillingMode('same')}
-                      className={`py-2 px-3 rounded-lg text-[12px] sm:text-[13px] font-medium flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
-                        billingMode === 'same'
-                          ? 'bg-[#0071e3] text-white shadow-sm'
-                          : 'text-white/60 hover:text-white'
+                      className={`h-7 px-3 rounded-full text-[11px] font-medium inline-flex items-center justify-center gap-1 whitespace-nowrap transition-all cursor-pointer ${
+                        billingMode === 'same' ? 'bg-[#0071e3] text-white shadow-sm' : 'text-white/60 hover:text-white'
                       }`}
                     >
-                      <UserCheck className="w-3.5 h-3.5" />
-                      Usar dados do cadastro
+                      <UserCheck className="w-3 h-3" />
+                      Do cadastro
                     </button>
-
                     <button
                       type="button"
+                      role="radio"
+                      aria-checked={billingMode === 'different'}
                       onClick={() => setBillingMode('different')}
-                      className={`py-2 px-3 rounded-lg text-[12px] sm:text-[13px] font-medium flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
-                        billingMode === 'different'
-                          ? 'bg-[#0071e3] text-white shadow-sm'
-                          : 'text-white/60 hover:text-white'
+                      className={`h-7 px-3 rounded-full text-[11px] font-medium inline-flex items-center justify-center gap-1 whitespace-nowrap transition-all cursor-pointer ${
+                        billingMode === 'different' ? 'bg-[#0071e3] text-white shadow-sm' : 'text-white/60 hover:text-white'
                       }`}
                     >
-                      <UserPlus className="w-3.5 h-3.5" />
-                      Dados diferentes do cadastro
+                      <UserPlus className="w-3 h-3" />
+                      Outros dados
                     </button>
                   </div>
 
@@ -1541,33 +1466,6 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                 </div>
               )}
 
-              {/* CHECKBOX DE TERMOS DE USO E POLÍTICA DE PRIVACIDADE */}
-              <div className="pt-2 pb-1">
-                <label className="flex items-start gap-3 p-3 rounded-2xl bg-white/[0.04] border border-white/10 hover:border-white/20 transition-all cursor-pointer select-none">
-                  <input
-                    type="checkbox"
-                    checked={acceptedTerms}
-                    onChange={(e) => setAcceptedTerms(e.target.checked)}
-                    className="mt-0.5 w-4 h-4 rounded border-white/20 text-[#0071e3] focus:ring-[#0071e3] focus:ring-offset-0 bg-white/10 cursor-pointer shrink-0"
-                  />
-                  <span className="text-[12px] sm:text-[13px] text-white/80 leading-snug">
-                    Li e aceito os{' '}
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        setIsTermsModalOpen(true);
-                      }}
-                      className="text-[#2997ff] hover:text-[#0071e3] underline underline-offset-2 font-medium cursor-pointer"
-                    >
-                      Termos de Uso e a Política de Privacidade
-                    </button>
-                    .
-                  </span>
-                </label>
-              </div>
-
               {/* SE PIX SELECIONADO */}
               {paymentMethod === 'PIX' && (
                 <div className="p-4 sm:p-5 rounded-2xl bg-white/[0.05] border border-white/10 animate-in fade-in duration-200 text-center">
@@ -1584,6 +1482,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                         {loading && <Loader2 className="w-4 h-4 animate-spin" />}
                         Gerar QR Code Pix (R$ {money(currentPrice)})
                       </button>
+                      <div className="mt-4 text-left">{termsCheckbox}</div>
                     </div>
                   ) : (
                     <div className="space-y-4 py-2">
@@ -1654,6 +1553,8 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                 )}
               </button>
             )}
+
+            {paymentMethod === 'CREDIT_CARD' && termsCheckbox}
 
             <div className="pt-1 text-center">
               <span className="text-[12px] text-[#86868b] flex items-center justify-center gap-1.5 leading-[1.33337]">
