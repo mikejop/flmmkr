@@ -511,10 +511,13 @@ export const ColorMasterLanding: React.FC = () => {
       num: '01',
       title: 'Fundamentos',
       subtitle: 'Configuração do projeto, ciência de cores e estruturação do fluxo de trabalho no DaVinci Resolve',
+      // Mesmas aulas do menu lateral da área de membros
       lessons: [
         'Introdução ao DaVinci Resolve',
-        'Gerenciamento de Cores (com abas dedicadas para CST e ACES)',
-        'Fluxo de Trabalho'
+        'Análise da Imagem',
+        'Gerenciamento de Cores',
+        'Fluxo de Trabalho',
+        'Dicas'
       ]
     },
     {
