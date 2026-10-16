@@ -32,6 +32,7 @@ import VideoLessonPlayer, { VideoLessonPlayerHandle } from '@/components/VideoLe
 import LessonComments from '@/components/LessonComments';
 import NotificationsDropdown from '@/components/NotificationsDropdown';
 import DownloadMenu from '@/components/DownloadMenu';
+import { useViewportMode } from '@/hooks/useViewportMode';
 import LessonCompletionTransition from '@/components/LessonCompletionTransition';
 import IntroducaoDaVinciArticle from '@/components/IntroducaoDaVinciArticle';
 import AnaliseImagemArticle from '@/components/AnaliseImagemArticle';
@@ -152,6 +153,11 @@ export function MemberAreaApp({ skipInternalPreloader = false }: { skipInternalP
   // Preferência de largura no desktop; no celular a barra lateral é uma gaveta sempre expandida.
   const [sidebarPref, setIsSidebarExpanded] = useState<boolean>(true);
   const [isMaximized, setIsMaximized] = useState<boolean>(false);
+  // Tablet: a área de membros é a janela de conteúdo "maximizada", sem imagem de fundo; o menu lateral fica por cima.
+  const viewportMode = useViewportMode();
+  const isTablet = viewportMode === 'tablet';
+  const showBackground = viewportMode === 'desktop';
+  const windowMaximized = isMaximized || isTablet;
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [mainEl, setMainEl] = useState<HTMLElement | null>(null);
   // Aulas liberadas por data (hora do servidor): isReleaseLocked(id) = ainda bloqueada.
@@ -169,6 +175,34 @@ export function MemberAreaApp({ skipInternalPreloader = false }: { skipInternalP
   const [initialSidebarWidth] = useState(() => (isSidebarExpanded ? SIDEBAR_WIDTH_OPEN : SIDEBAR_WIDTH_CLOSED));
   // Textos do menu: continuam desenhados enquanto o menu fecha, para sumirem em fade em vez de cortar de uma vez.
   const { setAside, labelsShown } = useSidebarMotion(isSidebarExpanded);
+
+  // Tablet: o menu por cima do conteúdo recolhe sozinho em 10 s sem uso, e na hora ao tocar fora dele ou trocar de aula.
+  useEffect(() => {
+    if (!isTablet || !isSidebarExpanded) return;
+    const aside = document.getElementById('window-sidebar');
+    let timer: ReturnType<typeof setTimeout>;
+    const collapse = () => setIsSidebarExpanded(false);
+    const restart = () => { clearTimeout(timer); timer = setTimeout(collapse, 10000); };
+    const onOutside = (e: PointerEvent) => { if (aside && !aside.contains(e.target as Node)) collapse(); };
+    restart();
+    // Qualquer toque, movimento, rolagem ou tecla DENTRO do menu reinicia os 10 s.
+    const events: (keyof HTMLElementEventMap)[] = ['pointerdown', 'pointermove', 'wheel', 'scroll', 'keydown', 'focusin', 'touchstart'];
+    events.forEach((ev) => aside?.addEventListener(ev, restart, { passive: true, capture: true }));
+    document.addEventListener('pointerdown', onOutside, true);
+    return () => {
+      clearTimeout(timer);
+      events.forEach((ev) => aside?.removeEventListener(ev, restart, { capture: true } as EventListenerOptions));
+      document.removeEventListener('pointerdown', onOutside, true);
+    };
+  }, [isTablet, isSidebarExpanded]);
+
+  // Tablet: escolher uma aula fecha o menu que está por cima.
+  const firstLessonRun = useRef(true);
+  useEffect(() => {
+    if (firstLessonRun.current) { firstLessonRun.current = false; return; }
+    if (isTablet) setIsSidebarExpanded(false);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeLessonId]);
   const [articleToc, setArticleToc] = useState<TocGroup[]>([]);
   const timelineGroups = useMemo<TocGroup[]>(
     () => (articleToc.length ? [{ title: 'Vídeo da aula', id: LESSON_VIDEO_ANCHOR }, ...articleToc] : []),
@@ -857,7 +891,8 @@ export function MemberAreaApp({ skipInternalPreloader = false }: { skipInternalP
       {!skipInternalPreloader && <MemberPreloader isReady={!isAuthChecking && isLoggedIn} />}
       
       {/* Background geral da área de membros */}
-      <div className="hidden md:block absolute inset-0 z-0 overflow-hidden pointer-events-none">
+      {showBackground && (
+      <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
         {/* Fundo estático (último quadro do vídeo antigo): sem vídeo, sem animação, sem chamadas ao servidor */}
         <img
           src="/images/member-bg.webp"
@@ -869,11 +904,12 @@ export function MemberAreaApp({ skipInternalPreloader = false }: { skipInternalP
         {/* Subtle Dark Contrast Overlay */}
         <div className="absolute inset-0 bg-black/40" />
       </div>
+      )}
 
       {/* FINDER WINDOW CONTAINER (Glassmorphism Frame) */}
       <div 
         className={`w-full h-full ${
-          isMaximized 
+          windowMaximized 
             ? 'md:w-full md:h-full rounded-none border-none' 
             : 'md:w-[94vw] md:h-[94vh] rounded-[24px] border border-white/20 shadow-[0_30px_90px_rgba(0,0,0,0.85),inset_0_1px_0_rgba(255,255,255,0.15)]'
         } bg-[#0c0c0f]/30 flex flex-col md:flex-row overflow-hidden relative z-10 transition-all duration-300 ease-out`} 
@@ -891,11 +927,13 @@ export function MemberAreaApp({ skipInternalPreloader = false }: { skipInternalP
           )}
 
           {/* SIDEBAR com Glassmorphism Apple (gaveta sobreposta no celular) */}
+          {/* Tablet: reserva a largura do menu recolhido; o menu aberto fica POR CIMA e não mexe na página */}
+          {isTablet && <div aria-hidden="true" className="hidden md:block w-16 shrink-0" />}
           <aside 
             ref={setAside}
             style={{ width: initialSidebarWidth }}
             aria-label="Módulos e aulas"
-            className={`max-w-[85vw] md:max-w-none ${isMobileMenuOpen ? 'flex fixed inset-y-0 left-0 z-40 md:relative md:z-auto' : 'hidden md:flex'} bg-[#121216] border-r border-white/12 flex-col shrink-0 select-none relative will-change-[width] overflow-hidden`}
+            className={`max-w-[85vw] md:max-w-none ${isMobileMenuOpen ? 'flex fixed inset-y-0 left-0 z-40 md:relative md:z-auto' : 'hidden md:flex'} ${isTablet ? 'md:!absolute md:inset-y-0 md:left-0 md:z-40' : ''} ${isTablet && isSidebarExpanded ? 'shadow-[10px_0_40px_rgba(0,0,0,0.6)]' : ''} bg-[#121216] border-r border-white/12 flex-col shrink-0 select-none relative will-change-[width] overflow-hidden`}
             id="window-sidebar"
           >
             {/* Sidebar Header: Traffic Lights & Collapse Button */}
@@ -904,7 +942,7 @@ export function MemberAreaApp({ skipInternalPreloader = false }: { skipInternalP
             >
               
               {/* Traffic Lights */}
-              {labelsShown && (
+              {labelsShown && !isTablet && (
                 <div className="sb-fade flex items-center gap-1.5 shrink-0 pl-1">
                   <button 
                     onClick={() => setIsMaximized(!isMaximized)}
