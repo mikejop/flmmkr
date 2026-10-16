@@ -101,6 +101,45 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
   const [cardCvv, setCardCvv] = useState('');
   const [installments, setInstallments] = useState(1);
 
+  // Cupom de desconto: o servidor calcula tudo (o navegador só manda o código)
+  const [couponInput, setCouponInput] = useState('');
+  const [coupon, setCoupon] = useState<{ code: string; original: number; discount: number; final: number; percent: number } | null>(null);
+  const [couponBusy, setCouponBusy] = useState(false);
+  const [couponError, setCouponError] = useState<string | null>(null);
+
+  const requestCoupon = async (code: string, silent = false) => {
+    if (!silent) { setCouponBusy(true); setCouponError(null); }
+    try {
+      const res = await fetch('/api/checkout/coupon', {
+        method: 'POST',
+        credentials: 'same-origin',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code, productId: 'color-master-produto' }),
+      });
+      const data = await res.json().catch(() => null);
+      if (res.ok && data?.valid) {
+        setCoupon({ code: data.code, original: data.original, discount: data.discount, final: data.final, percent: data.percent });
+        setCouponInput('');
+        setCouponError(null);
+      } else {
+        setCoupon(null);
+        setCouponError(data?.error || 'Cupom inválido ou inativo.');
+      }
+    } catch {
+      if (!silent) setCouponError('Não foi possível validar o cupom agora. Tente de novo.');
+    } finally {
+      if (!silent) setCouponBusy(false);
+    }
+  };
+  const removeCoupon = () => { setCoupon(null); setCouponError(null); setCouponInput(''); };
+
+  // O preço do site muda (cronômetro acabou, nova fase): o desconto é recalculado no servidor sobre o novo preço.
+  const couponCodeApplied = coupon?.code;
+  useEffect(() => {
+    if (couponCodeApplied) void requestCoupon(couponCodeApplied, true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [price, isExpired]);
+
   // Process States
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -588,6 +627,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
             billingType: 'PIX',
             billingInfo,
             turnstileToken,
+            couponCode: coupon?.code,
             macAddress,
             isExpired,
             hasDiscount25,
@@ -644,6 +684,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
             },
             billingInfo,
             turnstileToken,
+            couponCode: coupon?.code,
             macAddress,
             isExpired,
             hasDiscount25,
@@ -674,7 +715,8 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
   if (!isOpen && !visible) return null;
 
   // `price` já vem do servidor/landing com o valor certo (promoção ativa ou preço da fase); nunca troca por 195.
-  const currentPrice = price;
+  const currentPrice = coupon ? coupon.final : price;
+  const money = (v: number) => (Number.isInteger(v) ? String(v) : v.toFixed(2).replace('.', ','));
 
   return (
     <div
@@ -730,17 +772,54 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
             </h2>
             <div className="mt-2.5 flex items-baseline gap-2">
               <span className="text-[28px] sm:text-[32px] font-bold text-white tracking-tight leading-none">
-                R$ {currentPrice}
+                R$ {money(currentPrice)}
               </span>
-              {price < regularPrice && (
+              {(coupon || price < regularPrice) && (
                 <span className="text-[13px] text-[#86868b] line-through leading-none">
-                  De R$ {regularPrice}
+                  De R$ {money(coupon ? coupon.original : regularPrice)}
                 </span>
               )}
               <span className="text-[12px] text-[#2997ff] font-medium ml-1">
                 12 Meses de acesso + atualizações
               </span>
             </div>
+
+            {/* Cupom de desconto */}
+            {coupon ? (
+              <div className="mt-3 flex items-center justify-between gap-2 rounded-xl bg-emerald-500/10 border border-emerald-500/25 px-3 py-2 text-[12px]">
+                <span className="text-emerald-300">
+                  Cupom <strong className="font-bold">{coupon.code}</strong> aplicado: <strong>−R$ {money(coupon.discount)}</strong>
+                </span>
+                <button type="button" onClick={removeCoupon} className="text-white/60 hover:text-white underline underline-offset-2 cursor-pointer shrink-0">Remover</button>
+              </div>
+            ) : (
+              <div className="mt-3">
+                <label htmlFor="checkout-coupon" className="block text-[12px] font-medium text-white/70 mb-1 ml-0.5">Cupom de desconto</label>
+                <div className="flex gap-2">
+                  <input
+                    id="checkout-coupon"
+                    type="text"
+                    value={couponInput}
+                    onChange={(e) => { setCouponInput(e.target.value.slice(0, 40)); setCouponError(null); }}
+                    onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); if (couponInput.trim()) void requestCoupon(couponInput.trim()); } }}
+                    autoComplete="off"
+                    autoCapitalize="characters"
+                    spellCheck={false}
+                    placeholder="Digite seu cupom"
+                    className="flex-1 min-w-0 h-[40px] px-3.5 rounded-xl bg-white/[0.06] border border-white/12 text-white placeholder-white/25 text-[13px] uppercase focus:outline-none focus:border-[#0071e3] transition-all"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => void requestCoupon(couponInput.trim())}
+                    disabled={couponBusy || !couponInput.trim()}
+                    className="h-[40px] px-4 rounded-xl bg-white/10 hover:bg-white/15 text-white text-[13px] font-semibold transition-colors cursor-pointer disabled:opacity-50 shrink-0"
+                  >
+                    {couponBusy ? 'Validando…' : 'Aplicar'}
+                  </button>
+                </div>
+                {couponError && <p role="alert" className="mt-1.5 ml-0.5 text-[12px] text-red-300">{couponError}</p>}
+              </div>
+            )}
           </div>
 
           {/* Error Alert */}
@@ -1473,7 +1552,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                         className="h-[46px] px-6 rounded-full bg-[#0071e3] hover:bg-[#0077ed] text-white text-[14px] font-semibold transition-all inline-flex items-center gap-2 active:scale-95 cursor-pointer shadow-lg shadow-[#0071e3]/30"
                       >
                         {loading && <Loader2 className="w-4 h-4 animate-spin" />}
-                        Gerar QR Code Pix (R$ {currentPrice})
+                        Gerar QR Code Pix (R$ {money(currentPrice)})
                       </button>
                     </div>
                   ) : (

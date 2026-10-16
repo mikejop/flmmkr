@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { asaasService } from '@/services/asaas';
 import { supabaseAdmin } from '@/utils/supabase/admin';
-import { getCurrentBatchPrice, resolveOfferTimerSession } from '@/utils/offerPricing';
+import { resolveCheckoutPrice, CheckoutPricingError } from '@/services/checkoutPricing';
+import { quoteCoupon, recordCouponOrder, COUPON_PRODUCT_IDS } from '@/services/couponService';
 import { provisionSupabaseUserAndProfile } from '@/services/userService';
 import { validateAndSanitizeBody } from '@/utils/security';
 import { getAsaasInstallmentNumber } from '@/utils/asaasPricing';
-import { isValidExpiredOfferToken } from '@/utils/promoToken';
-import { createHash, randomUUID } from 'node:crypto';
+import { randomUUID } from 'node:crypto';
 import { getClientIp } from '@/utils/clientIp';
 import { consumeRateLimit, consumeKeyRateLimit } from '@/utils/rateLimit';
 import { verifyTurnstile } from '@/utils/turnstile';
@@ -111,56 +111,35 @@ export async function POST(req: NextRequest) {
       referrer: finalReferrer || undefined
     };
 
-    const batchInfo = getCurrentBatchPrice(new Date());
-    let isRealExpired = false;
-
-    if (productId !== 'color-master-completo') {
-      if (batchInfo.isLaunchPhase) {
-        // Até 16/10/2026 às 23:59:59: preço fixo de R$ 95 sem contagem regressiva de expiração
-        isRealExpired = false;
-      } else {
-        try {
-          const sessionCookie = req.cookies.get('flmmkr_offer_session')?.value || '';
-          if (!/^[a-f0-9-]{36}$/i.test(sessionCookie)) {
-            return NextResponse.json({ error: 'Recarregue a página para validar a oferta.' }, { status: 409 });
-          }
-          const timerSession = await resolveOfferTimerSession(
-            createHash('sha256').update(sessionCookie).digest('hex'),
-            ip
-          );
-          const now = Date.now();
-          const expiresAtTime = new Date(timerSession.expiresAt).getTime();
-          isRealExpired = now >= expiresAtTime || timerSession.isExpired;
-        } catch (timerErr) {
-          console.error('Erro ao validar timer no checkout:', timerErr);
-          return NextResponse.json({ error: 'Não foi possível validar a oferta agora. Tente novamente.' }, { status: 503 });
-        }
+    // Preço sempre derivado no servidor (fase de preço + cronômetro + desconto do tooltip); não existe preço de teste por IP.
+    let price;
+    try {
+      price = await resolveCheckoutPrice(req, productId, ip);
+    } catch (pricingError) {
+      if (pricingError instanceof CheckoutPricingError) {
+        return NextResponse.json({ error: pricingError.message }, { status: pricingError.status });
       }
+      throw pricingError;
     }
+    let productValue = price.value;
+    let productDescription = price.description;
 
-    const hasDiscount25 = isValidExpiredOfferToken(req.cookies.get('flmmkr_discount_25')?.value) && isRealExpired;
-
-    // Preço sempre derivado no servidor; não existe preço de teste por endereço IP.
-    let productValue = 95;
-    let productDescription = `Masterclass Color Master | Produto (${batchInfo.batchName})`;
-
-    if (productId === 'color-master-completo') {
-      productValue = 497.0;
-      productDescription = 'Color Master Completo - FLMMKR';
-    } else if (batchInfo.isLaunchPhase) {
-      // Fase de lançamento (até 16/10): valor garantido R$ 95
-      productValue = batchInfo.promoPrice;
-    } else {
-      // Pós-lançamento: cronômetro ativo = preço promocional da fase (R$ 95 nos lotes de 125 e 150; 40% off no preço cheio).
-      // Cronômetro expirado = preço de venda da fase (R$ 125, R$ 150 ou R$ 195).
-      productValue = isRealExpired ? batchInfo.currentBatchPrice : batchInfo.promoPrice;
-
-      // Se aplicou desconto de 25% pelo link do tooltip após expirar:
-      if (hasDiscount25 && isRealExpired) {
-        productValue = Math.round(batchInfo.currentBatchPrice * 0.75);
-        productDescription += ' (Desconto Especial 25% OFF)';
+    // Cupom: o navegador manda só o código. O desconto e o valor final saem do servidor, sobre o preço atual.
+    let appliedCoupon: { id: string; code: string; original: number; discount: number; final: number } | null = null;
+    const couponCodeInput = typeof requestData.couponCode === 'string' ? requestData.couponCode.trim() : '';
+    if (couponCodeInput) {
+      if (!(COUPON_PRODUCT_IDS as readonly string[]).includes(productId)) {
+        return NextResponse.json({ error: 'Este cupom não vale para este produto.' }, { status: 400 });
       }
+      const quote = await quoteCoupon(couponCodeInput, price.value);
+      if (!quote.ok) {
+        return NextResponse.json({ error: quote.message }, { status: quote.reason === 'unavailable' ? 503 : 400 });
+      }
+      appliedCoupon = { id: quote.coupon.id, code: quote.coupon.code, original: quote.original, discount: quote.discount, final: quote.final };
+      productValue = quote.final;
+      productDescription = `${price.description} - Cupom ${quote.coupon.code}`.slice(0, 480);
     }
+    const couponSuffix = appliedCoupon ? `|${appliedCoupon.code}` : '';
 
     // Determinar dados de cobrança (se foram informados dados diferentes do cadastro)
     const payerName = billingInfo?.name || name;
@@ -203,7 +182,7 @@ export async function POST(req: NextRequest) {
           installmentValue: installmentValueNum,
           dueDate: dueDateStr,
           description: productDescription,
-          externalReference: `cm_${Date.now()}`,
+          externalReference: `cm_${Date.now()}${couponSuffix}`,
           creditCard,
           creditCardHolderInfo: creditCardHolderInfo || {
             name: payerName,
@@ -214,6 +193,10 @@ export async function POST(req: NextRequest) {
             phone: payerPhone?.replace(/\D/g, '') || ''
           }
         });
+
+        if (appliedCoupon) {
+          await recordCouponOrder({ paymentId: payment.id, couponId: appliedCoupon.id, couponCode: appliedCoupon.code, productId, original: appliedCoupon.original, discount: appliedCoupon.discount, final: appliedCoupon.final });
+        }
 
         // Verificar se pagamento foi confirmado imediatamente
         const isApproved = payment.status === 'CONFIRMED' || payment.status === 'RECEIVED';
@@ -298,7 +281,7 @@ export async function POST(req: NextRequest) {
     // 6. Se for PIX
     if (billingType === 'PIX') {
       // Referência única do pedido: o webhook confere se bate antes de liberar o acesso.
-      const pixExternalReference = `pix_${randomUUID()}`;
+      const pixExternalReference = `pix_${randomUUID()}${couponSuffix}`;
       const payment = await asaasService.createPayment({
         customer: customer.id,
         billingType: 'PIX',
@@ -307,6 +290,10 @@ export async function POST(req: NextRequest) {
         description: productDescription,
         externalReference: pixExternalReference
       });
+
+      if (appliedCoupon) {
+        await recordCouponOrder({ paymentId: payment.id, couponId: appliedCoupon.id, couponCode: appliedCoupon.code, productId, original: appliedCoupon.original, discount: appliedCoupon.discount, final: appliedCoupon.final });
+      }
 
       // Salvar na tabela de checkouts pendentes aguardando confirmação do PIX
       try {

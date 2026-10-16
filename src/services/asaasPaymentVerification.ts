@@ -4,7 +4,7 @@ import { asaasService } from '@/services/asaas';
 const PAID_STATUSES = new Set(['RECEIVED', 'CONFIRMED']);
 
 /** Menor e maior valor total aceitos para uma cobrança sem pedido pendente (preço do Produto até o Completo, com folga de juros). */
-const MIN_PAID_TOTAL = 95;
+const MIN_PAID_TOTAL = 60; // com o cupom de afiliado o Produto chega a R$ 67
 const MAX_PAID_TOTAL = 650;
 
 type AsaasPaymentData = Awaited<ReturnType<typeof asaasService.getPaymentStatus>>;
@@ -22,7 +22,7 @@ export type PaymentVerification =
  */
 export async function verifyPaidPayment(
   paymentId: string,
-  expected: { amount?: number | null; externalReference?: string | null } = {},
+  expected: { amount?: number | null; externalReference?: string | null; /** valor TOTAL do pedido com cupom: não vale para parcelado (o Asaas devolve o valor da parcela) */ totalAmountForNonInstallment?: number | null } = {},
 ): Promise<PaymentVerification> {
   let payment;
   try {
@@ -38,7 +38,9 @@ export async function verifyPaidPayment(
   const value = Number(payment.value);
   if (!Number.isFinite(value) || value <= 0) return { ok: false, reason: 'invalid_value' };
 
-  if (expected.amount != null && Number.isFinite(Number(expected.amount))) {
+  if (!payment.installment && expected.totalAmountForNonInstallment != null && expected.amount == null) {
+    if (Math.abs(value - Number(expected.totalAmountForNonInstallment)) > 0.01) return { ok: false, reason: 'amount_mismatch' };
+  } else if (expected.amount != null && Number.isFinite(Number(expected.amount))) {
     if (Math.abs(value - Number(expected.amount)) > 0.01) return { ok: false, reason: 'amount_mismatch' };
   } else if (!payment.installment && (value < MIN_PAID_TOTAL || value > MAX_PAID_TOTAL)) {
     return { ok: false, reason: 'amount_out_of_range' };

@@ -6,6 +6,7 @@ import { readJsonLimited } from '@/utils/rateLimit';
 import { verifyPaidPayment } from '@/services/asaasPaymentVerification';
 import { invalidateUserAccess } from '@/utils/accessCache';
 import { hasBlockingRefund, completeRefund } from '@/services/refundService';
+import { confirmCouponOrder, getCouponOrderFinalPrice } from '@/services/couponService';
 
 export const dynamic = 'force-dynamic';
 
@@ -117,8 +118,11 @@ export async function POST(req: NextRequest) {
         .maybeSingle();
       if (pendingError) throw pendingError;
 
+      // Cobrança com cupom: o valor pago tem que bater com o valor final registrado no checkout.
+      const couponAmount = pending?.amount == null ? await getCouponOrderFinalPrice(paymentId) : null;
       const verification = await verifyPaidPayment(paymentId, {
         amount: pending?.amount ?? null,
+        totalAmountForNonInstallment: couponAmount,
         externalReference: pending?.external_reference ?? null,
       });
       if (!verification.ok) {
@@ -183,6 +187,9 @@ export async function POST(req: NextRequest) {
       } else if (!pending) {
         throw new Error('Checkout pendente não encontrado e o pagamento não possui cliente associado.');
       }
+
+      // Pagamento confirmado: soma 1 uso ao cupom (uma única vez por pagamento, mesmo se o webhook repetir).
+      await confirmCouponOrder(paymentId);
 
       await markEvent('processed');
       return NextResponse.json({ received: true });
