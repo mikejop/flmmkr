@@ -67,7 +67,21 @@ interface AsaasCustomer {
 interface AsaasPayment {
   id: string;
   status: string;
+  /** Valor da cobrança (de cada parcela, quando for parcelada). */
+  value?: number;
+  externalReference?: string | null;
+  customer?: string;
+  installment?: string | null;
+  deleted?: boolean;
   invoiceUrl?: string;
+  transactionReceiptUrl?: string | null;
+  billingType?: string;
+  description?: string | null;
+  /** Datas civis (YYYY-MM-DD). O Asaas pode omitir confirmedDate em alguns meios; use a primeira que existir. */
+  confirmedDate?: string | null;
+  paymentDate?: string | null;
+  clientPaymentDate?: string | null;
+  chargeback?: { status?: string } | null;
   errors?: { description?: string }[];
   refusalReason?: string;
 }
@@ -94,7 +108,9 @@ async function asaasFetch<T>(endpoint: string, options: RequestInit = {}): Promi
       data?.errors?.[0]?.description ||
       data?.message ||
       (typeof data === 'string' ? data : 'Erro ao processar requisição no Asaas');
-    throw new Error(errorMessage);
+    const apiError = new Error(errorMessage);
+    apiError.name = 'AsaasApiError'; // mensagem do Asaas (ex.: cartão recusado) pode ser mostrada ao comprador
+    throw apiError;
   }
 
   return data as T;
@@ -187,5 +203,33 @@ export const asaasService = {
    */
   async getPaymentStatus(paymentId: string): Promise<AsaasPayment> {
     return asaasFetch<AsaasPayment>(`/payments/${paymentId}`);
-  }
+  },
+
+  /** Alias com nome mais claro para a consulta completa de uma cobrança. */
+  async getPayment(paymentId: string): Promise<AsaasPayment> {
+    return asaasFetch<AsaasPayment>(`/payments/${encodeURIComponent(paymentId)}`);
+  },
+
+  /** Parcelamento (valor total e quantidade de parcelas). */
+  async getInstallment(installmentId: string): Promise<{ id: string; value?: number; installmentCount?: number }> {
+    return asaasFetch(`/installments/${encodeURIComponent(installmentId)}`);
+  },
+
+  /** Estorno integral de cobrança paga com cartão (à vista) ou Pix. POST /payments/{id}/refund */
+  async refundPayment(paymentId: string, description?: string): Promise<AsaasPayment> {
+    return asaasFetch<AsaasPayment>(`/payments/${encodeURIComponent(paymentId)}/refund`, {
+      method: 'POST',
+      body: JSON.stringify(description ? { description } : {}),
+    });
+  },
+
+  /** Estorno de boleto: devolve o link em que o pagador informa os dados bancários. POST /payments/{id}/bankSlip/refund */
+  async refundBankSlip(paymentId: string): Promise<{ requestUrl?: string }> {
+    return asaasFetch(`/payments/${encodeURIComponent(paymentId)}/bankSlip/refund`, { method: 'POST', body: JSON.stringify({}) });
+  },
+
+  /** Estorno integral de parcelamento no cartão. POST /installments/{id}/refund */
+  async refundInstallment(installmentId: string): Promise<unknown> {
+    return asaasFetch(`/installments/${encodeURIComponent(installmentId)}/refund`, { method: 'POST', body: JSON.stringify({}) });
+  },
 };

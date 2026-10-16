@@ -46,8 +46,9 @@ export async function GET(req: NextRequest) {
   try {
     return NextResponse.json(await submit(urlList));
   } catch (error: any) {
+    console.error('[indexnow]', error);
     return NextResponse.json(
-      { error: error?.message || 'Erro ao comunicar com o IndexNow' },
+      { error: 'Erro ao comunicar com o IndexNow' },
       { status: 500 }
     );
   }
@@ -69,8 +70,9 @@ export async function POST(req: NextRequest) {
     }
     return NextResponse.json(await submit(urls.map((url) => url.toString())));
   } catch (error: any) {
+    console.error('[indexnow]', error);
     return NextResponse.json(
-      { error: error?.message || 'Erro ao enviar para IndexNow' },
+      { error: 'Erro ao enviar para IndexNow' },
       { status: 500 }
     );
   }

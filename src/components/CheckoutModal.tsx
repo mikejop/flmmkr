@@ -1,6 +1,10 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
+import { useCoupon, type CouponController } from '@/hooks/useCoupon';
+import { useAnimatedPrice, formatPriceBR } from '@/hooks/useAnimatedPrice';
+import CouponBox from '@/components/CouponBox';
+import TurnstileWidget from '@/components/TurnstileWidget';
 import {
   X,
   CreditCard,
@@ -13,7 +17,6 @@ import {
   Loader2,
   AlertCircle,
   ArrowRight,
-  UserCheck,
   UserPlus,
   ChevronDown,
   Edit2,
@@ -31,6 +34,8 @@ interface CheckoutModalProps {
   isExpired?: boolean;
   macAddress?: string;
   hasDiscount25?: boolean;
+  /** Estado do cupom vindo da página (campo na seção de preços). Sem ele, o modal usa o próprio. */
+  couponController?: CouponController;
 }
 
 const PROFESSIONS = [
@@ -49,7 +54,8 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
   regularPrice = 195,
   isExpired = false,
   macAddress,
-  hasDiscount25 = false
+  hasDiscount25 = false,
+  couponController
 }) => {
   // Modal visibility & animation
   const [visible, setVisible] = useState(false);
@@ -100,14 +106,27 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
   const [cardCvv, setCardCvv] = useState('');
   const [installments, setInstallments] = useState(1);
 
+  // Cupom de desconto: o estado pode vir da página (campo na seção de preços) ou ser próprio do modal.
+  const ownCoupon = useCoupon(`${price}-${isExpired}`);
+  const couponCtl = couponController ?? ownCoupon;
+  const coupon = couponCtl.coupon;
+  const targetPrice = coupon ? coupon.final : price;
+  const shownPrice = useAnimatedPrice(targetPrice);
+
   // Process States
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [acceptedTerms, setAcceptedTerms] = useState(false);
+  const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
+  const [turnstileReset, setTurnstileReset] = useState(0);
   const [isTermsModalOpen, setIsTermsModalOpen] = useState(false);
 
   // Accordion / Wizard Steps: 1 = Dados de Cadastro | 2 = Endereço | 3 = Método de Pagamento
   const [activeStep, setActiveStep] = useState<1 | 2 | 3>(1);
+  // Abas independentes: abrir uma não fecha as outras (cada uma abre e fecha sozinha).
+  const [openSteps, setOpenSteps] = useState<Record<1 | 2 | 3, boolean>>({ 1: true, 2: false, 3: false });
+  const toggleStep = (n: 1 | 2 | 3) => { setErrorMessage(null); setActiveStep(n); setOpenSteps((prev) => ({ ...prev, [n]: !prev[n] })); };
+  const openStep = (n: 1 | 2 | 3) => { setActiveStep(n); setOpenSteps((prev) => ({ ...prev, [n]: true })); };
 
   // PIX State
   const [pixData, setPixData] = useState<{
@@ -157,7 +176,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
     if (activeStep === 1 && !hasAutoAdvancedStep1Ref.current && isStep1Complete()) {
       hasAutoAdvancedStep1Ref.current = true;
       const timer = setTimeout(() => {
-        setActiveStep(2);
+        openStep(2);
       }, 450);
       return () => clearTimeout(timer);
     }
@@ -166,7 +185,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
     if (activeStep === 2 && !hasAutoAdvancedStep2Ref.current && isStep2Complete()) {
       hasAutoAdvancedStep2Ref.current = true;
       const timer = setTimeout(() => {
-        setActiveStep(3);
+        openStep(3);
       }, 450);
       return () => clearTimeout(timer);
     }
@@ -473,7 +492,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
 
   const handleAdvanceToAddressValidationOnly = (): boolean => {
     if (!name.trim() || !email.trim() || cpf.replace(/\D/g, '').length !== 11 || phone.replace(/\D/g, '').length < 10 || birthDate.trim().length !== 10 || !profession) {
-      setActiveStep(1);
+      openStep(1);
       setErrorMessage('Por favor, complete seus dados de cadastro primeiro.');
       return false;
     }
@@ -487,31 +506,38 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
 
     // Validações dos dados de cadastro
     if (!name.trim()) {
+      openStep(1);
       setErrorMessage('Por favor, informe seu nome completo.');
       return;
     }
     if (!email.trim() || !email.includes('@')) {
+      openStep(1);
       setErrorMessage('Por favor, informe um e-mail válido para acesso.');
       return;
     }
     if (cpf.replace(/\D/g, '').length !== 11) {
+      openStep(1);
       setErrorMessage('Por favor, informe um CPF válido.');
       return;
     }
     if (phone.replace(/\D/g, '').length < 10) {
+      openStep(1);
       setErrorMessage('Por favor, informe um telefone com DDD.');
       return;
     }
     if (!birthDate || birthDate.length !== 10) {
+      openStep(1);
       setErrorMessage('Por favor, informe sua data de nascimento (DD/MM/AAAA).');
       return;
     }
     const calculatedAge = calculateAge(birthDate);
     if (calculatedAge === null || calculatedAge < 12) {
+      openStep(1);
       setErrorMessage('Por favor, informe uma data de nascimento válida.');
       return;
     }
     if (!profession) {
+      openStep(1);
       setErrorMessage('Por favor, selecione sua profissão ou área de atuação em Escolher.');
       return;
     }
@@ -584,6 +610,8 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
             address: studentAddress,
             billingType: 'PIX',
             billingInfo,
+            turnstileToken,
+            couponCode: coupon?.code,
             macAddress,
             isExpired,
             hasDiscount25,
@@ -594,6 +622,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
         });
 
         const data = await res.json();
+        setTurnstileReset((n) => n + 1);
 
         if (!res.ok || !data.success) {
           throw new Error(data?.error || 'Erro ao gerar cobrança Pix no Asaas.');
@@ -638,6 +667,8 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
               ccv: cardCvv
             },
             billingInfo,
+            turnstileToken,
+            couponCode: coupon?.code,
             macAddress,
             isExpired,
             hasDiscount25,
@@ -648,6 +679,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
         });
 
         const data = await res.json();
+        setTurnstileReset((n) => n + 1);
 
         if (!res.ok || !data.success) {
           throw new Error(data?.error || 'Pagamento recusado pela operadora do cartão.');
@@ -666,7 +698,39 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
 
   if (!isOpen && !visible) return null;
 
-  const currentPrice = isExpired ? regularPrice : price;
+  // Termos de uso: ficam ABAIXO do botão de pagamento (Pix ou cartão)
+  const termsCheckbox = (
+    <div className="pt-2 pb-1">
+      <label className="flex items-start gap-3 p-3 rounded-2xl bg-white/[0.04] border border-white/10 hover:border-white/20 transition-all cursor-pointer select-none">
+        <input
+          type="checkbox"
+          checked={acceptedTerms}
+          onChange={(e) => setAcceptedTerms(e.target.checked)}
+          className="mt-0.5 w-4 h-4 rounded border-white/20 text-[#0071e3] focus:ring-[#0071e3] focus:ring-offset-0 bg-white/10 cursor-pointer shrink-0"
+        />
+        <span className="text-[12px] sm:text-[13px] text-white/80 leading-snug">
+          Li e aceito os{' '}
+          <button
+            type="button"
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              setIsTermsModalOpen(true);
+            }}
+            className="text-[#2997ff] hover:text-[#0071e3] underline underline-offset-2 font-medium cursor-pointer"
+          >
+            Termos de Uso e a Política de Privacidade
+          </button>
+          .
+        </span>
+      </label>
+    </div>
+  );
+
+
+  // `price` já vem do servidor/landing com o valor certo (promoção ativa ou preço da fase); nunca troca por 195.
+  const currentPrice = targetPrice;
+  const money = (v: number) => (Number.isInteger(v) ? String(v) : v.toFixed(2).replace('.', ','));
 
   return (
     <div
@@ -722,17 +786,20 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
             </h2>
             <div className="mt-2.5 flex items-baseline gap-2">
               <span className="text-[28px] sm:text-[32px] font-bold text-white tracking-tight leading-none">
-                R$ {currentPrice}
+                R$ {formatPriceBR(shownPrice, currentPrice)}
               </span>
-              {!isExpired && (
+              {(coupon || price < regularPrice) && (
                 <span className="text-[13px] text-[#86868b] line-through leading-none">
-                  De R$ {regularPrice}
+                  De R$ {money(coupon ? coupon.original : regularPrice)}
                 </span>
               )}
               <span className="text-[12px] text-[#2997ff] font-medium ml-1">
                 12 Meses de acesso + atualizações
               </span>
             </div>
+
+            {/* Cupom de desconto */}
+            <CouponBox ctl={couponCtl} variant="dark" className="mt-3" />
           </div>
 
           {/* Error Alert */}
@@ -752,7 +819,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
             <div className="rounded-2xl border border-white/10 bg-white/[0.03] overflow-hidden transition-all duration-500 ease-in-out">
               <button
                 type="button"
-                onClick={() => setActiveStep(1)}
+                onClick={() => toggleStep(1)}
                 className="w-full p-4 flex items-center justify-between text-left hover:bg-white/[0.03] transition-colors cursor-pointer"
               >
                 <div className="flex items-center gap-2.5">
@@ -760,18 +827,18 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                     className={`w-6 h-6 rounded-full flex items-center justify-center text-[11px] font-bold transition-colors ${
                       isStep1Complete()
                         ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
-                        : activeStep === 1
+                        : openSteps[1]
                         ? 'bg-[#0071e3] text-white'
                         : 'bg-white/10 text-white/60'
                     }`}
                   >
-                    {isStep1Complete() && activeStep !== 1 ? <Check className="w-3.5 h-3.5" /> : '1'}
+                    {isStep1Complete() && !openSteps[1] ? <Check className="w-3.5 h-3.5" /> : '1'}
                   </span>
                   <div>
                     <h3 className="text-[13px] sm:text-[14px] font-semibold text-white tracking-[-0.01em]">
                       Dados de Cadastro
                     </h3>
-                    {activeStep !== 1 && name && (
+                    {!openSteps[1] && name && (
                       <p className="text-[11px] text-white/50 truncate max-w-xs">
                         {name} · {email}
                       </p>
@@ -780,14 +847,14 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                 </div>
 
                 <div className="flex items-center gap-2">
-                  {activeStep !== 1 && isStep1Complete() && (
+                  {!openSteps[1] && isStep1Complete() && (
                     <span className="text-[11px] text-[#2997ff] flex items-center gap-1 font-medium">
                       <Edit2 className="w-3 h-3" /> Editar
                     </span>
                   )}
                   <ChevronDown
                     className={`w-4 h-4 text-white/40 transition-transform duration-500 ease-in-out ${
-                      activeStep === 1 ? 'rotate-180' : ''
+                      openSteps[1] ? 'rotate-180' : ''
                     }`}
                   />
                 </div>
@@ -796,7 +863,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
               {/* Conteúdo Expansível Etapa 1 */}
               <div
                 className={`transition-all duration-500 ease-in-out overflow-hidden ${
-                  activeStep === 1 ? 'max-h-[800px] opacity-100 p-4 pt-0' : 'max-h-0 opacity-0 p-0 pointer-events-none'
+                  openSteps[1] ? 'max-h-[800px] opacity-100 p-4 pt-0' : 'max-h-0 opacity-0 p-0 pointer-events-none'
                 }`}
                 style={{
                   transitionTimingFunction: 'cubic-bezier(0.45, 0, 0.55, 1)'
@@ -900,13 +967,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
             <div className="rounded-2xl border border-white/10 bg-white/[0.03] overflow-hidden transition-all duration-500 ease-in-out">
               <button
                 type="button"
-                onClick={() => {
-                  if (activeStep === 1) {
-                    handleAdvanceToAddress();
-                  } else {
-                    setActiveStep(2);
-                  }
-                }}
+                onClick={() => toggleStep(2)}
                 className="w-full p-4 flex items-center justify-between text-left hover:bg-white/[0.03] transition-colors cursor-pointer"
               >
                 <div className="flex items-center gap-2.5">
@@ -914,18 +975,18 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                     className={`w-6 h-6 rounded-full flex items-center justify-center text-[11px] font-bold transition-colors ${
                       isStep2Complete()
                         ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
-                        : activeStep === 2
+                        : openSteps[2]
                         ? 'bg-[#0071e3] text-white'
                         : 'bg-white/10 text-white/60'
                     }`}
                   >
-                    {isStep2Complete() && activeStep !== 2 ? <Check className="w-3.5 h-3.5" /> : '2'}
+                    {isStep2Complete() && !openSteps[2] ? <Check className="w-3.5 h-3.5" /> : '2'}
                   </span>
                   <div>
                     <h3 className="text-[13px] sm:text-[14px] font-semibold text-white tracking-[-0.01em]">
                       Endereço
                     </h3>
-                    {activeStep !== 2 && cep && street && (
+                    {!openSteps[2] && cep && street && (
                       <p className="text-[11px] text-white/50 truncate max-w-xs">
                         {street}, {number} · {city}/{state}
                       </p>
@@ -939,14 +1000,14 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                       <Loader2 className="w-3 h-3 animate-spin" /> Buscando CEP...
                     </span>
                   )}
-                  {activeStep !== 2 && isStep2Complete() && (
+                  {!openSteps[2] && isStep2Complete() && (
                     <span className="text-[11px] text-[#2997ff] flex items-center gap-1 font-medium">
                       <Edit2 className="w-3 h-3" /> Editar
                     </span>
                   )}
                   <ChevronDown
                     className={`w-4 h-4 text-white/40 transition-transform duration-500 ease-in-out ${
-                      activeStep === 2 ? 'rotate-180' : ''
+                      openSteps[2] ? 'rotate-180' : ''
                     }`}
                   />
                 </div>
@@ -955,7 +1016,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
               {/* Conteúdo Expansível Etapa 2 */}
               <div
                 className={`transition-all duration-500 ease-in-out overflow-hidden ${
-                  activeStep === 2 ? 'max-h-[800px] opacity-100 p-4 pt-0' : 'max-h-0 opacity-0 p-0 pointer-events-none'
+                  openSteps[2] ? 'max-h-[800px] opacity-100 p-4 pt-0' : 'max-h-0 opacity-0 p-0 pointer-events-none'
                 }`}
                 style={{
                   transitionTimingFunction: 'cubic-bezier(0.45, 0, 0.55, 1)'
@@ -1061,21 +1122,13 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
             <div className="rounded-2xl border border-white/10 bg-white/[0.03] overflow-hidden transition-all duration-500 ease-in-out">
               <button
                 type="button"
-                onClick={() => {
-                  if (activeStep === 1) {
-                    handleAdvanceToAddress();
-                  } else if (activeStep === 2) {
-                    handleAdvanceToPayment();
-                  } else {
-                    setActiveStep(3);
-                  }
-                }}
+                onClick={() => toggleStep(3)}
                 className="w-full p-4 flex items-center justify-between text-left hover:bg-white/[0.03] transition-colors cursor-pointer"
               >
                 <div className="flex items-center gap-2.5">
                   <span
                     className={`w-6 h-6 rounded-full flex items-center justify-center text-[11px] font-bold transition-colors ${
-                      activeStep === 3
+                      openSteps[3]
                         ? 'bg-[#0071e3] text-white'
                         : 'bg-white/10 text-white/60'
                     }`}
@@ -1086,7 +1139,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                     <h3 className="text-[13px] sm:text-[14px] font-semibold text-white tracking-[-0.01em]">
                       Método de Pagamento
                     </h3>
-                    {activeStep !== 3 && paymentMethod && (
+                    {!openSteps[3] && paymentMethod && (
                       <p className="text-[11px] text-white/50">
                         {paymentMethod === 'PIX' ? 'Pix (Instantâneo)' : 'Cartão de Crédito'}
                       </p>
@@ -1097,7 +1150,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                 <div className="flex items-center gap-2">
                   <ChevronDown
                     className={`w-4 h-4 text-white/40 transition-transform duration-500 ease-in-out ${
-                      activeStep === 3 ? 'rotate-180' : ''
+                      openSteps[3] ? 'rotate-180' : ''
                     }`}
                   />
                 </div>
@@ -1106,13 +1159,15 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
               {/* Conteúdo Expansível Etapa 3 */}
               <div
                 className={`transition-all duration-500 ease-in-out overflow-hidden ${
-                  activeStep === 3 ? 'max-h-[1400px] opacity-100 p-4 pt-0' : 'max-h-0 opacity-0 p-0 pointer-events-none'
+                  openSteps[3] ? 'max-h-[1400px] opacity-100 p-4 pt-0' : 'max-h-0 opacity-0 p-0 pointer-events-none'
                 }`}
                 style={{
                   transitionTimingFunction: 'cubic-bezier(0.45, 0, 0.55, 1)'
                 }}
               >
                 <div className="pt-2 border-t border-white/5">
+
+              <TurnstileWidget onToken={setTurnstileToken} resetKey={turnstileReset} />
 
               {/* Selector Buttons */}
               <div className="grid grid-cols-2 gap-3 mb-4">
@@ -1156,32 +1211,29 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                     Dados do Titular de Pagamento / Cobrança:
                   </span>
                   
-                  {/* Segmented Switch (Apple Style) */}
-                  <div className="grid grid-cols-2 p-1 rounded-xl bg-black/40 border border-white/10">
+                  {/* Switch mini (estilo Apple) */}
+                  <div role="radiogroup" aria-label="Dados do titular" className="inline-flex p-px rounded-full bg-black/40 border border-white/10">
                     <button
                       type="button"
+                      role="radio"
+                      aria-checked={billingMode === 'same'}
                       onClick={() => setBillingMode('same')}
-                      className={`py-2 px-3 rounded-lg text-[12px] sm:text-[13px] font-medium flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
-                        billingMode === 'same'
-                          ? 'bg-[#0071e3] text-white shadow-sm'
-                          : 'text-white/60 hover:text-white'
+                      className={`h-5 px-2 rounded-full text-[10px] leading-none font-medium whitespace-nowrap transition-all cursor-pointer ${
+                        billingMode === 'same' ? 'bg-[#0071e3] text-white' : 'text-white/55 hover:text-white'
                       }`}
                     >
-                      <UserCheck className="w-3.5 h-3.5" />
-                      Usar dados do cadastro
+                      Do cadastro
                     </button>
-
                     <button
                       type="button"
+                      role="radio"
+                      aria-checked={billingMode === 'different'}
                       onClick={() => setBillingMode('different')}
-                      className={`py-2 px-3 rounded-lg text-[12px] sm:text-[13px] font-medium flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
-                        billingMode === 'different'
-                          ? 'bg-[#0071e3] text-white shadow-sm'
-                          : 'text-white/60 hover:text-white'
+                      className={`h-5 px-2 rounded-full text-[10px] leading-none font-medium whitespace-nowrap transition-all cursor-pointer ${
+                        billingMode === 'different' ? 'bg-[#0071e3] text-white' : 'text-white/55 hover:text-white'
                       }`}
                     >
-                      <UserPlus className="w-3.5 h-3.5" />
-                      Dados diferentes do cadastro
+                      Outros dados
                     </button>
                   </div>
 
@@ -1422,33 +1474,6 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                 </div>
               )}
 
-              {/* CHECKBOX DE TERMOS DE USO E POLÍTICA DE PRIVACIDADE */}
-              <div className="pt-2 pb-1">
-                <label className="flex items-start gap-3 p-3 rounded-2xl bg-white/[0.04] border border-white/10 hover:border-white/20 transition-all cursor-pointer select-none">
-                  <input
-                    type="checkbox"
-                    checked={acceptedTerms}
-                    onChange={(e) => setAcceptedTerms(e.target.checked)}
-                    className="mt-0.5 w-4 h-4 rounded border-white/20 text-[#0071e3] focus:ring-[#0071e3] focus:ring-offset-0 bg-white/10 cursor-pointer shrink-0"
-                  />
-                  <span className="text-[12px] sm:text-[13px] text-white/80 leading-snug">
-                    Li e aceito os{' '}
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        setIsTermsModalOpen(true);
-                      }}
-                      className="text-[#2997ff] hover:text-[#0071e3] underline underline-offset-2 font-medium cursor-pointer"
-                    >
-                      Termos de Uso e a Política de Privacidade
-                    </button>
-                    .
-                  </span>
-                </label>
-              </div>
-
               {/* SE PIX SELECIONADO */}
               {paymentMethod === 'PIX' && (
                 <div className="p-4 sm:p-5 rounded-2xl bg-white/[0.05] border border-white/10 animate-in fade-in duration-200 text-center">
@@ -1463,8 +1488,9 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                         className="h-[46px] px-6 rounded-full bg-[#0071e3] hover:bg-[#0077ed] text-white text-[14px] font-semibold transition-all inline-flex items-center gap-2 active:scale-95 cursor-pointer shadow-lg shadow-[#0071e3]/30"
                       >
                         {loading && <Loader2 className="w-4 h-4 animate-spin" />}
-                        Gerar QR Code Pix (R$ {currentPrice})
+                        Gerar QR Code Pix (R$ {money(currentPrice)})
                       </button>
+                      <div className="mt-4 text-left">{termsCheckbox}</div>
                     </div>
                   ) : (
                     <div className="space-y-4 py-2">
@@ -1535,6 +1561,8 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                 )}
               </button>
             )}
+
+            {paymentMethod === 'CREDIT_CARD' && termsCheckbox}
 
             <div className="pt-1 text-center">
               <span className="text-[12px] text-[#86868b] flex items-center justify-center gap-1.5 leading-[1.33337]">

@@ -1,4 +1,5 @@
 import { supabaseAdmin } from '@/utils/supabase/admin';
+import { invalidateUserAccess } from '@/utils/accessCache';
 import { createActivationToken } from '@/services/activationService';
 import { sendActivationEmail } from '@/services/emailService';
 import crypto from 'crypto';
@@ -22,7 +23,7 @@ export interface ProvisionUserInput {
  * gerando o sufixo/token exclusivo de primeiro acesso e enviando o e-mail de liberação.
  * Bypassa RLS usando o client admin service-role
  */
-export async function provisionSupabaseUserAndProfile({
+async function provisionInner({
   email,
   name,
   phone,
@@ -32,7 +33,7 @@ export async function provisionSupabaseUserAndProfile({
   address,
   asaasCustomerId,
   asaasPaymentId
-}: ProvisionUserInput) {
+}: ProvisionUserInput): Promise<{ user: unknown; emailSent?: boolean; activationToken?: null; activationUrl?: null }> {
   const normalizedEmail = email.trim().toLowerCase();
 
   // 1. Verificar se usuário já existe no auth
@@ -112,9 +113,13 @@ export async function provisionSupabaseUserAndProfile({
       throw profileErr;
     }
 
+    // Acesso liberado: descarta qualquer cache antigo desse aluno (acesso, tokens DRM, URLs assinadas).
+    await invalidateUserAccess(user.id);
+
     // Disparar e-mail de ativação com o link e botão clicável
+    let emailSent = false;
     try {
-      await sendActivationEmail({
+      emailSent = await sendActivationEmail({
         email: normalizedEmail,
         name,
         activationUrl: tokenResult.url
@@ -122,9 +127,59 @@ export async function provisionSupabaseUserAndProfile({
     } catch (mailErr) {
       console.error('[userService] Erro ao enviar e-mail de ativação:', mailErr);
     }
+    return { user, emailSent };
   }
 
   return {
     user,
   };
+}
+
+export type ProvisionResult = { status: 'done' | 'already_done' | 'in_progress'; user?: unknown };
+
+/**
+ * Cria a conta e envia o link de primeiro acesso, UMA vez por pagamento.
+ * O cartão aprovado dispara isto no checkout e o webhook dispara de novo: sem trava, o aluno recebia dois e-mails
+ * e o link do primeiro era invalidado pelo segundo. A trava é uma linha em payment_events (provider_event_id UNIQUE).
+ * Se o envio do e-mail falhar, lança erro: o webhook responde 500 e o Asaas reenvia o evento (nova tentativa).
+ */
+export async function provisionSupabaseUserAndProfile(input: ProvisionUserInput): Promise<ProvisionResult> {
+  const paymentId = input.asaasPaymentId;
+  if (!paymentId) {
+    const result = await provisionInner(input);
+    if (result.emailSent === false) throw new Error('Falha ao enviar o e-mail de primeiro acesso.');
+    return { status: 'done', user: result.user };
+  }
+
+  const claimKey = `provision:${paymentId}`;
+  const STALE_MS = 10 * 60 * 1000;
+  const { error: claimError } = await supabaseAdmin.from('payment_events').insert({
+    provider_event_id: claimKey,
+    provider_payment_id: paymentId,
+    event_type: 'PROVISION',
+    processing_status: 'processing',
+    payload: { claim: true },
+  });
+  if (claimError) {
+    if (claimError.code !== '23505') throw claimError;
+    const { data: previous } = await supabaseAdmin
+      .from('payment_events').select('processing_status, received_at').eq('provider_event_id', claimKey).maybeSingle();
+    if (previous?.processing_status === 'processed') return { status: 'already_done' };
+    const stale = previous && Date.now() - new Date(previous.received_at).getTime() > STALE_MS;
+    if (!stale) return { status: 'in_progress' };
+    // Tentativa antiga travada (servidor caiu no meio): assume o trabalho.
+    await supabaseAdmin.from('payment_events').update({ received_at: new Date().toISOString() }).eq('provider_event_id', claimKey);
+  }
+
+  try {
+    const result = await provisionInner(input);
+    if (result.emailSent === false) throw new Error('Falha ao enviar o e-mail de primeiro acesso.');
+    await supabaseAdmin.from('payment_events')
+      .update({ processing_status: 'processed', processed_at: new Date().toISOString() }).eq('provider_event_id', claimKey);
+    return { status: 'done', user: result.user };
+  } catch (err) {
+    // Libera a trava para a próxima tentativa (reenvio do webhook) refazer o trabalho.
+    await supabaseAdmin.from('payment_events').delete().eq('provider_event_id', claimKey);
+    throw err;
+  }
 }

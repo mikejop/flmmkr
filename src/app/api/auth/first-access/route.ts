@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { supabaseAdmin } from '@/utils/supabase/admin';
+import { supabaseAdmin, createIsolatedAuthClient } from '@/utils/supabase/admin';
+import { consumeRateLimit } from '@/utils/rateLimit';
 import { validateAndSanitizeBody, detectSqlInjection } from '@/utils/security';
 import { validateActivationToken, consumeActivationToken, releaseActivationToken } from '@/services/activationService';
 import { verifyAndSyncPaymentAccess } from '@/services/paymentVerificationService';
@@ -120,7 +121,9 @@ export async function POST(req: NextRequest) {
     }
 
     // 6. Autenticar usuário para gerar sessão
-    const { data: signInData, error: signInErr } = await supabaseAdmin.auth.signInWithPassword({
+    // Cliente ISOLADO: signInWithPassword no supabaseAdmin trocava o JWT do cliente de serviço pelo do aluno,
+    // e todas as consultas administrativas seguintes (webhook, comentários, reembolso) passavam a rodar como esse aluno.
+    const { data: signInData, error: signInErr } = await createIsolatedAuthClient().auth.signInWithPassword({
       email,
       password
     });
@@ -159,8 +162,24 @@ export async function POST(req: NextRequest) {
   } catch (err: any) {
     console.error('[API /api/auth/first-access Exception]:', err);
     return NextResponse.json(
-      { success: false, error: err?.message || 'Falha ao ativar primeiro acesso.' },
+      { success: false, error: 'Falha ao ativar primeiro acesso.' },
       { status: 500 }
     );
   }
+}
+
+/** Confere se o link do e-mail ainda vale, para a página avisar antes de o aluno digitar a senha. */
+export async function GET(req: NextRequest) {
+  const allowed = await consumeRateLimit(req, 'first-access-check', 30, 60);
+  if (allowed === false) return NextResponse.json({ valid: false, reason: 'Muitas tentativas. Aguarde um minuto.' }, { status: 429 });
+
+  const token = new URL(req.url).searchParams.get('token') || '';
+  if (!/^flm_[a-f0-9]{64}$/.test(token)) {
+    return NextResponse.json({ valid: false, reason: 'Link de ativação inválido.' }, { headers: { 'Cache-Control': 'private, no-store' } });
+  }
+  const result = await validateActivationToken(token);
+  return NextResponse.json(
+    { valid: !!result.valid, reason: result.valid ? undefined : result.reason },
+    { headers: { 'Cache-Control': 'private, no-store' } }
+  );
 }

@@ -1,6 +1,9 @@
 import React, { Suspense } from 'react';
 import { SocialLanding } from '@/components/SocialLanding';
 
+// Conteúdo público definido em código: estático, regenerado no máximo 1x por dia (ou no deploy).
+export const revalidate = 86400;
+
 export const metadata = {
   title: 'Links & Cursos | Michael Oliveira',
   description: 'Acesse rapidamente todos os cursos e masterclasses de Michael Oliveira.',

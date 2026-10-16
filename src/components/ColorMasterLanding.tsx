@@ -1,5 +1,6 @@
 'use client';
 
+import { tryEnterMemberArea } from '@/lib/accessEntry';
 import { getLegacyPublicVideoUrl, getMediaUrl } from '@/lib/storage';
 
 import React, { useState, useEffect, useRef } from 'react';
@@ -125,6 +126,11 @@ export const ColorMasterLanding: React.FC = () => {
   const [openFaq, setOpenFaq] = useState<number | null>(null);
   const [openModule, setOpenModule] = useState<number | null>(null);
   const [loginModalOpen, setLoginModalOpen] = useState<boolean>(false);
+  // "Acessar": se já existe sessão válida neste navegador (outra aba), entra direto; senão abre o login.
+  const openAccess = async () => {
+    if (await tryEnterMemberArea()) return;
+    setLoginModalOpen(true);
+  };
   const [checkoutModalOpen, setCheckoutModalOpen] = useState<boolean>(false);
   const [showStickyTimer, setShowStickyTimer] = useState<boolean>(false);
   const [activeOfferBg, setActiveOfferBg] = useState<number>(0);
@@ -149,14 +155,22 @@ export const ColorMasterLanding: React.FC = () => {
     batchName: string;
     nextPriceDate?: string;
     isLaunchPhase?: boolean;
+    timerMinutes?: number;
+    promoPercentOffRegular?: number;
+    promoPercentOffBatch?: number;
+    batchPercentOffRegular?: number;
   }>({
     promoPrice: 95,
     currentBatchPrice: 95,
     regularPrice: 195,
     finalPrice: 95,
     batchName: 'Lote Especial de Lançamento',
-    nextPriceDate: '09/10/2026',
-    isLaunchPhase: true
+    nextPriceDate: '16/10/2026',
+    isLaunchPhase: true,
+    timerMinutes: 0,
+    promoPercentOffRegular: 51,
+    promoPercentOffBatch: 0,
+    batchPercentOffRegular: 51,
   });
 
   // Tooltip de boas-vindas falando a partir do logo FLMMKR (+50% de desconto)
@@ -361,8 +375,8 @@ export const ColorMasterLanding: React.FC = () => {
       .then((mac) => {
         setDeviceMac(mac);
 
-        // Sincronizar com o servidor: prioridade 1 = MAC Address, prioridade 2 = IP
-        return fetch(`/api/offer-timer?macAddress=${encodeURIComponent(mac)}`)
+        // Sincronizar o cronômetro com o servidor (a sessão da oferta vem do cookie do servidor)
+        return fetch('/api/offer-timer')
           .then((res) => res.json())
           .then((data) => {
             if (data && typeof data.remainingSeconds === 'number') {
@@ -376,6 +390,10 @@ export const ColorMasterLanding: React.FC = () => {
                 batchName: data.batchName,
                 nextPriceDate: data.nextPriceDate,
                 isLaunchPhase: Boolean(data.isLaunchPhase),
+                timerMinutes: data.timerMinutes,
+                promoPercentOffRegular: data.promoPercentOffRegular,
+                promoPercentOffBatch: data.promoPercentOffBatch,
+                batchPercentOffRegular: data.batchPercentOffRegular,
               });
 
               // Tooltip apontando para o preço quando o tempo já estiver expirado:
@@ -412,7 +430,7 @@ export const ColorMasterLanding: React.FC = () => {
 
     // Abre o modal de login automaticamente se solicitado via URL (?login=true)
     if (typeof window !== 'undefined' && window.location.search.includes('login=true')) {
-      setLoginModalOpen(true);
+      void openAccess();
     }
 
     return () => {
@@ -499,10 +517,13 @@ export const ColorMasterLanding: React.FC = () => {
       num: '01',
       title: 'Fundamentos',
       subtitle: 'Configuração do projeto, ciência de cores e estruturação do fluxo de trabalho no DaVinci Resolve',
+      // Mesmas aulas do menu lateral da área de membros
       lessons: [
         'Introdução ao DaVinci Resolve',
-        'Gerenciamento de Cores (com abas dedicadas para CST e ACES)',
-        'Fluxo de Trabalho'
+        'Análise da Imagem',
+        'Gerenciamento de Cores',
+        'Fluxo de Trabalho',
+        'Dicas'
       ]
     },
     {
@@ -613,11 +634,13 @@ export const ColorMasterLanding: React.FC = () => {
     return 'https://www.asaas.com/000/c/iv2p2s5tkbt1qi79'; // R$ 195 (Regular)
   };
 
+  // Duração do cronômetro da fase atual (15, 10 ou 3 minutos) e preço enquanto ele roda
+  const timerMinutes = priceData.timerMinutes || 15;
+  const promoPct = priceData.promoPercentOffRegular ?? 0;
+
   // Preço base do lote vigente
-  const baseBatchPrice = priceData.isLaunchPhase
-    ? 95
-    : !isExpired
-    ? 95
+  const baseBatchPrice = priceData.isLaunchPhase || !isExpired
+    ? priceData.promoPrice
     : (priceData.currentBatchPrice || priceData.regularPrice);
 
   // Preço final (com 25% de desconto caso acionado pelo tooltip)
@@ -677,10 +700,10 @@ export const ColorMasterLanding: React.FC = () => {
                 <span className="relative inline-flex rounded-full h-2 w-2 bg-[#2997ff]"></span>
               </span>
               <span className="font-bold text-white uppercase tracking-wider text-[10px] sm:text-xs truncate">
-                Oferta 15 Minutos
+                Oferta {timerMinutes} Minutos
               </span>
               <span className="hidden md:inline text-white/90">
-                • Garanta por apenas <strong className="text-white underline decoration-white/60 font-bold">R$ {priceData.promoPrice}</strong> no lote promocional de lançamento!
+                • Garanta por apenas <strong className="text-white underline decoration-white/60 font-bold">R$ {priceData.promoPrice}</strong> ({promoPct}% OFF sobre R$ {priceData.regularPrice})!
               </span>
             </div>
 
@@ -725,8 +748,8 @@ export const ColorMasterLanding: React.FC = () => {
                 aria-live="polite"
                 aria-label={
                   priceData.isLaunchPhase
-                    ? 'Aviso de preço promocional de lançamento até 09/10/2026 às 23:59'
-                    : 'Aviso de oferta especial com cronômetro regressivo de 15 minutos'
+                    ? 'Aviso de preço promocional de lançamento até 16/10/2026 às 23:59'
+                    : `Aviso de oferta especial com cronômetro regressivo de ${timerMinutes} minutos`
                 }
                 onMouseEnter={handleTooltipMouseEnter}
                 onMouseLeave={handleTooltipMouseLeave}
@@ -773,11 +796,11 @@ export const ColorMasterLanding: React.FC = () => {
 
                 {priceData.isLaunchPhase ? (
                   <p className="text-[13px] sm:text-[13.5px] leading-snug font-medium text-white/90 mb-3">
-                    O preço promocional vai acabar no dia <strong className="text-white font-bold">09/10/2026 às 23:59</strong>. Aproveite antes que o valor mude!
+                    O preço promocional vai acabar no dia <strong className="text-white font-bold">16/10/2026 às 23:59</strong>. Aproveite antes que o valor mude!
                   </p>
                 ) : (
                   <p className="text-[13px] sm:text-[13.5px] leading-snug font-medium text-white/90 mb-3">
-                    Faltam <strong className="text-[#2997ff] font-extrabold text-[14px] tabular-nums">{formatTime(timeLeft)}</strong> no cronômetro de 15 minutos. Aproveite antes que o valor mude!
+                    Faltam <strong className="text-[#2997ff] font-extrabold text-[14px] tabular-nums">{formatTime(timeLeft)}</strong> no cronômetro de {timerMinutes} minutos. Aproveite antes que o valor mude!
                   </p>
                 )}
 
@@ -821,7 +844,7 @@ export const ColorMasterLanding: React.FC = () => {
           {/* Lado Direito: Acessar + Garantir Acesso */}
           <div className="flex items-center justify-end shrink-0 z-10">
             <button
-              onClick={() => setLoginModalOpen(true)}
+              onClick={() => { void openAccess(); }}
               className="px-3.5 sm:px-4 py-2 sm:py-1.5 rounded-full bg-white/10 hover:bg-white/20 text-white text-xs font-semibold border border-white/15 hover:border-white/30 transition-all active:scale-95 min-h-[44px] sm:min-h-0 flex items-center justify-center cursor-pointer shrink-0"
             >
               Acessar
@@ -1664,7 +1687,7 @@ export const ColorMasterLanding: React.FC = () => {
 
                   {/* Texto lamentando pelo fato de ter perdido */}
                   <p className="text-[13px] leading-snug text-white/90 font-normal mb-2.5">
-                    Que pena! A condição especial de lançamento encerrou e o período de 15 minutos expirou.
+                    Que pena! A condição especial de lançamento encerrou e o período de {timerMinutes} minutos expirou.
                   </p>
 
                   {/* Chamada para ganhar 25% de desconto */}
@@ -1692,19 +1715,19 @@ export const ColorMasterLanding: React.FC = () => {
               {priceData.isLaunchPhase ? (
                 <>
                   <div className="inline-block px-3.5 py-1 rounded-full bg-[#0071e3]/10 text-[#0071e3] text-[12px] font-semibold uppercase tracking-[0.04em] mb-2 border border-[#0071e3]/20">
-                    Lote Especial de Lançamento • Válido até 09/10
+                    Lote Especial de Lançamento • Válido até 16/10
                   </div>
                   <span className="text-[13px] sm:text-sm text-[#86868b] block line-through">
                     De R$ 195 por apenas:
                   </span>
                   <div className="text-[39px] leading-tight sm:text-5xl md:text-6xl font-extrabold text-[#1d1d1f] tracking-tight mt-1">
-                    R$ 95 <span className="text-base sm:text-xl font-normal text-[#6e6e73]">no Pix</span>
+                    R$ {priceData.promoPrice} <span className="text-base sm:text-xl font-normal text-[#6e6e73]">no Pix</span>
                   </div>
                   <div className="text-[15px] sm:text-lg font-bold text-[#0071e3] mt-1.5 sm:mt-2">
-                    ou em {formatInstallment(95)} no cartão
+                    ou em {formatInstallment(priceData.promoPrice)} no cartão
                   </div>
                   <span className="text-[12px] sm:text-sm font-medium text-[#86868b] mt-1.5 block">
-                    {priceData.batchName} (Garantido até 09/10/2026 às 23:59)
+                    {priceData.batchName} (Garantido até 16/10/2026 às 23:59)
                   </span>
                 </>
               ) : !isExpired ? (
@@ -1716,13 +1739,13 @@ export const ColorMasterLanding: React.FC = () => {
                     De R$ {priceData.currentBatchPrice || 195} por apenas:
                   </span>
                   <div className="text-[39px] leading-tight sm:text-5xl md:text-6xl font-extrabold text-[#1d1d1f] tracking-tight mt-1">
-                    R$ 95 <span className="text-base sm:text-xl font-normal text-[#6e6e73]">no Pix</span>
+                    R$ {priceData.promoPrice} <span className="text-base sm:text-xl font-normal text-[#6e6e73]">no Pix</span>
                   </div>
                   <div className="text-[15px] sm:text-lg font-bold text-[#0071e3] mt-1.5 sm:mt-2">
-                    ou em {formatInstallment(95)} no cartão
+                    ou em {formatInstallment(priceData.promoPrice)} no cartão
                   </div>
                   <span className="text-[12px] sm:text-sm font-medium text-[#86868b] mt-1.5 block">
-                    Condição Especial de 15 Minutos (Promoção de Lançamento)
+                    Condição Especial de {timerMinutes} Minutos: {promoPct}% de desconto sobre o valor real de R$ {priceData.regularPrice}
                   </span>
                 </>
               ) : (
@@ -1748,7 +1771,7 @@ export const ColorMasterLanding: React.FC = () => {
                   ) : (
                     <>
                       <div className="inline-block px-3 py-1 rounded-full bg-red-500/10 text-red-600 text-[12px] font-semibold uppercase tracking-[0.04em] mb-2 border border-red-500/30">
-                        Tempo de 15 Minutos Expirado
+                        Tempo de {timerMinutes} Minutos Expirado
                       </div>
                       <span className="text-[12px] text-[#86868b] uppercase font-semibold tracking-[0.04em] block mb-1">
                         Preço Vigente Oficial

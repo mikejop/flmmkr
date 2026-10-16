@@ -15,7 +15,7 @@ O objetivo de lançamento é permitir a venda do **Color Master | Produto**, pro
 ## 2. Decisões técnicas obrigatórias
 
 1. **O catálogo é a fonte de verdade.** Produto vendido, preço, curso entregue e entitlement devem compartilhar um identificador estável de produto. Rota ou texto de landing não podem, sozinhos, definir acesso.
-2. **Supabase/PostgreSQL será a fonte de verdade operacional.** Toda alteração de schema deverá ser uma migration SQL versionada em `supabase/migrations/`. O `prisma/schema.prisma` deverá ser mantido como espelho gerado/documental ou removido do fluxo; não serão aceitas duas fontes de schema independentes.
+2. **Supabase/PostgreSQL será a fonte de verdade operacional.** Toda alteração de schema deverá ser uma migration SQL versionada em `supabase/migrations/`. O Prisma foi removido do projeto; as migrations em `supabase/migrations/` são a única fonte de schema.
 3. **A aplicação usa Supabase Auth para identidade, mas direitos de acesso ficam no banco de aplicação.** `auth.users` identifica a pessoa; uma tabela de entitlements determina curso, início, expiração e revogação.
 4. **O servidor decide preço, identidade autorizada e acesso.** O navegador apenas solicita a operação. Valores, `userId`, função e status recebidos do cliente nunca são confiáveis por si.
 5. **A cobrança é idempotente.** Webhook, consulta de status e retorno de cartão podem ocorrer mais de uma vez e em qualquer ordem sem duplicar usuário, direito de acesso, mentoria ou e-mail.

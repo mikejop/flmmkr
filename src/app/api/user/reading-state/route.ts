@@ -20,13 +20,13 @@ export async function GET(req: NextRequest) {
 
     if (error) {
       console.error('Erro ao buscar reading-state:', error);
-      return NextResponse.json({ error: error.message }, { status: 500 });
+      return NextResponse.json({ error: 'Erro interno.' }, { status: 500 });
     }
 
     return NextResponse.json({ state: data });
   } catch (err: any) {
     console.error('Erro interno reading-state GET:', err);
-    return NextResponse.json({ error: err?.message || 'Erro interno' }, { status: 500 });
+    return NextResponse.json({ error: 'Erro interno.' }, { status: 500 });
   }
 }
 
@@ -64,12 +64,12 @@ export async function POST(req: NextRequest) {
 
     if (error) {
       console.error('Erro ao salvar reading-state:', error);
-      return NextResponse.json({ error: error.message }, { status: 500 });
+      return NextResponse.json({ error: 'Erro interno.' }, { status: 500 });
     }
 
     return NextResponse.json({ success: true, state: data });
   } catch (err: any) {
     console.error('Erro interno reading-state POST:', err);
-    return NextResponse.json({ error: err?.message || 'Erro interno' }, { status: 500 });
+    return NextResponse.json({ error: 'Erro interno.' }, { status: 500 });
   }
 }

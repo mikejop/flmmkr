@@ -1,0 +1,137 @@
+'use client';
+
+import React, { useEffect, useRef, useState } from 'react';
+import gsap from 'gsap';
+import { useGSAP } from '@gsap/react';
+
+gsap.registerPlugin(useGSAP);
+
+/** Curvas: aceleração e desaceleração suaves, no mesmo "peso" em todo o menu. */
+export const SIDEBAR_EASE = 'power3.inOut';
+export const SIDEBAR_WIDTH_OPEN = 288;
+export const SIDEBAR_WIDTH_CLOSED = 64;
+
+/**
+ * Anima a largura do menu lateral e o aparecer/sumir dos textos.
+ * `expanded` é o destino; `labelsShown` é o que está desenhado (textos continuam visíveis enquanto o menu fecha).
+ * O elemento vem por callback ref (`setAside`): se o menu monta depois (ou é remontado), a animação se ajusta sozinha.
+ * No celular (gaveta) a largura muda sem animar; só os textos entram com fade.
+ */
+export function useSidebarMotion(expanded: boolean) {
+  const [aside, setAside] = useState<HTMLElement | null>(null);
+  const [labelsShown, setLabelsShown] = useState(expanded);
+  const initializedFor = useRef<HTMLElement | null>(null);
+  const expandedRef = useRef(expanded);
+  const fadeInPending = useRef(false);
+  const timers = useRef<ReturnType<typeof setTimeout>[]>([]);
+
+  const clearTimers = () => { timers.current.forEach(clearTimeout); timers.current = []; };
+  useEffect(() => () => { timers.current.forEach(clearTimeout); }, []);
+
+  useGSAP((_, contextSafe) => {
+    expandedRef.current = expanded;
+    clearTimers();
+    const el = aside;
+    if (!el || !contextSafe) return;
+
+    const desktop = window.matchMedia('(min-width: 768px)').matches;
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const target = expanded ? Math.min(SIDEBAR_WIDTH_OPEN, window.innerWidth * 0.85) : SIDEBAR_WIDTH_CLOSED;
+
+    // Primeira vez com este elemento: vai direto ao estado certo, sem animar.
+    if (initializedFor.current !== el) {
+      initializedFor.current = el;
+      gsap.set(el, { width: target });
+      setLabelsShown(expanded);
+      return;
+    }
+    if (!desktop || reduce) {
+      gsap.set(el, { width: target });
+      setLabelsShown(expanded);
+      return;
+    }
+
+    // Troca o layout (com/sem textos) no meio do caminho, quando os textos já sumiram (fechar) ou
+    // quando a barra já tem largura para eles (abrir). Os itens acompanham a largura da barra o tempo todo.
+    const setLabels = contextSafe((value: boolean) => {
+      if (expandedRef.current !== value) return; // o usuário mudou de ideia no meio
+      if (value) fadeInPending.current = true;
+      setLabelsShown(value);
+    });
+    // Garante o estado final mesmo se a animação for interrompida.
+    const settle = contextSafe(() => {
+      if (expandedRef.current !== expanded) return;
+      gsap.set(el, { width: target });
+      setLabelsShown(expanded);
+      gsap.set(el.querySelectorAll('.sb-fade'), { clearProps: 'opacity,transform' });
+    });
+
+    gsap.to(el, { width: target, duration: 0.5, ease: SIDEBAR_EASE, delay: expanded ? 0 : 0.04, overwrite: 'auto', onComplete: settle, onInterrupt: settle });
+    if (expanded) {
+      timers.current.push(setTimeout(() => setLabels(true), 190));
+    } else {
+      gsap.to(el.querySelectorAll('.sb-fade'), { opacity: 0, x: -6, duration: 0.16, ease: 'power2.in', stagger: 0.01, overwrite: 'auto' });
+      timers.current.push(setTimeout(() => setLabels(false), 190));
+    }
+    timers.current.push(setTimeout(settle, 900)); // rede de segurança
+  }, { dependencies: [expanded, aside] });
+
+  // Textos que acabaram de ser desenhados (ao abrir) entram em fade, em cascata curta.
+  useGSAP(() => {
+    if (!aside || !labelsShown || !fadeInPending.current) return;
+    fadeInPending.current = false;
+    gsap.fromTo(
+      aside.querySelectorAll('.sb-fade'),
+      { opacity: 0, x: -10 },
+      { opacity: 1, x: 0, duration: 0.32, ease: 'power2.out', stagger: 0.025, overwrite: 'auto', clearProps: 'opacity,transform' }
+    );
+  }, { dependencies: [labelsShown, aside] });
+
+  return { setAside, labelsShown };
+}
+
+/** Abre e fecha uma lista com altura animada (GSAP). Só monta o conteúdo enquanto aberto ou animando o fechamento. */
+export function GsapCollapse({ open, className, children }: { open: boolean; className?: string; children: React.ReactNode }) {
+  const ref = useRef<HTMLDivElement>(null);
+  const first = useRef(true);
+  const [mounted, setMounted] = useState(open);
+  if (open && !mounted) setMounted(true);
+
+  useGSAP((_, contextSafe) => {
+    const el = ref.current;
+    if (!el || !contextSafe) return;
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const isFirst = first.current;
+    first.current = false;
+
+    if (open) {
+      if (isFirst || reduce) return;
+      gsap.from(el, { height: 0, opacity: 0, paddingTop: 0, paddingBottom: 0, duration: 0.42, ease: 'power3.out', overwrite: 'auto', clearProps: 'height,opacity,paddingTop,paddingBottom' });
+      gsap.from(el.children, { opacity: 0, x: -8, duration: 0.32, ease: 'power2.out', stagger: 0.045, delay: 0.06, clearProps: 'opacity,transform' });
+    } else {
+      const unmount = contextSafe(() => setMounted(false));
+      if (reduce) { unmount(); return; }
+      // Fecha rápido (0,28 s) e some junto com os textos do menu, antes de a barra ficar estreita.
+      gsap.to(el, { height: 0, opacity: 0, paddingTop: 0, paddingBottom: 0, duration: 0.28, ease: 'power2.inOut', overwrite: 'auto', onComplete: unmount, onInterrupt: undefined });
+    }
+  }, { dependencies: [open] });
+
+  if (!mounted) return null;
+  return <div ref={ref} className={className}>{children}</div>;
+}
+
+/** Seta que gira 90° com aceleração e desaceleração. */
+export function GsapChevron({ open, children, className }: { open: boolean; children: React.ReactNode; className?: string }) {
+  const ref = useRef<HTMLSpanElement>(null);
+  const first = useRef(true);
+  useGSAP(() => {
+    if (!ref.current) return;
+    if (first.current) {
+      first.current = false;
+      gsap.set(ref.current, { rotation: open ? 90 : 0 });
+      return;
+    }
+    gsap.to(ref.current, { rotation: open ? 90 : 0, duration: 0.32, ease: SIDEBAR_EASE, overwrite: 'auto' });
+  }, { dependencies: [open] });
+  return <span ref={ref} className={className} style={{ display: 'inline-flex' }}>{children}</span>;
+}

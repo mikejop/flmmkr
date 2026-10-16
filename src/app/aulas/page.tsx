@@ -9,6 +9,9 @@ const TITLE = 'Aulas do Color Master® | Produto — conteúdo do curso';
 const DESCRIPTION =
   'Veja o que cada aula do Color Master® | Produto ensina: color grading no DaVinci Resolve para vídeos de produto e comerciais. Prévia dos tópicos; o conteúdo completo é exclusivo para alunos.';
 
+// Conteúdo público definido em código: estático, regenerado no máximo 1x por dia (ou no deploy).
+export const revalidate = 86400;
+
 export const metadata: Metadata = {
   title: { absolute: TITLE },
   description: DESCRIPTION,

@@ -8,6 +8,9 @@
 
 import { asaasService } from '@/services/asaas';
 import { supabaseAdmin } from '@/utils/supabase/admin';
+import { cacheGet, cacheSet } from '@/utils/redis';
+import { hasBlockingRefund } from '@/services/refundService';
+import { ACCESS_CACHE_TTL_SECONDS, accessKey, invalidateUserAccess } from '@/utils/accessCache';
 
 export interface PaymentVerificationResult {
   isAllowed: boolean;
@@ -100,6 +103,7 @@ export async function verifyAndSyncPaymentAccess({
             updated_at: new Date().toISOString()
           })
           .eq('id', profile.id);
+        await invalidateUserAccess(profile.id);
       }
 
       if (asaasPaymentId) {
@@ -118,6 +122,12 @@ export async function verifyAndSyncPaymentAccess({
         asaasPaymentId,
         reason: `Status no Asaas é "${asaasStatus}" (não confirmado). Acesso negado.`
       };
+    }
+
+    // Reembolso pedido (em andamento, concluído ou falho): o pagamento ainda aparece como pago no Asaas até o estorno
+    // terminar, mas o acesso NÃO pode voltar a ser concedido por aqui.
+    if (await hasBlockingRefund(asaasPaymentId)) {
+      return { isAllowed: false, status: 'REFUND_REQUESTED', asaasPaymentId, reason: 'Reembolso solicitado para este pagamento.' };
     }
 
     // Se no Asaas está PAGO:
@@ -159,34 +169,21 @@ export async function verifyAndSyncPaymentAccess({
   }
 }
 
-// Cache curto (por instância do servidor) só de acessos APROVADOS. Evita repetir 2 consultas ao
-// banco + 1 chamada ao Asaas a cada arquivo/abertura da área de membros. Negativas nunca são
-// guardadas, então um pagamento recém-confirmado libera na hora; um estorno vale em até 5 min.
-const ACCESS_CACHE_TTL_MS = 5 * 60 * 1000;
-const ACCESS_CACHE_MAX_ENTRIES = 500;
-const approvedAccessCache = new Map<string, { result: PaymentVerificationResult; expiresAt: number }>();
-
+// Cache de acessos APROVADOS no Upstash Redis (chave `access:<userId>`, TTL de 5 min), compartilhado entre todas as instâncias.
+// Negativas nunca são guardadas, então um pagamento recém-confirmado libera na hora. Estorno/chargeback/exclusão apagam a chave
+// na hora (invalidateUserAccess). Se o Redis falhar, consulta o banco e o Asaas; na dúvida, nunca concede.
 export async function verifyAccessCached(params: {
   userId: string;
   email?: string;
 }): Promise<PaymentVerificationResult> {
-  const now = Date.now();
-  const hit = approvedAccessCache.get(params.userId);
-  if (hit && hit.expiresAt > now) return hit.result;
-  approvedAccessCache.delete(params.userId);
+  const hit = await cacheGet<PaymentVerificationResult>(accessKey(params.userId));
+  if (hit && hit.isAllowed === true && hit.status === 'CONFIRMED') return hit;
 
   const result = await verifyAndSyncPaymentAccess(params);
   if (result.isAllowed) {
-    if (approvedAccessCache.size >= ACCESS_CACHE_MAX_ENTRIES) {
-      const oldest = approvedAccessCache.keys().next().value;
-      if (oldest) approvedAccessCache.delete(oldest);
-    }
-    approvedAccessCache.set(params.userId, { result, expiresAt: now + ACCESS_CACHE_TTL_MS });
+    await cacheSet(accessKey(params.userId), result, ACCESS_CACHE_TTL_SECONDS);
+  } else {
+    await invalidateUserAccess(params.userId);
   }
   return result;
-}
-
-/** Esquece a aprovação em cache (use ao receber estorno/cancelamento pelo webhook). */
-export function invalidateAccessCache(userId: string): void {
-  approvedAccessCache.delete(userId);
 }

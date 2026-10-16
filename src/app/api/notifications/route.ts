@@ -20,7 +20,7 @@ export async function GET(req: NextRequest) {
 
     if (error) {
       console.error('Erro ao buscar notificações:', error);
-      return NextResponse.json({ error: error.message }, { status: 500 });
+      return NextResponse.json({ error: 'Erro interno.' }, { status: 500 });
     }
 
     const list = notifications || [];
@@ -30,7 +30,7 @@ export async function GET(req: NextRequest) {
     });
   } catch (err: any) {
     console.error('Erro GET /api/notifications:', err);
-    return NextResponse.json({ error: err?.message || 'Erro interno' }, { status: 500 });
+    return NextResponse.json({ error: 'Erro interno.' }, { status: 500 });
   }
 }
 
@@ -66,7 +66,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Parâmetros inválidos' }, { status: 400 });
   } catch (err: any) {
     console.error('Erro POST /api/notifications:', err);
-    return NextResponse.json({ error: err?.message || 'Erro interno' }, { status: 500 });
+    return NextResponse.json({ error: 'Erro interno.' }, { status: 500 });
   }
 }
 
@@ -99,6 +99,6 @@ export async function DELETE(req: NextRequest) {
     return NextResponse.json({ error: 'Parâmetros inválidos' }, { status: 400 });
   } catch (err: any) {
     console.error('Erro DELETE /api/notifications:', err);
-    return NextResponse.json({ error: err?.message || 'Erro interno' }, { status: 500 });
+    return NextResponse.json({ error: 'Erro interno.' }, { status: 500 });
   }
 }

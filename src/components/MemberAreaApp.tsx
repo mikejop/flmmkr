@@ -5,6 +5,9 @@ import BackToTopButton from './BackToTopButton';
 import LessonTimeline, { LESSON_VIDEO_ANCHOR } from './LessonTimeline';
 import { TocRegistryContext, type TocGroup } from './EditorialLayout';
 import { motion, AnimatePresence, MotionConfig } from 'motion/react';
+import gsap from 'gsap';
+import { useGSAP } from '@gsap/react';
+import { useSidebarMotion, GsapCollapse, GsapChevron, SIDEBAR_WIDTH_OPEN, SIDEBAR_WIDTH_CLOSED } from '@/components/SidebarMotion';
 import { 
   Folder, ChevronRight, ChevronLeft,
   CheckCircle2, Lock, PanelLeftClose, PanelLeft, X, Search, Menu,
@@ -28,6 +31,8 @@ import { DeviceSessionKickedModal } from '@/components/DeviceSessionKickedModal'
 import VideoLessonPlayer, { VideoLessonPlayerHandle } from '@/components/VideoLessonPlayer';
 import LessonComments from '@/components/LessonComments';
 import NotificationsDropdown from '@/components/NotificationsDropdown';
+import DownloadMenu from '@/components/DownloadMenu';
+import { useViewportMode } from '@/hooks/useViewportMode';
 import LessonCompletionTransition from '@/components/LessonCompletionTransition';
 import IntroducaoDaVinciArticle from '@/components/IntroducaoDaVinciArticle';
 import AnaliseImagemArticle from '@/components/AnaliseImagemArticle';
@@ -39,7 +44,7 @@ import { LessonReleaseTooltip, LessonLockedPanel } from '@/components/LessonRele
 import GerenciamentoCoresArticle from '@/components/GerenciamentoCoresArticle';
 import GenericLessonArticle from '@/components/GenericLessonArticle';
 import PandaPlaylistPlayer from '@/components/PandaPlaylistPlayer';
-import { LESSON_VIDEOS } from '@/config/lessonVideos';
+import { hasLessonVideo } from '@/config/lessonsWithVideo';
 import FloatingCompleteButton from '@/components/FloatingCompleteButton';
 import ScrollShrinkVideo, { type ScrollShrinkVideoHandle } from '@/components/ScrollShrinkVideo';
 
@@ -148,6 +153,11 @@ export function MemberAreaApp({ skipInternalPreloader = false }: { skipInternalP
   // Preferência de largura no desktop; no celular a barra lateral é uma gaveta sempre expandida.
   const [sidebarPref, setIsSidebarExpanded] = useState<boolean>(true);
   const [isMaximized, setIsMaximized] = useState<boolean>(false);
+  // Tablet: a área de membros é a janela de conteúdo "maximizada", sem imagem de fundo; o menu lateral fica por cima.
+  const viewportMode = useViewportMode();
+  const isTablet = viewportMode === 'tablet';
+  const showBackground = viewportMode === 'desktop';
+  const windowMaximized = isMaximized || isTablet;
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [mainEl, setMainEl] = useState<HTMLElement | null>(null);
   // Aulas liberadas por data (hora do servidor): isReleaseLocked(id) = ainda bloqueada.
@@ -160,6 +170,39 @@ export function MemberAreaApp({ skipInternalPreloader = false }: { skipInternalP
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState<boolean>(false);
   const isSidebarExpanded = sidebarPref || isMobileMenuOpen;
   const lessonContainerRef = useRef<HTMLDivElement>(null);
+  const flyoutRef = useRef<HTMLDivElement>(null);
+  // Largura inicial (sem salto na primeira pintura); depois quem anima é o GSAP.
+  const [initialSidebarWidth] = useState(() => (isSidebarExpanded ? SIDEBAR_WIDTH_OPEN : SIDEBAR_WIDTH_CLOSED));
+  // Textos do menu: continuam desenhados enquanto o menu fecha, para sumirem em fade em vez de cortar de uma vez.
+  const { setAside, labelsShown } = useSidebarMotion(isSidebarExpanded);
+
+  // Tablet: o menu por cima do conteúdo recolhe sozinho em 10 s sem uso, e na hora ao tocar fora dele ou trocar de aula.
+  useEffect(() => {
+    if (!isTablet || !isSidebarExpanded) return;
+    const aside = document.getElementById('window-sidebar');
+    let timer: ReturnType<typeof setTimeout>;
+    const collapse = () => setIsSidebarExpanded(false);
+    const restart = () => { clearTimeout(timer); timer = setTimeout(collapse, 10000); };
+    const onOutside = (e: PointerEvent) => { if (aside && !aside.contains(e.target as Node)) collapse(); };
+    restart();
+    // Qualquer toque, movimento, rolagem ou tecla DENTRO do menu reinicia os 10 s.
+    const events: (keyof HTMLElementEventMap)[] = ['pointerdown', 'pointermove', 'wheel', 'scroll', 'keydown', 'focusin', 'touchstart'];
+    events.forEach((ev) => aside?.addEventListener(ev, restart, { passive: true, capture: true }));
+    document.addEventListener('pointerdown', onOutside, true);
+    return () => {
+      clearTimeout(timer);
+      events.forEach((ev) => aside?.removeEventListener(ev, restart, { capture: true } as EventListenerOptions));
+      document.removeEventListener('pointerdown', onOutside, true);
+    };
+  }, [isTablet, isSidebarExpanded]);
+
+  // Tablet: escolher uma aula fecha o menu que está por cima.
+  const firstLessonRun = useRef(true);
+  useEffect(() => {
+    if (firstLessonRun.current) { firstLessonRun.current = false; return; }
+    if (isTablet) setIsSidebarExpanded(false);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeLessonId]);
   const [articleToc, setArticleToc] = useState<TocGroup[]>([]);
   const timelineGroups = useMemo<TocGroup[]>(
     () => (articleToc.length ? [{ title: 'Vídeo da aula', id: LESSON_VIDEO_ANCHOR }, ...articleToc] : []),
@@ -174,6 +217,12 @@ export function MemberAreaApp({ skipInternalPreloader = false }: { skipInternalP
   
   const [copiedChallengeId, setCopiedChallengeId] = useState<string | null>(null);
   const [activeFlyoutModule, setActiveFlyoutModule] = useState<string | null>(null);
+  // Painel das aulas do módulo (menu recolhido): entra com fade, leve deslocamento e desaceleração.
+  useGSAP(() => {
+    if (!flyoutRef.current) return;
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    gsap.fromTo(flyoutRef.current, { opacity: 0, x: -10, scale: 0.97 }, { opacity: 1, x: 0, scale: 1, duration: 0.26, ease: 'power3.out', transformOrigin: 'left top', clearProps: 'transform' });
+  }, { dependencies: [activeFlyoutModule, isSidebarExpanded] });
   const flyoutTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [completionTransitionData, setCompletionTransitionData] = useState<{
     completedLessonTitle: string;
@@ -226,9 +275,12 @@ export function MemberAreaApp({ skipInternalPreloader = false }: { skipInternalP
   });
 
   // Current selected lesson and module (memoized for instant access)
+  // A aula aberta manda: o módulo exibido é sempre o dono dela, mesmo que activeModuleId tenha mudado (ex.: clique no nome de um módulo).
   const activeModule = useMemo(() => {
-    return modulesData.find(m => m.id === activeModuleId) || modulesData[0];
-  }, [activeModuleId]);
+    return modulesData.find(m => m.subtopics.some(s => s.id === activeLessonId))
+      || modulesData.find(m => m.id === activeModuleId)
+      || modulesData[0];
+  }, [activeModuleId, activeLessonId]);
 
   const activeLesson = useMemo(() => {
     return activeModule.subtopics.find(s => s.id === activeLessonId) || activeModule.subtopics[0];
@@ -839,7 +891,8 @@ export function MemberAreaApp({ skipInternalPreloader = false }: { skipInternalP
       {!skipInternalPreloader && <MemberPreloader isReady={!isAuthChecking && isLoggedIn} />}
       
       {/* Background geral da área de membros */}
-      <div className="hidden md:block absolute inset-0 z-0 overflow-hidden pointer-events-none">
+      {showBackground && (
+      <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
         {/* Fundo estático (último quadro do vídeo antigo): sem vídeo, sem animação, sem chamadas ao servidor */}
         <img
           src="/images/member-bg.webp"
@@ -851,11 +904,12 @@ export function MemberAreaApp({ skipInternalPreloader = false }: { skipInternalP
         {/* Subtle Dark Contrast Overlay */}
         <div className="absolute inset-0 bg-black/40" />
       </div>
+      )}
 
       {/* FINDER WINDOW CONTAINER (Glassmorphism Frame) */}
       <div 
         className={`w-full h-full ${
-          isMaximized 
+          windowMaximized 
             ? 'md:w-full md:h-full rounded-none border-none' 
             : 'md:w-[94vw] md:h-[94vh] rounded-[24px] border border-white/20 shadow-[0_30px_90px_rgba(0,0,0,0.85),inset_0_1px_0_rgba(255,255,255,0.15)]'
         } bg-[#0c0c0f]/30 flex flex-col md:flex-row overflow-hidden relative z-10 transition-all duration-300 ease-out`} 
@@ -873,25 +927,23 @@ export function MemberAreaApp({ skipInternalPreloader = false }: { skipInternalP
           )}
 
           {/* SIDEBAR com Glassmorphism Apple (gaveta sobreposta no celular) */}
+          {/* Tablet: reserva a largura do menu recolhido; o menu aberto fica POR CIMA e não mexe na página */}
+          {isTablet && <div aria-hidden="true" className="hidden md:block w-16 shrink-0" />}
           <aside 
-            style={{
-              transition: 'width 320ms cubic-bezier(0.455, 0.03, 0.515, 0.955)',
-            }}
+            ref={setAside}
+            style={{ width: initialSidebarWidth }}
             aria-label="Módulos e aulas"
-            className={`${isSidebarExpanded ? 'w-72 max-w-[85vw] md:max-w-none' : 'w-16'} ${isMobileMenuOpen ? 'flex fixed inset-y-0 left-0 z-40 md:relative md:z-auto' : 'hidden md:flex'} bg-[#121216] border-r border-white/12 flex-col shrink-0 select-none relative will-change-[width] overflow-hidden`}
+            className={`max-w-[85vw] md:max-w-none ${isMobileMenuOpen ? 'flex fixed inset-y-0 left-0 z-40 md:relative md:z-auto' : 'hidden md:flex'} ${isTablet ? 'md:!absolute md:inset-y-0 md:left-0 md:z-40' : ''} ${isTablet && isSidebarExpanded ? 'shadow-[10px_0_40px_rgba(0,0,0,0.6)]' : ''} bg-[#121216] border-r border-white/12 flex-col shrink-0 select-none relative will-change-[width] overflow-hidden`}
             id="window-sidebar"
           >
             {/* Sidebar Header: Traffic Lights & Collapse Button */}
             <div 
-              style={{
-                transitionTimingFunction: 'cubic-bezier(0.455, 0.03, 0.515, 0.955)',
-              }}
-              className={`h-14 border-b border-white/12 bg-[#121216] flex items-center ${isSidebarExpanded ? 'px-3 justify-between' : 'px-0 justify-center'} select-none shrink-0 relative z-10 gap-1 transition-all duration-300`}
+              className={`h-14 border-b border-white/12 bg-[#121216] flex items-center ${labelsShown ? 'px-3 justify-between' : 'px-0 justify-center'} select-none shrink-0 relative z-10 gap-1`}
             >
               
               {/* Traffic Lights */}
-              {isSidebarExpanded && (
-                <div className="flex items-center gap-1.5 shrink-0 pl-1">
+              {labelsShown && !isTablet && (
+                <div className="sb-fade flex items-center gap-1.5 shrink-0 pl-1">
                   <button 
                     onClick={() => setIsMaximized(!isMaximized)}
                     aria-label={isMaximized ? 'Restaurar janela' : 'Maximizar janela'}
@@ -913,34 +965,25 @@ export function MemberAreaApp({ skipInternalPreloader = false }: { skipInternalP
                 </button>
               )}
 
-              {/* Collapse Trigger Button */}
-              {isSidebarExpanded ? (
-                <button 
-                  onClick={() => setIsSidebarExpanded(false)}
-                  aria-label="Recolher barra lateral"
-                  className="text-[#a1a1a6] hover:text-white transition-colors p-2.5 rounded-md hover:bg-white/5 cursor-pointer shrink-0 hidden md:block"
-                  title="Recolher Barra"
-                >
-                  <PanelLeftClose size={15} />
-                </button>
-              ) : (
-                <button 
-                  onClick={() => setIsSidebarExpanded(true)}
-                  aria-label="Expandir barra lateral"
-                  className="text-[#a1a1a6] hover:text-white transition-colors p-2.5 rounded-md hover:bg-white/10 cursor-pointer shrink-0 flex items-center justify-center"
-                  title="Expandir Barra"
-                >
-                  <PanelLeft size={16} />
-                </button>
-              )}
             </div>
 
+            {/* Botão de recolher/expandir: fica preso à borda direita do menu, então acompanha a largura e nunca some durante a animação */}
+            <button
+              type="button"
+              onClick={() => setIsSidebarExpanded(!isSidebarExpanded)}
+              aria-label={isSidebarExpanded ? 'Recolher barra lateral' : 'Expandir barra lateral'}
+              title={isSidebarExpanded ? 'Recolher Barra' : 'Expandir Barra'}
+              className={`absolute right-3 top-[10px] z-20 h-9 w-9 items-center justify-center rounded-md text-[#a1a1a6] hover:text-white hover:bg-white/10 transition-colors cursor-pointer ${isSidebarExpanded ? 'hidden md:flex' : 'flex'}`}
+            >
+              {isSidebarExpanded ? <PanelLeftClose size={15} /> : <PanelLeft size={16} />}
+            </button>
+
             {/* Sidebar Content Tree */}
-            <div className="flex-1 py-3 px-2 space-y-3 custom-scrollbar overflow-y-auto relative z-10">
+            <div className={`flex-1 py-3 px-2 space-y-3 custom-scrollbar overflow-y-auto relative z-10 `}>
               <div className="space-y-3 w-full">
                 <div className="space-y-1">
-                  {isSidebarExpanded && (
-                    <span className="text-[13px] font-bold text-[#a1a1a6] tracking-widest uppercase block px-3 mb-1.5">MÓDULOS</span>
+                  {labelsShown && (
+                    <span className="sb-fade text-[13px] font-bold text-[#a1a1a6] tracking-widest uppercase block px-3 mb-1.5">MÓDULOS</span>
                   )}
                   
                   {modulesData.map((mod) => {
@@ -966,7 +1009,7 @@ export function MemberAreaApp({ skipInternalPreloader = false }: { skipInternalP
                               setIsCheckoutModalOpen(true);
                               return;
                             }
-                            setActiveModuleId(mod.id);
+                            // Só abre/fecha o módulo: trocar o módulo ativo aqui deixava o título de uma aula e o conteúdo de outra.
                             if (!isSidebarExpanded) setIsSidebarExpanded(true);
                             
                             // Regra: quando um módulo estiver aberto, os outros estarão fechados
@@ -975,8 +1018,7 @@ export function MemberAreaApp({ skipInternalPreloader = false }: { skipInternalP
                               return isCurrentlyOpen ? {} : { [mod.id]: true };
                             });
                           }}
-                          style={{ transitionTimingFunction: 'cubic-bezier(0.455, 0.03, 0.515, 0.955)' }}
-                          className={`w-full flex items-center ${isSidebarExpanded ? 'justify-between px-3' : 'justify-center px-0'} py-2 rounded-[10px] text-[13px] transition-all duration-300 hover:scale-[1.02] text-left cursor-pointer ${
+                          className={`w-full flex items-center justify-between px-[14px] py-2 rounded-[10px] text-[13px] transition-[background-color,border-color,color,box-shadow] duration-300 ease-out text-left cursor-pointer ${
                             isCurrent 
                               ? 'bg-white/15 text-white border border-white/20 shadow-[0_2px_12px_rgba(0,0,0,0.25),inset_0_1px_0_rgba(255,255,255,0.2)] font-semibold backdrop-blur-md' 
                               : 'text-neutral-300 hover:text-white hover:bg-white/[0.08] border border-transparent hover:border-white/10'
@@ -985,31 +1027,25 @@ export function MemberAreaApp({ skipInternalPreloader = false }: { skipInternalP
                           aria-expanded={isSidebarExpanded ? !!expandedEmenta[mod.id] : undefined}
                           aria-label={!isSidebarExpanded ? `${getModuleName(mod.title)}${isLockedModule ? ' (bloqueado)' : ''}` : undefined}
                         >
-                          <div className={`flex items-center ${isSidebarExpanded ? 'gap-2.5 truncate min-w-0' : 'justify-center w-full'}`}>
+                          <div className="flex items-center gap-2.5 truncate min-w-0">
                             <div className="shrink-0 flex items-center justify-center">
                               {getModuleIcon(mod.id, isCurrent)}
                             </div>
-                            {isSidebarExpanded && (
-                              <span className="truncate text-[13px] whitespace-nowrap">{getModuleName(mod.title)}</span>
+                            {labelsShown && (
+                              <span className="sb-fade truncate text-[13px] whitespace-nowrap">{getModuleName(mod.title)}</span>
                             )}
                           </div>
 
-                          {isSidebarExpanded && (
-                            <div className="shrink-0 flex items-center gap-1 pl-1">
+                          {labelsShown && (
+                            <div className="sb-fade shrink-0 flex items-center gap-1 pl-1">
                               {isLockedModule ? (
                                 <Lock size={11} className="text-neutral-300 shrink-0" />
                               ) : (
                                 <>
                                   {isAllCompleted && <CheckCircle2 size={11} className="text-[#30d158] shrink-0 mr-1" />}
-                                  <ChevronRight 
-                                    size={12} 
-                                    className={`text-neutral-300 transition-transform duration-300 ${
-                                      expandedEmenta[mod.id] ? 'rotate-90 text-white' : 'rotate-0'
-                                    }`}
-                                    style={{
-                                      transitionTimingFunction: 'cubic-bezier(0.25, 0.46, 0.45, 0.94)'
-                                    }}
-                                  />
+                                  <GsapChevron open={!!expandedEmenta[mod.id]} className={expandedEmenta[mod.id] ? 'text-white' : 'text-neutral-300'}>
+                                    <ChevronRight size={12} />
+                                  </GsapChevron>
                                 </>
                               )}
                             </div>
@@ -1017,29 +1053,9 @@ export function MemberAreaApp({ skipInternalPreloader = false }: { skipInternalP
                         </button>
 
                         {/* Lesson Nest under Expanded Module com AnimatePresence e Curva Quadrática */}
-                        <AnimatePresence initial={false}>
-                          {isSidebarExpanded && expandedEmenta[mod.id] && (
-                            <motion.div
-                              key={`module-lessons-${mod.id}`}
-                              initial={{ height: 0, opacity: 0 }}
-                              animate={{ 
-                                height: 'auto', 
-                                opacity: 1,
-                                transition: {
-                                  height: { duration: 0.28, ease: [0.25, 0.46, 0.45, 0.94] },
-                                  opacity: { duration: 0.2, ease: [0.25, 0.46, 0.45, 0.94] }
-                                }
-                              }}
-                              exit={{ 
-                                height: 0, 
-                                opacity: 0,
-                                transition: {
-                                  height: { duration: 0.22, ease: [0.455, 0.03, 0.515, 0.955] },
-                                  opacity: { duration: 0.16, ease: [0.455, 0.03, 0.515, 0.955] }
-                                }
-                              }}
-                              className="overflow-hidden pl-2 ml-3 border-l border-white/10 space-y-0.5 py-1"
-                            >
+                        <GsapCollapse open={isSidebarExpanded && !!expandedEmenta[mod.id]} className="overflow-hidden pl-2 ml-3 border-l border-white/10 space-y-0.5 py-1">
+                          {(
+                            <>
                               {mod.subtopics.map((sub) => {
                                 const isCurrentLesson = activeLessonId === sub.id;
                                 const isCompleted = progress.completedLessons.includes(sub.id);
@@ -1095,9 +1111,9 @@ export function MemberAreaApp({ skipInternalPreloader = false }: { skipInternalP
                                   </button>
                                 );
                               })}
-                            </motion.div>
+                            </>
                           )}
-                        </AnimatePresence>
+                        </GsapCollapse>
 
                       </div>
                     );
@@ -1110,6 +1126,7 @@ export function MemberAreaApp({ skipInternalPreloader = false }: { skipInternalP
             {/* Collapsed Sidebar Hover Flyout Panel com Glassmorphism */}
             {!isSidebarExpanded && activeFlyoutModule && (
               <div 
+                ref={flyoutRef}
                 style={{
                   top: '70px',
                   backdropFilter: 'blur(28px) saturate(190%)',
@@ -1239,6 +1256,9 @@ export function MemberAreaApp({ skipInternalPreloader = false }: { skipInternalP
                   <span className="hidden md:inline text-[13px] text-[#a1a1a6] select-none">Buscar...</span>
                 </button>
 
+                {/* Material de apoio (download direto do projeto) */}
+                <DownloadMenu userId={currentUserId} />
+
                 {/* Notifications Button & Dropdown */}
                 <NotificationsDropdown
                   userId={currentUserId}
@@ -1360,7 +1380,7 @@ export function MemberAreaApp({ skipInternalPreloader = false }: { skipInternalP
                   {/* Video Player on Top */}
                   <div id={LESSON_VIDEO_ANCHOR} className="w-full">
                     <ScrollShrinkVideo ref={shrinkRef} containerRef={lessonContainerRef} resetKey={activeLessonId} onRevealChange={setIsTitleStuck}>
-                    {Object.hasOwn(LESSON_VIDEOS, activeLessonId) ? (
+                    {hasLessonVideo(activeLessonId) ? (
                       // Mesmo player Panda em todas as aulas que têm vídeo (key reinicia o estado a cada aula)
                       <PandaPlaylistPlayer
                         key={activeLessonId}

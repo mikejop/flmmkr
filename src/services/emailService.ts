@@ -124,5 +124,44 @@ FLMMKR - Color Master® | Produtos`;
     console.error('[Email Service] Exceção ao enviar via Resend SDK:', resendErr);
   }
 
-  return true;
+  // Falha real: quem chama precisa saber (o aluno pagou e não recebeu o link). Avisa o administrador.
+  try {
+    await supabaseAdmin.from('security_audit_logs').insert({
+      event_type: 'activation_email_failed',
+      email: normalizedEmail,
+      details: { timestamp: new Date().toISOString() }
+    });
+  } catch { /* só registro */ }
+  await sendAdminAlert({
+    subject: 'E-mail de ativação NÃO foi enviado',
+    text: `Um aluno pagou e o e-mail de primeiro acesso falhou (${normalizedEmail}). O sistema tenta de novo no reenvio do webhook; se persistir, envie o link manualmente ou peça para ele usar "Enviar novo link" na página de primeiro acesso.`,
+  });
+  return false;
+}
+
+/**
+ * Alerta operacional para o administrador (ADMIN_ALERT_EMAIL). Texto simples, sem dado pessoal além do necessário.
+ * Nunca lança. Sem ADMIN_ALERT_EMAIL ou sem Resend, só registra no log do servidor.
+ */
+export async function sendAdminAlert({ subject, text }: { subject: string; text: string }): Promise<void> {
+  const to = process.env.ADMIN_ALERT_EMAIL?.trim();
+  console.warn('[admin-alert]', subject);
+  if (!to) {
+    console.error('[admin-alert] ADMIN_ALERT_EMAIL ausente: alerta não enviado.');
+    return;
+  }
+  try {
+    const resendApiKey = await getServerSecret('resendApiKey');
+    const { Resend } = await import('resend');
+    const resend = new Resend(resendApiKey);
+    const { error } = await resend.emails.send({
+      from: process.env.EMAIL_FROM || 'FLMMKR <contato@flmmkr.site>',
+      to: [to],
+      subject: `[FLMMKR] ${subject}`.slice(0, 150),
+      text,
+    });
+    if (error) console.error('[admin-alert] falha ao enviar:', error);
+  } catch (err) {
+    console.error('[admin-alert] exceção ao enviar:', err instanceof Error ? err.message : err);
+  }
 }

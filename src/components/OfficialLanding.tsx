@@ -1,5 +1,6 @@
 'use client';
 
+import { tryEnterMemberArea } from '@/lib/accessEntry';
 import { getMediaUrl } from '@/lib/storage';
 
 import React, { useEffect, useState } from 'react';
@@ -57,6 +58,11 @@ export const OfficialLanding: React.FC<OfficialLandingProps> = ({
   const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState<boolean>(false);
   const [loginModalOpen, setLoginModalOpen] = useState<boolean>(false);
+  // "Acessar": se já existe sessão válida neste navegador (outra aba), entra direto; senão abre o login.
+  const openAccess = async () => {
+    if (await tryEnterMemberArea()) return;
+    setLoginModalOpen(true);
+  };
 
   useEffect(() => {
     setAuthorPhotos(getRandomAuthorPhotos());
@@ -73,7 +79,7 @@ export const OfficialLanding: React.FC<OfficialLandingProps> = ({
 
     // Abre o modal de login automaticamente se solicitado via URL
     if (typeof window !== 'undefined' && window.location.search.includes('login=true')) {
-      setLoginModalOpen(true);
+      void openAccess();
     }
   }, []);
 
@@ -181,7 +187,7 @@ export const OfficialLanding: React.FC<OfficialLandingProps> = ({
 
             {/* Acessar button */}
             <button
-              onClick={() => setLoginModalOpen(true)}
+              onClick={() => { void openAccess(); }}
               className="inline-flex items-center justify-center px-4 py-1.5 rounded-full bg-[#0071e3] hover:bg-[#0077ed] text-white text-xs font-semibold shadow-[0_2px_12px_rgba(0,113,227,0.4),inset_0_1px_1px_rgba(255,255,255,0.3)] transition-all active:scale-95"
             >
               Acessar
@@ -226,7 +232,7 @@ export const OfficialLanding: React.FC<OfficialLandingProps> = ({
                 </a>
               ))}
               <button
-                onClick={() => { setMobileMenuOpen(false); setLoginModalOpen(true); }}
+                onClick={() => { setMobileMenuOpen(false); void openAccess(); }}
                 className="ml-auto px-5 py-2 rounded-full bg-[#0071e3] text-white text-xs font-semibold shadow-[0_2px_12px_rgba(0,113,227,0.35)]"
               >
                 Acessar

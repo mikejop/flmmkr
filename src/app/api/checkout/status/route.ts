@@ -49,7 +49,7 @@ export async function GET(req: NextRequest) {
   } catch (error: any) {
     console.error('Erro ao verificar status do pagamento:', error?.message || error);
     return NextResponse.json(
-      { error: error?.message || 'Falha ao consultar status.' },
+      { error: 'Falha ao consultar status.' },
       { status: 500 }
     );
   }

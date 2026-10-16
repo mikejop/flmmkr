@@ -2,6 +2,9 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { ArrowLeft, FileText, CheckCircle2, ShieldCheck, BookOpen, Lock } from 'lucide-react';
 
+// Conteúdo público definido em código: estático, regenerado no máximo 1x por dia (ou no deploy).
+export const revalidate = 86400;
+
 export const metadata: Metadata = {
   title: 'Termos de Uso e Política de Privacidade | FLMMKR',
   description: 'Termos de Uso e Política de Privacidade da plataforma FLMMKR em total conformidade com a LGPD e CDC.',

@@ -5,6 +5,7 @@ import {
   resolveOfferTimerSession
 } from '@/utils/offerPricing';
 import { createExpiredOfferToken } from '@/utils/promoToken';
+import { getClientIp } from '@/utils/clientIp';
 
 export const dynamic = 'force-dynamic';
 
@@ -21,7 +22,11 @@ export async function GET(req: NextRequest) {
       finalPrice: batchInfo.promoPrice,
       batchName: batchInfo.batchName,
       nextPriceDate: batchInfo.nextPriceDate,
-    });
+      timerMinutes: 0,
+      promoPercentOffBatch: batchInfo.promoPercentOffBatch,
+      promoPercentOffRegular: batchInfo.promoPercentOffRegular,
+      batchPercentOffRegular: batchInfo.batchPercentOffRegular,
+    }, { headers: { 'Cache-Control': 'private, no-store' } });
   }
 
   const existingCookie = req.cookies.get('flmmkr_offer_session')?.value || '';
@@ -29,7 +34,7 @@ export async function GET(req: NextRequest) {
   const clientIdentifier = createHash('sha256').update(rawIdentifier).digest('hex');
   let session;
   try {
-    session = await resolveOfferTimerSession(clientIdentifier);
+    session = await resolveOfferTimerSession(clientIdentifier, getClientIp(req));
   } catch {
     return NextResponse.json({ error: 'Não foi possível carregar a oferta.' }, { status: 503 });
   }
@@ -52,6 +57,10 @@ export async function GET(req: NextRequest) {
     finalPrice,
     batchName: batchInfo.batchName,
     nextPriceDate: batchInfo.nextPriceDate,
+    timerMinutes: batchInfo.timerMinutes,
+    promoPercentOffBatch: batchInfo.promoPercentOffBatch,
+    promoPercentOffRegular: batchInfo.promoPercentOffRegular,
+    batchPercentOffRegular: batchInfo.batchPercentOffRegular,
   });
 
   const expiredOfferToken = isExpired ? createExpiredOfferToken(Date.now() + 36 * 60 * 60 * 1000) : null;

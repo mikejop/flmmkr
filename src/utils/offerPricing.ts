@@ -1,10 +1,12 @@
 import 'server-only';
 import { createClient } from '@supabase/supabase-js';
+import { hashClientIp } from '@/utils/ipHash';
+import { getCurrentBatchPrice, LOTE1_END_ISO } from './priceSchedule.ts';
 
 export interface UserTimerRecord {
   id?: string;
-  macAddress: string;
-  ip: string;
+  /** HMAC do IP (ver utils/ipHash); null quando não há IP ou segredo. */
+  ip: string | null;
   clientIdentifier?: string;
   userAgent?: string;
   firstAccessAt: string;
@@ -15,90 +17,13 @@ export interface UserTimerRecord {
   updatedAt?: string;
 }
 
-export const TIMER_DURATION_MS = 15 * 60 * 1000; // 15 minutos
 export const COOLDOWN_DURATION_MS = 36 * 60 * 60 * 1000; // 36 horas após expirar
 
 // The database is authoritative; this short cache is keyed only by a random server cookie.
 const sessionCache = new Map<string, UserTimerRecord>();
 
-export interface BatchPriceInfo {
-  promoPrice: number;
-  currentBatchPrice: number;
-  regularPrice: number;
-  batchName: string;
-  nextPriceDate?: string;
-  isLaunchPhase: boolean;
-}
-
-export const LOTE1_END_ISO = '2026-10-09T23:59:59-03:00';
-export const LOTE2_END_ISO = '2026-10-13T23:59:59-03:00';
-export const LOTE3_END_ISO = '2026-10-17T23:59:59-03:00';
-
-/**
- * Função para calcular o preço promocional de acordo com as datas dos lotes:
- * - Até 09/10/2026 (Sexta-feira 23:59:59): R$ 95 (Lote Especial de Lançamento - Sem cronômetro de 15 min)
- * - De 10/10/2026 até 13/10/2026 (Terça-feira 23:59:59): R$ 125 (2º Lote - Cronômetro de 15 min para garantir R$ 95)
- * - De 14/10/2026 até 17/10/2026 (Sábado 23:59:59): R$ 150 (3º Lote - Cronômetro de 15 min para garantir R$ 95)
- * - A partir de 18/10/2026: R$ 195 (Preço Oficial Regular - Cronômetro de 15 min para garantir R$ 95)
- */
-export function getCurrentBatchPrice(now: Date = new Date()): BatchPriceInfo {
-  const regularPrice = 195;
-  const currentYear = now.getFullYear();
-
-  const refDate = new Date(now);
-  if (currentYear < 2026) {
-    refDate.setFullYear(2026);
-  }
-
-  const lote1End = new Date(LOTE1_END_ISO);
-  const lote2End = new Date(LOTE2_END_ISO);
-  const lote3End = new Date(LOTE3_END_ISO);
-
-  // 1. Fase de Lançamento: Até 09/10/2026 às 23:59:59
-  if (refDate <= lote1End) {
-    return {
-      promoPrice: 95,
-      currentBatchPrice: 95,
-      regularPrice,
-      batchName: 'Lote Especial de Lançamento',
-      nextPriceDate: '09/10/2026',
-      isLaunchPhase: true
-    };
-  }
-
-  // 2. 2º Lote: De 10/10/2026 até 13/10/2026 às 23:59:59
-  if (refDate <= lote2End) {
-    return {
-      promoPrice: 95,
-      currentBatchPrice: 125,
-      regularPrice,
-      batchName: '2º Lote Promocional',
-      nextPriceDate: '13/10/2026',
-      isLaunchPhase: false
-    };
-  }
-
-  // 3. 3º Lote: De 14/10/2026 até 17/10/2026 às 23:59:59
-  if (refDate <= lote3End) {
-    return {
-      promoPrice: 95,
-      currentBatchPrice: 150,
-      regularPrice,
-      batchName: '3º Lote Promocional',
-      nextPriceDate: '17/10/2026',
-      isLaunchPhase: false
-    };
-  }
-
-  // 4. Preço Oficial Regular: A partir de 18/10/2026
-  return {
-    promoPrice: 95,
-    currentBatchPrice: regularPrice,
-    regularPrice,
-    batchName: 'Preço Oficial Regular',
-    isLaunchPhase: false
-  };
-}
+export { getCurrentBatchPrice, LOTE1_END_ISO, LOTE2_END_ISO, LOTE3_END_ISO } from './priceSchedule.ts';
+export type { BatchPriceInfo, PricePhaseId } from './priceSchedule.ts';
 
 /**
  * Supabase Admin Client (Service Role - Acesso restrito ao backend)
@@ -119,29 +44,27 @@ function getSupabaseAdmin() {
 }
 
 /**
- * Atualiza o cache local em memória para MAC e IP
+ * Atualiza o cache local em memória
  */
 function updateMemoryCache(record: UserTimerRecord) {
   if (record.clientIdentifier) sessionCache.set(record.clientIdentifier, record);
 }
 
 /**
- * Resolve e gerencia a sessão do cronômetro com base na hierarquia estrita:
- * 
- * 1. PRIORIDADE MÁXIMA: mac_address (impressão digital do computador).
- *    Se o usuário mudar de internet/Wi-Fi, o site reconhece o mac_address e mantém o timer ativo.
- * 2. SEGUNDA PRIORIDADE: IP.
- *    Se outra pessoa usar o mesmo IP, ela vê o mesmo timer dos outros usuários da mesma rede.
- * 3. Se nenhuma existir, cria uma nova sessão vinculando o MAC e o IP.
- * 4. COOLDOWN DE 36 HORAS:
- *    Se o tempo acabar (00:00), o usuário fica sem a promoção durante 36h.
- *    Após exatamente 36 horas após zerar, o sistema silenciosamente reseta o cronômetro no backend.
+ * Resolve e gerencia a sessão do cronômetro da oferta:
+ *
+ * 1. A sessão é localizada só pelo identificador do cookie do servidor (client_identifier, único).
+ *    O IP é guardado apenas como hash (HMAC) para auditoria e nunca serve de chave, então a falta
+ *    de IP não cria sessões duplicadas nem reinicia o cronômetro.
+ * 2. Sem sessão, cria uma nova (duração conforme a fase de preço: 15, 10 ou 3 minutos).
+ * 3. COOLDOWN DE 36 HORAS: se o tempo acabar, o aluno fica sem a promoção por 36 h e depois o cronômetro recomeça.
  */
-export async function resolveOfferTimerSession(clientIdentifier: string): Promise<UserTimerRecord> {
+export async function resolveOfferTimerSession(clientIdentifier: string, clientIp?: string | null): Promise<UserTimerRecord> {
   const normalizedIdentifier = clientIdentifier.trim();
   // Os chamadores passam o SHA-256 (64 caracteres hexadecimais) do cookie da oferta.
   if (!/^[a-f0-9]{64}$/i.test(normalizedIdentifier)) throw new Error('Sessão de oferta inválida.');
   const now = Date.now();
+  const ipHash = hashClientIp(clientIp);
   const supabase = getSupabaseAdmin();
   if (!supabase) throw new Error('Supabase não configurado para persistir a oferta.');
 
@@ -159,8 +82,7 @@ export async function resolveOfferTimerSession(clientIdentifier: string): Promis
       session = {
         id: data.id,
         clientIdentifier: normalizedIdentifier,
-        macAddress: '',
-        ip: '',
+        ip: ipHash,
         firstAccessAt: data.first_access_at,
         expiresAt: data.expires_at,
         cooldownUntil: data.cooldown_until,
@@ -175,19 +97,23 @@ export async function resolveOfferTimerSession(clientIdentifier: string): Promis
     return session;
   }
 
+  // Cada fase de preço tem o seu cronômetro: quem entra numa fase nova (ou volta depois do período de espera) ganha um novo.
+  const currentPhase = getCurrentBatchPrice(new Date(now));
+  const timerMs = Math.max(1, currentPhase.timerMinutes) * 60 * 1000;
+  const sessionPhase = session ? getCurrentBatchPrice(new Date(session.firstAccessAt)).phaseId : null;
+
   const shouldStart = !session || now >= new Date(session.cooldownUntil).getTime() ||
-    new Date(session.firstAccessAt).getTime() <= launchEnd;
+    sessionPhase !== currentPhase.phaseId;
   const firstAccessAt = shouldStart ? new Date(now).toISOString() : session!.firstAccessAt;
-  const expiresAt = shouldStart ? new Date(now + TIMER_DURATION_MS).toISOString() : session!.expiresAt;
+  const expiresAt = shouldStart ? new Date(now + timerMs).toISOString() : session!.expiresAt;
   const cooldownUntil = shouldStart
-    ? new Date(now + TIMER_DURATION_MS + COOLDOWN_DURATION_MS).toISOString()
+    ? new Date(now + timerMs + COOLDOWN_DURATION_MS).toISOString()
     : session!.cooldownUntil;
   const isExpired = now >= new Date(expiresAt).getTime();
 
   const record: UserTimerRecord = {
     id: session?.id,
-    macAddress: '',
-    ip: '',
+    ip: ipHash,
     clientIdentifier: normalizedIdentifier,
     firstAccessAt,
     expiresAt,
@@ -195,8 +121,7 @@ export async function resolveOfferTimerSession(clientIdentifier: string): Promis
     isExpired,
   };
   const values = {
-    mac_address: null,
-    ip: null,
+    ip: ipHash,
     user_agent: null,
     client_identifier: normalizedIdentifier,
     first_access_at: firstAccessAt,
@@ -206,10 +131,36 @@ export async function resolveOfferTimerSession(clientIdentifier: string): Promis
     updated_at: new Date().toISOString(),
   };
 
-  const write = session?.id
+  let write = session?.id
     ? await supabase.from('offer_timer_sessions').update(values).eq('id', session.id).select('id').maybeSingle()
     : await supabase.from('offer_timer_sessions').insert(values).select('id').maybeSingle();
-  if (write.error || !write.data) throw new Error('Não foi possível salvar o cronômetro da oferta.');
+
+  // Duas requisições simultâneas do mesmo visitante: a segunda perde a corrida do UNIQUE e reaproveita a sessão criada.
+  if (!session?.id && write.error?.code === '23505') {
+    const existing = await supabase
+      .from('offer_timer_sessions')
+      .select('id, first_access_at, expires_at, cooldown_until, is_expired')
+      .eq('client_identifier', normalizedIdentifier)
+      .maybeSingle();
+    if (existing.data) {
+      const reused: UserTimerRecord = {
+        id: existing.data.id,
+        ip: ipHash,
+        clientIdentifier: normalizedIdentifier,
+        firstAccessAt: existing.data.first_access_at,
+        expiresAt: existing.data.expires_at,
+        cooldownUntil: existing.data.cooldown_until,
+        isExpired: now >= new Date(existing.data.expires_at).getTime() || existing.data.is_expired,
+      };
+      updateMemoryCache(reused);
+      return reused;
+    }
+  }
+
+  if (write.error || !write.data) {
+    console.error('[offerPricing] Falha ao salvar o cronômetro:', write.error?.message);
+    throw new Error('Não foi possível salvar o cronômetro da oferta.');
+  }
   record.id = write.data.id;
   updateMemoryCache(record);
   return record;

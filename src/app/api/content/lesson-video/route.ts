@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getAuthenticatedUser } from '@/utils/supabase/authenticated';
-import { verifyAndSyncPaymentAccess } from '@/services/paymentVerificationService';
+import { verifyAccessCached } from '@/services/paymentVerificationService';
 
 export const dynamic = 'force-dynamic';
 
@@ -16,7 +16,7 @@ export async function GET(req: NextRequest) {
   const videoUrl = VIDEO_BY_LESSON[lessonId];
   if (!videoUrl) return NextResponse.json({ error: 'Vídeo não encontrado.' }, { status: 404 });
 
-  const access = await verifyAndSyncPaymentAccess({ userId: user.id, email: user.email });
+  const access = await verifyAccessCached({ userId: user.id, email: user.email });
   if (!access.isAllowed) return NextResponse.json({ error: 'Acesso ao conteúdo não autorizado.' }, { status: 403 });
 
   return NextResponse.json({ videoUrl }, { headers: { 'Cache-Control': 'private, no-store, max-age=0' } });

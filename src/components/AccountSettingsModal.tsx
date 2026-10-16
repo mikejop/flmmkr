@@ -2,9 +2,11 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { useDialogA11y } from '@/hooks/useDialogA11y';
-import { X, Camera, Lock, User, Mail, Phone, Eye, EyeOff, CheckCircle2, AlertCircle, Loader2, ShieldCheck, ShieldAlert } from 'lucide-react';
+import { X, Camera, Lock, User, Mail, Phone, Eye, EyeOff, CheckCircle2, AlertCircle, Loader2, ShieldCheck, ShieldAlert, CreditCard, Bell, FileLock2 } from 'lucide-react';
 import { getMediaUrl } from '@/lib/storage';
 import { PhoneInputWithDdi } from '@/components/PhoneInputWithDdi';
+import { PurchasesTab, type PurchaseView } from '@/components/account/PurchasesTab';
+import { RefundDialog } from '@/components/account/RefundDialog';
 
 interface UserProfile {
   id?: string;
@@ -32,7 +34,9 @@ export const AccountSettingsModal: React.FC<AccountSettingsModalProps> = ({
   userId,
   onProfileUpdated,
 }) => {
-  const [activeTab, setActiveTab] = useState<'perfil' | 'senha'>('perfil');
+  const [refundTarget, setRefundTarget] = useState<PurchaseView | null>(null);
+  const [purchasesVersion, setPurchasesVersion] = useState(0);
+  const [activeTab, setActiveTab] = useState<'perfil' | 'senha' | 'compras' | 'notificacoes' | 'privacidade'>('perfil');
 
   // Form Profile State
   const [firstName, setFirstName] = useState(userProfile.firstName || '');
@@ -262,7 +266,7 @@ export const AccountSettingsModal: React.FC<AccountSettingsModalProps> = ({
         </div>
 
         {/* Tabs Bar */}
-        <div className="flex border-b border-white/10 gap-2">
+        <div className="flex border-b border-white/10 gap-2 overflow-x-auto [scrollbar-width:none]" role="tablist">
           <button
             onClick={() => { setActiveTab('perfil'); setFeedback(null); }}
             className={`pb-2.5 px-3 text-xs font-semibold cursor-pointer border-b-2 transition-all flex items-center gap-1.5 ${
@@ -284,6 +288,39 @@ export const AccountSettingsModal: React.FC<AccountSettingsModalProps> = ({
           >
             <Lock size={13} />
             Segurança & Senha
+          </button>
+          <button
+            onClick={() => { setActiveTab('compras'); setFeedback(null); }}
+            className={`pb-2.5 px-3 text-xs font-semibold cursor-pointer border-b-2 transition-all flex items-center gap-1.5 whitespace-nowrap ${
+              activeTab === 'compras'
+                ? 'border-[#0071e3] text-white'
+                : 'border-transparent text-neutral-400 hover:text-neutral-200'
+            }`}
+          >
+            <CreditCard size={13} />
+            Compras & Acesso
+          </button>
+          <button
+            onClick={() => { setActiveTab('notificacoes'); setFeedback(null); }}
+            className={`pb-2.5 px-3 text-xs font-semibold cursor-pointer border-b-2 transition-all flex items-center gap-1.5 whitespace-nowrap ${
+              activeTab === 'notificacoes'
+                ? 'border-[#0071e3] text-white'
+                : 'border-transparent text-neutral-400 hover:text-neutral-200'
+            }`}
+          >
+            <Bell size={13} />
+            Notificações
+          </button>
+          <button
+            onClick={() => { setActiveTab('privacidade'); setFeedback(null); }}
+            className={`pb-2.5 px-3 text-xs font-semibold cursor-pointer border-b-2 transition-all flex items-center gap-1.5 whitespace-nowrap ${
+              activeTab === 'privacidade'
+                ? 'border-[#0071e3] text-white'
+                : 'border-transparent text-neutral-400 hover:text-neutral-200'
+            }`}
+          >
+            <FileLock2 size={13} />
+            Privacidade & Dados
           </button>
         </div>
 
@@ -560,6 +597,39 @@ export const AccountSettingsModal: React.FC<AccountSettingsModalProps> = ({
               </button>
             </div>
           </form>
+        )}
+
+        {/* TAB 3: COMPRAS & ACESSO */}
+        {activeTab === 'compras' && (
+          <PurchasesTab
+            key={purchasesVersion}
+            renderActions={(p) => p.status === 'active' && p.refundOpen ? (
+              <button
+                type="button"
+                onClick={() => setRefundTarget(p)}
+                className="px-3.5 py-1.5 rounded-xl text-[11px] font-semibold text-red-300 border border-red-500/30 hover:bg-red-500/10 transition-colors cursor-pointer"
+              >
+                Solicitar reembolso
+              </button>
+            ) : null}
+          />
+        )}
+        {refundTarget && (
+          <RefundDialog
+            purchase={refundTarget}
+            onClose={() => { setRefundTarget(null); setPurchasesVersion((v) => v + 1); }}
+            onDone={() => setPurchasesVersion((v) => v + 1)}
+          />
+        )}
+
+        {/* TAB 4: NOTIFICAÇÕES (Sprint 5) */}
+        {activeTab === 'notificacoes' && (
+          <p className="text-xs text-neutral-400 py-6 text-center">As preferências de notificação chegam em breve.</p>
+        )}
+
+        {/* TAB 5: PRIVACIDADE & DADOS (Sprint 3) */}
+        {activeTab === 'privacidade' && (
+          <p className="text-xs text-neutral-400 py-6 text-center">Exportação de dados e exclusão de conta chegam em breve.</p>
         )}
 
       </div>

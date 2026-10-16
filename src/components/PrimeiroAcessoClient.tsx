@@ -1,9 +1,11 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { Eye, EyeOff, Check, ShieldAlert, Loader2, CheckCircle2 } from 'lucide-react';
 import { detectSqlInjection } from '@/utils/security';
+import TurnstileWidget from '@/components/TurnstileWidget';
 
 interface PrimeiroAcessoProps {
   initialToken?: string;
@@ -21,6 +23,60 @@ export function PrimeiroAcessoClient({ initialToken = '' }: PrimeiroAcessoProps)
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+
+  // O link do e-mail é conferido assim que a página abre, para o aluno não digitar a senha à toa.
+  const [linkState, setLinkState] = useState<'checking' | 'valid' | 'invalid'>(initialToken ? 'checking' : 'invalid');
+  const [linkReason, setLinkReason] = useState<string>(initialToken ? '' : 'Abra o link de primeiro acesso que enviamos para o seu e-mail.');
+  const [resendEmail, setResendEmail] = useState('');
+  const [resendBusy, setResendBusy] = useState(false);
+  const [resendMessage, setResendMessage] = useState<string | null>(null);
+  const [resendError, setResendError] = useState<string | null>(null);
+  const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
+  const [turnstileReset, setTurnstileReset] = useState(0);
+
+  useEffect(() => {
+    if (!initialToken) return;
+    let alive = true;
+    (async () => {
+      try {
+        const res = await fetch(`/api/auth/first-access?token=${encodeURIComponent(initialToken)}`, { cache: 'no-store' });
+        const data = await res.json().catch(() => null);
+        if (!alive) return;
+        if (data && data.valid === false) {
+          setLinkReason(data.reason || 'Este link não é mais válido.');
+          setLinkState('invalid');
+        } else {
+          setLinkState('valid');
+        }
+      } catch {
+        if (alive) setLinkState('valid'); // sem rede para conferir: deixa tentar, o envio mostra o erro
+      }
+    })();
+    return () => { alive = false; };
+  }, [initialToken]);
+
+  const handleResend = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (resendBusy) return;
+    setResendBusy(true);
+    setResendError(null);
+    setResendMessage(null);
+    try {
+      const res = await fetch('/api/auth/resend-activation', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: resendEmail.trim(), turnstileToken: turnstileToken || undefined }),
+      });
+      const data = await res.json().catch(() => null);
+      if (!res.ok) throw new Error(data?.error || 'Não foi possível enviar agora.');
+      setResendMessage(data?.message || 'Se existir um acesso aguardando ativação para este e-mail, enviamos um novo link.');
+    } catch (err) {
+      setResendError(err instanceof Error ? err.message : 'Não foi possível enviar agora.');
+      setTurnstileReset((n) => n + 1);
+    } finally {
+      setResendBusy(false);
+    }
+  };
 
   // Validação em tempo real dos requisitos de senha
   const hasUpper = useMemo(() => /[A-Z]/.test(password), [password]);
@@ -84,9 +140,10 @@ export function PrimeiroAcessoClient({ initialToken = '' }: PrimeiroAcessoProps)
 
       setSuccess(true);
 
-      // Redireciona diretamente para a área do aluno
+      // Senha criada, mas o login automático falhou: manda para a tela de login em vez de uma área que exige sessão.
+      const destination = data.requiresLogin ? '/?login=true' : '/color-master-produto';
       setTimeout(() => {
-        window.location.href = '/color-master-produto';
+        window.location.href = destination;
       }, 1000);
     } catch (err: any) {
       setErrorMessage(err?.message || 'Erro ao processar ativação de acesso.');
@@ -124,8 +181,35 @@ export function PrimeiroAcessoClient({ initialToken = '' }: PrimeiroAcessoProps)
           </p>
         </div>
 
-        {/* Mensagem de Sucesso */}
-        {success ? (
+        {linkState === 'checking' && !success ? (
+          <div role="status" className="flex items-center gap-2 text-[15px] text-[#6e6e73]">
+            <Loader2 className="w-4 h-4 animate-spin" /> Conferindo seu link…
+          </div>
+        ) : linkState === 'invalid' && !success ? (
+          <div className="w-full space-y-5">
+            <div className="bg-[#fff2f2] border border-[#ffd6d6] rounded-xl p-3.5 flex items-start gap-2.5 text-[#d70015] text-[13px] leading-relaxed" role="alert">
+              <ShieldAlert className="w-4 h-4 shrink-0 mt-0.5" />
+              <span>{linkReason}</span>
+            </div>
+            <form onSubmit={handleResend} className="space-y-4">
+              <p className="text-[15px] text-[#6e6e73]">Informe o e-mail da compra e enviamos um novo link.</p>
+              <input
+                type="email" value={resendEmail} onChange={(e) => setResendEmail(e.target.value)} required autoComplete="email"
+                placeholder="seu@email.com" aria-label="E-mail da compra" className={inputClass}
+              />
+              <TurnstileWidget onToken={setTurnstileToken} resetKey={turnstileReset} />
+              {resendError && <p role="alert" className="text-[13px] text-[#d70015]">{resendError}</p>}
+              {resendMessage && <p role="status" className="text-[13px] text-[#1d1d1f] bg-[#f5f5f7] rounded-xl p-3.5">{resendMessage}</p>}
+              <button
+                type="submit" disabled={resendBusy || !resendEmail}
+                className="w-full h-12 px-6 rounded-full bg-[#0071e3] text-white text-[17px] hover:bg-[#0077ed] transition-all active:scale-[0.98] cursor-pointer flex items-center justify-center gap-2 disabled:opacity-60"
+              >
+                {resendBusy ? <><Loader2 className="w-4 h-4 animate-spin" /><span>Enviando…</span></> : <span>Enviar novo link</span>}
+              </button>
+              <Link href="/?login=true" className="block text-center text-[15px] text-[#0071e3] hover:underline">Já tenho senha: entrar</Link>
+            </form>
+          </div>
+        ) : success ? (
           <div className="w-full bg-[#f5f5f7] rounded-[22px] p-8 text-center animate-fadeIn">
             <CheckCircle2 className="w-12 h-12 text-[#0071e3] mx-auto mb-4" strokeWidth={1.5} />
             <h3 className="text-[21px] font-semibold text-[#1d1d1f] mb-1.5 tracking-[-0.01em]">Acesso liberado.</h3>

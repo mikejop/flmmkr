@@ -33,6 +33,7 @@ export async function GET() {
       email: user.email
     });
   } catch (err: any) {
-    return NextResponse.json({ allowed: false, error: err?.message || 'Erro ao checar acesso' }, { status: 500 });
+    console.error('[verify-access]', err);
+    return NextResponse.json({ allowed: false, error: 'Erro ao checar acesso' }, { status: 500 });
   }
 }

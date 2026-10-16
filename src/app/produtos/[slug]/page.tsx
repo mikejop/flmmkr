@@ -21,6 +21,9 @@ interface ProductPageProps {
   }>;
 }
 
+// Conteúdo público definido em código: estático, regenerado no máximo 1x por dia (ou no deploy).
+export const revalidate = 86400;
+
 export async function generateStaticParams() {
   return PRODUCTS.map((product) => ({
     slug: product.slug,

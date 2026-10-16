@@ -1,13 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { asaasService } from '@/services/asaas';
 import { supabaseAdmin } from '@/utils/supabase/admin';
-import { getCurrentBatchPrice, resolveOfferTimerSession } from '@/utils/offerPricing';
+import { resolveCheckoutPrice, CheckoutPricingError } from '@/services/checkoutPricing';
+import { quoteCoupon, recordCouponOrder, COUPON_PRODUCT_IDS } from '@/services/couponService';
 import { provisionSupabaseUserAndProfile } from '@/services/userService';
 import { validateAndSanitizeBody } from '@/utils/security';
 import { getAsaasInstallmentNumber } from '@/utils/asaasPricing';
-import { isValidExpiredOfferToken } from '@/utils/promoToken';
-import { createHash } from 'node:crypto';
+import { randomUUID } from 'node:crypto';
 import { getClientIp } from '@/utils/clientIp';
+import { consumeRateLimit, consumeKeyRateLimit } from '@/utils/rateLimit';
+import { verifyTurnstile } from '@/utils/turnstile';
+import { isProductionRuntime } from '@/utils/runtimeEnv';
 
 export const dynamic = 'force-dynamic';
 
@@ -62,6 +65,31 @@ export async function POST(req: NextRequest) {
 
     const ip = getClientIp(req) || 'UNKNOWN';
 
+    // Anti-abuso: Turnstile + 5 tentativas a cada 15 min por IP e por e-mail.
+    const turnstile = await verifyTurnstile(requestData.turnstileToken, ip === 'UNKNOWN' ? null : ip);
+    if (!turnstile.ok) {
+      if (turnstile.reason === 'misconfigured') {
+        return NextResponse.json({ error: 'Pagamento temporariamente indisponível. Tente novamente em instantes.' }, { status: 503 });
+      }
+      return NextResponse.json({ error: 'Não foi possível validar a verificação de segurança. Atualize a página e tente de novo.' }, { status: 403 });
+    }
+    const emailKey = String(email).trim().toLowerCase().slice(0, 254);
+    const [ipAllowed, emailAllowed] = await Promise.all([
+      consumeRateLimit(req, 'checkout:ip', 5, 900),
+      consumeKeyRateLimit(emailKey, 'checkout:email', 5, 900),
+    ]);
+    if (ipAllowed === null || emailAllowed === null) {
+      // Redis e Postgres indisponíveis (ou sem RATE_LIMIT_HMAC_SECRET): em produção o limite nunca é desligado, então recusa.
+      if (isProductionRuntime()) {
+        console.error('[checkout] rate limit indisponível em produção: checkout recusado.');
+        return NextResponse.json({ error: 'Pagamento temporariamente indisponível. Tente novamente em instantes.' }, { status: 503 });
+      }
+      console.warn('[checkout] rate limit indisponível (fora de produção): seguindo sem limite.');
+    }
+    if (ipAllowed === false || emailAllowed === false) {
+      return NextResponse.json({ error: 'Muitas tentativas. Aguarde alguns minutos e tente novamente.' }, { status: 429, headers: { 'Retry-After': '900' } });
+    }
+
     // Recuperar atribuição de tráfego (origem, UTM, device fingerprint)
     const cookieAttrRaw = req.cookies.get('flmmkr_attribution')?.value;
     let cookieAttr: any = null;
@@ -83,56 +111,35 @@ export async function POST(req: NextRequest) {
       referrer: finalReferrer || undefined
     };
 
-    const batchInfo = getCurrentBatchPrice(new Date());
-    let isRealExpired = false;
-
-    if (productId !== 'color-master-completo') {
-      if (batchInfo.isLaunchPhase) {
-        // Até 09/10/2026 às 23:59:59: Preço fixo de R$ 95 sem contagem regressiva de expiração
-        isRealExpired = false;
-      } else {
-        try {
-          const sessionCookie = req.cookies.get('flmmkr_offer_session')?.value || '';
-          if (!/^[a-f0-9-]{36}$/i.test(sessionCookie)) {
-            return NextResponse.json({ error: 'Recarregue a página para validar a oferta.' }, { status: 409 });
-          }
-          const timerSession = await resolveOfferTimerSession(
-            createHash('sha256').update(sessionCookie).digest('hex')
-          );
-          const now = Date.now();
-          const expiresAtTime = new Date(timerSession.expiresAt).getTime();
-          isRealExpired = now >= expiresAtTime || timerSession.isExpired;
-        } catch (timerErr) {
-          console.error('Erro ao validar timer no checkout:', timerErr);
-          return NextResponse.json({ error: 'Não foi possível validar a oferta agora. Tente novamente.' }, { status: 503 });
-        }
+    // Preço sempre derivado no servidor (fase de preço + cronômetro + desconto do tooltip); não existe preço de teste por IP.
+    let price;
+    try {
+      price = await resolveCheckoutPrice(req, productId, ip);
+    } catch (pricingError) {
+      if (pricingError instanceof CheckoutPricingError) {
+        return NextResponse.json({ error: pricingError.message }, { status: pricingError.status });
       }
+      throw pricingError;
     }
+    let productValue = price.value;
+    let productDescription = price.description;
 
-    const hasDiscount25 = isValidExpiredOfferToken(req.cookies.get('flmmkr_discount_25')?.value) && isRealExpired;
-
-    // Preço sempre derivado no servidor; não existe preço de teste por endereço IP.
-    let productValue = 95;
-    let productDescription = `Masterclass Color Master | Produto (${batchInfo.batchName})`;
-
-    if (productId === 'color-master-completo') {
-      productValue = 497.0;
-      productDescription = 'Color Master Completo - FLMMKR';
-    } else if (batchInfo.isLaunchPhase) {
-      // Fase de lançamento (até 09/10): valor garantido R$ 95
-      productValue = 95;
-    } else {
-      // Pós-lançamento (a partir de 10/10):
-      // Se não expirou (dentro dos 15 min): R$ 95 (promoção antiga garantida)
-      // Se expirou: preço vigente do momento (R$ 125, R$ 150 ou R$ 195)
-      productValue = isRealExpired ? batchInfo.currentBatchPrice : 95;
-
-      // Se aplicou desconto de 25% pelo link do tooltip após expirar:
-      if (hasDiscount25 && isRealExpired) {
-        productValue = Math.round(batchInfo.currentBatchPrice * 0.75);
-        productDescription += ' (Desconto Especial 25% OFF)';
+    // Cupom: o navegador manda só o código. O desconto e o valor final saem do servidor, sobre o preço atual.
+    let appliedCoupon: { id: string; code: string; original: number; discount: number; final: number } | null = null;
+    const couponCodeInput = typeof requestData.couponCode === 'string' ? requestData.couponCode.trim() : '';
+    if (couponCodeInput) {
+      if (!(COUPON_PRODUCT_IDS as readonly string[]).includes(productId)) {
+        return NextResponse.json({ error: 'Este cupom não vale para este produto.' }, { status: 400 });
       }
+      const quote = await quoteCoupon(couponCodeInput, price.value);
+      if (!quote.ok) {
+        return NextResponse.json({ error: quote.message }, { status: quote.reason === 'unavailable' ? 503 : 400 });
+      }
+      appliedCoupon = { id: quote.coupon.id, code: quote.coupon.code, original: quote.original, discount: quote.discount, final: quote.final };
+      productValue = quote.final;
+      productDescription = `${price.description} - Cupom ${quote.coupon.code}`.slice(0, 480);
     }
+    const couponSuffix = appliedCoupon ? `|${appliedCoupon.code}` : '';
 
     // Determinar dados de cobrança (se foram informados dados diferentes do cadastro)
     const payerName = billingInfo?.name || name;
@@ -175,7 +182,7 @@ export async function POST(req: NextRequest) {
           installmentValue: installmentValueNum,
           dueDate: dueDateStr,
           description: productDescription,
-          externalReference: `cm_${Date.now()}`,
+          externalReference: `cm_${Date.now()}${couponSuffix}`,
           creditCard,
           creditCardHolderInfo: creditCardHolderInfo || {
             name: payerName,
@@ -187,22 +194,31 @@ export async function POST(req: NextRequest) {
           }
         });
 
+        if (appliedCoupon) {
+          await recordCouponOrder({ paymentId: payment.id, couponId: appliedCoupon.id, couponCode: appliedCoupon.code, productId, original: appliedCoupon.original, discount: appliedCoupon.discount, final: appliedCoupon.final });
+        }
+
         // Verificar se pagamento foi confirmado imediatamente
         const isApproved = payment.status === 'CONFIRMED' || payment.status === 'RECEIVED';
 
         if (isApproved) {
-          // Criar ou atualizar usuário no Supabase Auth e tabela profiles
-          await provisionSupabaseUserAndProfile({
-            email,
-            name,
-            phone,
-            birthDate,
-            age: age ? Number(age) : null,
-            profession,
-            address,
-            asaasCustomerId: customer.id,
-            asaasPaymentId: payment.id
-          });
+          // Criar ou atualizar usuário no Supabase Auth e tabela profiles. O pagamento já foi aprovado: se algo
+          // falhar aqui (ex.: e-mail), o aluno não pode ver "pagamento recusado". O webhook do Asaas refaz o envio.
+          try {
+            await provisionSupabaseUserAndProfile({
+              email,
+              name,
+              phone,
+              birthDate,
+              age: age ? Number(age) : null,
+              profession,
+              address,
+              asaasCustomerId: customer.id,
+              asaasPaymentId: payment.id
+            });
+          } catch (provisionError) {
+            console.error('[checkout] pagamento aprovado, mas a criação da conta/e-mail falhou; o webhook tentará de novo:', provisionError instanceof Error ? provisionError.message : provisionError);
+          }
 
           return NextResponse.json({
             success: true,
@@ -264,18 +280,24 @@ export async function POST(req: NextRequest) {
 
     // 6. Se for PIX
     if (billingType === 'PIX') {
+      // Referência única do pedido: o webhook confere se bate antes de liberar o acesso.
+      const pixExternalReference = `pix_${randomUUID()}${couponSuffix}`;
       const payment = await asaasService.createPayment({
         customer: customer.id,
         billingType: 'PIX',
         value: productValue,
         dueDate: dueDateStr,
         description: productDescription,
-        externalReference: `pix_${Date.now()}`
+        externalReference: pixExternalReference
       });
+
+      if (appliedCoupon) {
+        await recordCouponOrder({ paymentId: payment.id, couponId: appliedCoupon.id, couponCode: appliedCoupon.code, productId, original: appliedCoupon.original, discount: appliedCoupon.discount, final: appliedCoupon.final });
+      }
 
       // Salvar na tabela de checkouts pendentes aguardando confirmação do PIX
       try {
-        await supabaseAdmin.from('pending_checkouts').upsert({
+        const pendingRow = {
           payment_id: payment.id,
           asaas_customer_id: customer.id,
           full_name: name,
@@ -286,6 +308,7 @@ export async function POST(req: NextRequest) {
           profession: profession || null,
           address: address || null,
           amount: productValue,
+          external_reference: pixExternalReference,
           status: 'PENDING',
           traffic_source: finalTrafficSource,
           device_fingerprint: finalDeviceFp,
@@ -293,7 +316,15 @@ export async function POST(req: NextRequest) {
           utm_source: finalUtmSource,
           referrer: finalReferrer,
           updated_at: new Date().toISOString()
-        }, { onConflict: 'payment_id' });
+        };
+        let { error: pendingError } = await supabaseAdmin.from('pending_checkouts').upsert(pendingRow, { onConflict: 'payment_id' });
+        if (pendingError && /external_reference/.test(pendingError.message || '')) {
+          // Migração ainda não aplicada: salva o pedido sem a referência (o webhook segue funcionando).
+          const { external_reference: _ignored, ...legacyRow } = pendingRow;
+          void _ignored;
+          ({ error: pendingError } = await supabaseAdmin.from('pending_checkouts').upsert(legacyRow, { onConflict: 'payment_id' }));
+        }
+        if (pendingError) console.error('Erro ao salvar pending_checkout:', pendingError.message);
       } catch (dbErr) {
         console.error('Erro ao salvar pending_checkout:', dbErr);
       }
@@ -332,7 +363,7 @@ export async function POST(req: NextRequest) {
     }
 
     return NextResponse.json(
-      { error: error?.message || 'Falha ao processar pagamento.' },
+      { error: error?.name === 'AsaasApiError' && error?.message ? error.message : 'Falha ao processar pagamento.' },
       { status: 500 }
     );
   }

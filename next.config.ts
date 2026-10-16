@@ -1,4 +1,24 @@
 import type { NextConfig } from 'next';
+import { buildPublicCsp } from './src/utils/csp';
+
+// A3: em build de produção na Vercel, faltar chave de segurança derruba o build (melhor que subir um checkout desprotegido).
+function assertProductionSecurityEnv() {
+  if (process.env.VERCEL_ENV !== 'production') return;
+  const required = [
+    'TURNSTILE_SECRET_KEY',
+    'NEXT_PUBLIC_TURNSTILE_SITE_KEY',
+    'UPSTASH_REDIS_REST_URL',
+    'UPSTASH_REDIS_REST_TOKEN',
+    'RATE_LIMIT_HMAC_SECRET',
+  ];
+  const missing = required.filter((name) => !process.env[name]?.trim());
+  if (missing.length) {
+    throw new Error(
+      `Build de produção bloqueado: faltam variáveis de ambiente de segurança: ${missing.join(', ')}. ` +
+        'Cadastre-as na Vercel (Settings > Environment Variables > Production) e rode o deploy de novo.'
+    );
+  }
+}
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://gnqqaskurjkrllnhjygt.supabase.co';
 const supabaseHostname = new URL(supabaseUrl).hostname;
@@ -12,10 +32,19 @@ const appVersion =
 const SEVEN_DAYS = 60 * 60 * 24 * 7;
 
 const nextConfig: NextConfig = {
+  // Não anuncia a tecnologia do servidor no cabeçalho X-Powered-By.
+  poweredByHeader: false,
+  experimental: {
+    // Hash (SRI) nos scripts do Next: permite CSP sem nonce e sem 'unsafe-inline' nas páginas estáticas.
+    sri: { algorithm: 'sha256' },
+  },
   env: {
     NEXT_PUBLIC_APP_VERSION: appVersion,
   },
   images: {
+    // SVG remoto pode carregar script: o otimizador de imagens nunca serve SVG.
+    dangerouslyAllowSVG: false,
+    // Só o Storage público do nosso projeto Supabase (hostname exato, sem curinga).
     remotePatterns: [
       {
         protocol: 'https',
@@ -84,6 +113,29 @@ const nextConfig: NextConfig = {
           },
         ],
       },
+      ...(process.env.NODE_ENV === 'production'
+        ? [{
+            // Páginas públicas (estáticas): CSP sem nonce. A área de membros e o login usam a CSP com nonce do proxy.
+            source: '/((?!(?:color-master-produto|conteudo|login|primeiro-acesso|definir-senha|api)(?:/|$)).*)',
+            headers: [
+              { key: 'Content-Security-Policy', value: buildPublicCsp() },
+              { key: 'Content-Security-Policy-Report-Only', value: buildPublicCsp({ strictStyles: true }) },
+            ],
+          }]
+        : []),
+      {
+        // Nada pessoal em cache compartilhado: APIs (menos consultas públicas de CEP e empresas), área de membros, login e fluxo de senha.
+        source: '/api/:path((?!cep|empresas)[^/]+.*)',
+        headers: [{ key: 'Cache-Control', value: 'private, no-store' }],
+      },
+      {
+        source: '/:area(color-master-produto|conteudo|login|primeiro-acesso|definir-senha)/:path*',
+        headers: [{ key: 'Cache-Control', value: 'private, no-store' }],
+      },
+      {
+        source: '/:area(color-master-produto|conteudo|login|primeiro-acesso|definir-senha)',
+        headers: [{ key: 'Cache-Control', value: 'private, no-store' }],
+      },
       {
         // O proxy de cache nunca pode ficar preso: o navegador revalida o sw.js a cada visita.
         source: '/sw.js',
@@ -104,4 +156,7 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default nextConfig;
+export default (phase: string): NextConfig => {
+  if (phase === 'phase-production-build') assertProductionSecurityEnv();
+  return nextConfig;
+};

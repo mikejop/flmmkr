@@ -48,7 +48,7 @@ export const createClient = (request: NextRequest, forwardedHeaders: Headers = r
             request: { headers: forwardedHeaders },
           });
           cookiesToSet.forEach(({ name, value, options }) =>
-            supabaseResponse.cookies.set(name, value, options)
+            supabaseResponse.cookies.set(name, value, { ...options, secure: process.env.NODE_ENV === 'production', sameSite: 'lax' })
           );
         },
       },
