@@ -1,5 +1,6 @@
 'use client';
 
+import { tryEnterMemberArea } from '@/lib/accessEntry';
 import { getLegacyPublicVideoUrl, getMediaUrl } from '@/lib/storage';
 
 import React, { useState, useEffect, useRef } from 'react';
@@ -125,6 +126,11 @@ export const ColorMasterLanding: React.FC = () => {
   const [openFaq, setOpenFaq] = useState<number | null>(null);
   const [openModule, setOpenModule] = useState<number | null>(null);
   const [loginModalOpen, setLoginModalOpen] = useState<boolean>(false);
+  // "Acessar": se já existe sessão válida neste navegador (outra aba), entra direto; senão abre o login.
+  const openAccess = async () => {
+    if (await tryEnterMemberArea()) return;
+    setLoginModalOpen(true);
+  };
   const [checkoutModalOpen, setCheckoutModalOpen] = useState<boolean>(false);
   const [showStickyTimer, setShowStickyTimer] = useState<boolean>(false);
   const [activeOfferBg, setActiveOfferBg] = useState<number>(0);
@@ -424,7 +430,7 @@ export const ColorMasterLanding: React.FC = () => {
 
     // Abre o modal de login automaticamente se solicitado via URL (?login=true)
     if (typeof window !== 'undefined' && window.location.search.includes('login=true')) {
-      setLoginModalOpen(true);
+      void openAccess();
     }
 
     return () => {
@@ -838,7 +844,7 @@ export const ColorMasterLanding: React.FC = () => {
           {/* Lado Direito: Acessar + Garantir Acesso */}
           <div className="flex items-center justify-end shrink-0 z-10">
             <button
-              onClick={() => setLoginModalOpen(true)}
+              onClick={() => { void openAccess(); }}
               className="px-3.5 sm:px-4 py-2 sm:py-1.5 rounded-full bg-white/10 hover:bg-white/20 text-white text-xs font-semibold border border-white/15 hover:border-white/30 transition-all active:scale-95 min-h-[44px] sm:min-h-0 flex items-center justify-center cursor-pointer shrink-0"
             >
               Acessar
