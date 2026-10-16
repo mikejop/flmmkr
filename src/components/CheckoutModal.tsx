@@ -17,7 +17,6 @@ import {
   Loader2,
   AlertCircle,
   ArrowRight,
-  UserCheck,
   UserPlus,
   ChevronDown,
   Edit2,
@@ -503,31 +502,38 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
 
     // Validações dos dados de cadastro
     if (!name.trim()) {
+      setActiveStep(1);
       setErrorMessage('Por favor, informe seu nome completo.');
       return;
     }
     if (!email.trim() || !email.includes('@')) {
+      setActiveStep(1);
       setErrorMessage('Por favor, informe um e-mail válido para acesso.');
       return;
     }
     if (cpf.replace(/\D/g, '').length !== 11) {
+      setActiveStep(1);
       setErrorMessage('Por favor, informe um CPF válido.');
       return;
     }
     if (phone.replace(/\D/g, '').length < 10) {
+      setActiveStep(1);
       setErrorMessage('Por favor, informe um telefone com DDD.');
       return;
     }
     if (!birthDate || birthDate.length !== 10) {
+      setActiveStep(1);
       setErrorMessage('Por favor, informe sua data de nascimento (DD/MM/AAAA).');
       return;
     }
     const calculatedAge = calculateAge(birthDate);
     if (calculatedAge === null || calculatedAge < 12) {
+      setActiveStep(1);
       setErrorMessage('Por favor, informe uma data de nascimento válida.');
       return;
     }
     if (!profession) {
+      setActiveStep(1);
       setErrorMessage('Por favor, selecione sua profissão ou área de atuação em Escolher.');
       return;
     }
@@ -809,7 +815,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
             <div className="rounded-2xl border border-white/10 bg-white/[0.03] overflow-hidden transition-all duration-500 ease-in-out">
               <button
                 type="button"
-                onClick={() => setActiveStep(1)}
+                onClick={() => { setErrorMessage(null); setActiveStep(1); }}
                 className="w-full p-4 flex items-center justify-between text-left hover:bg-white/[0.03] transition-colors cursor-pointer"
               >
                 <div className="flex items-center gap-2.5">
@@ -957,7 +963,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
             <div className="rounded-2xl border border-white/10 bg-white/[0.03] overflow-hidden transition-all duration-500 ease-in-out">
               <button
                 type="button"
-                onClick={() => setActiveStep(2)}
+                onClick={() => { setErrorMessage(null); setActiveStep(2); }}
                 className="w-full p-4 flex items-center justify-between text-left hover:bg-white/[0.03] transition-colors cursor-pointer"
               >
                 <div className="flex items-center gap-2.5">
@@ -1112,7 +1118,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
             <div className="rounded-2xl border border-white/10 bg-white/[0.03] overflow-hidden transition-all duration-500 ease-in-out">
               <button
                 type="button"
-                onClick={() => setActiveStep(3)}
+                onClick={() => { setErrorMessage(null); setActiveStep(3); }}
                 className="w-full p-4 flex items-center justify-between text-left hover:bg-white/[0.03] transition-colors cursor-pointer"
               >
                 <div className="flex items-center gap-2.5">
@@ -1201,18 +1207,17 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                     Dados do Titular de Pagamento / Cobrança:
                   </span>
                   
-                  {/* Switch compacto (estilo Apple) */}
-                  <div role="radiogroup" aria-label="Dados do titular" className="inline-flex p-0.5 rounded-full bg-black/40 border border-white/10">
+                  {/* Switch mini (estilo Apple) */}
+                  <div role="radiogroup" aria-label="Dados do titular" className="inline-flex p-px rounded-full bg-black/40 border border-white/10">
                     <button
                       type="button"
                       role="radio"
                       aria-checked={billingMode === 'same'}
                       onClick={() => setBillingMode('same')}
-                      className={`h-7 px-3 rounded-full text-[11px] font-medium inline-flex items-center justify-center gap-1 whitespace-nowrap transition-all cursor-pointer ${
-                        billingMode === 'same' ? 'bg-[#0071e3] text-white shadow-sm' : 'text-white/60 hover:text-white'
+                      className={`h-5 px-2 rounded-full text-[10px] leading-none font-medium whitespace-nowrap transition-all cursor-pointer ${
+                        billingMode === 'same' ? 'bg-[#0071e3] text-white' : 'text-white/55 hover:text-white'
                       }`}
                     >
-                      <UserCheck className="w-3 h-3" />
                       Do cadastro
                     </button>
                     <button
@@ -1220,11 +1225,10 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                       role="radio"
                       aria-checked={billingMode === 'different'}
                       onClick={() => setBillingMode('different')}
-                      className={`h-7 px-3 rounded-full text-[11px] font-medium inline-flex items-center justify-center gap-1 whitespace-nowrap transition-all cursor-pointer ${
-                        billingMode === 'different' ? 'bg-[#0071e3] text-white shadow-sm' : 'text-white/60 hover:text-white'
+                      className={`h-5 px-2 rounded-full text-[10px] leading-none font-medium whitespace-nowrap transition-all cursor-pointer ${
+                        billingMode === 'different' ? 'bg-[#0071e3] text-white' : 'text-white/55 hover:text-white'
                       }`}
                     >
-                      <UserPlus className="w-3 h-3" />
                       Outros dados
                     </button>
                   </div>
