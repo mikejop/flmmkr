@@ -25,7 +25,7 @@ export default function CouponBox({ ctl, variant, className = '' }: { ctl: Coupo
 
   return (
     <div className={className}>
-      <label htmlFor={id} className={`block text-[12px] font-medium mb-1 ml-0.5 ${dark ? 'text-white/70' : 'text-[#6e6e73]'}`}>Cupom de desconto</label>
+      <label htmlFor={id} className={`block text-[12px] font-medium mb-1 ml-0.5 ${dark ? 'text-white/70' : 'text-[#6e6e73]'}`}>Cupom</label>
       <div className="flex gap-2">
         <input
           id={id}
