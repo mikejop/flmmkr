@@ -7,7 +7,7 @@ const at = (day: number, hour = 14) =>
   new Date(`2026-10-${String(day).padStart(2, '0')}T${String(hour).padStart(2, '0')}:00:00-03:00`).getTime();
 
 const LESSON_RELEASE_AT: Record<string, number> = {
-  'mod2-2': at(16), // Shot Matching
+  'mod2-2': at(17, 21), // Shot Matching: 17/10/2026 às 21h
   'mod2-3': at(17), // Secundárias
   'mod3-1': at(17), // Criando Look sem Plugins
   'mod3-2': at(18), // Film Look Creator
