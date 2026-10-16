@@ -123,6 +123,10 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
 
   // Accordion / Wizard Steps: 1 = Dados de Cadastro | 2 = Endereço | 3 = Método de Pagamento
   const [activeStep, setActiveStep] = useState<1 | 2 | 3>(1);
+  // Abas independentes: abrir uma não fecha as outras (cada uma abre e fecha sozinha).
+  const [openSteps, setOpenSteps] = useState<Record<1 | 2 | 3, boolean>>({ 1: true, 2: false, 3: false });
+  const toggleStep = (n: 1 | 2 | 3) => { setErrorMessage(null); setActiveStep(n); setOpenSteps((prev) => ({ ...prev, [n]: !prev[n] })); };
+  const openStep = (n: 1 | 2 | 3) => { setActiveStep(n); setOpenSteps((prev) => ({ ...prev, [n]: true })); };
 
   // PIX State
   const [pixData, setPixData] = useState<{
@@ -172,7 +176,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
     if (activeStep === 1 && !hasAutoAdvancedStep1Ref.current && isStep1Complete()) {
       hasAutoAdvancedStep1Ref.current = true;
       const timer = setTimeout(() => {
-        setActiveStep(2);
+        openStep(2);
       }, 450);
       return () => clearTimeout(timer);
     }
@@ -181,7 +185,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
     if (activeStep === 2 && !hasAutoAdvancedStep2Ref.current && isStep2Complete()) {
       hasAutoAdvancedStep2Ref.current = true;
       const timer = setTimeout(() => {
-        setActiveStep(3);
+        openStep(3);
       }, 450);
       return () => clearTimeout(timer);
     }
@@ -488,7 +492,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
 
   const handleAdvanceToAddressValidationOnly = (): boolean => {
     if (!name.trim() || !email.trim() || cpf.replace(/\D/g, '').length !== 11 || phone.replace(/\D/g, '').length < 10 || birthDate.trim().length !== 10 || !profession) {
-      setActiveStep(1);
+      openStep(1);
       setErrorMessage('Por favor, complete seus dados de cadastro primeiro.');
       return false;
     }
@@ -502,38 +506,38 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
 
     // Validações dos dados de cadastro
     if (!name.trim()) {
-      setActiveStep(1);
+      openStep(1);
       setErrorMessage('Por favor, informe seu nome completo.');
       return;
     }
     if (!email.trim() || !email.includes('@')) {
-      setActiveStep(1);
+      openStep(1);
       setErrorMessage('Por favor, informe um e-mail válido para acesso.');
       return;
     }
     if (cpf.replace(/\D/g, '').length !== 11) {
-      setActiveStep(1);
+      openStep(1);
       setErrorMessage('Por favor, informe um CPF válido.');
       return;
     }
     if (phone.replace(/\D/g, '').length < 10) {
-      setActiveStep(1);
+      openStep(1);
       setErrorMessage('Por favor, informe um telefone com DDD.');
       return;
     }
     if (!birthDate || birthDate.length !== 10) {
-      setActiveStep(1);
+      openStep(1);
       setErrorMessage('Por favor, informe sua data de nascimento (DD/MM/AAAA).');
       return;
     }
     const calculatedAge = calculateAge(birthDate);
     if (calculatedAge === null || calculatedAge < 12) {
-      setActiveStep(1);
+      openStep(1);
       setErrorMessage('Por favor, informe uma data de nascimento válida.');
       return;
     }
     if (!profession) {
-      setActiveStep(1);
+      openStep(1);
       setErrorMessage('Por favor, selecione sua profissão ou área de atuação em Escolher.');
       return;
     }
@@ -815,7 +819,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
             <div className="rounded-2xl border border-white/10 bg-white/[0.03] overflow-hidden transition-all duration-500 ease-in-out">
               <button
                 type="button"
-                onClick={() => { setErrorMessage(null); setActiveStep(1); }}
+                onClick={() => toggleStep(1)}
                 className="w-full p-4 flex items-center justify-between text-left hover:bg-white/[0.03] transition-colors cursor-pointer"
               >
                 <div className="flex items-center gap-2.5">
@@ -823,18 +827,18 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                     className={`w-6 h-6 rounded-full flex items-center justify-center text-[11px] font-bold transition-colors ${
                       isStep1Complete()
                         ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
-                        : activeStep === 1
+                        : openSteps[1]
                         ? 'bg-[#0071e3] text-white'
                         : 'bg-white/10 text-white/60'
                     }`}
                   >
-                    {isStep1Complete() && activeStep !== 1 ? <Check className="w-3.5 h-3.5" /> : '1'}
+                    {isStep1Complete() && !openSteps[1] ? <Check className="w-3.5 h-3.5" /> : '1'}
                   </span>
                   <div>
                     <h3 className="text-[13px] sm:text-[14px] font-semibold text-white tracking-[-0.01em]">
                       Dados de Cadastro
                     </h3>
-                    {activeStep !== 1 && name && (
+                    {!openSteps[1] && name && (
                       <p className="text-[11px] text-white/50 truncate max-w-xs">
                         {name} · {email}
                       </p>
@@ -843,14 +847,14 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                 </div>
 
                 <div className="flex items-center gap-2">
-                  {activeStep !== 1 && isStep1Complete() && (
+                  {!openSteps[1] && isStep1Complete() && (
                     <span className="text-[11px] text-[#2997ff] flex items-center gap-1 font-medium">
                       <Edit2 className="w-3 h-3" /> Editar
                     </span>
                   )}
                   <ChevronDown
                     className={`w-4 h-4 text-white/40 transition-transform duration-500 ease-in-out ${
-                      activeStep === 1 ? 'rotate-180' : ''
+                      openSteps[1] ? 'rotate-180' : ''
                     }`}
                   />
                 </div>
@@ -859,7 +863,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
               {/* Conteúdo Expansível Etapa 1 */}
               <div
                 className={`transition-all duration-500 ease-in-out overflow-hidden ${
-                  activeStep === 1 ? 'max-h-[800px] opacity-100 p-4 pt-0' : 'max-h-0 opacity-0 p-0 pointer-events-none'
+                  openSteps[1] ? 'max-h-[800px] opacity-100 p-4 pt-0' : 'max-h-0 opacity-0 p-0 pointer-events-none'
                 }`}
                 style={{
                   transitionTimingFunction: 'cubic-bezier(0.45, 0, 0.55, 1)'
@@ -963,7 +967,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
             <div className="rounded-2xl border border-white/10 bg-white/[0.03] overflow-hidden transition-all duration-500 ease-in-out">
               <button
                 type="button"
-                onClick={() => { setErrorMessage(null); setActiveStep(2); }}
+                onClick={() => toggleStep(2)}
                 className="w-full p-4 flex items-center justify-between text-left hover:bg-white/[0.03] transition-colors cursor-pointer"
               >
                 <div className="flex items-center gap-2.5">
@@ -971,18 +975,18 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                     className={`w-6 h-6 rounded-full flex items-center justify-center text-[11px] font-bold transition-colors ${
                       isStep2Complete()
                         ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
-                        : activeStep === 2
+                        : openSteps[2]
                         ? 'bg-[#0071e3] text-white'
                         : 'bg-white/10 text-white/60'
                     }`}
                   >
-                    {isStep2Complete() && activeStep !== 2 ? <Check className="w-3.5 h-3.5" /> : '2'}
+                    {isStep2Complete() && !openSteps[2] ? <Check className="w-3.5 h-3.5" /> : '2'}
                   </span>
                   <div>
                     <h3 className="text-[13px] sm:text-[14px] font-semibold text-white tracking-[-0.01em]">
                       Endereço
                     </h3>
-                    {activeStep !== 2 && cep && street && (
+                    {!openSteps[2] && cep && street && (
                       <p className="text-[11px] text-white/50 truncate max-w-xs">
                         {street}, {number} · {city}/{state}
                       </p>
@@ -996,14 +1000,14 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                       <Loader2 className="w-3 h-3 animate-spin" /> Buscando CEP...
                     </span>
                   )}
-                  {activeStep !== 2 && isStep2Complete() && (
+                  {!openSteps[2] && isStep2Complete() && (
                     <span className="text-[11px] text-[#2997ff] flex items-center gap-1 font-medium">
                       <Edit2 className="w-3 h-3" /> Editar
                     </span>
                   )}
                   <ChevronDown
                     className={`w-4 h-4 text-white/40 transition-transform duration-500 ease-in-out ${
-                      activeStep === 2 ? 'rotate-180' : ''
+                      openSteps[2] ? 'rotate-180' : ''
                     }`}
                   />
                 </div>
@@ -1012,7 +1016,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
               {/* Conteúdo Expansível Etapa 2 */}
               <div
                 className={`transition-all duration-500 ease-in-out overflow-hidden ${
-                  activeStep === 2 ? 'max-h-[800px] opacity-100 p-4 pt-0' : 'max-h-0 opacity-0 p-0 pointer-events-none'
+                  openSteps[2] ? 'max-h-[800px] opacity-100 p-4 pt-0' : 'max-h-0 opacity-0 p-0 pointer-events-none'
                 }`}
                 style={{
                   transitionTimingFunction: 'cubic-bezier(0.45, 0, 0.55, 1)'
@@ -1118,13 +1122,13 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
             <div className="rounded-2xl border border-white/10 bg-white/[0.03] overflow-hidden transition-all duration-500 ease-in-out">
               <button
                 type="button"
-                onClick={() => { setErrorMessage(null); setActiveStep(3); }}
+                onClick={() => toggleStep(3)}
                 className="w-full p-4 flex items-center justify-between text-left hover:bg-white/[0.03] transition-colors cursor-pointer"
               >
                 <div className="flex items-center gap-2.5">
                   <span
                     className={`w-6 h-6 rounded-full flex items-center justify-center text-[11px] font-bold transition-colors ${
-                      activeStep === 3
+                      openSteps[3]
                         ? 'bg-[#0071e3] text-white'
                         : 'bg-white/10 text-white/60'
                     }`}
@@ -1135,7 +1139,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                     <h3 className="text-[13px] sm:text-[14px] font-semibold text-white tracking-[-0.01em]">
                       Método de Pagamento
                     </h3>
-                    {activeStep !== 3 && paymentMethod && (
+                    {!openSteps[3] && paymentMethod && (
                       <p className="text-[11px] text-white/50">
                         {paymentMethod === 'PIX' ? 'Pix (Instantâneo)' : 'Cartão de Crédito'}
                       </p>
@@ -1146,7 +1150,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                 <div className="flex items-center gap-2">
                   <ChevronDown
                     className={`w-4 h-4 text-white/40 transition-transform duration-500 ease-in-out ${
-                      activeStep === 3 ? 'rotate-180' : ''
+                      openSteps[3] ? 'rotate-180' : ''
                     }`}
                   />
                 </div>
@@ -1155,7 +1159,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
               {/* Conteúdo Expansível Etapa 3 */}
               <div
                 className={`transition-all duration-500 ease-in-out overflow-hidden ${
-                  activeStep === 3 ? 'max-h-[1400px] opacity-100 p-4 pt-0' : 'max-h-0 opacity-0 p-0 pointer-events-none'
+                  openSteps[3] ? 'max-h-[1400px] opacity-100 p-4 pt-0' : 'max-h-0 opacity-0 p-0 pointer-events-none'
                 }`}
                 style={{
                   transitionTimingFunction: 'cubic-bezier(0.45, 0, 0.55, 1)'
