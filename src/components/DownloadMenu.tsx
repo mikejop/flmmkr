@@ -2,12 +2,44 @@
 
 import React, { useEffect, useRef, useState } from 'react';
 import gsap from 'gsap';
-import { Download, FolderArchive, Loader2, AlertCircle } from 'lucide-react';
+import { Download, FolderArchive, Loader2, AlertCircle, X } from 'lucide-react';
 
 const ITEMS = [{ id: 'projeto', label: 'Projeto', hint: 'Arquivo do DaVinci Resolve (.zip)' }] as const;
 
+const TIP_MAX_VISITS = 3;
+const TIP_SHOW_DELAY_MS = 1800;
+const TIP_AUTO_HIDE_MS = 5000;
+
+/**
+ * Conta as visitas à plataforma neste aparelho (1 por sessão do navegador, não por recarregamento).
+ * Devolve true enquanto ainda estiver nas 3 primeiras e o aluno não tiver usado o botão.
+ */
+function shouldShowTip(userId: string): boolean {
+  try {
+    const key = `flmmkr_dl_tip_${userId}`;
+    const raw = JSON.parse(localStorage.getItem(key) || '{}') as { visits?: number; done?: boolean };
+    if (raw.done) return false;
+    const countedKey = `${key}_counted`;
+    let visits = Number(raw.visits) || 0;
+    if (!sessionStorage.getItem(countedKey)) {
+      visits += 1;
+      sessionStorage.setItem(countedKey, '1');
+      localStorage.setItem(key, JSON.stringify({ visits, done: false }));
+    }
+    return visits <= TIP_MAX_VISITS;
+  } catch {
+    return false;
+  }
+}
+
+function markTipDone(userId: string) {
+  try { localStorage.setItem(`flmmkr_dl_tip_${userId}`, JSON.stringify({ visits: TIP_MAX_VISITS + 1, done: true })); } catch { /* sem storage: só não lembra */ }
+}
+
 /** Botão de download do material de apoio. O arquivo baixa direto, sem abrir nova página. */
-export default function DownloadMenu() {
+export default function DownloadMenu({ userId }: { userId?: string | null }) {
+  const [showTip, setShowTip] = useState(false);
+  const tipRef = useRef<HTMLDivElement>(null);
   const [open, setOpen] = useState(false);
   const [busy, setBusy] = useState<string | null>(null);
   const [message, setMessage] = useState<{ kind: 'ok' | 'error'; text: string } | null>(null);
@@ -29,6 +61,24 @@ export default function DownloadMenu() {
     };
   }, [open]);
 
+  // Dica nos 3 primeiros acessos: aparece depois de um instante e some sozinha.
+  useEffect(() => {
+    if (!userId || !shouldShowTip(userId)) return;
+    const show = setTimeout(() => setShowTip(true), TIP_SHOW_DELAY_MS);
+    const hide = setTimeout(() => setShowTip(false), TIP_SHOW_DELAY_MS + TIP_AUTO_HIDE_MS);
+    return () => { clearTimeout(show); clearTimeout(hide); };
+  }, [userId]);
+
+  useEffect(() => {
+    if (!showTip || !tipRef.current || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    gsap.fromTo(tipRef.current, { opacity: 0, y: -8, scale: 0.96 }, { opacity: 1, y: 0, scale: 1, duration: 0.3, ease: 'power3.out', transformOrigin: 'top right', clearProps: 'transform' });
+  }, [showTip]);
+
+  const dismissTip = () => {
+    setShowTip(false);
+    if (userId) markTipDone(userId);
+  };
+
   const download = async (id: string) => {
     if (busy) return;
     setBusy(id);
@@ -46,6 +96,7 @@ export default function DownloadMenu() {
       document.body.appendChild(a);
       a.click();
       a.remove();
+      if (userId) markTipDone(userId); // quem já baixou não precisa mais da dica
       setMessage({ kind: 'ok', text: 'Download iniciado. Acompanhe pelo seu navegador.' });
     } catch (err) {
       setMessage({ kind: 'error', text: err instanceof Error ? err.message : 'Não foi possível iniciar o download.' });
@@ -58,7 +109,7 @@ export default function DownloadMenu() {
     <div ref={rootRef} className="relative">
       <button
         type="button"
-        onClick={() => { setOpen((o) => !o); setMessage(null); }}
+        onClick={() => { setOpen((o) => !o); setMessage(null); if (showTip) dismissTip(); }}
         aria-label="Material de apoio para download"
         aria-haspopup="menu"
         aria-expanded={open}
@@ -67,6 +118,26 @@ export default function DownloadMenu() {
       >
         <Download size={15} className="text-[#a1a1a6]" aria-hidden="true" />
       </button>
+
+      {showTip && !open && (
+        <div
+          ref={tipRef}
+          role="status"
+          aria-live="polite"
+          className="absolute right-0 top-[calc(100%+10px)] z-50 w-[250px] rounded-2xl bg-[#16161a]/95 backdrop-blur-xl border border-[#0071e3]/40 shadow-[0_12px_36px_-6px_rgba(0,0,0,0.7),0_0_24px_rgba(0,113,227,0.25)] p-3.5 text-white select-none"
+        >
+          {/* seta apontando para o botão */}
+          <span aria-hidden="true" className="absolute -top-[6px] right-[14px] w-3 h-3 rotate-45 bg-[#16161a] border-l border-t border-[#0071e3]/40" />
+          <div className="flex items-start gap-2">
+            <p className="text-[13px] leading-snug font-medium text-white/90 flex-1">
+              Para baixar o projeto utilizado na masterclass, é só clicar no botão de download.
+            </p>
+            <button type="button" onClick={dismissTip} aria-label="Fechar dica" className="shrink-0 -mt-0.5 -mr-1 p-1 rounded-md text-white/60 hover:text-white hover:bg-white/10 transition-colors cursor-pointer">
+              <X size={13} />
+            </button>
+          </div>
+        </div>
+      )}
 
       {open && (
         <div

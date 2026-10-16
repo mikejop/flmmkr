@@ -1219,7 +1219,7 @@ export function MemberAreaApp({ skipInternalPreloader = false }: { skipInternalP
                 </button>
 
                 {/* Material de apoio (download direto do projeto) */}
-                <DownloadMenu />
+                <DownloadMenu userId={currentUserId} />
 
                 {/* Notifications Button & Dropdown */}
                 <NotificationsDropdown
