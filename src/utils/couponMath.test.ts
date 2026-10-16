@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { applyPercentDiscount, evaluateCoupon, normalizeCouponCode } from './couponMath.ts';
+import { applyFixedPrice, applyPercentDiscount, evaluateCoupon, normalizeCouponCode, pickCouponPrice } from './couponMath.ts';
 
 // Percentual do cupom MAGIC (29,473684% = R$ 95 -> R$ 67)
 const MAGIC = 29.473684;
@@ -42,4 +42,30 @@ test('cupom inativo, fora da data ou esgotado é recusado', () => {
   assert.deepEqual(evaluateCoupon({ active: true, discountPercent: 10, maxUses: 5, usedCount: 5 }, now), { ok: false, reason: 'limit_reached' });
   assert.deepEqual(evaluateCoupon({ active: true, discountPercent: 10, maxUses: 5, usedCount: 4, expiresAt: '2026-12-01T00:00:00Z' }, now), { ok: true });
   assert.deepEqual(evaluateCoupon({ active: true, discountPercent: 10 }, now), { ok: true });
+});
+
+// MAGIC: R$ 67 até 31/10/2026 23:59:59 (Brasília); R$ 95 a partir de 01/11/2026 00:00.
+const MAGIC_PRICES = [
+  { price: 67, startsAt: null, endsAt: '2026-11-01T00:00:00-03:00' },
+  { price: 95, startsAt: '2026-11-01T00:00:00-03:00', endsAt: null },
+];
+
+test('MAGIC: R$ 67 até 31/10 às 23:59:59 e R$ 95 a partir de 01/11 às 00:00', () => {
+  assert.equal(pickCouponPrice(MAGIC_PRICES, new Date('2026-10-16T12:00:00-03:00')), 67);
+  assert.equal(pickCouponPrice(MAGIC_PRICES, new Date('2026-10-31T23:59:59-03:00')), 67);
+  assert.equal(pickCouponPrice(MAGIC_PRICES, new Date('2026-11-01T00:00:00-03:00')), 95);
+  assert.equal(pickCouponPrice(MAGIC_PRICES, new Date('2027-03-01T00:00:00-03:00')), 95);
+});
+
+test('sem janela vigente não há preço', () => {
+  assert.equal(pickCouponPrice([], new Date()), null);
+  assert.equal(pickCouponPrice([{ price: 50, startsAt: '2030-01-01T00:00:00Z' }], new Date('2026-01-01T00:00:00Z')), null);
+});
+
+test('preço do cupom substitui o do site (não soma com o cronômetro) e só vale se for mais barato', () => {
+  assert.deepEqual(applyFixedPrice(95, 67), { ok: true, original: 95, discount: 28, final: 67 });
+  assert.deepEqual(applyFixedPrice(125, 67), { ok: true, original: 125, discount: 58, final: 67 });
+  assert.deepEqual(applyFixedPrice(195, 95), { ok: true, original: 195, discount: 100, final: 95 });
+  assert.deepEqual(applyFixedPrice(95, 95), { ok: false }); // sem benefício
+  assert.deepEqual(applyFixedPrice(67, 95), { ok: false });
 });

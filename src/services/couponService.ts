@@ -1,6 +1,6 @@
 import 'server-only';
 import { supabaseAdmin } from '@/utils/supabase/admin';
-import { applyPercentDiscount, evaluateCoupon, normalizeCouponCode, type CouponRejection } from '@/utils/couponMath';
+import { applyFixedPrice, applyPercentDiscount, evaluateCoupon, normalizeCouponCode, pickCouponPrice, type CouponRejection } from '@/utils/couponMath';
 
 /** Cupom vale só para o Color Master | Produto (o preço mostrado no site com fases e cronômetro). */
 export const COUPON_PRODUCT_IDS = ['color-master-produto'] as const;
@@ -8,13 +8,13 @@ export const COUPON_PRODUCT_IDS = ['color-master-produto'] as const;
 export interface CouponRow {
   id: string;
   code: string;
-  discount_percent: number;
+  discount_percent: number | null;
   affiliate_name: string | null;
 }
 
 export type CouponQuote =
   | { ok: true; coupon: CouponRow; original: number; discount: number; final: number; percent: number }
-  | { ok: false; reason: 'invalid' | 'unavailable' | CouponRejection; message: string };
+  | { ok: false; reason: 'invalid' | 'unavailable' | 'no_benefit' | 'no_price' | CouponRejection; message: string };
 
 const MESSAGES: Record<string, string> = {
   invalid: 'O cupom que você digitou não existe.',
@@ -22,6 +22,8 @@ const MESSAGES: Record<string, string> = {
   not_started: 'Este cupom ainda não está valendo.',
   expired: 'Este cupom expirou.',
   limit_reached: 'Este cupom atingiu o limite de usos.',
+  no_benefit: 'Este cupom não dá desconto no preço atual.',
+  no_price: 'Este cupom não está disponível no momento.',
   unavailable: 'Não foi possível validar o cupom agora. Tente de novo em instantes.',
 };
 
@@ -32,7 +34,7 @@ export async function quoteCoupon(rawCode: unknown, basePrice: number): Promise<
 
   const { data, error } = await supabaseAdmin
     .from('coupons')
-    .select('id, code, discount_percent, affiliate_name, active, starts_at, expires_at, max_uses, used_count')
+    .select('id, code, discount_type, discount_percent, affiliate_name, active, starts_at, expires_at, max_uses, used_count')
     .eq('code', code)
     .maybeSingle();
   if (error) {
@@ -44,7 +46,7 @@ export async function quoteCoupon(rawCode: unknown, basePrice: number): Promise<
 
   const check = evaluateCoupon({
     active: data.active,
-    discountPercent: Number(data.discount_percent),
+    discountPercent: Number(data.discount_percent ?? 0),
     startsAt: data.starts_at,
     expiresAt: data.expires_at,
     maxUses: data.max_uses,
@@ -52,14 +54,28 @@ export async function quoteCoupon(rawCode: unknown, basePrice: number): Promise<
   });
   if (!check.ok) return { ok: false, reason: check.reason, message: MESSAGES[check.reason] };
 
-  const percent = Number(data.discount_percent);
+  const coupon: CouponRow = { id: data.id, code: data.code, discount_percent: data.discount_percent == null ? null : Number(data.discount_percent), affiliate_name: data.affiliate_name };
+
+  // Cupom de PREÇO (ex.: MAGIC): paga o preço do cupom vigente na data, no lugar do preço do site.
+  if (data.discount_type === 'fixed_price') {
+    const { data: windows, error: windowsError } = await supabaseAdmin
+      .from('coupon_prices')
+      .select('price, starts_at, ends_at')
+      .eq('coupon_id', data.id);
+    if (windowsError) {
+      console.error('[coupons] falha ao consultar preços do cupom:', windowsError.message);
+      return { ok: false, reason: 'unavailable', message: MESSAGES.unavailable };
+    }
+    const couponPrice = pickCouponPrice((windows || []).map((w) => ({ price: Number(w.price), startsAt: w.starts_at, endsAt: w.ends_at })));
+    if (couponPrice === null) return { ok: false, reason: 'no_price', message: MESSAGES.no_price };
+    const fixed = applyFixedPrice(basePrice, couponPrice);
+    if (!fixed.ok) return { ok: false, reason: 'no_benefit', message: MESSAGES.no_benefit };
+    return { ok: true, coupon, original: fixed.original, discount: fixed.discount, final: fixed.final, percent: Math.round((1 - fixed.final / fixed.original) * 10000) / 100 };
+  }
+
+  const percent = Number(data.discount_percent ?? 0);
   const math = applyPercentDiscount(basePrice, percent);
-  return {
-    ok: true,
-    coupon: { id: data.id, code: data.code, discount_percent: percent, affiliate_name: data.affiliate_name },
-    percent,
-    ...math,
-  };
+  return { ok: true, coupon, percent, ...math };
 }
 
 /** Registra o pedido com cupom (relatório por afiliado). O contador de usos só sobe quando o pagamento é confirmado. */

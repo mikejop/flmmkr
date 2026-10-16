@@ -4,9 +4,9 @@ CREATE TABLE IF NOT EXISTS public.coupons (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   -- Código sempre em MAIÚSCULAS, sem espaços (o servidor normaliza antes de buscar).
   code TEXT NOT NULL CHECK (code = upper(btrim(code)) AND code ~ '^[A-Z0-9_-]{3,32}$'),
-  discount_type TEXT NOT NULL DEFAULT 'percent' CHECK (discount_type IN ('percent')),
-  -- Percentual de desconto com 6 casas: 29.473684 = (1 - 67/95) × 100, o que dá exatamente R$ 95 -> R$ 67.
-  discount_percent NUMERIC(9,6) NOT NULL CHECK (discount_percent > 0 AND discount_percent < 100),
+  -- 'fixed_price': o cupom define o PREÇO a pagar (tabela coupon_prices, por data). 'percent': desconto percentual sobre o preço do site.
+  discount_type TEXT NOT NULL DEFAULT 'fixed_price' CHECK (discount_type IN ('fixed_price', 'percent')),
+  discount_percent NUMERIC(9,6) CHECK (discount_percent IS NULL OR (discount_percent > 0 AND discount_percent < 100)),
   active BOOLEAN NOT NULL DEFAULT true,
   affiliate_name TEXT CHECK (affiliate_name IS NULL OR char_length(affiliate_name) <= 120),
   starts_at TIMESTAMPTZ,
@@ -16,6 +16,19 @@ CREATE TABLE IF NOT EXISTS public.coupons (
   created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 CREATE UNIQUE INDEX IF NOT EXISTS idx_coupons_code ON public.coupons (code);
+
+-- Preço do cupom por período (cupom 'fixed_price'). Vale a linha cuja janela contém o momento atual.
+-- O preço do cupom é uma coisa; o desconto do cronômetro da oferta é outra: um não se soma ao outro.
+CREATE TABLE IF NOT EXISTS public.coupon_prices (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  coupon_id UUID NOT NULL REFERENCES public.coupons(id) ON DELETE CASCADE,
+  price NUMERIC(10,2) NOT NULL CHECK (price > 0),
+  starts_at TIMESTAMPTZ,            -- null = desde sempre
+  ends_at TIMESTAMPTZ,              -- null = sem fim; o instante final NÃO entra na janela
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  CHECK (starts_at IS NULL OR ends_at IS NULL OR starts_at < ends_at)
+);
+CREATE INDEX IF NOT EXISTS idx_coupon_prices_coupon ON public.coupon_prices (coupon_id, starts_at);
 
 -- Cada cobrança feita com cupom (relatório de vendas por afiliado).
 CREATE TABLE IF NOT EXISTS public.coupon_orders (
@@ -38,12 +51,16 @@ CREATE INDEX IF NOT EXISTS idx_coupon_orders_created ON public.coupon_orders (cr
 
 ALTER TABLE public.coupons ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.coupon_orders ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.coupon_prices ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS deny_all_client_access ON public.coupons;
 DROP POLICY IF EXISTS deny_all_client_access ON public.coupon_orders;
+DROP POLICY IF EXISTS deny_all_client_access ON public.coupon_prices;
 CREATE POLICY deny_all_client_access ON public.coupons FOR ALL TO anon, authenticated USING (false) WITH CHECK (false);
 CREATE POLICY deny_all_client_access ON public.coupon_orders FOR ALL TO anon, authenticated USING (false) WITH CHECK (false);
+CREATE POLICY deny_all_client_access ON public.coupon_prices FOR ALL TO anon, authenticated USING (false) WITH CHECK (false);
 REVOKE ALL ON TABLE public.coupons FROM anon, authenticated;
 REVOKE ALL ON TABLE public.coupon_orders FROM anon, authenticated;
+REVOKE ALL ON TABLE public.coupon_prices FROM anon, authenticated;
 
 -- Confirma o pedido e soma 1 uso, de forma atômica e uma única vez por pagamento (webhook repetido não soma de novo).
 CREATE OR REPLACE FUNCTION public.confirm_coupon_order(p_payment_id TEXT)
@@ -71,7 +88,17 @@ $$;
 REVOKE EXECUTE ON FUNCTION public.confirm_coupon_order(TEXT) FROM PUBLIC, anon, authenticated;
 GRANT EXECUTE ON FUNCTION public.confirm_coupon_order(TEXT) TO service_role;
 
--- Cupom MAGIC (afiliado): 29,473684% = R$ 95 -> R$ 67 (e proporcional em qualquer outro preço).
+-- Cupom MAGIC (afiliado): R$ 67 até 31/10/2026 às 23:59:59 (horário de Brasília) e R$ 95 a partir de 01/11/2026.
 INSERT INTO public.coupons (code, discount_type, discount_percent, active, affiliate_name)
-VALUES ('MAGIC', 'percent', 29.473684, true, 'MAGIC')
+VALUES ('MAGIC', 'fixed_price', NULL, true, 'MAGIC')
 ON CONFLICT (code) DO NOTHING;
+
+INSERT INTO public.coupon_prices (coupon_id, price, starts_at, ends_at)
+SELECT c.id, v.price, v.starts_at, v.ends_at
+FROM public.coupons c
+CROSS JOIN (VALUES
+  (67.00::numeric, NULL::timestamptz, TIMESTAMPTZ '2026-11-01 00:00:00-03'),
+  (95.00::numeric, TIMESTAMPTZ '2026-11-01 00:00:00-03', NULL::timestamptz)
+) AS v(price, starts_at, ends_at)
+WHERE c.code = 'MAGIC'
+  AND NOT EXISTS (SELECT 1 FROM public.coupon_prices cp WHERE cp.coupon_id = c.id);
