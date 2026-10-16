@@ -31,6 +31,7 @@ import { DeviceSessionKickedModal } from '@/components/DeviceSessionKickedModal'
 import VideoLessonPlayer, { VideoLessonPlayerHandle } from '@/components/VideoLessonPlayer';
 import LessonComments from '@/components/LessonComments';
 import NotificationsDropdown from '@/components/NotificationsDropdown';
+import DownloadMenu from '@/components/DownloadMenu';
 import LessonCompletionTransition from '@/components/LessonCompletionTransition';
 import IntroducaoDaVinciArticle from '@/components/IntroducaoDaVinciArticle';
 import AnaliseImagemArticle from '@/components/AnaliseImagemArticle';
@@ -1216,6 +1217,9 @@ export function MemberAreaApp({ skipInternalPreloader = false }: { skipInternalP
                   <Search size={15} className="text-[#a1a1a6] md:mr-1.5" aria-hidden="true" />
                   <span className="hidden md:inline text-[13px] text-[#a1a1a6] select-none">Buscar...</span>
                 </button>
+
+                {/* Material de apoio (download direto do projeto) */}
+                <DownloadMenu />
 
                 {/* Notifications Button & Dropdown */}
                 <NotificationsDropdown

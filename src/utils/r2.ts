@@ -43,11 +43,24 @@ export function assertSafeKey(key: string): string {
   return key;
 }
 
-/** URL assinada de leitura. Validade curta (padrão 10 min, máximo 1 h). */
-export async function getR2DownloadUrl(key: string, expiresInSeconds = 600): Promise<string> {
+/**
+ * URL assinada de leitura. Validade curta (padrão 10 min, máximo 1 h).
+ * Com `downloadAs`, o R2 responde com "Content-Disposition: attachment", então o navegador baixa o arquivo
+ * direto, sem abrir página nem tocar no que está aberto.
+ */
+export async function getR2DownloadUrl(key: string, expiresInSeconds = 600, opts: { downloadAs?: string } = {}): Promise<string> {
   const { s3, bucket } = getClient();
   const ttl = Math.min(3600, Math.max(30, Math.floor(expiresInSeconds)));
-  return getSignedUrl(s3, new GetObjectCommand({ Bucket: bucket, Key: assertSafeKey(key) }), { expiresIn: ttl });
+  const safeName = opts.downloadAs?.replace(/[^A-Za-z0-9._-]/g, '_').slice(0, 100);
+  return getSignedUrl(
+    s3,
+    new GetObjectCommand({
+      Bucket: bucket,
+      Key: assertSafeKey(key),
+      ...(safeName ? { ResponseContentDisposition: `attachment; filename="${safeName}"` } : {}),
+    }),
+    { expiresIn: ttl }
+  );
 }
 
 /** Grava um objeto (a chave é gerada pelo servidor; tamanho e tipo devem ser validados antes por quem chama). */
