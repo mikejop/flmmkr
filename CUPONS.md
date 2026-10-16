@@ -1,11 +1,13 @@
 # Cupons (afiliados)
 
-Cupom ativo: **MAGIC**, cupom de **preço fixo por data**. O preço do cupom é uma coisa e o desconto do cronômetro da oferta é outra: um **não soma** com o outro. Quem aplica o MAGIC paga o preço do cupom no lugar do preço que o site mostrava.
+Cupons ativos: **MAGIC** e **FASTECH**, cupons de **preço fixo por data**. O preço do cupom é uma coisa e o desconto do cronômetro da oferta é outra: um **não soma** com o outro. Quem aplica o MAGIC paga o preço do cupom no lugar do preço que o site mostrava.
 
 | Quando | Preço com o MAGIC |
 |---|---|
 | até 31/10/2026 às 23:59:59 (Brasília) | **R$ 67,00** |
 | a partir de 01/11/2026 às 00:00 | **R$ 95,00** |
+
+**FASTECH:** R$ 79,00 até 31/10/2026 às 23:59:59 e R$ 95,00 a partir de 01/11/2026 às 00:00.
 
 O cupom só vale se o preço do cupom for **menor** que o preço do site naquele momento (senão aparece "Este cupom não dá desconto no preço atual."). Os preços e as datas ficam na tabela `coupon_prices`, então dá para mudar sem alterar o código.
 
