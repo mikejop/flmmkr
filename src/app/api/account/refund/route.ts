@@ -4,7 +4,7 @@ import { getAuthenticatedUser } from '@/utils/supabase/authenticated';
 import { consumeUserRateLimit, readJsonLimited } from '@/utils/rateLimit';
 import { verifyTurnstile } from '@/utils/turnstile';
 import { getClientIp } from '@/utils/clientIp';
-import { hasRecentReauth } from '@/utils/reauth';
+import { REFUND_REASON_CODES } from '@/config/refundReasons';
 import { requestRefund } from '@/services/refundService';
 
 export const dynamic = 'force-dynamic';
@@ -14,12 +14,13 @@ const GENERIC_DENIED = 'Não foi possível solicitar o reembolso para esta compr
 
 const bodySchema = z.object({
   paymentId: z.string().regex(/^[A-Za-z0-9_]{3,64}$/),
-  reason: z.string().trim().max(500).optional(),
+  // Questionário só de marcar: apenas códigos da lista (sem texto livre).
+  reasons: z.array(z.enum(REFUND_REASON_CODES)).min(1).max(10),
   turnstileToken: z.string().max(2048).optional(),
 }).strict();
 
 /**
- * Reembolso em 7 dias. Exige login, reautenticação recente (senha, 5 min), Turnstile e 3 tentativas por hora.
+ * Reembolso em 7 dias, na hora e sem senha: exige login, Turnstile, 3 tentativas por hora e o questionário de motivos.
  * Prazo e elegibilidade são decididos no servidor a partir dos dados do Asaas; o cliente só pede.
  */
 export async function POST(req: NextRequest) {
@@ -27,12 +28,13 @@ export async function POST(req: NextRequest) {
     const { user } = await getAuthenticatedUser();
     if (!user) return NextResponse.json({ error: 'Não autenticado.' }, { status: 401, headers: NO_STORE });
 
+    // Entrada inválida é recusada antes de gastar uma das 3 tentativas por hora.
+    const parsed = bodySchema.safeParse(await readJsonLimited(req, 4096));
+    if (!parsed.success) return NextResponse.json({ error: 'Dados inválidos.' }, { status: 400, headers: NO_STORE });
+
     const allowed = await consumeUserRateLimit(user.id, 'account-refund', 3, 3600);
     if (allowed === null) return NextResponse.json({ error: 'Serviço indisponível.' }, { status: 503, headers: NO_STORE });
     if (!allowed) return NextResponse.json({ error: 'Muitas tentativas. Tente de novo mais tarde.' }, { status: 429, headers: NO_STORE });
-
-    const parsed = bodySchema.safeParse(await readJsonLimited(req, 4096));
-    if (!parsed.success) return NextResponse.json({ error: 'Dados inválidos.' }, { status: 400, headers: NO_STORE });
 
     const turnstile = await verifyTurnstile(parsed.data.turnstileToken, getClientIp(req));
     if (!turnstile.ok) {
@@ -40,11 +42,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Não foi possível validar a verificação de segurança. Tente de novo.' }, { status, headers: NO_STORE });
     }
 
-    if (!(await hasRecentReauth(user.id))) {
-      return NextResponse.json({ error: 'Confirme sua senha para continuar.', code: 'reauth_required' }, { status: 401, headers: NO_STORE });
-    }
-
-    const outcome = await requestRefund({ userId: user.id, paymentId: parsed.data.paymentId, reason: parsed.data.reason, request: req });
+    const outcome = await requestRefund({ userId: user.id, paymentId: parsed.data.paymentId, reason: Array.from(new Set(parsed.data.reasons)).join(','), request: req });
 
     switch (outcome.kind) {
       case 'ineligible':

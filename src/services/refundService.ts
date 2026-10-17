@@ -156,7 +156,7 @@ export async function requestRefund(input: RefundRequestInput): Promise<RefundOu
       bankSlipRefundUrl = result.requestUrl ?? null;
       if (bankSlipRefundUrl) await supabaseAdmin.from('refund_requests').update({ bank_slip_refund_url: bankSlipRefundUrl }).eq('id', created.id);
     } else {
-      await asaasService.refundPayment(paymentId, reason ?? 'Reembolso solicitado pelo aluno (7 dias)');
+      await asaasService.refundPayment(paymentId, 'Reembolso solicitado pelo aluno (7 dias)');
     }
     // "completed" só chega pelo webhook PAYMENT_REFUNDED.
     return { kind: 'processing', requestId: created.id, bankSlipRefundUrl };

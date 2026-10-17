@@ -240,7 +240,7 @@ export const AccountSettingsModal: React.FC<AccountSettingsModalProps> = ({
         role="dialog"
         aria-modal="true"
         aria-label="Minha conta"
-        className="w-full max-w-lg bg-[#141416] border border-white/15 rounded-3xl p-6 shadow-2xl text-white space-y-6 relative overflow-hidden max-h-[92dvh] overflow-y-auto"
+        className="w-full max-w-3xl bg-[#141416] border border-white/15 rounded-3xl p-5 sm:p-7 shadow-2xl text-white space-y-6 relative overflow-hidden max-h-[92dvh] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Specular Top Rim */}
@@ -266,10 +266,10 @@ export const AccountSettingsModal: React.FC<AccountSettingsModalProps> = ({
         </div>
 
         {/* Tabs Bar */}
-        <div className="flex border-b border-white/10 gap-2 overflow-x-auto [scrollbar-width:none]" role="tablist">
+        <div className="flex flex-wrap border-b border-white/10 gap-x-0.5 gap-y-0.5" role="tablist">
           <button
             onClick={() => { setActiveTab('perfil'); setFeedback(null); }}
-            className={`pb-2.5 px-3 text-xs font-semibold cursor-pointer border-b-2 transition-all flex items-center gap-1.5 ${
+            className={`pb-2.5 px-2.5 text-xs font-semibold cursor-pointer border-b-2 transition-all flex items-center gap-1.5 whitespace-nowrap ${
               activeTab === 'perfil'
                 ? 'border-[#0071e3] text-white'
                 : 'border-transparent text-neutral-400 hover:text-neutral-200'
@@ -280,7 +280,7 @@ export const AccountSettingsModal: React.FC<AccountSettingsModalProps> = ({
           </button>
           <button
             onClick={() => { setActiveTab('senha'); setFeedback(null); }}
-            className={`pb-2.5 px-3 text-xs font-semibold cursor-pointer border-b-2 transition-all flex items-center gap-1.5 ${
+            className={`pb-2.5 px-2.5 text-xs font-semibold cursor-pointer border-b-2 transition-all flex items-center gap-1.5 whitespace-nowrap ${
               activeTab === 'senha'
                 ? 'border-[#0071e3] text-white'
                 : 'border-transparent text-neutral-400 hover:text-neutral-200'
@@ -291,7 +291,7 @@ export const AccountSettingsModal: React.FC<AccountSettingsModalProps> = ({
           </button>
           <button
             onClick={() => { setActiveTab('compras'); setFeedback(null); }}
-            className={`pb-2.5 px-3 text-xs font-semibold cursor-pointer border-b-2 transition-all flex items-center gap-1.5 whitespace-nowrap ${
+            className={`pb-2.5 px-2.5 text-xs font-semibold cursor-pointer border-b-2 transition-all flex items-center gap-1.5 whitespace-nowrap whitespace-nowrap ${
               activeTab === 'compras'
                 ? 'border-[#0071e3] text-white'
                 : 'border-transparent text-neutral-400 hover:text-neutral-200'
@@ -302,7 +302,7 @@ export const AccountSettingsModal: React.FC<AccountSettingsModalProps> = ({
           </button>
           <button
             onClick={() => { setActiveTab('notificacoes'); setFeedback(null); }}
-            className={`pb-2.5 px-3 text-xs font-semibold cursor-pointer border-b-2 transition-all flex items-center gap-1.5 whitespace-nowrap ${
+            className={`pb-2.5 px-2.5 text-xs font-semibold cursor-pointer border-b-2 transition-all flex items-center gap-1.5 whitespace-nowrap whitespace-nowrap ${
               activeTab === 'notificacoes'
                 ? 'border-[#0071e3] text-white'
                 : 'border-transparent text-neutral-400 hover:text-neutral-200'
@@ -313,7 +313,7 @@ export const AccountSettingsModal: React.FC<AccountSettingsModalProps> = ({
           </button>
           <button
             onClick={() => { setActiveTab('privacidade'); setFeedback(null); }}
-            className={`pb-2.5 px-3 text-xs font-semibold cursor-pointer border-b-2 transition-all flex items-center gap-1.5 whitespace-nowrap ${
+            className={`pb-2.5 px-2.5 text-xs font-semibold cursor-pointer border-b-2 transition-all flex items-center gap-1.5 whitespace-nowrap whitespace-nowrap ${
               activeTab === 'privacidade'
                 ? 'border-[#0071e3] text-white'
                 : 'border-transparent text-neutral-400 hover:text-neutral-200'
@@ -603,13 +603,19 @@ export const AccountSettingsModal: React.FC<AccountSettingsModalProps> = ({
         {activeTab === 'compras' && (
           <PurchasesTab
             key={purchasesVersion}
-            renderActions={(p) => p.status === 'active' && p.refundOpen ? (
+            renderActions={(p) => p.status === 'active' ? (
               <button
                 type="button"
-                onClick={() => setRefundTarget(p)}
-                className="px-3.5 py-1.5 rounded-xl text-[11px] font-semibold text-red-300 border border-red-500/30 hover:bg-red-500/10 transition-colors cursor-pointer"
+                onClick={() => p.refundOpen && setRefundTarget(p)}
+                disabled={!p.refundOpen}
+                title={p.refundOpen ? 'Pedir o reembolso desta compra' : 'O prazo de 7 dias para reembolso já terminou'}
+                className={`px-4 py-2 rounded-xl text-xs font-semibold transition-colors ${
+                  p.refundOpen
+                    ? 'text-red-300 border border-red-500/40 hover:bg-red-500/10 cursor-pointer'
+                    : 'text-neutral-500 border border-white/10 cursor-not-allowed'
+                }`}
               >
-                Solicitar reembolso
+                Reembolso
               </button>
             ) : null}
           />
