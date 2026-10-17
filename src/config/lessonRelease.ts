@@ -7,16 +7,16 @@ const at = (day: number, hour = 14) =>
   new Date(`2026-10-${String(day).padStart(2, '0')}T${String(hour).padStart(2, '0')}:00:00-03:00`).getTime();
 
 const LESSON_RELEASE_AT: Record<string, number> = {
-  'mod2-2': at(17, 21), // Shot Matching: 17/10/2026 às 21h
-  'mod2-3': at(17), // Secundárias
-  'mod3-1': at(17), // Criando Look sem Plugins
-  'mod3-2': at(18), // Film Look Creator
-  'mod3-3': at(19), // Dehancer Pro
+  'mod2-2': at(18, 9), // Shot Matching: 18/10/2026 às 9h (era 17/10 às 21h, +12h)
+  'mod2-3': at(18, 21), // Secundárias: trancada de novo, libera 18/10/2026 às 21h (24h)
+  'mod3-1': at(18, 21), // Criando Look sem Plugins: trancada de novo, libera 18/10/2026 às 21h (24h)
+  'mod3-2': at(19), // Film Look Creator: 19/10/2026 às 14h (+24h)
+  'mod3-3': at(20), // Dehancer Pro: 20/10/2026 às 14h (+24h)
 };
 
 /** Todas as aulas do módulo Bônus são liberadas juntas. */
 const MODULE_RELEASE_AT: Record<string, number> = {
-  mod4: at(21),
+  mod4: at(22), // Bônus: 22/10/2026 às 14h (+24h)
 };
 
 /** Momento da liberação (ms desde 1970), ou null se a aula já nasce liberada. */
