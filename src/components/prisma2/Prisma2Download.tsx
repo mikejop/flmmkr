@@ -53,8 +53,7 @@ export default function Prisma2Download() {
       <main>
         <section className="px-6 pb-20 pt-16 text-center sm:pt-24">
           <Image src="/prisma2/prisma2-icon.png" alt="Ícone do PRISMA 2" width={128} height={128} priority className="mx-auto h-28 w-28 drop-shadow-xl sm:h-32 sm:w-32" />
-          <p className="mt-8 text-[17px] font-semibold text-[#6e6e73] sm:text-[21px]">FLMMKR</p>
-          <h1 className="mt-1 text-[56px] font-bold leading-[1.05] tracking-[-0.03em] sm:text-[96px]">PRISMA 2</h1>
+          <h1 className="mt-8 text-[56px] font-bold leading-[1.05] tracking-[-0.03em] sm:text-[96px]">PRISMA 2</h1>
           <p className="mt-3 text-[24px] font-medium leading-tight tracking-tight text-[#1d1d1f] sm:text-[32px]">Screen Capture for MacOS</p>
           <p className="mx-auto mt-5 max-w-xl text-[19px] leading-snug text-[#6e6e73]">Versão 2.0.0 em open beta.</p>
           <button
