@@ -1,0 +1,15 @@
+# Arquivos internos que não fazem parte do site (o upload da CLI não deve levá-los)
+.agents
+.claude
+.codex
+.cursor
+.mcp.json
+.env.test
+AGENTS.md
+CLAUDE.md
+HANDOFF.md
+skills-lock.json
+docs
+preloader-render.html
+render-preloader.js
+scratch_list_all_content.js
