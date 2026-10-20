@@ -27,7 +27,7 @@ export async function POST(req: NextRequest) {
   if (typeof input.website === 'string' && input.website.length > 0) return json({ ok: true });
 
   const parsed = validatePrisma2Lead(input);
-  if (!parsed.ok) return json({ error: parsed.error }, 400);
+  if (!parsed.ok) return json({ error: parsed.error, field: parsed.field }, 400);
 
   const ip = getClientIp(req);
   const turnstile = await verifyTurnstile(input.turnstileToken, ip);

@@ -35,21 +35,28 @@ export type Prisma2LeadClean = {
   last_name: string;
   company: string | null;
   email: string;
-  phone: string;
-  state: string;
-  city: string;
+  phone: string | null;
+  state: string | null;
+  city: string | null;
 };
+
+export type Prisma2LeadField = 'firstName' | 'lastName' | 'company' | 'email' | 'phone' | 'state' | 'city';
+
+export function isValidEmail(value: string): boolean {
+  const email = value.trim();
+  return email.length >= 5 && email.length <= 254 && EMAIL_RE.test(email);
+}
 
 const NAME_RE = /^[\p{L}][\p{L}\p{M} '.-]*$/u;
 const CITY_RE = /^[\p{L}\p{M}0-9][\p{L}\p{M}0-9 '.()\/-]*$/u;
-const EMAIL_RE = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9-]+(\.[A-Za-z0-9-]+)*\.[A-Za-z]{2,}$/;
+const EMAIL_RE = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9]([A-Za-z0-9-]*[A-Za-z0-9])?(\.[A-Za-z0-9]([A-Za-z0-9-]*[A-Za-z0-9])?)*\.[A-Za-z]{2,}$/;
 // Barra o texto livre que não é nome de pessoa/empresa: marcas de HTML e caracteres de controle.
 const UNSAFE_RE = /[<>{}`\\\u0000-\u001f\u007f]/;
 
 const clean = (v: unknown, max: number) => (typeof v === 'string' ? v.normalize('NFC').replace(/\s+/g, ' ').trim().slice(0, max + 1) : '');
 
-/** Devolve o cadastro limpo ou a mensagem do primeiro campo inválido. */
-export function validatePrisma2Lead(input: Partial<Record<keyof Prisma2LeadInput, unknown>>): { ok: true; data: Prisma2LeadClean } | { ok: false; error: string } {
+/** Devolve o cadastro limpo ou o primeiro campo inválido (com mensagem em português para a API). Telefone, estado e cidade são opcionais. */
+export function validatePrisma2Lead(input: Partial<Record<keyof Prisma2LeadInput, unknown>>): { ok: true; data: Prisma2LeadClean } | { ok: false; field: Prisma2LeadField; error: string } {
   const firstName = clean(input.firstName, 60);
   const lastName = clean(input.lastName, 80);
   const company = clean(input.company, 120);
@@ -58,13 +65,13 @@ export function validatePrisma2Lead(input: Partial<Record<keyof Prisma2LeadInput
   const state = clean(input.state, 2).toUpperCase();
   const city = clean(input.city, 80);
 
-  if (!firstName || firstName.length > 60 || !NAME_RE.test(firstName) || UNSAFE_RE.test(firstName)) return { ok: false, error: 'Informe seu nome.' };
-  if (!lastName || lastName.length > 80 || !NAME_RE.test(lastName) || UNSAFE_RE.test(lastName)) return { ok: false, error: 'Informe seu sobrenome.' };
-  if (company && (company.length > 120 || UNSAFE_RE.test(company))) return { ok: false, error: 'O nome da empresa é inválido.' };
-  if (email.length < 5 || email.length > 254 || !EMAIL_RE.test(email)) return { ok: false, error: 'Informe um e-mail válido.' };
-  if (!/^[1-9]{2}9?[0-9]{8}$/.test(phone)) return { ok: false, error: 'Informe um telefone com DDD.' };
-  if (!STATE_CODES.has(state)) return { ok: false, error: 'Selecione o estado.' };
-  if (city.length < 2 || city.length > 80 || !CITY_RE.test(city)) return { ok: false, error: 'Informe sua cidade.' };
+  if (!firstName || firstName.length > 60 || !NAME_RE.test(firstName) || UNSAFE_RE.test(firstName)) return { ok: false, field: 'firstName', error: 'Informe seu nome.' };
+  if (!lastName || lastName.length > 80 || !NAME_RE.test(lastName) || UNSAFE_RE.test(lastName)) return { ok: false, field: 'lastName', error: 'Informe seu sobrenome.' };
+  if (company && (company.length > 120 || UNSAFE_RE.test(company))) return { ok: false, field: 'company', error: 'O nome da empresa é inválido.' };
+  if (!isValidEmail(email)) return { ok: false, field: 'email', error: 'Precisa ser um e-mail válido.' };
+  if (phone && !/^[1-9]{2}9?[0-9]{8}$/.test(phone)) return { ok: false, field: 'phone', error: 'Informe um telefone válido com DDD.' };
+  if (state && !STATE_CODES.has(state)) return { ok: false, field: 'state', error: 'Estado inválido.' };
+  if (city && (city.length < 2 || city.length > 80 || !CITY_RE.test(city))) return { ok: false, field: 'city', error: 'Cidade inválida.' };
 
-  return { ok: true, data: { first_name: firstName, last_name: lastName, company: company || null, email, phone, state, city } };
+  return { ok: true, data: { first_name: firstName, last_name: lastName, company: company || null, email, phone: phone || null, state: state || null, city: city || null } };
 }
