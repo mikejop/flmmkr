@@ -9,12 +9,10 @@ export const FEATURES: Record<LangCode, Features> = {
     intro: 'Para Mac com macOS 15 ou mais novo (com Liquid Glass no macOS 26), com apps companheiros para iPhone e Android.',
     groups: [
       { title: 'Gravação de tela', items: [
-        'Captura de qualquer monitor, em resolução nativa (4K/5K externos), até 120 fps e 10 bits quando o Mac suporta.',
-        'Frame rate fixo: se a tela não muda, o quadro é repetido e o arquivo sai com fps constante.',
-        'Gravar tela liga e desliga por interruptor.',
-        'Mostrar ou esconder o cursor, e uma trilha extra da tela sem anotações.',
-        'Codecs: HEVC 10 bits (padrão), HEVC 8 bits, ProRes 422 e ProRes 422 HQ, todos por hardware quando possível.',
-        'Trilha do mouse por frame, guardada em JSON ao lado do vídeo (para Fusion e VFX), quando o projeto pede.',
+        'Grave a tela do Mac em resolução nativa, incluindo monitores externos 4K e 5K. Suporte a até 120 fps e 10 bits, conforme o hardware.',
+        'Mostre ou oculte o cursor do mouse.',
+        'Codecs de vídeo: HEVC de 8 ou 10 bits (padrão), ProRes 422 e ProRes 422 HQ. O uso de aceleração por hardware depende do Mac.',
+        'Exporte os dados de movimento do mouse por quadro em um arquivo JSON separado.',
       ] },
       { title: 'Câmera', items: [
         'Câmera do Mac, iPhone/iPad pela Câmera de Continuidade e dispositivos externos: webcam USB, placa de captura HDMI e câmera virtual. A lista de dispositivos se atualiza sozinha quando algo é ligado ou desligado.',
@@ -58,12 +56,10 @@ export const FEATURES: Record<LangCode, Features> = {
     intro: 'For Macs running macOS 15 or later (with Liquid Glass on macOS 26), with companion apps for iPhone and Android.',
     groups: [
       { title: 'Screen recording', items: [
-        'Captures any display at native resolution (external 4K/5K), up to 120 fps and 10-bit when your Mac supports it.',
-        'Fixed frame rate: if the screen does not change, the frame is repeated and the file comes out at a constant fps.',
-        'Screen recording turns on and off with a switch.',
-        'Show or hide the cursor, plus an extra screen track without annotations.',
-        'Codecs: HEVC 10-bit (default), HEVC 8-bit, ProRes 422 and ProRes 422 HQ, all hardware-accelerated when possible.',
-        'Per-frame mouse track saved as JSON next to the video (for Fusion and VFX), when the project calls for it.',
+        'Record your Mac screen at native resolution, including external 4K and 5K displays. Supports up to 120 fps and 10-bit, depending on the hardware.',
+        'Show or hide the mouse cursor.',
+        'Video codecs: 8-bit or 10-bit HEVC (default), ProRes 422 and ProRes 422 HQ. Hardware acceleration depends on the Mac.',
+        'Export per-frame mouse movement data to a separate JSON file.',
       ] },
       { title: 'Camera', items: [
         'Mac camera, iPhone/iPad through Continuity Camera, and external devices: USB webcam, HDMI capture card and virtual camera. The device list updates by itself when something is plugged in or removed.',
@@ -107,12 +103,10 @@ export const FEATURES: Record<LangCode, Features> = {
     intro: 'Para Mac con macOS 15 o posterior (con Liquid Glass en macOS 26), con apps complementarias para iPhone y Android.',
     groups: [
       { title: 'Grabación de pantalla', items: [
-        'Captura cualquier monitor en resolución nativa (4K/5K externos), hasta 120 fps y 10 bits cuando el Mac lo admite.',
-        'Frame rate fijo: si la pantalla no cambia, se repite el cuadro y el archivo sale con fps constante.',
-        'Grabar pantalla se activa y desactiva con un interruptor.',
-        'Mostrar u ocultar el cursor, y una pista extra de la pantalla sin anotaciones.',
-        'Códecs: HEVC 10 bits (predeterminado), HEVC 8 bits, ProRes 422 y ProRes 422 HQ, todos por hardware cuando es posible.',
-        'Pista del ratón por fotograma, guardada en JSON junto al vídeo (para Fusion y VFX), cuando el proyecto lo pide.',
+        'Graba la pantalla del Mac en resolución nativa, incluidos monitores externos 4K y 5K. Admite hasta 120 fps y 10 bits, según el hardware.',
+        'Muestra u oculta el cursor del ratón.',
+        'Códecs de vídeo: HEVC de 8 o 10 bits (predeterminado), ProRes 422 y ProRes 422 HQ. El uso de aceleración por hardware depende del Mac.',
+        'Exporta los datos de movimiento del ratón por fotograma a un archivo JSON aparte.',
       ] },
       { title: 'Cámara', items: [
         'Cámara del Mac, iPhone/iPad mediante la Cámara de Continuidad y dispositivos externos: webcam USB, capturadora HDMI y cámara virtual. La lista de dispositivos se actualiza sola al conectar o desconectar algo.',
@@ -156,12 +150,10 @@ export const FEATURES: Record<LangCode, Features> = {
     intro: 'Per Mac con macOS 15 o successivo (con Liquid Glass su macOS 26), con app complementari per iPhone e Android.',
     groups: [
       { title: 'Registrazione dello schermo', items: [
-        'Cattura qualsiasi monitor a risoluzione nativa (4K/5K esterni), fino a 120 fps e 10 bit quando il Mac lo supporta.',
-        'Frame rate fisso: se lo schermo non cambia, il fotogramma viene ripetuto e il file esce con fps costanti.',
-        'Registrare lo schermo si attiva e disattiva con un interruttore.',
-        'Mostra o nascondi il cursore, e una traccia extra dello schermo senza annotazioni.',
-        'Codec: HEVC 10 bit (predefinito), HEVC 8 bit, ProRes 422 e ProRes 422 HQ, tutti in hardware quando possibile.',
-        'Traccia del mouse per fotogramma, salvata in JSON accanto al video (per Fusion e VFX), quando il progetto lo richiede.',
+        'Registra lo schermo del Mac a risoluzione nativa, inclusi i monitor esterni 4K e 5K. Supporta fino a 120 fps e 10 bit, in base all’hardware.',
+        'Mostra o nascondi il cursore del mouse.',
+        'Codec video: HEVC a 8 o 10 bit (predefinito), ProRes 422 e ProRes 422 HQ. L’uso dell’accelerazione hardware dipende dal Mac.',
+        'Esporta i dati del movimento del mouse per fotogramma in un file JSON separato.',
       ] },
       { title: 'Fotocamera', items: [
         'Fotocamera del Mac, iPhone/iPad tramite Fotocamera Continuità e dispositivi esterni: webcam USB, scheda di acquisizione HDMI e fotocamera virtuale. L’elenco dei dispositivi si aggiorna da solo quando qualcosa viene collegato o scollegato.',
@@ -205,12 +197,10 @@ export const FEATURES: Record<LangCode, Features> = {
     intro: 'Pour Mac sous macOS 15 ou version ultérieure (avec Liquid Glass sous macOS 26), avec des apps compagnons pour iPhone et Android.',
     groups: [
       { title: 'Enregistrement d’écran', items: [
-        'Capture n’importe quel écran en résolution native (4K/5K externes), jusqu’à 120 ips et 10 bits quand le Mac le permet.',
-        'Fréquence d’images fixe : si l’écran ne change pas, l’image est répétée et le fichier sort à ips constantes.',
-        'L’enregistrement d’écran s’active et se désactive avec un interrupteur.',
-        'Afficher ou masquer le curseur, avec une piste d’écran supplémentaire sans annotations.',
-        'Codecs : HEVC 10 bits (par défaut), HEVC 8 bits, ProRes 422 et ProRes 422 HQ, tous en matériel quand c’est possible.',
-        'Piste de la souris image par image, enregistrée en JSON à côté de la vidéo (pour Fusion et les VFX), quand le projet le demande.',
+        'Enregistrez l’écran du Mac en résolution native, y compris les écrans externes 4K et 5K. Prise en charge jusqu’à 120 ips et 10 bits, selon le matériel.',
+        'Affichez ou masquez le curseur de la souris.',
+        'Codecs vidéo : HEVC 8 ou 10 bits (par défaut), ProRes 422 et ProRes 422 HQ. L’accélération matérielle dépend du Mac.',
+        'Exportez les données de mouvement de la souris image par image dans un fichier JSON séparé.',
       ] },
       { title: 'Caméra', items: [
         'Caméra du Mac, iPhone/iPad via la Caméra de continuité et périphériques externes : webcam USB, carte de capture HDMI et caméra virtuelle. La liste des périphériques se met à jour seule quand on en branche ou débranche un.',
@@ -254,12 +244,10 @@ export const FEATURES: Record<LangCode, Features> = {
     intro: 'لأجهزة Mac بنظام macOS 15 أو أحدث (مع Liquid Glass في macOS 26)، مع تطبيقين مرافقين لـ iPhone وAndroid.',
     groups: [
       { title: 'تسجيل الشاشة', items: [
-        'يلتقط أي شاشة بدقتها الأصلية (شاشات 4K/5K الخارجية)، حتى 120 إطارًا في الثانية وبعمق 10 بت عندما يدعم الـ Mac ذلك.',
-        'معدل إطارات ثابت: إذا لم تتغير الشاشة يُكرَّر الإطار ويخرج الملف بمعدل إطارات ثابت.',
-        'تسجيل الشاشة يُشغَّل ويُطفأ بمفتاح.',
-        'إظهار المؤشر أو إخفاؤه، ومسار إضافي للشاشة بلا تعليقات توضيحية.',
-        'الترميزات: HEVC 10 بت (الافتراضي) وHEVC 8 بت وProRes 422 وProRes 422 HQ، جميعها بالعتاد متى أمكن.',
-        'مسار الفأرة لكل إطار، محفوظ بصيغة JSON بجانب الفيديو (لبرنامج Fusion والمؤثرات البصرية)، عندما يتطلب المشروع ذلك.',
+        'سجّل شاشة الـ Mac بدقتها الأصلية، بما في ذلك الشاشات الخارجية 4K و5K. يدعم حتى 120 إطارًا في الثانية وعمق 10 بت، بحسب العتاد.',
+        'أظهر مؤشر الفأرة أو أخفِه.',
+        'ترميزات الفيديو: HEVC بعمق 8 أو 10 بت (الافتراضي) وProRes 422 وProRes 422 HQ. يعتمد استخدام التسريع بالعتاد على جهاز الـ Mac.',
+        'صدِّر بيانات حركة الفأرة لكل إطار في ملف JSON منفصل.',
       ] },
       { title: 'الكاميرا', items: [
         'كاميرا الـ Mac، وiPhone/iPad عبر كاميرا الاستمرارية، والأجهزة الخارجية: كاميرا ويب USB وبطاقة التقاط HDMI وكاميرا افتراضية. تتحدّث قائمة الأجهزة تلقائيًا عند توصيل شيء أو فصله.',
@@ -303,12 +291,10 @@ export const FEATURES: Record<LangCode, Features> = {
     intro: '适用于 macOS 15 或更高版本的 Mac（macOS 26 上带 Liquid Glass 效果），并配有 iPhone 和 Android 配套应用。',
     groups: [
       { title: '屏幕录制', items: [
-        '可捕获任意显示器的原生分辨率（外接 4K/5K），在 Mac 支持时最高 120 fps 和 10 位。',
-        '固定帧率：画面不变时重复上一帧，输出文件为恒定 fps。',
-        '屏幕录制用开关打开和关闭。',
-        '可显示或隐藏光标，并额外提供一条不含标注的屏幕轨道。',
-        '编码：HEVC 10 位（默认）、HEVC 8 位、ProRes 422 和 ProRes 422 HQ，尽可能使用硬件编码。',
-        '按帧记录鼠标轨迹，以 JSON 保存在视频旁边（用于 Fusion 和 VFX），项目需要时启用。',
+        '以原生分辨率录制 Mac 屏幕，包括外接 4K 和 5K 显示器。根据硬件支持最高 120 fps 和 10 位。',
+        '显示或隐藏鼠标光标。',
+        '视频编码：HEVC 8 位或 10 位（默认）、ProRes 422 和 ProRes 422 HQ。是否使用硬件加速取决于 Mac。',
+        '将逐帧的鼠标移动数据导出为单独的 JSON 文件。',
       ] },
       { title: '摄像头', items: [
         'Mac 摄像头、通过“连续互通相机”使用的 iPhone/iPad，以及外接设备：USB 网络摄像头、HDMI 采集卡和虚拟摄像头。设备接入或拔出时，设备列表会自动更新。',
