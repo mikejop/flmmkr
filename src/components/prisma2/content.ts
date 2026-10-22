@@ -10,7 +10,7 @@ export type Content = {
 
 export const CONTENT: Record<LangCode, Content> = {
   'pt-BR': {
-    lead: 'Gravador de tela leve para Mac, feito para quem ensina.',
+    lead: 'Grave a tela, a câmera e o áudio do seu Mac em um só lugar. Ideal para aulas, tutoriais, demonstrações e apresentações.',
     featuresTitle: 'O que o PRISMA 2 faz',
     faqTitle: 'Perguntas frequentes',
     faq: [
@@ -21,7 +21,7 @@ export const CONTENT: Record<LangCode, Content> = {
     ],
   },
   en: {
-    lead: 'A lightweight screen recorder for Mac, made for people who teach.',
+    lead: 'Record your Mac’s screen, camera and audio in one place. Ideal for classes, tutorials, demos and presentations.',
     featuresTitle: 'What PRISMA 2 does',
     faqTitle: 'Frequently asked questions',
     faq: [
@@ -32,7 +32,7 @@ export const CONTENT: Record<LangCode, Content> = {
     ],
   },
   es: {
-    lead: 'Grabador de pantalla ligero para Mac, hecho para quienes enseñan.',
+    lead: 'Graba la pantalla, la cámara y el audio de tu Mac en un solo lugar. Ideal para clases, tutoriales, demostraciones y presentaciones.',
     featuresTitle: 'Qué hace PRISMA 2',
     faqTitle: 'Preguntas frecuentes',
     faq: [
@@ -43,7 +43,7 @@ export const CONTENT: Record<LangCode, Content> = {
     ],
   },
   it: {
-    lead: 'Registratore dello schermo leggero per Mac, pensato per chi insegna.',
+    lead: 'Registra lo schermo, la fotocamera e l’audio del tuo Mac in un unico posto. Ideale per lezioni, tutorial, dimostrazioni e presentazioni.',
     featuresTitle: 'Cosa fa PRISMA 2',
     faqTitle: 'Domande frequenti',
     faq: [
@@ -54,7 +54,7 @@ export const CONTENT: Record<LangCode, Content> = {
     ],
   },
   fr: {
-    lead: 'Enregistreur d’écran léger pour Mac, conçu pour ceux qui enseignent.',
+    lead: 'Enregistrez l’écran, la caméra et l’audio de votre Mac au même endroit. Idéal pour les cours, tutoriels, démonstrations et présentations.',
     featuresTitle: 'Ce que fait PRISMA 2',
     faqTitle: 'Questions fréquentes',
     faq: [
@@ -65,7 +65,7 @@ export const CONTENT: Record<LangCode, Content> = {
     ],
   },
   ar: {
-    lead: 'مسجّل شاشة خفيف لنظام Mac، مصمم لمن يعلّمون.',
+    lead: 'سجّل شاشة جهاز Mac والكاميرا والصوت في مكان واحد. مثالي للدروس والشروحات والعروض التوضيحية والعروض التقديمية.',
     featuresTitle: 'ماذا يفعل PRISMA 2',
     faqTitle: 'الأسئلة الشائعة',
     faq: [
@@ -76,7 +76,7 @@ export const CONTENT: Record<LangCode, Content> = {
     ],
   },
   zh: {
-    lead: '轻量的 Mac 屏幕录制软件，为教学者而做。',
+    lead: '在一个地方录制 Mac 的屏幕、摄像头和音频。非常适合授课、教程、演示和演讲。',
     featuresTitle: 'PRISMA 2 能做什么',
     faqTitle: '常见问题',
     faq: [
