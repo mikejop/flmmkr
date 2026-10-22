@@ -8,6 +8,15 @@ export const metadata: Metadata = {
   description: 'Baixe o PRISMA 2, Screen Capture for MacOS, e veja como instalar no Mac.',
   robots: { index: false, follow: false, nocache: true },
   alternates: { canonical: '/prisma2/download' },
+  // Favicon desta página: o ícone do app PRISMA 2
+  icons: {
+    icon: [
+      { url: '/prisma2/favicon-32.png', sizes: '32x32', type: 'image/png' },
+      { url: '/prisma2/favicon-192.png', sizes: '192x192', type: 'image/png' },
+    ],
+    shortcut: '/prisma2/favicon-32.png',
+    apple: [{ url: '/prisma2/apple-touch-icon.png', sizes: '180x180', type: 'image/png' }],
+  },
 };
 
 export default function Prisma2DownloadPage() {
