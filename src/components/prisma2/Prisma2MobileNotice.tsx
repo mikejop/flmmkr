@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import type { Dict } from '@/components/prisma2/i18n';
 
 const PAGE_PATH = '/prisma2/download';
-const REDIRECT_TO = '/color-master-produto';
+const REDIRECT_TO = '/produtos/color-master-produto';
 
 /** Smartphone: Android com "Mobile" no navegador, iPhone/iPod. Tablets e computadores não entram. */
 export function isSmartphone(): boolean {
