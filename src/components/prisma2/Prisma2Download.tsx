@@ -82,7 +82,11 @@ export default function Prisma2Download() {
         <section className="px-6 pb-20 pt-16 text-center sm:pt-24">
           <Image src="/prisma2/prisma2-icon.png" alt="PRISMA 2" width={128} height={128} priority className="mx-auto h-28 w-28 drop-shadow-xl sm:h-32 sm:w-32" />
           <h1 dir="ltr" className="mt-8">
-            <span className="block text-[56px] font-bold leading-[1.05] tracking-[-0.03em] sm:text-[96px]">PRISMA 2</span>
+            <span className="flex items-center justify-center gap-3 text-[56px] font-bold leading-[1.05] tracking-[-0.03em] sm:gap-5 sm:text-[96px]">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="/prisma2/prisma-wordmark.svg" alt="PRISMA" width={245} height={50} className="h-[40px] w-auto sm:h-[68px]" />
+              <span>2</span>
+            </span>
             <span className="mt-3 block text-[24px] font-medium leading-tight tracking-tight text-[#1d1d1f] sm:text-[32px]">Screen Capture for MacOS</span>
           </h1>
           <p className="mx-auto mt-5 max-w-xl text-[21px] font-medium leading-snug text-[#1d1d1f]">{c.lead}</p>
