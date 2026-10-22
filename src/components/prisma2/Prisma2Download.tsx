@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from 'react';
 import Image from 'next/image';
 import Prisma2DownloadModal from '@/components/prisma2/Prisma2DownloadModal';
 import Prisma2MobileNotice, { isSmartphone } from '@/components/prisma2/Prisma2MobileNotice';
+import { CONTENT } from '@/components/prisma2/content';
 import { DEFAULT_LANG, DICT, LANGS, detectLang, type LangCode } from '@/components/prisma2/i18n';
 
 const STORAGE_KEY = 'prisma2-lang';
@@ -34,6 +35,8 @@ export default function Prisma2Download() {
 
   const meta = LANGS.find((l) => l.code === lang) ?? LANGS[1];
   const t = DICT[lang];
+  const c = CONTENT[lang];
+  const [rightsBefore, rightsAfter = ''] = t.rights.split('FLMMKR');
 
   useEffect(() => {
     document.documentElement.lang = meta.code;
@@ -50,7 +53,7 @@ export default function Prisma2Download() {
     <div dir={meta.dir} className="min-h-screen bg-white font-sans text-[#1d1d1f] antialiased selection:bg-[#0071e3]/20">
       <header className="sticky top-0 z-40 border-b border-black/10 bg-white/80 backdrop-blur-xl">
         <div dir="ltr" className="mx-auto flex h-12 max-w-[980px] items-center justify-between px-6">
-          <span className="text-[15px] font-semibold tracking-[0.18em]">FLMMKR</span>
+          <a href="/produtos/color-master-produto" className="text-[15px] font-bold tracking-[0.18em] transition hover:text-[#0071e3]">FLMMKR</a>
           <div className="flex items-center gap-3">
             <label className="relative flex h-7 items-center gap-1 rounded-full px-2 text-[12px] text-[#6e6e73] transition hover:bg-black/5 focus-within:bg-black/5">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9" /><path d="M3 12h18M12 3c2.5 2.7 3.8 5.7 3.8 9s-1.3 6.3-3.8 9c-2.5-2.7-3.8-5.7-3.8-9S9.5 5.7 12 3z" /></svg>
@@ -76,16 +79,33 @@ export default function Prisma2Download() {
       <main>
         <section className="px-6 pb-20 pt-16 text-center sm:pt-24">
           <Image src="/prisma2/prisma2-icon.png" alt="PRISMA 2" width={128} height={128} priority className="mx-auto h-28 w-28 drop-shadow-xl sm:h-32 sm:w-32" />
-          <h1 dir="ltr" className="mt-8 text-[56px] font-bold leading-[1.05] tracking-[-0.03em] sm:text-[96px]">PRISMA 2</h1>
-          <p dir="ltr" className="mt-3 text-[24px] font-medium leading-tight tracking-tight text-[#1d1d1f] sm:text-[32px]">Screen Capture for MacOS</p>
-          <p className="mx-auto mt-5 max-w-xl text-[19px] leading-snug text-[#6e6e73]">{t.version}</p>
+          <h1 dir="ltr" className="mt-8">
+            <span className="block text-[56px] font-bold leading-[1.05] tracking-[-0.03em] sm:text-[96px]">PRISMA 2</span>
+            <span className="mt-3 block text-[24px] font-medium leading-tight tracking-tight text-[#1d1d1f] sm:text-[32px]">Screen Capture for MacOS</span>
+          </h1>
+          <p className="mx-auto mt-5 max-w-xl text-[21px] font-medium leading-snug text-[#1d1d1f]">{c.lead}</p>
+          <p className="mx-auto mt-3 max-w-xl text-[17px] leading-snug text-[#6e6e73]">{t.version}</p>
           <button type="button" onClick={() => setOpen(true)} className={`${cta} mt-9`}>{t.heroButton}</button>
           <p className="mt-4 text-[12px] text-[#86868b]">{t.heroNote}</p>
         </section>
 
-        <section className="bg-[#f5f5f7] px-6 py-20 sm:py-28">
+        <section aria-labelledby="p2-features" className="px-6 py-20 sm:py-28">
           <div className="mx-auto max-w-[980px]">
-            <h2 className="mx-auto max-w-2xl text-center text-[32px] font-semibold leading-[1.1] tracking-tight sm:text-[48px]">{t.installTitle}</h2>
+            <h2 id="p2-features" className="text-center text-[32px] font-semibold leading-[1.1] tracking-tight sm:text-[48px]">{c.featuresTitle}</h2>
+            <ul className="mt-14 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+              {c.features.map((f) => (
+                <li key={f.title} className="rounded-[28px] bg-[#f5f5f7] p-7">
+                  <h3 className="text-[21px] font-semibold leading-tight tracking-tight">{f.title}</h3>
+                  <p className="mt-2 text-[17px] leading-snug text-[#6e6e73]">{f.text}</p>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </section>
+
+        <section aria-labelledby="p2-install" className="bg-[#f5f5f7] px-6 py-20 sm:py-28">
+          <div className="mx-auto max-w-[980px]">
+            <h2 id="p2-install" className="mx-auto max-w-2xl text-center text-[32px] font-semibold leading-[1.1] tracking-tight sm:text-[48px]">{t.installTitle}</h2>
             <p className="mx-auto mt-5 max-w-2xl text-center text-[19px] leading-snug text-[#6e6e73] sm:text-[21px]">{t.installIntro}</p>
 
             <ol className="mt-14 space-y-6">
@@ -120,7 +140,21 @@ export default function Prisma2Download() {
           </div>
         </section>
 
-        <section className="px-6 py-20 text-center sm:py-28">
+        <section aria-labelledby="p2-faq" className="px-6 py-20 sm:py-28">
+          <div className="mx-auto max-w-[760px]">
+            <h2 id="p2-faq" className="text-center text-[32px] font-semibold leading-[1.1] tracking-tight sm:text-[48px]">{c.faqTitle}</h2>
+            <div className="mt-12 divide-y divide-black/10">
+              {c.faq.map((f) => (
+                <div key={f.q} className="py-6">
+                  <h3 className="text-[21px] font-semibold leading-tight tracking-tight">{f.q}</h3>
+                  <p className="mt-2 text-[17px] leading-snug text-[#6e6e73]">{f.a}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        <section className="bg-[#f5f5f7] px-6 py-20 text-center sm:py-28">
           <h2 className="text-[32px] font-semibold leading-[1.1] tracking-tight sm:text-[48px]">{t.ctaTitle}</h2>
           <button type="button" onClick={() => setOpen(true)} className={`${cta} mt-8`}>{t.heroButton}</button>
         </section>
@@ -128,7 +162,7 @@ export default function Prisma2Download() {
 
       <footer className="border-t border-black/10 bg-[#f5f5f7] px-6 py-8">
         <div className="mx-auto flex max-w-[980px] flex-col gap-2 text-[12px] text-[#6e6e73] sm:flex-row sm:justify-between">
-          <span>{t.rights}</span>
+          <span>{rightsBefore}<a href="/produtos/color-master-produto" className="font-bold hover:underline">FLMMKR</a>{rightsAfter}</span>
           <span className="flex gap-4">
             <a href="/privacidade" className="hover:underline">{t.privacy}</a>
             <a href="/termos" className="hover:underline">{t.terms}</a>
