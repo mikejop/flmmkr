@@ -267,17 +267,17 @@ export const OfficialLanding: React.FC<OfficialLandingProps> = ({
         <div className="relative z-10 max-w-5xl mx-auto my-auto flex flex-col items-center">
           {/* Category Pill */}
           <div className="inline-block px-4 py-1.5 rounded-full bg-black/60 backdrop-blur-md text-white/90 text-xs sm:text-sm font-medium mb-6 shadow-sm border border-white/20">
-            Treinamentos Audiovisual
+            Para iniciantes, profissionais e estudantes de audiovisual
           </div>
 
           {/* Main Headline */}
-          <h1 className="text-4xl sm:text-7xl lg:text-8xl font-semibold tracking-tight text-white leading-[1.05] max-w-4xl mx-auto mb-6 drop-shadow-xl">
-            Aprenda a criar imagens melhores.
+          <h1 className="text-4xl sm:text-6xl lg:text-7xl font-semibold tracking-tight text-white leading-[1.05] max-w-4xl mx-auto mb-6 drop-shadow-xl">
+            Aprenda audiovisual como quem já está no mercado.
           </h1>
 
           {/* Subtext */}
           <p className="text-base sm:text-2xl text-white/90 font-normal tracking-tight max-w-2xl mx-auto mb-10 leading-relaxed drop-shadow-lg">
-            Direção de Fotografia, Color Grading no DaVinci Resolve e produção audiovisual prática de nível profissional.
+            Treinamentos com projetos, arquivos e decisões de clientes reais. Você sai com repertório, portfólio e segurança para entregar.
           </p>
 
           {/* CTA Buttons */}
@@ -286,7 +286,7 @@ export const OfficialLanding: React.FC<OfficialLandingProps> = ({
               href="/produtos/color-master-produto"
               className="w-full sm:w-auto px-8 py-3.5 rounded-full bg-[#0071e3] hover:bg-[#0077ed] text-white text-sm font-semibold transition-all shadow-xl active:scale-95 text-center"
             >
-              Conhecer Color Master - Produtos
+              Conhecer o Color Master
             </a>
             <a
               href="#sobre"
@@ -317,9 +317,6 @@ export const OfficialLanding: React.FC<OfficialLandingProps> = ({
       <section id="treinamentos" className="scroll-section relative z-10 min-h-screen w-full flex flex-col justify-center items-center py-16 sm:py-20 border-t border-[#2c2c2e] bg-[#0A0B0E] text-white overflow-hidden snap-start snap-always scroll-mt-11">
         <div className="scroll-content w-full flex flex-col items-center">
           <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 mb-6 text-center sm:text-left w-full">
-            <span className="text-xs uppercase tracking-widest text-[#2997ff] font-bold block mb-2">
-              FORMAÇÃO PROFISSIONAL
-            </span>
             <h2 className="text-3xl sm:text-5xl font-semibold tracking-tight text-white mb-3">
               Treinamentos
             </h2>
@@ -356,16 +353,13 @@ export const OfficialLanding: React.FC<OfficialLandingProps> = ({
                 </h2>
                 <div className="space-y-4 text-base sm:text-lg text-[#6e6e73] leading-relaxed font-normal">
                   <p>
-                    <span className="font-semibold text-[#1d1d1f]">Diretor, diretor de fotografia, colorista e profissional de pós-produção</span>, com <span className="font-medium text-[#3a3a3c]">mais de 20 anos de experiência no audiovisual</span>.
+                    <span className="font-semibold text-[#1d1d1f]">Diretor, diretor de fotografia, colorista e profissional de pós-produção</span>, com mais de 20 anos de audiovisual. Já trabalhou do set à pós-produção e é ex-professor de Color Grading da <strong className="font-semibold text-[#1d1d1f]">EBAC</strong> (Escola Britânica de Artes Criativas e Tecnologia).
                   </p>
                   <p>
-                    Ao longo da carreira, trabalhou em diferentes etapas da produção, do set à pós-produção, desenvolvendo uma <span className="font-semibold text-[#1d1d1f]">visão prática e integrada sobre a construção da imagem</span>. É ex-professor de Color Grading da <strong className="font-semibold text-[#1d1d1f]">EBAC</strong> (Escola Britânica de Artes Criativas e Tecnologia).
-                  </p>
-                  <p>
-                    Hoje, além de atuar no mercado, Michael dedica parte do seu trabalho ao ensino. Nos seus treinamentos, <span className="font-bold text-[#1d1d1f] tracking-tight">transforma a experiência adquirida em projetos reais em conhecimento aplicável</span>, ensinando técnica, fundamentos e, principalmente, <span className="font-semibold text-[#2c2c2e]">como tomar decisões diante dos desafios que aparecem em uma produção</span>.
+                    Nos treinamentos, Michael leva para a sala de aula o que viveu em projetos reais. Você aprende a técnica, os fundamentos e, principalmente, como decidir diante dos problemas que aparecem em uma produção.
                   </p>
                   <p className="font-semibold text-[#1d1d1f] pt-1">
-                    Seu objetivo é <span className="font-bold">formar profissionais mais preparados, seguros e capazes de entregar trabalhos melhores no mercado.</span>
+                    O objetivo é que você chegue ao mercado mais preparado, mais seguro e capaz de entregar melhor.
                   </p>
                 </div>
               </div>
@@ -428,7 +422,7 @@ export const OfficialLanding: React.FC<OfficialLandingProps> = ({
               Metodologia desenvolvida para o mercado real.
             </h2>
             <p className="text-base sm:text-xl text-[#86868b] font-normal max-w-xl mx-auto">
-              Aqui, você aprende com materiais reais
+              Projetos de clientes, arquivos profissionais e decisões que acontecem de verdade.
             </p>
           </div>
 
@@ -437,13 +431,10 @@ export const OfficialLanding: React.FC<OfficialLandingProps> = ({
             <div className="p-8 sm:p-10 rounded-3xl bg-[#ffffff] border border-[#e5e5e7] shadow-sm flex flex-col justify-between">
               <div>
                 <h3 className="text-xl sm:text-2xl font-semibold text-[#1d1d1f] tracking-tight mb-3">
-                  Metodologia desenvolvida para o mercado real
+                  Você aprende como um profissional trabalha
                 </h3>
-                <p className="text-sm sm:text-base font-medium text-[#1d1d1f] mb-3 leading-relaxed">
-                  Aqui, você aprende da mesma forma que um profissional trabalha no mercado.
-                </p>
                 <p className="text-sm sm:text-base text-[#6e6e73] leading-relaxed">
-                  Nossa metodologia foi desenvolvida a partir de <strong className="text-[#1d1d1f] font-semibold">projetos reais produzidos para clientes</strong>, utilizando situações, decisões e arquivos que fazem parte de uma produção profissional. Durante o treinamento, você tem acesso aos materiais e acompanha o processo como se estivesse dentro de um set de filmagem ou de uma ilha de edição, entendendo não apenas <strong className="text-[#1d1d1f] font-semibold">o que fazer</strong>, mas principalmente <strong className="text-[#1d1d1f] font-semibold">por que fazer</strong>.
+                  Nossa metodologia nasceu de <strong className="text-[#1d1d1f] font-semibold">projetos reais, feitos para clientes</strong>. Você recebe os arquivos, acompanha o processo como se estivesse no set ou na ilha de edição e entende <strong className="text-[#1d1d1f] font-semibold">o que fazer</strong> e <strong className="text-[#1d1d1f] font-semibold">por que fazer</strong>.
                 </p>
               </div>
             </div>
@@ -455,10 +446,10 @@ export const OfficialLanding: React.FC<OfficialLandingProps> = ({
                   Aprenda com situações que acontecem de verdade
                 </h3>
                 <p className="text-sm sm:text-base text-[#6e6e73] leading-relaxed mb-3">
-                  Em vez de exercícios genéricos, você trabalha com demandas, problemas e decisões que fazem parte da rotina profissional. Isso aproxima o aprendizado da realidade e ajuda você a desenvolver não apenas conhecimento técnico, mas também <strong className="text-[#1d1d1f] font-semibold">olhar, raciocínio e capacidade de decisão</strong>.
+                  Em vez de exercícios genéricos, você trabalha com demandas, problemas e decisões da rotina profissional. Assim, desenvolve técnica, <strong className="text-[#1d1d1f] font-semibold">olhar, raciocínio e capacidade de decisão</strong>.
                 </p>
                 <p className="text-sm sm:text-base text-[#6e6e73] leading-relaxed">
-                  Você aprende a analisar um projeto, identificar problemas, encontrar soluções e chegar a um resultado profissional, seguindo um processo muito próximo do que encontrará no mercado.
+                  Você aprende a analisar um projeto, identificar problemas, encontrar soluções e chegar a um resultado profissional, no mesmo processo que vai encontrar no mercado.
                 </p>
               </div>
             </div>
@@ -467,45 +458,15 @@ export const OfficialLanding: React.FC<OfficialLandingProps> = ({
             <div className="p-8 sm:p-10 rounded-3xl bg-[#ffffff] border border-[#e5e5e7] shadow-sm flex flex-col justify-between">
               <div>
                 <h3 className="text-xl sm:text-2xl font-semibold text-[#1d1d1f] tracking-tight mb-3">
-                  E isso continua depois do treinamento
+                  E continua depois do treinamento
                 </h3>
                 <p className="text-sm sm:text-base text-[#6e6e73] leading-relaxed mb-3">
-                  Ao trabalhar com projetos reais, você também constrói material que pode demonstrar sua capacidade profissional. Para quem ainda não tem muitos trabalhos no portfólio, essa experiência pode ser especialmente importante: você passa a ter contato com materiais profissionais e aprende a apresentar melhor aquilo que sabe fazer.
+                  Ao trabalhar com projetos reais, você constrói material para mostrar o que sabe fazer. Se o seu portfólio ainda tem poucos trabalhos, isso ajuda: você passa a ter contato com material profissional e aprende a apresentar melhor o seu trabalho.
                 </p>
                 <p className="text-sm sm:text-base text-[#6e6e73] leading-relaxed">
-                  O objetivo é que, ao final do treinamento, você não tenha apenas assistido às aulas. <strong className="text-[#1d1d1f] font-semibold">Você tenha desenvolvido repertório, prática e mais confiança para aplicar esse conhecimento em projetos reais.</strong>
+                  Ao final, você não apenas assistiu às aulas. <strong className="text-[#1d1d1f] font-semibold">Desenvolveu repertório, prática e confiança para aplicar o que aprendeu em projetos reais.</strong>
                 </p>
               </div>
-            </div>
-          </div>
-
-          {/* 3 Summary Feature Pillars */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
-            <div className="p-6 sm:p-8 rounded-2xl bg-[#ffffff] border border-[#e5e5e7] shadow-xs">
-              <h4 className="text-sm sm:text-base uppercase tracking-wider text-[#0071e3] font-bold block mb-2">
-                Projetos Reais
-              </h4>
-              <p className="text-sm sm:text-base text-[#6e6e73] leading-relaxed">
-                Aprenda a partir de trabalhos produzidos para clientes e situações que realmente acontecem no mercado.
-              </p>
-            </div>
-
-            <div className="p-6 sm:p-8 rounded-2xl bg-[#ffffff] border border-[#e5e5e7] shadow-xs">
-              <h4 className="text-sm sm:text-base uppercase tracking-wider text-[#0071e3] font-bold block mb-2">
-                Prática Profissional
-              </h4>
-              <p className="text-sm sm:text-base text-[#6e6e73] leading-relaxed">
-                Tenha acesso aos arquivos e acompanhe o processo como se estivesse no set, na pós-produção ou na ilha de edição.
-              </p>
-            </div>
-
-            <div className="p-6 sm:p-8 rounded-2xl bg-[#ffffff] border border-[#e5e5e7] shadow-xs">
-              <h4 className="text-sm sm:text-base uppercase tracking-wider text-[#0071e3] font-bold block mb-2">
-                Portfólio e Repertório
-              </h4>
-              <p className="text-sm sm:text-base text-[#6e6e73] leading-relaxed">
-                Desenvolva trabalhos, decisões e resultados que ajudam você a construir experiência e apresentar melhor seu trabalho profissional.
-              </p>
             </div>
           </div>
         </div>
@@ -567,16 +528,16 @@ export const OfficialLanding: React.FC<OfficialLandingProps> = ({
           <div className="h-4" />
           <div className="max-w-4xl mx-auto text-center p-10 sm:p-16 rounded-3xl bg-[#ffffff] border border-[#e5e5e7] shadow-sm my-auto w-full px-4 sm:px-6 lg:px-8">
             <h2 className="text-3xl sm:text-5xl font-semibold tracking-tight text-[#1d1d1f] mb-4">
-              Evolua a qualidade das suas imagens.
+              Escolha seu treinamento e comece hoje.
             </h2>
             <p className="text-base text-[#86868b] max-w-lg mx-auto mb-8 font-normal">
-              Escolha o treinamento ideal e tenha acesso imediato a todas as aulas práticas.
+              O acesso é imediato depois da compra.
             </p>
             <a
               href="#treinamentos"
               className="inline-flex items-center justify-center px-8 py-3.5 rounded-full bg-[#0071e3] hover:bg-[#0077ed] text-white text-sm font-semibold transition-all shadow-sm active:scale-95"
             >
-              Ver Treinamentos Disponíveis
+              Ver os treinamentos
             </a>
           </div>
         </div>

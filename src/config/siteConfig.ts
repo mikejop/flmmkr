@@ -4,7 +4,7 @@ export const SITE_CONFIG = {
   name: 'FLMMKR',
   author: {
     name: 'Michael Oliveira',
-    title: 'Aprenda a criar imagens melhores.',
+    title: 'Aprenda audiovisual como quem já está no mercado.',
     role: 'Diretor, Diretor de Fotografia e Colorista',
     bio: `Diretor, diretor de fotografia, colorista e profissional de pós-produção, com mais de 20 anos de experiência no audiovisual.
 

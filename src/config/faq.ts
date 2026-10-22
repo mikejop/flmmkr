@@ -7,81 +7,96 @@ export const GENERAL_FAQ: FAQItem[] = [
   {
     question: 'Para quem são os treinamentos?',
     answer:
-      'Os treinamentos são principalmente para profissionais do audiovisual que querem subir o nível do próprio trabalho: entregar mais qualidade, melhorar o fluxo de produção e pós-produção, trabalhar com mais segurança e ganhar velocidade nas entregas. Também temos conteúdos para quem ainda não atua profissionalmente na área. Para esse público, existem treinamentos específicos e uma trilha de aprendizado que começa nos fundamentos e acompanha a evolução do aluno até conteúdos mais avançados e voltados ao mercado profissional.'
+      'Para quem trabalha com audiovisual e quer entregar mais qualidade, com mais segurança e mais velocidade no fluxo de produção e pós-produção. Também para quem está começando e para estudantes da área: existem treinamentos de fundamentos e uma trilha que avança, aos poucos, até conteúdos voltados ao mercado profissional. Os requisitos de cada treinamento ficam na página dele.'
   },
   {
     question: 'Preciso ter experiência profissional para participar?',
     answer:
-      'Não necessariamente. Isso depende do treinamento. Alguns conteúdos partem de conhecimentos prévios e são indicados para quem já trabalha na área. Outros foram desenvolvidos para quem está começando e não possui experiência profissional. Além disso, temos uma trilha de formação composta por treinamentos independentes, que permite começar pelos fundamentos e avançar progressivamente até conteúdos direcionados a profissionais mais experientes.'
+      'Depende do treinamento. Alguns partem de conhecimento prévio e são para quem já trabalha na área. Outros foram feitos para quem está começando. Como os treinamentos da trilha são independentes, você pode começar pelos fundamentos e avançar até os conteúdos para profissionais mais experientes.'
+  },
+  {
+    question: 'Por onde eu começo?',
+    answer:
+      'Hoje, o treinamento disponível é o Color Master - Produtos. Os demais estão em breve e seguem a trilha dos fundamentos ao avançado. Na página de cada treinamento você vê o que ele ensina e o que precisa ter para acompanhar.'
   },
   {
     question: 'Preciso ter equipamentos profissionais?',
     answer:
-      'Não necessariamente. Uma das bases da nossa filosofia é que é possível fazer muito com pouco. Equipamentos mais caros são, sim, importantes e geralmente entregam recursos e qualidade compatíveis com o investimento. Mas eles não são a única condição para produzir um bom trabalho. É possível ter equipamentos de alto nível e ainda assim entregar um resultado sem consistência. Da mesma forma, é possível trabalhar com equipamentos mais simples e produzir imagens excelentes. Conhecimento, técnica, repertório e capacidade de decisão fazem uma diferença enorme. O equipamento importa, mas saber usar o que você tem é ainda mais importante.'
+      'Não necessariamente. Equipamento melhor entrega mais recursos, mas não garante um bom trabalho: dá para ter uma câmera de alto nível e entregar um resultado sem consistência, e dá para fazer imagens excelentes com equipamento simples. Conhecimento, técnica, repertório e capacidade de decisão pesam muito mais. O equipamento importa, mas saber usar o que você tem importa ainda mais.'
   },
   {
     question: 'Como funciona a metodologia?',
     answer:
-      'Nossa metodologia foi desenvolvida a partir da experiência real no mercado audiovisual. Em vez de trabalhar apenas com exercícios criados para ensinar uma ferramenta, utilizamos projetos reais, problemas reais e soluções reais do dia a dia de uma produção. O aluno tem contato com materiais profissionais e acompanha processos que fazem parte da rotina de um set de gravação e de uma ilha de pós-produção. A proposta é mostrar o que realmente acontece durante um projeto: as decisões que precisam ser tomadas, os problemas que aparecem, os ajustes necessários e o caminho até o resultado final. Queremos formar profissionais que cheguem ao mercado mais preparados, com menos dúvidas na hora de trabalhar e mais segurança para tomar decisões.'
+      'Ela nasceu da experiência real no mercado audiovisual. Em vez de exercícios criados só para ensinar uma ferramenta, usamos projetos, problemas e soluções reais de produção. Você tem contato com materiais profissionais e acompanha o que acontece em um set de gravação e em uma ilha de pós-produção: as decisões, os problemas, os ajustes e o caminho até o resultado final. A ideia é que você chegue ao mercado mais preparado, com menos dúvidas na hora de trabalhar e mais segurança para decidir.'
   },
   {
     question: 'Os treinamentos ensinam apenas a parte técnica?',
     answer:
-      'Depende do tipo de treinamento. Em conteúdos mais curtos, como Masterclasses, o foco pode ser principalmente técnico e applied, com o objetivo de desenvolver uma habilidade específica de forma direta. Já nas Formações, o aprendizado vai além da ferramenta. O aluno constrói uma base teórica sólida e, a partir dela, aplica a técnica para compreender melhor o processo e chegar a resultados mais consistentes. A ideia é que você entenda tanto como fazer quanto o que está por trás daquilo que está fazendo.'
+      'Depende do tipo de treinamento. Nos conteúdos mais curtos, como as Masterclasses, o foco é técnico e aplicado: desenvolver uma habilidade específica de forma direta. Nas Formações, o aprendizado vai além da ferramenta. Você constrói uma base teórica sólida e aplica a técnica para entender o processo e chegar a resultados mais consistentes. Assim, você sabe como fazer e também o porquê.'
   },
   {
     question: 'Vou trabalhar com projetos reais?',
     answer:
-      'Sim, quando essa experiência fizer parte da proposta do treinamento. Os projetos são utilizados para aproximar o aprendizado da realidade profissional, permitindo que o aluno entre em contato com materiais, situações e decisões que fazem parte de trabalhos realizados no mercado. É uma forma de aprender observando não apenas o resultado final, mas também o processo que levou até ele.'
+      'Sim, nos treinamentos em que isso faz parte da proposta. Os projetos aproximam o aprendizado da realidade profissional: você vê os materiais, as situações e as decisões de trabalhos feitos no mercado e observa não só o resultado final, mas o processo que levou até ele.'
   },
   {
     question: 'Terei acesso aos arquivos dos projetos?',
     answer:
-      'Nos treinamentos que utilizam projetos reais, sim. Os materiais disponibilizados fazem parte da experiência prática e permitem que o aluno acompanhe e execute o processo com arquivos profissionais. A disponibilidade e o formato dos arquivos podem variar de acordo com cada treinamento.'
+      'Nos treinamentos que usam projetos reais, sim. Os materiais fazem parte da prática e permitem que você execute o processo com arquivos profissionais. A disponibilidade e o formato dos arquivos variam de acordo com cada treinamento.'
   },
   {
     question: 'Posso usar os trabalhos desenvolvidos no meu portfólio?',
     answer:
-      'Sim, e nós recomendamos que você faça isso. Os projetos desenvolvidos durante os treinamentos podem ser apresentados como estudos ou projetos pessoais desenvolvidos durante sua formação. Como alguns desses materiais tiveram origem em projetos reais produzidos para empresas e clientes, recomendamos deixar isso claro na apresentação. Evite apresentar o trabalho como um projeto que você realizou profissionalmente para aquele cliente, caso você não tenha participado daquela produção como profissional. Essa transparência é importante porque apresentar o mesmo projeto como sendo seu trabalho profissional pode gerar dúvidas para quem estiver avaliando seu portfólio. Para quem ainda não possui muitos trabalhos, essa experiência pode ajudar a começar a construir um portfólio com materiais mais próximos da realidade profissional.'
+      'Sim, e recomendamos que você use. Apresente os projetos como estudos ou projetos pessoais feitos durante a sua formação. Como parte dos materiais teve origem em trabalhos reais para empresas e clientes, deixe isso claro e evite apresentar o projeto como um trabalho profissional seu para aquele cliente, se você não participou da produção. Essa transparência protege a credibilidade do seu portfólio. Para quem ainda tem poucos trabalhos, é uma forma de começar com materiais mais próximos da realidade profissional.'
   },
   {
     question: 'Recebo certificado?',
     answer:
-      'Depende do formato do treinamento. Treinamentos curtos, como Masterclasses, não possuem certificado. Já os treinamentos mais longos, como as Formações, possuem certificação de conclusão conforme os critérios definidos para cada programa.'
+      'Depende do formato do treinamento. Os mais curtos, como as Masterclasses, não têm certificado. Os mais longos, como as Formações, têm certificado de conclusão, conforme os critérios de cada programa.'
   },
   {
     question: 'Tenho acesso ao conteúdo por quanto tempo?',
     answer:
-      'O acesso aos treinamentos é de 12 meses. Após esse período, o aluno pode renovar o acesso por mais 12 meses pagando 30% do valor pago na contratação anterior. Por exemplo: se o treinamento foi adquirido por R$ 195, a renovação no primeiro ciclo será de R$ 58,50. Mesmo que o preço atual do treinamento tenha aumentado, a renovação continua sendo calculada com base no valor da contratação anterior, e não no preço vigente. A renovação pode ser solicitada pelo próprio aluno ou realizada com o apoio de um consultor.'
+      'O acesso aos treinamentos é de 12 meses. Depois disso, você pode renovar por mais 12 meses pagando 30% do valor que pagou na contratação anterior. Por exemplo: se você pagou R$ 100, a renovação do primeiro ciclo custa R$ 30. Mesmo que o preço atual do treinamento tenha subido, a renovação é calculada sobre o valor que você pagou, e não sobre o preço vigente. Você pode pedir a renovação por conta própria ou com o apoio de um consultor.'
+  },
+  {
+    question: 'Quais são as formas de pagamento?',
+    answer:
+      'Aceitamos PIX e cartão de crédito. As condições de parcelamento aparecem no momento da compra.'
+  },
+  {
+    question: 'Posso pedir reembolso?',
+    answer:
+      'Sim. Você pode pedir o reembolso integral em até 7 dias corridos depois da confirmação do pagamento, conforme o Código de Defesa do Consumidor. O pedido é feito dentro da sua conta, na área de membros.'
   },
   {
     question: 'Vou ter suporte durante o treinamento?',
     answer:
-      'Sim, mas o formato de suporte varia de acordo com cada treinamento. Em alguns programas, o suporte é realizado em grupo, com encontros ao vivo duas vezes por mês para que os alunos possam tirar dúvidas e discutir questões relacionadas ao conteúdo. Em outros, o suporte pode ser limitado à parte técnica, como acesso à plataforma, materiais e funcionamento do produto. Para quem busca um acompanhamento mais próximo do professor, também existe um plano de suporte individual, que pode ser contratado separadamente. Nesse formato, o aluno tem encontros 1:1 com o professor para tirar dúvidas, discutir processos e até receber orientação sobre projetos nos quais esteja trabalhando. O suporte individual pode ser contratado em diferentes frequências, como uma vez por semana, duas vezes por semana, a cada 15 dias ou uma vez por mês. Os valores variam de acordo com a frequência escolhida e com o treinamento.'
+      'Sim, mas o formato varia de acordo com o treinamento. Em alguns programas, o suporte é em grupo, com encontros ao vivo duas vezes por mês para tirar dúvidas e discutir o conteúdo. Em outros, ele se limita à parte técnica: acesso à plataforma, materiais e funcionamento do produto. Para quem quer acompanhamento mais próximo, existe um plano de suporte individual, contratado separadamente: encontros 1:1 com o professor para tirar dúvidas, discutir processos e receber orientação sobre os seus projetos. Ele pode ser semanal, duas vezes por semana, quinzenal ou mensal, e os valores variam com a frequência e com o treinamento.'
   },
   {
     question: 'Preciso usar algum programa específico?',
     answer:
-      'Você precisa utilizar os programas necessários para acompanhar o treinamento que escolheu. Por exemplo, em um treinamento de Color Grading, será necessário utilizar o DaVinci Resolve. Os softwares e requisitos específicos de cada treinamento estarão informados na página do produto antes da inscrição.'
+      'Você precisa usar os programas do treinamento que escolher. Por exemplo, em um treinamento de Color Grading, o DaVinci Resolve. Os softwares e requisitos de cada treinamento estão informados na página do produto, antes da inscrição.'
   },
   {
     question: 'Onde os treinamentos acontecem?',
     answer:
-      'Os treinamentos acontecem online, pela plataforma proprietária do Hīrō Hub. Quando houver aulas ou encontros ao vivo, utilizaremos plataformas como Zoom ou Google Meet, de acordo com a proposta de cada treinamento.'
+      'Online, pela plataforma proprietária do Hīrō Hub. Quando houver aulas ou encontros ao vivo, usamos plataformas como Zoom ou Google Meet, de acordo com a proposta de cada treinamento.'
   },
   {
     question: 'Os treinamentos são ao vivo ou gravados?',
     answer:
-      'Isso depende do treinamento. Alguns programas possuem aulas gravadas para que o aluno possa estudar no próprio ritmo. Outros incluem encontros ao vivo, e algumas formações podem combinar os dois formatos. As informações sobre formato, duração, encontros e materiais disponíveis ficam descritas na página de cada treinamento.'
+      'Depende do treinamento. Alguns têm aulas gravadas, para você estudar no seu ritmo. Outros incluem encontros ao vivo, e algumas formações combinam os dois formatos. Formato, duração, encontros e materiais ficam descritos na página de cada treinamento.'
   },
   {
     question: 'Preciso ter um computador potente?',
     answer:
-      'Isso depende do treinamento e do software utilizado. Como trabalhamos com audiovisual e pós-produção, alguns conteúdos podem exigir uma máquina capaz de executar determinados programas e trabalhar com arquivos de vídeo com maior facilidade. Quando houver requisitos técnicos específicos, eles serão informados na página do treinamento para que você possa verificar antes da compra.'
+      'Depende do treinamento e do software. Como trabalhamos com audiovisual e pós-produção, alguns conteúdos exigem uma máquina capaz de rodar certos programas e lidar bem com arquivos de vídeo. Quando houver requisitos técnicos, eles aparecem na página do treinamento, para você conferir antes da compra.'
   },
   {
     question: 'Posso fazer os treinamentos no meu próprio ritmo?',
     answer:
-      'Nos treinamentos gravados, sim. Você pode organizar seus estudos de acordo com sua rotina e aproveitar o período de acesso disponível. Nos treinamentos que possuem encontros ao vivo, essas atividades seguem o calendário definido para aquele programa.'
+      'Nos treinamentos gravados, sim. Você organiza os estudos de acordo com a sua rotina e aproveita o período de acesso. Nos que têm encontros ao vivo, essas atividades seguem o calendário do programa.'
   }
 ];
