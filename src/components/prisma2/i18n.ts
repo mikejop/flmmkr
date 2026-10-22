@@ -62,6 +62,11 @@ export type Dict = {
   errNetwork: string;
   errWait: string;
   errTooMany: string;
+  mobileTitle: string;
+  mobileText: string;
+  mobileCopy: string;
+  mobileCopied: string;
+  mobileClose: string;
 };
 
 export const DICT: Record<LangCode, Dict> = {
@@ -110,6 +115,11 @@ export const DICT: Record<LangCode, Dict> = {
     errNetwork: 'Sem conexão. Verifique a internet e tente de novo.',
     errWait: 'Aguarde a verificação de segurança terminar.',
     errTooMany: 'Muitas tentativas. Aguarde alguns minutos e tente novamente.',
+    mobileTitle: 'Software exclusivo para computadores',
+    mobileText: 'O PRISMA 2 é exclusivo para computadores e não pode ser usado no smartphone. Copie o link e envie para o seu computador pelo seu mensageiro favorito.',
+    mobileCopy: 'Copiar o link',
+    mobileCopied: 'Link copiado',
+    mobileClose: 'Fechar sem copiar',
   },
   en: {
     download: 'Download',
@@ -156,6 +166,11 @@ export const DICT: Record<LangCode, Dict> = {
     errNetwork: 'No connection. Check your internet and try again.',
     errWait: 'Wait for the security check to finish.',
     errTooMany: 'Too many attempts. Wait a few minutes and try again.',
+    mobileTitle: 'Software for computers only',
+    mobileText: 'PRISMA 2 is exclusive to computers and cannot be used on a smartphone. Copy the link and send it to your computer through your favorite messaging app.',
+    mobileCopy: 'Copy link',
+    mobileCopied: 'Link copied',
+    mobileClose: 'Close without copying',
   },
   es: {
     download: 'Descargar',
@@ -202,6 +217,11 @@ export const DICT: Record<LangCode, Dict> = {
     errNetwork: 'Sin conexión. Revisa tu internet e inténtalo de nuevo.',
     errWait: 'Espera a que termine la verificación de seguridad.',
     errTooMany: 'Demasiados intentos. Espera unos minutos e inténtalo de nuevo.',
+    mobileTitle: 'Software exclusivo para computadoras',
+    mobileText: 'PRISMA 2 es exclusivo para computadoras y no se puede usar en el smartphone. Copia el enlace y envíalo a tu computadora con tu mensajero favorito.',
+    mobileCopy: 'Copiar el enlace',
+    mobileCopied: 'Enlace copiado',
+    mobileClose: 'Cerrar sin copiar',
   },
   it: {
     download: 'Scarica',
@@ -248,6 +268,11 @@ export const DICT: Record<LangCode, Dict> = {
     errNetwork: 'Nessuna connessione. Controlla internet e riprova.',
     errWait: 'Attendi il termine del controllo di sicurezza.',
     errTooMany: 'Troppi tentativi. Attendi qualche minuto e riprova.',
+    mobileTitle: 'Software esclusivo per computer',
+    mobileText: 'PRISMA 2 è esclusivo per computer e non può essere usato su smartphone. Copia il link e invialo al tuo computer con la tua app di messaggistica preferita.',
+    mobileCopy: 'Copia il link',
+    mobileCopied: 'Link copiato',
+    mobileClose: 'Chiudi senza copiare',
   },
   fr: {
     download: 'Télécharger',
@@ -294,6 +319,11 @@ export const DICT: Record<LangCode, Dict> = {
     errNetwork: 'Pas de connexion. Vérifiez internet et réessayez.',
     errWait: 'Attendez la fin de la vérification de sécurité.',
     errTooMany: 'Trop de tentatives. Attendez quelques minutes et réessayez.',
+    mobileTitle: 'Logiciel réservé aux ordinateurs',
+    mobileText: 'PRISMA 2 est réservé aux ordinateurs et ne peut pas être utilisé sur smartphone. Copiez le lien et envoyez-le à votre ordinateur via votre messagerie préférée.',
+    mobileCopy: 'Copier le lien',
+    mobileCopied: 'Lien copié',
+    mobileClose: 'Fermer sans copier',
   },
   ar: {
     download: 'تنزيل',
@@ -340,6 +370,11 @@ export const DICT: Record<LangCode, Dict> = {
     errNetwork: 'لا يوجد اتصال. تحقق من الإنترنت وحاول مرة أخرى.',
     errWait: 'انتظر حتى ينتهي التحقق الأمني.',
     errTooMany: 'محاولات كثيرة. انتظر بضع دقائق وحاول مرة أخرى.',
+    mobileTitle: 'برنامج حصري لأجهزة الكمبيوتر',
+    mobileText: 'PRISMA 2 حصري لأجهزة الكمبيوتر ولا يمكن استخدامه على الهاتف الذكي. انسخ الرابط وأرسله إلى جهاز الكمبيوتر عبر تطبيق المراسلة المفضل لديك.',
+    mobileCopy: 'نسخ الرابط',
+    mobileCopied: 'تم نسخ الرابط',
+    mobileClose: 'إغلاق دون نسخ',
   },
   zh: {
     download: '下载',
@@ -386,5 +421,10 @@ export const DICT: Record<LangCode, Dict> = {
     errNetwork: '没有网络连接，请检查网络后重试。',
     errWait: '请等待安全验证完成。',
     errTooMany: '尝试次数过多，请等几分钟后再试。',
+    mobileTitle: '仅限电脑使用的软件',
+    mobileText: 'PRISMA 2 仅限电脑使用，无法在智能手机上使用。请复制链接，并通过你常用的通讯软件发送到电脑。',
+    mobileCopy: '复制链接',
+    mobileCopied: '链接已复制',
+    mobileClose: '不复制，直接关闭',
   },
 };

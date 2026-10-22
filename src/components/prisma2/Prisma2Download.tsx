@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import Image from 'next/image';
 import Prisma2DownloadModal from '@/components/prisma2/Prisma2DownloadModal';
+import Prisma2MobileNotice, { isSmartphone } from '@/components/prisma2/Prisma2MobileNotice';
 import { DEFAULT_LANG, DICT, LANGS, detectLang, type LangCode } from '@/components/prisma2/i18n';
 
 const STORAGE_KEY = 'prisma2-lang';
@@ -19,6 +20,7 @@ const ALT_INDEX = [0, -1, 1, 2, -1];
 export default function Prisma2Download() {
   const [open, setOpen] = useState(false);
   const [lang, setLang] = useState<LangCode>(DEFAULT_LANG);
+  const [phone, setPhone] = useState(false);
   const close = useCallback(() => setOpen(false), []);
 
   // Idioma: escolha salva do visitante, senão o idioma do navegador.
@@ -26,6 +28,7 @@ export default function Prisma2Download() {
     let saved: string | null = null;
     try { saved = localStorage.getItem(STORAGE_KEY); } catch {}
     const known = LANGS.find((l) => l.code === saved)?.code;
+    setPhone(isSmartphone());
     setLang(known ?? detectLang(navigator.languages?.length ? navigator.languages : [navigator.language]));
   }, []);
 
@@ -133,7 +136,8 @@ export default function Prisma2Download() {
         </div>
       </footer>
 
-      {open && <Prisma2DownloadModal onClose={close} t={t} privacyHref="/privacidade" />}
+      {phone && <Prisma2MobileNotice t={t} />}
+      {open && !phone && <Prisma2DownloadModal onClose={close} t={t} privacyHref="/privacidade" />}
     </div>
   );
 }
