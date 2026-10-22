@@ -85,7 +85,10 @@ export default function Prisma2Download() {
             <span className="flex items-center justify-center gap-3 text-[56px] font-bold leading-[1.05] tracking-[-0.03em] sm:gap-5 sm:text-[96px]">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src="/prisma2/prisma-wordmark.svg" alt="PRISMA" width={245} height={50} className="h-[40px] w-auto sm:h-[68px]" />
-              <span>2</span>
+              <span className="relative">
+                2
+                <span className="absolute left-full top-[0.12em] ms-2 rounded-full bg-[#0071e3]/10 px-2 py-[3px] text-[11px] font-semibold leading-none tracking-normal text-[#0071e3] sm:ms-3 sm:px-3 sm:py-1 sm:text-[17px]">Beta</span>
+              </span>
             </span>
             <span className="mt-3 block text-[24px] font-medium leading-tight tracking-tight text-[#1d1d1f] sm:text-[32px]">Screen Capture for MacOS</span>
           </h1>
