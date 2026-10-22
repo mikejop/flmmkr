@@ -56,7 +56,8 @@
 - **URL Canônica**: https://flmmkr.site/prisma2/download
 - **O que é**: gravador de tela leve para macOS, feito para quem ensina, da FLMMKR. Está em open beta (versão 2.0.0).
 - **Recursos**: grava a tela e o áudio do sistema; grava o microfone e a câmera; usa o celular como câmera e controle remoto por QR Code, pela rede local e sem internet; salva o local da gravação nos metadados (opcional).
-- **Requisitos**: macOS 15 ou superior (com Liquid Glass no macOS 26). Exclusivo para computadores Mac; não funciona em smartphones nem no Windows.
+- **Requisitos**: macOS 15 ou superior (com Liquid Glass no macOS 26). A versão beta foi testada apenas em Macs com processador Apple Silicon. Exclusivo para computadores Mac; não funciona em smartphones nem no Windows.
+- **Preço**: a versão beta é gratuita. A versão paga custa R$ 49,90 em licença vitalícia, sem mensalidade e sem outras cobranças para usar, com 12 meses de atualizações. Quem usar a versão beta não precisa pagar quando o programa deixar de ser beta e também recebe os 12 meses de atualizações.
 - **Download**: arquivo .dmg de cerca de 25 MB, liberado após um cadastro simples (nome, sobrenome e e-mail).
 - **Primeira abertura**: por estar na primeira fase do open beta, o macOS bloqueia a primeira abertura. Liberação única em Ajustes do Sistema > Privacidade e Segurança > Abrir Mesmo Assim.
 - **Idiomas da página**: português do Brasil, inglês, espanhol, italiano, francês, árabe e chinês.
