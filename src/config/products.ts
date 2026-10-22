@@ -62,7 +62,7 @@ export const PRODUCTS: Product[] = [
     slug: 'color-master-produto',
     name: 'Color Master - Produtos',
     subtitle: 'Masterclass de Color Grading para vídeos de produto com padrão de comercial de TV',
-    description: 'Aprenda a analisar, equilibrar, igualar e construir o look de imagens de produto no DaVinci Resolve. Treinamento prático com footage real de comerciais.',
+    description: 'Aprenda a analisar, equilibrar, igualar e construir o look de imagens de produto no DaVinci Resolve. Treinamento prático com footages reais.',
     socialDescription: 'Color Master - Produtos — Inscrições Abertas',
     url: '/produtos/color-master-produto',
     badge: 'Disponível Agora',
