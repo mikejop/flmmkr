@@ -11,6 +11,7 @@ export const metadata: Metadata = {
   // Favicon desta página: o ícone do app PRISMA 2
   icons: {
     icon: [
+      { url: '/prisma2/favicon-16.png', sizes: '16x16', type: 'image/png' },
       { url: '/prisma2/favicon-32.png', sizes: '32x32', type: 'image/png' },
       { url: '/prisma2/favicon-192.png', sizes: '192x192', type: 'image/png' },
     ],
