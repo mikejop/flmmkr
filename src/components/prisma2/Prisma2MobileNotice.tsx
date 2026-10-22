@@ -52,7 +52,10 @@ export default function Prisma2MobileNotice({ t }: { t: Dict }) {
 
   const copy = async () => {
     const ok = await copyText(`${window.location.origin}${PAGE_PATH}`);
-    if (ok) setCopied(true);
+    if (!ok) return;
+    setCopied(true);
+    // Mostra "Link copiado" por um instante e segue para o Color Master (a mensagem fecha junto).
+    setTimeout(close, 700);
   };
 
   return (
@@ -66,6 +69,7 @@ export default function Prisma2MobileNotice({ t }: { t: Dict }) {
         <button
           type="button"
           onClick={copy}
+          disabled={copied}
           className="mt-6 h-12 w-full rounded-full bg-[#0071e3] text-[17px] font-medium text-white transition active:bg-[#006edb]"
         >
           {copied ? `✓ ${t.mobileCopied}` : t.mobileCopy}
