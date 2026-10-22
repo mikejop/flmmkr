@@ -5,6 +5,7 @@ import Image from 'next/image';
 import Prisma2DownloadModal from '@/components/prisma2/Prisma2DownloadModal';
 import Prisma2MobileNotice, { isSmartphone } from '@/components/prisma2/Prisma2MobileNotice';
 import { CONTENT } from '@/components/prisma2/content';
+import { FEATURES } from '@/components/prisma2/features';
 import { DEFAULT_LANG, DICT, LANGS, detectLang, type LangCode } from '@/components/prisma2/i18n';
 
 const STORAGE_KEY = 'prisma2-lang';
@@ -36,6 +37,7 @@ export default function Prisma2Download() {
   const meta = LANGS.find((l) => l.code === lang) ?? LANGS[1];
   const t = DICT[lang];
   const c = CONTENT[lang];
+  const f = FEATURES[lang];
   const [rightsBefore, rightsAfter = ''] = t.rights.split('FLMMKR');
 
   useEffect(() => {
@@ -92,14 +94,22 @@ export default function Prisma2Download() {
         <section aria-labelledby="p2-features" className="px-6 py-20 sm:py-28">
           <div className="mx-auto max-w-[980px]">
             <h2 id="p2-features" className="text-center text-[32px] font-semibold leading-[1.1] tracking-tight sm:text-[48px]">{c.featuresTitle}</h2>
-            <ul className="mt-14 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-              {c.features.map((f) => (
-                <li key={f.title} className="rounded-[28px] bg-[#f5f5f7] p-7">
-                  <h3 className="text-[21px] font-semibold leading-tight tracking-tight">{f.title}</h3>
-                  <p className="mt-2 text-[17px] leading-snug text-[#6e6e73]">{f.text}</p>
-                </li>
+            <p className="mx-auto mt-5 max-w-2xl text-center text-[19px] leading-snug text-[#6e6e73] sm:text-[21px]">{f.intro}</p>
+            <div className="mt-14 grid gap-6 md:grid-cols-2">
+              {f.groups.map((g, i) => (
+                <section key={g.title} className={`rounded-[28px] bg-[#f5f5f7] p-7 sm:p-9 ${f.groups.length % 2 === 1 && i === f.groups.length - 1 ? 'md:col-span-2' : ''}`}>
+                  <h3 className="text-[24px] font-semibold leading-tight tracking-tight">{g.title}</h3>
+                  <ul className="mt-4 space-y-3">
+                    {g.items.map((item) => (
+                      <li key={item} className="flex gap-3 text-[16px] leading-snug text-[#424245]">
+                        <span aria-hidden="true" className="mt-[7px] h-1.5 w-1.5 shrink-0 rounded-full bg-[#0071e3]" />
+                        <span>{item}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </section>
               ))}
-            </ul>
+            </div>
           </div>
         </section>
 

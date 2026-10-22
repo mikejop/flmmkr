@@ -2,13 +2,14 @@ import type { Metadata } from 'next';
 import Script from 'next/script';
 import Prisma2Download from '@/components/prisma2/Prisma2Download';
 import { CONTENT } from '@/components/prisma2/content';
+import { FEATURES } from '@/components/prisma2/features';
 import { SITE_CONFIG } from '@/config/siteConfig';
 
 const PAGE_URL = `${SITE_CONFIG.seo.url}/prisma2/download`;
 const OG_IMAGE = '/prisma2/og-prisma2.png';
 const TITLE = 'PRISMA 2: gravador de tela para Mac, leve e feito para quem ensina | FLMMKR';
 const DESCRIPTION =
-  'PRISMA 2 é um gravador de tela leve para macOS: grava tela, áudio do sistema, microfone e câmera, e usa o celular como câmera e controle remoto. Baixe o open beta para Mac.';
+  'PRISMA 2 é um gravador de tela leve para macOS: grava tela até 120 fps, áudio do sistema, microfone e câmera, com ferramentas de desenho, lupa e teclas na tela, e usa o celular como câmera e controle remoto. Baixe o open beta.';
 
 export const metadata: Metadata = {
   title: { absolute: TITLE },
@@ -58,6 +59,7 @@ export const metadata: Metadata = {
 };
 
 const pt = CONTENT['pt-BR'];
+const ptFeatures = FEATURES['pt-BR'];
 
 // Dados estruturados (SEO, AEO e GEO): programa, perguntas e respostas e caminho de navegação. Só o que o app faz de fato.
 const JSON_LD = {
@@ -79,7 +81,7 @@ const JSON_LD = {
       fileSize: '25 MB',
       downloadUrl: PAGE_URL,
       inLanguage: ['pt-BR', 'en', 'es', 'it', 'fr', 'ar', 'zh'],
-      featureList: pt.features.map((f) => `${f.title}: ${f.text}`),
+      featureList: ptFeatures.groups.flatMap((g) => g.items.map((item) => `${g.title}: ${item}`)),
       author: { '@type': 'Organization', name: 'FLMMKR', url: SITE_CONFIG.seo.url },
       publisher: { '@type': 'Organization', name: 'FLMMKR', url: SITE_CONFIG.seo.url },
     },
