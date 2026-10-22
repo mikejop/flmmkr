@@ -277,7 +277,7 @@ export const OfficialLanding: React.FC<OfficialLandingProps> = ({
 
           {/* Subtext */}
           <p className="text-base sm:text-2xl text-white/90 font-normal tracking-tight max-w-2xl mx-auto mb-10 leading-relaxed drop-shadow-lg">
-            Treinamentos com projetos, arquivos e decisões de clientes reais. Você sai com repertório, portfólio e segurança para entregar.
+            Treinamentos com projetos, arquivos e decisões reais. Você sai com repertório, portfólio e segurança para entregar.
           </p>
 
           {/* CTA Buttons */}
