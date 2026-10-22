@@ -55,6 +55,8 @@ const nextConfig: NextConfig = {
   },
   async redirects() {
     return [
+      { source: '/prisma2', destination: '/prisma2/download', permanent: false },
+      { source: '/prisma', destination: '/prisma2/download', permanent: false },
       {
         source: '/color-master',
         destination: '/produtos/color-master',

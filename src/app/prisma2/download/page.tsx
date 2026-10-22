@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import Script from 'next/script';
 import Prisma2Download from '@/components/prisma2/Prisma2Download';
 
 // Página oculta: fora dos buscadores, do sitemap e de qualquer link das landing pages e da área de membros.
@@ -10,5 +11,17 @@ export const metadata: Metadata = {
 };
 
 export default function Prisma2DownloadPage() {
-  return <Prisma2Download />;
+  return (
+    <>
+      {/* Google Analytics desta página: adiciona a configuração ao gtag.js que o layout já carrega (mesmo padrão da página do produto) */}
+      <Script id="ga-prisma2" strategy="afterInteractive">
+        {`
+          window.dataLayer = window.dataLayer || [];
+          function gtag(){dataLayer.push(arguments);}
+          gtag('config', 'G-8G14SMDYXM');
+        `}
+      </Script>
+      <Prisma2Download />
+    </>
+  );
 }
