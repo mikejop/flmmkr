@@ -52,9 +52,6 @@ export const FEATURES: Record<LangCode, Features> = {
         'Análise de desempenho: teste real que diz se o Mac aguenta a configuração (OK, apertado ou impossível), lista processos pesados com botão para fechar, sugere uma configuração melhor e calcula o máximo que o Mac consegue.',
         'Calibração única do computador.',
       ] },
-      { title: 'Controle remoto', items: [
-        'App no iPhone e no Android, pareado por QR code, sem internet, com botões estilo Stream Deck (gravar, pausar, parar, ferramentas, cores, volume) e estado em tempo real.',
-      ] },
     ],
   },
   en: {
@@ -103,9 +100,6 @@ export const FEATURES: Record<LangCode, Features> = {
       { title: 'Performance', items: [
         'Performance analysis: a real test that tells you whether your Mac can handle the setup (OK, tight or impossible), lists heavy processes with a button to close them, suggests a better setup and calculates the maximum your Mac can do.',
         'One-time computer calibration.',
-      ] },
-      { title: 'Remote control', items: [
-        'App for iPhone and Android, paired by QR code, with no internet, with Stream Deck-style buttons (record, pause, stop, tools, colors, volume) and real-time status.',
       ] },
     ],
   },
@@ -156,9 +150,6 @@ export const FEATURES: Record<LangCode, Features> = {
         'Análisis de rendimiento: una prueba real que indica si el Mac aguanta la configuración (OK, justo o imposible), lista procesos pesados con botón para cerrarlos, sugiere una configuración mejor y calcula el máximo que el Mac puede hacer.',
         'Calibración única del ordenador.',
       ] },
-      { title: 'Control remoto', items: [
-        'App para iPhone y Android, emparejada por código QR, sin internet, con botones estilo Stream Deck (grabar, pausar, detener, herramientas, colores, volumen) y estado en tiempo real.',
-      ] },
     ],
   },
   it: {
@@ -207,9 +198,6 @@ export const FEATURES: Record<LangCode, Features> = {
       { title: 'Prestazioni', items: [
         'Analisi delle prestazioni: un test reale che dice se il Mac regge la configurazione (OK, al limite o impossibile), elenca i processi pesanti con un pulsante per chiuderli, suggerisce una configurazione migliore e calcola il massimo che il Mac può fare.',
         'Calibrazione unica del computer.',
-      ] },
-      { title: 'Controllo remoto', items: [
-        'App per iPhone e Android, abbinata con codice QR, senza internet, con pulsanti in stile Stream Deck (registra, pausa, stop, strumenti, colori, volume) e stato in tempo reale.',
       ] },
     ],
   },
@@ -260,9 +248,6 @@ export const FEATURES: Record<LangCode, Features> = {
         'Analyse des performances : un vrai test qui dit si le Mac supporte la configuration (OK, juste ou impossible), liste les processus lourds avec un bouton pour les fermer, suggère une meilleure configuration et calcule le maximum que le Mac peut faire.',
         'Calibrage unique de l’ordinateur.',
       ] },
-      { title: 'Télécommande', items: [
-        'App pour iPhone et Android, associée par code QR, sans internet, avec des boutons façon Stream Deck (enregistrer, pause, arrêter, outils, couleurs, volume) et état en temps réel.',
-      ] },
     ],
   },
   ar: {
@@ -312,9 +297,6 @@ export const FEATURES: Record<LangCode, Features> = {
         'تحليل الأداء: اختبار حقيقي يخبرك إن كان الـ Mac يتحمّل الإعداد (جيد أو ضيق أو مستحيل)، ويعرض العمليات الثقيلة مع زر لإغلاقها، ويقترح إعدادًا أفضل ويحسب أقصى ما يستطيعه الـ Mac.',
         'معايرة واحدة للكمبيوتر.',
       ] },
-      { title: 'التحكم عن بُعد', items: [
-        'تطبيق على iPhone وAndroid، مقترن برمز QR ودون إنترنت، بأزرار على طراز Stream Deck (تسجيل وإيقاف مؤقت وإيقاف وأدوات وألوان وصوت) وبحالة لحظية.',
-      ] },
     ],
   },
   zh: {
@@ -363,9 +345,6 @@ export const FEATURES: Record<LangCode, Features> = {
       { title: '性能', items: [
         '性能分析：真实测试，告诉你 Mac 能否承受当前设置（正常、吃紧或不可能），列出占用高的进程并提供关闭按钮，建议更合适的设置，并计算 Mac 能达到的最大值。',
         '电脑一次性校准。',
-      ] },
-      { title: '遥控', items: [
-        'iPhone 和 Android 应用，通过二维码配对，无需联网，带有 Stream Deck 风格的按钮（录制、暂停、停止、工具、颜色、音量）和实时状态。',
       ] },
     ],
   },
