@@ -3,33 +3,30 @@
  * Aula que não aparece aqui está liberada desde o começo.
  */
 
-const at = (day: number, hour = 14) =>
-  new Date(`2026-10-${String(day).padStart(2, '0')}T${String(hour).padStart(2, '0')}:00:00-03:00`).getTime();
+/** Início da contagem: 23/10/2026 às 21h10 (horário de Brasília). Cada aula depois de Primárias libera 24h após a anterior. */
+const START = new Date('2026-10-23T21:10:00-03:00').getTime();
+const DAY_MS = 24 * 60 * 60 * 1000;
+const afterDays = (days: number) => START + days * DAY_MS;
 
 const LESSON_RELEASE_AT: Record<string, number> = {
-  'mod2-2': at(19, 22), // Shot Matching: 19/10/2026 às 21h de Cuiabá (UTC-4) = 22h de Brasília
-  'mod2-3': at(18, 21), // Secundárias: trancada de novo, libera 18/10/2026 às 21h (24h)
-  'mod3-1': at(18, 21), // Criando Look sem Plugins: trancada de novo, libera 18/10/2026 às 21h (24h)
-  'mod3-2': at(19), // Film Look Creator: 19/10/2026 às 14h (+24h)
-  'mod3-3': at(20), // Dehancer Pro: 20/10/2026 às 14h (+24h)
-};
-
-/** Todas as aulas do módulo Bônus são liberadas juntas. */
-const MODULE_RELEASE_AT: Record<string, number> = {
-  mod4: at(22), // Bônus: 22/10/2026 às 14h (+24h)
+  'mod2-2': afterDays(1), // Shot Matching: +24h
+  'mod2-3': afterDays(2), // Secundárias: +48h
+  'mod3-1': afterDays(3), // Criando Look sem Plugins: +72h
+  'mod3-2': afterDays(4), // Film Look Creator: +96h
+  'mod3-3': afterDays(5), // Dehancer Pro: +120h
+  'mod4-1': afterDays(6), // Bônus 1: +144h
+  'mod4-2': afterDays(7), // Bônus 2: +168h
+  'mod4-3': afterDays(8), // Bônus 3: +192h
 };
 
 /** Momento da liberação (ms desde 1970), ou null se a aula já nasce liberada. */
 export function getLessonReleaseAt(lessonId: string): number | null {
-  if (Object.hasOwn(LESSON_RELEASE_AT, lessonId)) return LESSON_RELEASE_AT[lessonId];
-  const moduleId = lessonId.split('-')[0];
-  if (Object.hasOwn(MODULE_RELEASE_AT, moduleId)) return MODULE_RELEASE_AT[moduleId];
-  return null;
+  return Object.hasOwn(LESSON_RELEASE_AT, lessonId) ? LESSON_RELEASE_AT[lessonId] : null;
 }
 
 /** Próximo momento de liberação depois de `now`, para o site se atualizar sozinho quando a hora chegar. */
 export function getNextReleaseAfter(now: number): number | null {
-  const all = [...Object.values(LESSON_RELEASE_AT), ...Object.values(MODULE_RELEASE_AT)].filter((t) => t > now);
+  const all = Object.values(LESSON_RELEASE_AT).filter((t) => t > now);
   return all.length ? Math.min(...all) : null;
 }
 
