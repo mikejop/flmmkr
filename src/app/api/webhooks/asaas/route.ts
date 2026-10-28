@@ -128,6 +128,11 @@ export async function POST(req: NextRequest) {
       if (!verification.ok) {
         // Falha ao falar com o Asaas: responde erro para o Asaas reenviar. Qualquer outro motivo: não libera.
         if (verification.reason === 'asaas_lookup_failed') throw new Error('Consulta ao Asaas indisponível.');
+        // Doação recebida: não é compra, não há conta nem acesso a liberar.
+        if (verification.reason === 'donation') {
+          await markEvent('processed', 'doação: sem liberação de acesso');
+          return NextResponse.json({ received: true, donation: true });
+        }
         console.warn('[Asaas Webhook] Pagamento não liberado na reconsulta:', verification.reason);
         await markEvent('failed', `verificação recusada: ${verification.reason}`);
         trackedEventKey = null;

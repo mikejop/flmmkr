@@ -47,6 +47,8 @@ interface AsaasPaymentInput {
     addressNumber: string;
     phone: string;
   };
+  /** IP de quem paga (recomendado pelo Asaas em cobrança com cartão). */
+  remoteIp?: string;
 }
 
 interface AsaasCustomer {
@@ -77,6 +79,8 @@ interface AsaasPayment {
   transactionReceiptUrl?: string | null;
   billingType?: string;
   description?: string | null;
+  /** ID do link de pagamento do Asaas, quando a cobrança veio de um. */
+  paymentLink?: string | null;
   /** Datas civis (YYYY-MM-DD). O Asaas pode omitir confirmedDate em alguns meios; use a primeira que existir. */
   confirmedDate?: string | null;
   paymentDate?: string | null;
@@ -183,6 +187,7 @@ export const asaasService = {
     if (input.billingType === 'CREDIT_CARD' && input.creditCard) {
       payload.creditCard = input.creditCard;
       payload.creditCardHolderInfo = input.creditCardHolderInfo;
+      if (input.remoteIp) payload.remoteIp = input.remoteIp;
     }
 
     return asaasFetch<AsaasPayment>('/payments', {
@@ -196,6 +201,32 @@ export const asaasService = {
    */
   async getPixQrCode(paymentId: string): Promise<{ encodedImage: string; payload: string; expirationDate: string }> {
     return asaasFetch(`/payments/${paymentId}/pixQrCode`);
+  },
+
+  /** Primeira chave Pix ativa da conta (usada no QR Code estático de doação). */
+  async getActivePixAddressKey(): Promise<string | null> {
+    const res = await asaasFetch<{ data?: Array<{ key: string }> }>('/pix/addressKeys?status=ACTIVE');
+    return res.data?.[0]?.key ?? null;
+  },
+
+  /** QR Code Pix estático com valor fixo, sem cliente cadastrado. POST /pix/qrCodes/static */
+  async createStaticPixQrCode(input: {
+    addressKey: string;
+    value: number;
+    description: string;
+    externalReference: string;
+    expirationSeconds: number;
+  }): Promise<{ id: string; encodedImage: string; payload: string; expirationDate?: string }> {
+    return asaasFetch('/pix/qrCodes/static', {
+      method: 'POST',
+      body: JSON.stringify({ ...input, format: 'ALL', allowsMultiplePayments: false }),
+    });
+  },
+
+  /** Cobranças com um externalReference (ex.: o Pix de um QR Code estático depois de pago). */
+  async listPaymentsByExternalReference(externalReference: string): Promise<AsaasPayment[]> {
+    const res = await asaasFetch<{ data?: AsaasPayment[] }>(`/payments?externalReference=${encodeURIComponent(externalReference)}&limit=10`);
+    return res.data ?? [];
   },
 
   /**

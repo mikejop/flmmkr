@@ -1,5 +1,6 @@
 import 'server-only';
 import { asaasService } from '@/services/asaas';
+import { isDonationPayment } from '@/services/donation';
 
 const PAID_STATUSES = new Set(['RECEIVED', 'CONFIRMED']);
 
@@ -17,7 +18,8 @@ export type PaymentVerification =
  * Reconsulta a cobrança no Asaas (GET /v3/payments/{id}, com a chave do servidor) e só aprova quando:
  *  - o status é RECEIVED ou CONFIRMED (e a cobrança não foi apagada);
  *  - o valor bate com o pedido (ou, sem pedido, fica numa faixa que não deixa um produto mais barato liberar o curso);
- *  - o externalReference bate com o do pedido.
+ *  - o externalReference bate com o do pedido;
+ *  - a cobrança não é uma doação dos plugins.
  * O conteúdo do evento recebido no webhook nunca é usado para decidir.
  */
 export async function verifyPaidPayment(
@@ -34,6 +36,8 @@ export async function verifyPaidPayment(
   if (payment.id !== paymentId) return { ok: false, reason: 'payment_id_mismatch' };
   if (payment.deleted) return { ok: false, reason: 'payment_deleted' };
   if (!PAID_STATUSES.has(payment.status)) return { ok: false, reason: `status_${payment.status}` };
+  // Doação (página /plugins ou link de doação): nunca libera curso, seja qual for o valor.
+  if (isDonationPayment(payment)) return { ok: false, reason: 'donation' };
 
   const value = Number(payment.value);
   if (!Number.isFinite(value) || value <= 0) return { ok: false, reason: 'invalid_value' };
