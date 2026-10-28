@@ -7,6 +7,8 @@ export const revalidate = 86400;
 export const metadata = {
   title: 'Treinamentos | Michael Oliveira',
   description: 'Conheça todos os treinamentos de Direção de Fotografia e Color Grading com Michael Oliveira.',
+  // Sem isto a página herda o canonical '/' do layout raiz e o Google a trata como cópia da home.
+  alternates: { canonical: '/cursos' },
 };
 
 export default function CursosPage() {

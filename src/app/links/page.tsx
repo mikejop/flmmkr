@@ -7,6 +7,8 @@ export const revalidate = 86400;
 export const metadata = {
   title: 'Links & Cursos | Michael Oliveira',
   description: 'Acesse rapidamente todos os cursos e masterclasses de Michael Oliveira.',
+  // Sem isto a página herda o canonical '/' do layout raiz e o Google a trata como cópia da home.
+  alternates: { canonical: '/links' },
 };
 
 export default function LinksPage() {
