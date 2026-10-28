@@ -25,8 +25,16 @@ export const metadata: Metadata = {
   },
   description: SITE_CONFIG.seo.description,
   applicationName: SITE_CONFIG.name,
-  // Declarado aqui (e não como src/app/favicon.ico) para que seções como /plugins possam trocar o ícone.
-  icons: { icon: [{ url: '/favicon.ico', sizes: 'any' }] },
+  // Favicon "Fp" no azul do site (#0071e3) sobre fundo branco. O .ico (16/32/48) atende Safari e Windows.
+  icons: {
+    icon: [
+      { url: '/favicon.ico', sizes: '16x16 32x32 48x48' },
+      { url: '/icon-32.png', sizes: '32x32', type: 'image/png' },
+      { url: '/icon-192.png', sizes: '192x192', type: 'image/png' },
+      { url: '/icon-512.png', sizes: '512x512', type: 'image/png' },
+    ],
+    apple: [{ url: '/apple-touch-icon.png', sizes: '180x180', type: 'image/png' }],
+  },
   authors: [{ name: SITE_CONFIG.author.name, url: SITE_CONFIG.seo.url }],
   generator: 'Next.js',
   keywords: [
