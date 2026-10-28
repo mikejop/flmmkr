@@ -1,13 +1,22 @@
 import type { PluginOs } from '@/config/plugins';
 
-/** Detecta o sistema do computador. Celular, tablet ou sistema desconhecido devolvem null (o usuário escolhe). */
-export function detectOs(): PluginOs | null {
-  if (typeof navigator === 'undefined') return null;
-  const nav = navigator as Navigator & { userAgentData?: { platform?: string; mobile?: boolean } };
+type Nav = Navigator & { userAgentData?: { platform?: string; mobile?: boolean } };
+
+/** Celular ou tablet: os plugins são só para computador. */
+export function isMobileDevice(): boolean {
+  if (typeof navigator === 'undefined') return false;
+  const nav = navigator as Nav;
   const ua = nav.userAgent || '';
-  if (nav.userAgentData?.mobile || /Android|iPhone|iPad|iPod|Mobile/i.test(ua)) return null;
+  if (nav.userAgentData?.mobile || /Android|iPhone|iPad|iPod|Mobile/i.test(ua)) return true;
   // iPad no modo desktop se apresenta como Mac, mas tem tela de toque.
-  if (/Macintosh/i.test(ua) && nav.maxTouchPoints > 1) return null;
+  return /Macintosh/i.test(ua) && nav.maxTouchPoints > 1;
+}
+
+/** Detecta o sistema do computador. Celular, tablet ou sistema desconhecido devolvem null. */
+export function detectOs(): PluginOs | null {
+  if (typeof navigator === 'undefined' || isMobileDevice()) return null;
+  const nav = navigator as Nav;
+  const ua = nav.userAgent || '';
   const platform = `${nav.userAgentData?.platform || ''} ${nav.platform || ''} ${ua}`;
   if (/Mac/i.test(platform)) return 'macos';
   if (/Win/i.test(platform)) return 'windows';

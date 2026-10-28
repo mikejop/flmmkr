@@ -2,11 +2,11 @@
 
 import React, { useCallback, useEffect, useState, useSyncExternalStore } from 'react';
 import Link from 'next/link';
-import { Menu, X, Heart, ChevronDown, Download } from 'lucide-react';
+import { Menu, X, Heart, ChevronDown, Download, Monitor } from 'lucide-react';
 import { SITE_CONFIG } from '@/config/siteConfig';
 import { InstagramIcon, YouTubeIcon, TikTokIcon } from '@/components/SocialIcons';
 import { PLUGIN_DOWNLOADS, READY_PLUGINS, UPCOMING_PLUGINS, type PluginOs } from '@/config/plugins';
-import { detectOs, OS_ICON } from '@/components/plugins/os';
+import { detectOs, isMobileDevice, OS_ICON } from '@/components/plugins/os';
 import { PLUGIN_VISUALS } from '@/components/plugins/PluginVisuals';
 import PluginsSignupModal from '@/components/plugins/PluginsSignupModal';
 import PluginsDonateModal from '@/components/plugins/PluginsDonateModal';
@@ -52,6 +52,8 @@ export function PluginsLanding() {
   // Sistema e cadastro só existem no navegador: no servidor (e na hidratação) ficam vazios.
   const osReady = useSyncExternalStore(noopSubscribe, () => true, () => false);
   const os = osReady ? detectOs() : null;
+  // Celular e tablet: no lugar do download aparece um botão desativado (os plugins são só para computador).
+  const mobile = osReady && isMobileDevice();
   const [justRegistered, setJustRegistered] = useState(false);
   const registered = justRegistered || (osReady && readRegistered());
   const [modalOs, setModalOs] = useState<PluginOs | null | undefined>(undefined);
@@ -90,6 +92,26 @@ export function PluginsLanding() {
 
   const renderDownload = (dark: boolean) => {
     if (!osReady) return <div className="h-[52px]" />;
+    if (mobile) {
+      return (
+        <div className="flex flex-col items-center gap-3">
+          <button
+            type="button"
+            disabled
+            aria-disabled="true"
+            className={`inline-flex cursor-not-allowed items-center justify-center gap-2.5 px-8 py-3.5 rounded-full text-sm font-semibold ${
+              dark ? 'bg-white/10 border border-white/20 text-white/60' : 'bg-[#e8e8ed] border border-[#d2d2d7] text-[#86868b]'
+            }`}
+          >
+            <Monitor className="w-4 h-4" />
+            Exclusivo para computador
+          </button>
+          <p className={`text-xs ${dark ? 'text-white/60' : 'text-[#86868b]'}`}>
+            Abra esta página no seu computador (macOS, Windows ou Linux) para baixar.
+          </p>
+        </div>
+      );
+    }
     if (os) {
       const Icon = OS_ICON[os];
       return (
@@ -115,7 +137,7 @@ export function PluginsLanding() {
         </div>
       );
     }
-    // Sem detecção (celular, tablet, sistema desconhecido): o usuário escolhe pelo ícone.
+    // Computador com sistema não reconhecido: o usuário escolhe pelo ícone.
     return (
       <div className="flex flex-col items-center gap-3">
         <p className={`text-sm ${dark ? 'text-white/80' : 'text-[#6e6e73]'}`}>Escolha o seu sistema para baixar:</p>
@@ -191,13 +213,24 @@ export function PluginsLanding() {
               <Heart className="w-3.5 h-3.5 text-[#ff375f]" fill="currentColor" />
               Doar
             </button>
-            <button
-              onClick={() => requestDownload(os)}
-              className="inline-flex items-center justify-center gap-1.5 px-4 py-1.5 rounded-full bg-[#0071e3] hover:bg-[#0077ed] text-white text-xs font-semibold shadow-[0_2px_12px_rgba(0,113,227,0.4),inset_0_1px_1px_rgba(255,255,255,0.3)] transition-all active:scale-95"
-            >
-              <Download className="w-3.5 h-3.5" />
-              Baixar
-            </button>
+            {mobile ? (
+              <button
+                type="button"
+                disabled
+                className="inline-flex cursor-not-allowed items-center justify-center gap-1.5 px-4 py-1.5 rounded-full bg-white/10 border border-white/15 text-white/50 text-xs font-semibold"
+              >
+                <Monitor className="w-3.5 h-3.5" />
+                Só no computador
+              </button>
+            ) : (
+              <button
+                onClick={() => requestDownload(os)}
+                className="inline-flex items-center justify-center gap-1.5 px-4 py-1.5 rounded-full bg-[#0071e3] hover:bg-[#0077ed] text-white text-xs font-semibold shadow-[0_2px_12px_rgba(0,113,227,0.4),inset_0_1px_1px_rgba(255,255,255,0.3)] transition-all active:scale-95"
+              >
+                <Download className="w-3.5 h-3.5" />
+                Baixar
+              </button>
+            )}
           </div>
 
           <button
@@ -240,12 +273,23 @@ export function PluginsLanding() {
                 <Heart className="w-3.5 h-3.5 text-[#ff375f]" fill="currentColor" />
                 Doar
               </button>
-              <button
-                onClick={() => { setMobileMenuOpen(false); requestDownload(os); }}
-                className="px-5 py-2 rounded-full bg-[#0071e3] text-white text-xs font-semibold shadow-[0_2px_12px_rgba(0,113,227,0.35)]"
-              >
-                Baixar
-              </button>
+              {mobile ? (
+                <button
+                  type="button"
+                  disabled
+                  className="inline-flex cursor-not-allowed items-center gap-1.5 px-4 py-2 rounded-full bg-white/10 border border-white/15 text-white/50 text-xs font-semibold"
+                >
+                  <Monitor className="w-3.5 h-3.5" />
+                  Só no computador
+                </button>
+              ) : (
+                <button
+                  onClick={() => { setMobileMenuOpen(false); requestDownload(os); }}
+                  className="px-5 py-2 rounded-full bg-[#0071e3] text-white text-xs font-semibold shadow-[0_2px_12px_rgba(0,113,227,0.35)]"
+                >
+                  Baixar
+                </button>
+              )}
             </div>
           </div>
         )}

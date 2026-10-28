@@ -12,6 +12,14 @@ export const metadata: Metadata = {
     'Termos de uso dos plugins FLMMKR para DaVinci Resolve e como tratamos seus dados pessoais, de acordo com a LGPD (Lei nº 13.709/2018).',
   alternates: { canonical: '/plugins/termos' },
   robots: { index: true, follow: true },
+  openGraph: {
+    type: 'website',
+    siteName: 'FLMMKR',
+    title: 'Termos de Uso e Privacidade | FLMMKR Plugins',
+    locale: 'pt_BR',
+    images: [{ url: '/plugins/og-plugins.jpg', width: 1200, height: 630, alt: 'FLMMKR Plugins para DaVinci Resolve' }],
+  },
+  twitter: { card: 'summary_large_image', images: ['/plugins/og-plugins.jpg'] },
 };
 
 const LAST_UPDATED = '27 de outubro de 2026';

@@ -25,6 +25,8 @@ export const metadata: Metadata = {
   },
   description: SITE_CONFIG.seo.description,
   applicationName: SITE_CONFIG.name,
+  // Declarado aqui (e não como src/app/favicon.ico) para que seções como /plugins possam trocar o ícone.
+  icons: { icon: [{ url: '/favicon.ico', sizes: 'any' }] },
   authors: [{ name: SITE_CONFIG.author.name, url: SITE_CONFIG.seo.url }],
   generator: 'Next.js',
   keywords: [
