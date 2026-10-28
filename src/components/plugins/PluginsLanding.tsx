@@ -94,20 +94,21 @@ export function PluginsLanding() {
     if (!osReady) return <div className="h-[52px]" />;
     if (mobile) {
       return (
-        <div className="flex flex-col items-center gap-3">
+        <div className="flex w-full flex-col items-center">
           <button
             type="button"
             disabled
             aria-disabled="true"
-            className={`inline-flex cursor-not-allowed items-center justify-center gap-2.5 px-8 py-3.5 rounded-full text-sm font-semibold ${
-              dark ? 'bg-white/10 border border-white/20 text-white/60' : 'bg-[#e8e8ed] border border-[#d2d2d7] text-[#86868b]'
+            aria-describedby="computer-only-hint"
+            className={`inline-flex h-12 w-full max-w-[320px] cursor-not-allowed items-center justify-center gap-2 rounded-full text-[15px] font-medium ${
+              dark ? 'bg-white/[0.06] border border-white/15 text-white/60' : 'bg-[#e8e8ed] border border-[#d2d2d7] text-[#86868b]'
             }`}
           >
-            <Monitor className="w-4 h-4" />
+            <Monitor className="w-[18px] h-[18px]" aria-hidden="true" />
             Exclusivo para computador
           </button>
-          <p className={`text-xs ${dark ? 'text-white/60' : 'text-[#86868b]'}`}>
-            Abra esta página no seu computador (macOS, Windows ou Linux) para baixar.
+          <p id="computer-only-hint" className={`mt-3 max-w-[30ch] text-[13px] leading-snug text-balance ${dark ? 'text-white/50' : 'text-[#86868b]'}`}>
+            Abra no computador (macOS, Windows ou Linux) para baixar.
           </p>
         </div>
       );
@@ -296,7 +297,7 @@ export function PluginsLanding() {
       </header>
 
       {/* HERO */}
-      <section id="inicio" className="relative z-10 min-h-[calc(100svh-3.25rem)] w-full flex flex-col justify-between items-center overflow-hidden pt-12 pb-16 md:pb-20 px-4 sm:px-6 lg:px-8 text-center bg-black">
+      <section id="inicio" className="relative z-10 min-h-[calc(100svh-3.25rem)] w-full flex flex-col justify-between items-center overflow-hidden pt-16 pb-12 sm:pt-12 md:pb-20 px-5 sm:px-6 lg:px-8 text-center bg-black">
         <div className="absolute inset-0 pointer-events-none select-none z-0" aria-hidden="true">
           {/* Faixas de false color ao fundo, apagadas pela retícula */}
           <div
@@ -307,29 +308,41 @@ export function PluginsLanding() {
           <div className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-black to-transparent" />
         </div>
 
-        <div className="h-4" />
+        <div className="hidden sm:block h-4" />
 
-        <div className="relative z-10 max-w-5xl mx-auto my-auto flex flex-col items-center">
-          <div className="inline-block px-4 py-1.5 rounded-full bg-black/60 backdrop-blur-md text-white/90 text-xs sm:text-sm font-medium mb-6 shadow-sm border border-white/20">
+        <div className="relative z-10 w-full max-w-5xl mx-auto my-auto flex flex-col items-center">
+          {/* Selo */}
+          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-black/60 backdrop-blur-md text-white/90 text-[13px] sm:text-sm font-medium border border-white/15">
+            <span className="h-1.5 w-1.5 rounded-full bg-[#30d158]" aria-hidden="true" />
             Grátis hoje e sempre
           </div>
-          <h1 className="text-4xl sm:text-6xl lg:text-7xl font-semibold tracking-tight text-white leading-[1.05] max-w-4xl mx-auto mb-6 drop-shadow-xl">
-            Plugins para DaVinci Resolve.
+
+          {/* Título: equilibrado em duas linhas no celular, sem palavra sozinha */}
+          <h1 className="mt-5 sm:mt-6 text-[2.5rem] sm:text-6xl lg:text-7xl font-semibold tracking-[-0.03em] text-white leading-[1.05] max-w-4xl text-balance drop-shadow-xl">
+            Plugins para DaVinci&nbsp;Resolve.
           </h1>
-          <p className="text-base sm:text-2xl text-white/90 font-normal tracking-tight max-w-2xl mx-auto mb-10 leading-relaxed drop-shadow-lg">
-            Todos os plugins daqui são feitos para a comunidade do audiovisual e distribuídos de graça. Sem taxa, sem marca d&apos;água e sem cobrança surpresa.
+
+          {/* Apoio: frase principal mais suave, promessa em destaque */}
+          <p className="mt-4 sm:mt-6 max-w-[34ch] sm:max-w-2xl text-[17px] sm:text-2xl leading-[1.5] sm:leading-relaxed tracking-tight text-white/70 text-pretty">
+            Feitos para a comunidade do audiovisual e distribuídos de graça.{' '}
+            <span className="text-white font-medium">Sem taxa, sem marca d&apos;água e sem cobrança surpresa.</span>
           </p>
-          {renderDownload(true)}
-          <p className="mt-8 max-w-lg text-sm text-white/60 leading-relaxed text-balance">
-            Quer ajudar a criar os próximos? Dá para{' '}
-            <button type="button" onClick={openDonate} className="text-white underline underline-offset-4 decoration-[#ff375f] hover:decoration-2">
-              fazer uma doação
-            </button>
-            , de qualquer valor. É opcional: os plugins continuam grátis para todo mundo.
-          </p>
+
+          <div className="mt-8 sm:mt-10 w-full flex justify-center">{renderDownload(true)}</div>
+
+          {/* Doação: nível mais baixo da hierarquia, separada do download */}
+          <div className="mt-10 sm:mt-12 w-full max-w-sm sm:max-w-lg border-t border-white/10 pt-6">
+            <p className="text-[13px] sm:text-sm leading-relaxed text-white/55 text-balance">
+              Quer ajudar a criar os próximos?{' '}
+              <button type="button" onClick={openDonate} className="font-medium text-white underline underline-offset-4 decoration-[#ff375f] decoration-2 hover:text-[#ff8fa3] transition-colors">
+                Faça uma doação
+              </button>{' '}
+              de qualquer valor. É opcional: os plugins continuam grátis para todo mundo.
+            </p>
+          </div>
         </div>
 
-        <a href="#plugins" className="relative z-10 mt-10 inline-flex flex-col items-center gap-2.5 group cursor-pointer select-none" aria-label="Ver os plugins">
+        <a href="#plugins" className="relative z-10 mt-10 hidden sm:inline-flex flex-col items-center gap-2.5 group cursor-pointer select-none" aria-label="Ver os plugins">
           <span className="text-xs font-bold tracking-widest text-white/90 uppercase group-hover:text-[#2997ff] transition-colors">
             Conheça os plugins
           </span>
@@ -340,12 +353,12 @@ export function PluginsLanding() {
       </section>
 
       {/* PRONTOS — dark, como a seção de treinamentos */}
-      <section id="plugins" className="scroll-section relative z-10 w-full py-20 sm:py-28 border-t border-[#2c2c2e] bg-[#0A0B0E] text-white scroll-mt-11">
+      <section id="plugins" className="scroll-section relative z-10 w-full py-16 sm:py-28 border-t border-[#2c2c2e] bg-[#0A0B0E] text-white scroll-mt-11">
         <div className="scroll-content max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="mb-10 text-center sm:text-left">
-            <span className="text-xs uppercase tracking-widest text-white/40 font-semibold mb-2 block">Prontos para baixar</span>
-            <h2 className="text-3xl sm:text-5xl font-semibold tracking-tight text-white mb-3">Três plugins, um instalador.</h2>
-            <p className="text-base sm:text-xl text-white/60 max-w-2xl">
+            <span className="text-xs uppercase tracking-widest text-white/40 font-semibold mb-3 block">Prontos para baixar</span>
+            <h2 className="text-[1.875rem] leading-[1.1] sm:text-5xl sm:leading-tight font-semibold tracking-tight text-balance text-white mb-3">Três plugins, um instalador.</h2>
+            <p className="text-[15px] leading-relaxed sm:text-xl text-white/60 max-w-2xl text-balance mx-auto sm:mx-0">
               O pacote FLMMKR FX instala os três de uma vez, na versão gratuita ou na Studio do DaVinci Resolve.
             </p>
           </div>
@@ -364,7 +377,7 @@ export function PluginsLanding() {
                       <Visual />
                     )}
                   </div>
-                  <div className="p-7 sm:p-8 flex flex-col gap-3 flex-1">
+                  <div className="p-6 sm:p-8 flex flex-col gap-2.5 flex-1">
                     <div className="flex items-center gap-2">
                       <h3 className="text-2xl font-semibold tracking-tight">{p.name}</h3>
                       {p.beta && (
@@ -388,12 +401,12 @@ export function PluginsLanding() {
       </section>
 
       {/* EM PRODUÇÃO — light */}
-      <section id="em-producao" className="scroll-section relative z-10 w-full py-20 sm:py-28 border-t border-[#d2d2d7]/60 px-4 sm:px-6 lg:px-8 bg-[#f5f5f7] scroll-mt-11">
+      <section id="em-producao" className="scroll-section relative z-10 w-full py-16 sm:py-28 border-t border-[#d2d2d7]/60 px-4 sm:px-6 lg:px-8 bg-[#f5f5f7] scroll-mt-11">
         <div className="scroll-content max-w-6xl mx-auto">
           <div className="mb-10 text-center">
-            <span className="text-xs uppercase tracking-widest text-[#86868b] font-semibold mb-2 block">Em produção</span>
-            <h2 className="text-3xl sm:text-5xl font-semibold tracking-tight text-[#1d1d1f] mb-3">O que vem por aí.</h2>
-            <p className="text-base sm:text-xl text-[#86868b] max-w-xl mx-auto">
+            <span className="text-xs uppercase tracking-widest text-[#86868b] font-semibold mb-3 block">Em produção</span>
+            <h2 className="text-[1.875rem] leading-[1.1] sm:text-5xl sm:leading-tight font-semibold tracking-tight text-balance text-[#1d1d1f] mb-3">O que vem por aí.</h2>
+            <p className="text-[15px] leading-relaxed sm:text-xl text-[#86868b] max-w-xl mx-auto text-balance">
               Quem tem cadastro recebe o aviso quando cada um sair.
             </p>
           </div>
@@ -402,7 +415,7 @@ export function PluginsLanding() {
             {UPCOMING_PLUGINS.map((p) => {
               return (
                 <article key={p.id} className="rounded-3xl bg-white border border-[#e5e5e7] shadow-sm overflow-hidden flex flex-col">
-                  <div className="p-7 sm:p-8 flex flex-col gap-3 flex-1">
+                  <div className="p-6 sm:p-8 flex flex-col gap-2.5 flex-1">
                     <div className="flex items-center gap-2">
                       <h3 className="text-2xl font-semibold tracking-tight text-[#1d1d1f]">{p.name}</h3>
                       <span className="rounded-full bg-[#e8e8ed] px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-[#6e6e73]">Em breve</span>
@@ -418,21 +431,21 @@ export function PluginsLanding() {
       </section>
 
       {/* DOAÇÃO */}
-      <section id="doacao" className="scroll-section relative z-10 w-full py-20 sm:py-28 border-t border-[#d2d2d7]/60 px-4 sm:px-6 lg:px-8 bg-[#f5f5f7] scroll-mt-11">
+      <section id="doacao" className="scroll-section relative z-10 w-full py-16 sm:py-28 border-t border-[#d2d2d7]/60 px-4 sm:px-6 lg:px-8 bg-[#f5f5f7] scroll-mt-11">
         <div className="scroll-content max-w-4xl mx-auto">
-          <div className="rounded-3xl bg-white border border-[#e5e5e7] shadow-sm p-8 sm:p-14 text-center">
+          <div className="rounded-3xl bg-white border border-[#e5e5e7] shadow-sm px-6 py-10 sm:p-14 text-center">
             <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-full bg-[#ff375f]/10 text-[#ff375f]">
               <Heart className="w-6 h-6" fill="currentColor" />
             </div>
-            <h2 className="text-3xl sm:text-5xl font-semibold tracking-tight text-[#1d1d1f] mb-4">Apoie os plugins.</h2>
-            <p className="text-base sm:text-lg text-[#6e6e73] max-w-xl mx-auto mb-8 leading-relaxed">
+            <h2 className="text-[1.875rem] leading-[1.1] sm:text-5xl sm:leading-tight font-semibold tracking-tight text-balance text-[#1d1d1f] mb-4">Apoie os plugins.</h2>
+            <p className="text-[15px] sm:text-lg text-[#6e6e73] max-w-xl mx-auto mb-8 leading-relaxed text-balance">
               Os plugins são gratuitos. Se eles economizam o seu tempo, uma doação de qualquer valor ajuda a manter as atualizações e a lançar os próximos.
             </p>
 
             <button
               type="button"
               onClick={openDonate}
-              className="w-full sm:w-auto px-8 py-3.5 rounded-full bg-[#0071e3] hover:bg-[#0077ed] text-white text-sm font-semibold transition-all shadow-sm active:scale-95"
+              className="w-full max-w-[320px] sm:w-auto h-12 px-8 rounded-full bg-[#0071e3] hover:bg-[#0077ed] text-white text-[15px] sm:text-sm font-semibold transition-all shadow-sm active:scale-95"
             >
               Doar com Pix ou cartão
             </button>
@@ -442,10 +455,10 @@ export function PluginsLanding() {
       </section>
 
       {/* CHAMADA FINAL */}
-      <section className="scroll-section relative z-10 w-full py-20 sm:py-28 border-t border-[#d2d2d7]/60 px-4 sm:px-6 lg:px-8 bg-[#f5f5f7]">
-        <div className="scroll-content max-w-4xl mx-auto text-center p-10 sm:p-16 rounded-3xl bg-white border border-[#e5e5e7] shadow-sm">
-          <h2 className="text-3xl sm:text-5xl font-semibold tracking-tight text-[#1d1d1f] mb-4">Baixe e teste hoje.</h2>
-          <p className="text-base text-[#86868b] max-w-lg mx-auto mb-8">
+      <section className="scroll-section relative z-10 w-full py-16 sm:py-28 border-t border-[#d2d2d7]/60 px-4 sm:px-6 lg:px-8 bg-[#f5f5f7]">
+        <div className="scroll-content max-w-4xl mx-auto text-center px-6 py-10 sm:p-16 rounded-3xl bg-white border border-[#e5e5e7] shadow-sm">
+          <h2 className="text-[1.875rem] leading-[1.1] sm:text-5xl sm:leading-tight font-semibold tracking-tight text-balance text-[#1d1d1f] mb-4">Baixe e teste hoje.</h2>
+          <p className="text-[15px] sm:text-base leading-relaxed text-[#86868b] max-w-lg mx-auto mb-8 text-balance">
             Cadastro grátis, um instalador e os três plugins na sua próxima sessão de cor.
           </p>
           {renderDownload(false)}
@@ -453,29 +466,34 @@ export function PluginsLanding() {
       </section>
 
       {/* FOOTER */}
-      <footer className="relative z-10 py-12 bg-white border-t border-[#d2d2d7]/60 text-[#6e6e73] text-xs px-4 sm:px-6 lg:px-8">
+      <footer className="relative z-10 py-10 sm:py-12 bg-white border-t border-[#d2d2d7]/60 text-[#6e6e73] text-xs px-5 sm:px-6 lg:px-8">
         <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
           <div className="text-center md:text-left">
-            <span className="font-semibold text-[#1d1d1f] text-sm block mb-1">FLMMKR Plugins</span>
-            <p className="text-[11px] text-[#86868b]">
+            <span className="font-semibold text-[#1d1d1f] text-sm block mb-1.5">FLMMKR Plugins</span>
+            <p className="text-[12px] leading-relaxed text-[#86868b] max-w-[36ch] md:max-w-none text-balance">
               © {new Date().getFullYear()} FLMMKR. DaVinci Resolve é marca da Blackmagic Design; os plugins não são afiliados a ela.
             </p>
           </div>
-          <div className="flex flex-wrap items-center justify-center gap-4">
-            <Link href="/plugins/termos" className="text-[#0066cc] hover:underline">Termos de Uso e Privacidade</Link>
-            <Link href="/" className="text-[#0066cc] hover:underline">flmmkr.site</Link>
-            {SITE_CONFIG.social.map((soc) => (
-              <a
-                key={soc.name}
-                href={soc.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="p-2 rounded-full bg-[#f5f5f7] hover:bg-[#e8e8ed] text-[#6e6e73] hover:text-[#1d1d1f] border border-[#d2d2d7] transition-colors"
-                aria-label={soc.name}
-              >
-                <SocialIcon name={soc.name} className="w-4 h-4" />
-              </a>
-            ))}
+          {/* Links numa linha e redes sociais na outra (no celular); lado a lado no desktop */}
+          <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-6">
+            <nav aria-label="Links do rodapé" className="flex items-center gap-5 text-[13px]">
+              <Link href="/plugins/termos" className="py-2 text-[#0066cc] hover:underline">Termos de Uso e Privacidade</Link>
+              <Link href="/" className="py-2 text-[#0066cc] hover:underline">flmmkr.site</Link>
+            </nav>
+            <div className="flex items-center gap-3">
+              {SITE_CONFIG.social.map((soc) => (
+                <a
+                  key={soc.name}
+                  href={soc.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex h-11 w-11 items-center justify-center rounded-full bg-[#f5f5f7] hover:bg-[#e8e8ed] text-[#6e6e73] hover:text-[#1d1d1f] border border-[#d2d2d7] transition-colors"
+                  aria-label={soc.name}
+                >
+                  <SocialIcon name={soc.name} className="w-4 h-4" />
+                </a>
+              ))}
+            </div>
           </div>
         </div>
       </footer>
