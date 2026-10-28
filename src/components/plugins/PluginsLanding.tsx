@@ -7,6 +7,7 @@ import { SITE_CONFIG } from '@/config/siteConfig';
 import { InstagramIcon, YouTubeIcon, TikTokIcon } from '@/components/SocialIcons';
 import { PLUGIN_DOWNLOADS, READY_PLUGINS, UPCOMING_PLUGINS, type PluginOs } from '@/config/plugins';
 import { detectOs, isMobileDevice, OS_ICON } from '@/components/plugins/os';
+import { trackPluginEvent } from '@/components/plugins/analytics';
 import { PLUGIN_VISUALS } from '@/components/plugins/PluginVisuals';
 import PluginsSignupModal from '@/components/plugins/PluginsSignupModal';
 import PluginsDonateModal from '@/components/plugins/PluginsDonateModal';
@@ -32,6 +33,7 @@ function readRegistered(): boolean {
 }
 
 function startDownload(os: PluginOs) {
+  trackPluginEvent('plugin_download', os);
   const a = document.createElement('a');
   a.href = PLUGIN_DOWNLOADS[os].url;
   a.download = PLUGIN_DOWNLOADS[os].file;
@@ -74,6 +76,7 @@ export function PluginsLanding() {
 
   /** Baixa direto se já tem cadastro; senão abre o cadastro com o sistema já escolhido (ou detectado). */
   const requestDownload = (target: PluginOs | null) => {
+    trackPluginEvent('plugin_download_click', target);
     if (registered && target) return startDownload(target);
     setModalOs(target);
   };
