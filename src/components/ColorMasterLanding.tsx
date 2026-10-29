@@ -1105,6 +1105,10 @@ export const ColorMasterLanding: React.FC = () => {
                 <span className="text-[#2997ff] font-bold">•</span>
                 <span>Footages inclusos</span>
               </div>
+              <div className="flex items-center gap-1.5">
+                <span className="text-[#2997ff] font-bold">•</span>
+                <span>Plugins FLMMKR, até os Close Beta</span>
+              </div>
             </div>
           </div>
         </div>
@@ -1769,6 +1773,9 @@ export const ColorMasterLanding: React.FC = () => {
               </div>
               <div className="py-1 border-b border-[#e5e5e7]/50">
                 • Footages em LOG como material de apoio
+              </div>
+              <div className="py-1 border-b border-[#e5e5e7]/50">
+                • Acesso aos plugins da FLMMKR, inclusive os que estão em Close Beta
               </div>
               <div className="py-1 font-semibold text-[#1d1d1f]">
                 • 1 Ano de Acesso Completo e Ilimitado à Plataforma
