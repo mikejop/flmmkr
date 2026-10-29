@@ -1,0 +1,200 @@
+/** Textos da FLMMKR Plugins em português (idioma padrão). Os outros idiomas seguem este formato. */
+export const pt = {
+  language: 'Idioma',
+  nav: { plugins: 'Plugins', install: 'Como instalar', upcoming: 'Em produção', donate: 'Doação' },
+  menu: 'Menu',
+  close: 'Fechar',
+  donate: 'Doar',
+  download: 'Baixar',
+  computerOnlyShort: 'Só no computador',
+  computerOnly: 'Exclusivo para computador',
+  computerOnlyHint: 'Abra no computador (macOS, Windows ou Linux) para baixar.',
+  downloadFor: (os: string) => `Baixar para ${os}`,
+  otherOs: 'Usa outro sistema?',
+  or: ' ou ',
+  chooseOs: 'Escolha o seu sistema para baixar:',
+
+  hero: {
+    badge: 'Grátis hoje e sempre',
+    title: 'Plugins para DaVinci Resolve.',
+    lead: 'Feitos para a comunidade do audiovisual e distribuídos de graça.',
+    promise: 'Sem taxa, sem marca d’água e sem cobrança surpresa.',
+    donateBefore: 'Quer ajudar a criar os próximos?',
+    donateLink: 'Faça uma doação',
+    donateAfter: 'de qualquer valor. É opcional: os plugins continuam grátis para todo mundo.',
+    scroll: 'Conheça os plugins',
+    scrollAria: 'Ver os plugins',
+  },
+
+  ready: {
+    eyebrow: 'Prontos para baixar',
+    title: 'Três plugins, um instalador.',
+    text: 'O pacote FLMMKR FX instala os três de uma vez, na versão gratuita ou na Studio do DaVinci Resolve.',
+    imageAlt: (name: string) => `Plugin ${name} aplicado na viewer do DaVinci Resolve`,
+  },
+
+  plugins: {
+    'false-color': {
+      tagline: 'False color sem precisar da versão Studio.',
+      description: 'Você não precisa mais pagar pelo DaVinci Resolve para ter false color. O plugin mostra a exposição em cores direto na viewer, é fácil de instalar, simples de usar e tem suporte a ACES.',
+    },
+    skin: {
+      tagline: 'Pele em amarelo está no tom. Ciano ou azul, ainda não.',
+      description: 'O Skin pinta o tom de pele de amarelo direto na viewer. Quando a pele sai do tom, ele avisa: a área fica ciano ou azul. Você corrige olhando para a imagem, sem depender do vectorscope, mais rápido e com mais precisão.',
+    },
+    social: {
+      tagline: 'As áreas seguras das redes, sobre o seu vídeo.',
+      description: 'Coloca na viewer o guideline vertical das redes sociais, com as áreas que a interface do app cobre. Você enquadra legendas, rostos e textos sabendo o que vai aparecer no feed.',
+    },
+    chronus: {
+      tagline: 'Quanto tempo o projeto levou e quanto ele rendeu.',
+      description: 'Conta o tempo que você trabalha em cada projeto. Informe o valor cobrado do cliente e veja quanto ganhou por hora. Ou informe também o seu valor-hora de costume e descubra se o projeto deu lucro ou prejuízo pelo tempo de entrega.',
+    },
+    fibo: {
+      tagline: 'Guias de composição na viewer.',
+      description: 'Distribuição áurea, regra dos terços, split screen vertical e horizontal e grades que dividem a tela em 2, 3, 4, 5 ou 6 partes. Tudo sobreposto à imagem enquanto você trabalha.',
+    },
+    kine: {
+      tagline: 'Animação dentro do DaVinci Resolve.',
+      description: 'Crie animações sem sair do DaVinci Resolve, direto na sua timeline.',
+    },
+  } as Record<string, { tagline: string; description: string }>,
+
+  install: {
+    eyebrow: 'Passo a passo',
+    title: 'Como instalar o FLMMKR FX.',
+    text: 'Um instalador coloca os três plugins no DaVinci Resolve. Escolha o seu sistema.',
+    betaTitle: 'Por que o sistema pede autorização?',
+    macBeta: 'Os plugins estão em beta e o FLMMKR FX ainda não tem o certificado de desenvolvedor da Apple, a assinatura que deixa um app abrir direto no Mac. Por isso o macOS bloqueia a primeira abertura e pede a sua autorização. É esperado, o instalador é seguro, e você libera uma única vez seguindo os passos abaixo.',
+    winBeta: 'Os plugins estão em beta e o instalador ainda não tem certificado digital. Por isso o Windows mostra um aviso do SmartScreen na primeira vez. É esperado e você libera uma única vez.',
+    linuxBeta: 'No Linux, arquivos baixados da internet não vêm com permissão para rodar. Você libera o instalador uma única vez.',
+    mac: [
+      { title: 'Abra o instalador', text: 'Dê dois cliques no FLMMKR-FX-macOS.zip para descompactar e abra o FLMMKR-FX. O macOS mostra o aviso “FLMMKR-FX” não foi aberto, com os botões “Mover para o Lixo” e “Concluído” (Done).' },
+      { title: 'Clique em “Concluído”', text: 'Não clique em “Mover para o Lixo”. O instalador continua no seu Mac e nada é apagado.' },
+      { title: 'Abra Ajustes do Sistema → Privacidade e Segurança', text: 'Role a página até a seção Segurança. Lá aparece a mensagem “FLMMKR-FX” foi bloqueado para proteger o seu Mac, com o botão “Abrir Mesmo Assim” (Open Anyway).' },
+      { title: 'Clique em “Abrir Mesmo Assim”', text: 'Confirme com a sua senha ou Touch ID e, na janela seguinte, clique de novo em “Abrir Mesmo Assim”.' },
+      { title: 'Instale e reabra o DaVinci Resolve', text: 'Siga o instalador até o fim. Feche e abra o DaVinci Resolve: os plugins aparecem em Efeitos → OpenFX. Você só autoriza uma vez neste Mac.' },
+    ],
+    windows: [
+      { title: 'Descompacte e abra o instalador', text: 'Clique com o botão direito no FLMMKR-FX-Windows.zip, escolha “Extrair tudo” e abra o FLMMKR-FX.exe.' },
+      { title: 'Clique em “Mais informações”', text: 'Se aparecer a tela azul “O Windows protegeu o computador”, clique em “Mais informações”.' },
+      { title: 'Clique em “Executar assim mesmo”', text: 'O botão aparece embaixo do nome FLMMKR-FX.exe. Se o Windows pedir permissão de administrador, clique em “Sim”.' },
+      { title: 'Instale e reabra o DaVinci Resolve', text: 'Siga o instalador até o fim. Feche e abra o DaVinci Resolve: os plugins aparecem em Efeitos → OpenFX.' },
+    ],
+    linux: [
+      { title: 'Descompacte o arquivo', text: 'Extraia o FLMMKR-FX-Linux.zip. Dentro dele está o instalador FLMMKR-FX.' },
+      { title: 'Dê permissão para rodar', text: 'Clique com o botão direito no FLMMKR-FX → Propriedades → Permissões e marque “Permitir executar como programa”. Ou, no terminal, na mesma pasta: chmod +x FLMMKR-FX' },
+      { title: 'Abra o instalador', text: 'Dê dois cliques no FLMMKR-FX ou rode ./FLMMKR-FX no terminal e siga até o fim.' },
+      { title: 'Reabra o DaVinci Resolve', text: 'Feche e abra o DaVinci Resolve: os plugins aparecem em Efeitos → OpenFX.' },
+    ],
+  },
+
+  upcoming: {
+    eyebrow: 'Em produção',
+    title: 'O que vem por aí.',
+    text: 'Quem tem cadastro recebe o aviso quando cada um sair.',
+    soon: 'Em breve',
+  },
+
+  support: {
+    title: 'Apoie os plugins.',
+    text: 'Os plugins são gratuitos. Se eles economizam o seu tempo, uma doação de qualquer valor ajuda a manter as atualizações e a lançar os próximos.',
+    button: 'Doar com Pix ou cartão',
+    note: 'Pix ou cartão de crédito, a partir de R$ 5. Pagamento processado pelo Asaas.',
+  },
+
+  cta: {
+    title: 'Baixe e teste hoje.',
+    text: 'Cadastro grátis, um instalador e os três plugins na sua próxima sessão de cor.',
+  },
+
+  footer: {
+    rights: (year: number) => `© ${year} FLMMKR. DaVinci Resolve é marca da Blackmagic Design; os plugins não são afiliados a ela.`,
+    terms: 'Termos de Uso e Privacidade',
+    aria: 'Links do rodapé',
+  },
+
+  consent: {
+    title: 'Quero receber novidades da FLMMKR',
+    text: 'Notificações e e-mails sobre atualizações dos plugins, lançamentos e conteúdos. Você pode cancelar quando quiser.',
+  },
+
+  errors: {
+    firstName: 'Informe seu nome.',
+    lastName: 'Informe seu sobrenome.',
+    email: 'Precisa ser um e-mail válido.',
+    os: 'Escolha o seu sistema.',
+    check: 'Confira os dados.',
+    wait: 'Aguarde a verificação de segurança terminar.',
+    tooMany: 'Muitas tentativas. Aguarde alguns minutos e tente novamente.',
+    generic: 'Não foi possível concluir agora. Tente novamente em instantes.',
+    network: 'Sem conexão. Verifique sua internet e tente de novo.',
+  },
+
+  signup: {
+    title: 'Cadastre-se para baixar',
+    text: 'É grátis. Você faz o cadastro uma vez e libera todos os plugins.',
+    firstName: 'Nome',
+    lastName: 'Sobrenome',
+    email: 'E-mail',
+    os: 'Seu sistema',
+    sending: 'Enviando…',
+    submit: 'Cadastrar e baixar',
+    submitFor: (os: string) => `Cadastrar e baixar para ${os}`,
+    agreeBefore: 'Ao continuar, você concorda com os',
+    doneTitle: 'Download iniciado',
+    doneText: (file: string) => `Abra o ${file} e siga o passo a passo “Como instalar” desta página. Depois, reabra o DaVinci Resolve.`,
+    retry: 'O download não começou? Clique aqui.',
+  },
+
+  donateModal: {
+    title: 'Apoie os plugins',
+    min: (min: string) => `Escolha o valor. A partir de ${min}.`,
+    currencyNote: '',
+    amount: 'Valor da doação',
+    you: 'Seus dados',
+    address: 'Endereço',
+    optional: '(opcional)',
+    firstName: 'Nome',
+    lastName: 'Sobrenome',
+    email: 'E-mail',
+    phone: 'Telefone',
+    postalCode: 'CEP',
+    addressNumber: 'Número',
+    addressNumberPh: 'Nº ou S/N',
+    street: 'Rua',
+    city: 'Cidade',
+    state: 'Estado',
+    select: 'Selecione',
+    method: 'Forma de pagamento',
+    pix: 'Pix',
+    card: 'Cartão de crédito',
+    cardNumber: 'Número do cartão',
+    holderName: 'Nome impresso no cartão',
+    expiry: 'Validade',
+    expiryPh: 'MM/AA',
+    cvv: 'CVV',
+    cpfCnpj: 'CPF ou CNPJ do titular',
+    cardNote: 'No cartão, o Asaas (que processa o pagamento) exige CPF, telefone, CEP e número. Os dados do cartão não ficam guardados no site.',
+    generating: 'Gerando…',
+    generatePix: (amount: string) => (amount ? `Gerar Pix de ${amount}` : 'Gerar Pix'),
+    processing: 'Processando…',
+    pay: (amount: string) => (amount ? `Doar ${amount}` : 'Doar'),
+    footer: 'Doar é opcional. Os plugins continuam grátis para todo mundo. Ao doar, você concorda com os',
+    pixTitle: 'Pague com Pix',
+    pixAlt: (amount: string) => `QR Code Pix de ${amount}`,
+    pixScanBefore: 'Escaneie no app do seu banco para doar',
+    pixCopy: 'Copiar código Pix (copia e cola)',
+    pixCopied: 'Código copiado',
+    pixWaiting: 'Aguardando o pagamento. O código vale por 30 minutos.',
+    pixChange: 'Alterar valor ou dados',
+    thanksTitle: 'Obrigado!',
+    thanksText: (amount: string) => `Sua doação de ${amount} foi recebida e vai direto para o desenvolvimento dos próximos plugins.`,
+    pixError: 'Não foi possível gerar o Pix agora.',
+    cardError: 'Pagamento não aprovado.',
+    /** Mensagens por campo; vazio = usa a mensagem em português que vem da validação. */
+    fieldErrors: {} as Partial<Record<string, string>>,
+  },
+};
+
+export type PluginsDict = typeof pt;

@@ -2,7 +2,7 @@
 
 import React, { useCallback, useEffect, useState, useSyncExternalStore } from 'react';
 import Link from 'next/link';
-import { Menu, X, Heart, ChevronDown, Download, Monitor } from 'lucide-react';
+import { Menu, X, Heart, ChevronDown, Download, Monitor, Globe } from 'lucide-react';
 import { SITE_CONFIG } from '@/config/siteConfig';
 import { InstagramIcon, YouTubeIcon, TikTokIcon } from '@/components/SocialIcons';
 import { PLUGIN_DOWNLOADS, READY_PLUGINS, UPCOMING_PLUGINS, type PluginOs } from '@/config/plugins';
@@ -11,16 +11,13 @@ import { trackPluginEvent } from '@/components/plugins/analytics';
 import { PLUGIN_VISUALS } from '@/components/plugins/PluginVisuals';
 import PluginsSignupModal from '@/components/plugins/PluginsSignupModal';
 import PluginsDonateModal from '@/components/plugins/PluginsDonateModal';
+import PluginsInstall from '@/components/plugins/PluginsInstall';
+import { usePluginsI18n } from '@/components/plugins/i18n/context';
+import { PLUGINS_LOCALES, localeMeta, type PluginsLocale } from '@/components/plugins/i18n/locales';
 
 // Quem já se cadastrou neste navegador baixa direto, sem repetir o formulário.
 const REGISTERED_KEY = 'flmmkr_plugins_registered';
 const OS_LIST = Object.keys(PLUGIN_DOWNLOADS) as PluginOs[];
-
-const NAV = [
-  { href: '#plugins', label: 'Plugins' },
-  { href: '#em-producao', label: 'Em produção' },
-  { href: '#doacao', label: 'Doação' },
-];
 
 const noopSubscribe = () => () => {};
 
@@ -50,7 +47,35 @@ function SocialIcon({ name, className }: { name: string; className: string }) {
   return null;
 }
 
+/** Seletor de idioma discreto: globo + sigla, com o select nativo invisível por cima (acessível e leve). */
+function LanguageSwitcher() {
+  const { locale, setLocale, t } = usePluginsI18n();
+  return (
+    <label className="relative flex h-7 items-center gap-1 rounded-full px-2 text-[11px] font-medium text-white/50 transition hover:bg-white/10 hover:text-white focus-within:bg-white/10 focus-within:text-white">
+      <Globe className="h-3.5 w-3.5" aria-hidden="true" />
+      <span aria-hidden="true">{localeMeta(locale).short}</span>
+      <select
+        aria-label={t.language}
+        value={locale}
+        onChange={(e) => setLocale(e.target.value as PluginsLocale)}
+        className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
+      >
+        {PLUGINS_LOCALES.map((l) => (
+          <option key={l.code} value={l.code}>{l.name}</option>
+        ))}
+      </select>
+    </label>
+  );
+}
+
 export function PluginsLanding() {
+  const { t, locale } = usePluginsI18n();
+  const NAV = [
+    { href: '#plugins', label: t.nav.plugins },
+    { href: '#instalar', label: t.nav.install },
+    { href: '#em-producao', label: t.nav.upcoming },
+    { href: '#doacao', label: t.nav.donate },
+  ];
   // Sistema e cadastro só existem no navegador: no servidor (e na hidratação) ficam vazios.
   const osReady = useSyncExternalStore(noopSubscribe, () => true, () => false);
   const os = osReady ? detectOs() : null;
@@ -108,10 +133,10 @@ export function PluginsLanding() {
             }`}
           >
             <Monitor className="w-[18px] h-[18px]" aria-hidden="true" />
-            Exclusivo para computador
+            {t.computerOnly}
           </button>
           <p id="computer-only-hint" className={`mt-3 max-w-[30ch] text-[13px] leading-snug text-balance ${dark ? 'text-white/50' : 'text-[#86868b]'}`}>
-            Abra no computador (macOS, Windows ou Linux) para baixar.
+            {t.computerOnlyHint}
           </p>
         </div>
       );
@@ -125,13 +150,13 @@ export function PluginsLanding() {
             className="inline-flex items-center justify-center gap-2.5 px-8 py-3.5 rounded-full bg-[#0071e3] hover:bg-[#0077ed] text-white text-sm font-semibold transition-all shadow-xl active:scale-95"
           >
             <Icon className="w-4 h-4" />
-            Baixar para {PLUGIN_DOWNLOADS[os].label}
+            {t.downloadFor(PLUGIN_DOWNLOADS[os].label)}
           </button>
           <p className={`text-xs ${dark ? 'text-white/60' : 'text-[#86868b]'}`}>
-            Usa outro sistema?{' '}
+            {t.otherOs}{' '}
             {otherOs.map((o, i) => (
               <React.Fragment key={o}>
-                {i > 0 && ' ou '}
+                {i > 0 && t.or}
                 <button onClick={() => requestDownload(o)} className={`underline underline-offset-2 ${dark ? 'hover:text-white' : 'hover:text-[#1d1d1f]'}`}>
                   {PLUGIN_DOWNLOADS[o].label}
                 </button>
@@ -144,7 +169,7 @@ export function PluginsLanding() {
     // Computador com sistema não reconhecido: o usuário escolhe pelo ícone.
     return (
       <div className="flex flex-col items-center gap-3">
-        <p className={`text-sm ${dark ? 'text-white/80' : 'text-[#6e6e73]'}`}>Escolha o seu sistema para baixar:</p>
+        <p className={`text-sm ${dark ? 'text-white/80' : 'text-[#6e6e73]'}`}>{t.chooseOs}</p>
         <div className="flex gap-3">
           {OS_LIST.map((o) => {
             const Icon = OS_ICON[o];
@@ -170,7 +195,7 @@ export function PluginsLanding() {
   const closeDonate = useCallback(() => setDonateOpen(false), []);
 
   return (
-    <div className="min-h-screen bg-[#0A0B0E] text-[#1d1d1f] font-sans antialiased selection:bg-[#0071e3]/20 selection:text-[#0071e3]">
+    <div dir={localeMeta(locale).dir} lang={localeMeta(locale).html} className="min-h-screen bg-[#0A0B0E] text-[#1d1d1f] font-sans antialiased selection:bg-[#0071e3]/20 selection:text-[#0071e3]">
       {donateOpen && <PluginsDonateModal onClose={closeDonate} />}
       {modalOs !== undefined && <PluginsSignupModal initialOs={modalOs ?? os} onClose={closeModal} onRegistered={onRegistered} />}
 
@@ -194,7 +219,8 @@ export function PluginsLanding() {
           </nav>
 
           <div className="hidden md:flex items-center gap-3">
-            <div className="flex items-center gap-1.5 mr-1">
+            <LanguageSwitcher />
+            <div className="flex items-center gap-1.5 me-1">
               {SITE_CONFIG.social.map((soc) => (
                 <a
                   key={soc.name}
@@ -215,7 +241,7 @@ export function PluginsLanding() {
               className="inline-flex items-center justify-center gap-1.5 px-4 py-1.5 rounded-full bg-white/10 hover:bg-white/20 border border-white/15 text-white text-xs font-semibold transition-all active:scale-95"
             >
               <Heart className="w-3.5 h-3.5 text-[#ff375f]" fill="currentColor" />
-              Doar
+              {t.donate}
             </button>
             {mobile ? (
               <button
@@ -224,7 +250,7 @@ export function PluginsLanding() {
                 className="inline-flex cursor-not-allowed items-center justify-center gap-1.5 px-4 py-1.5 rounded-full bg-white/10 border border-white/15 text-white/50 text-xs font-semibold"
               >
                 <Monitor className="w-3.5 h-3.5" />
-                Só no computador
+                {t.computerOnlyShort}
               </button>
             ) : (
               <button
@@ -232,18 +258,21 @@ export function PluginsLanding() {
                 className="inline-flex items-center justify-center gap-1.5 px-4 py-1.5 rounded-full bg-[#0071e3] hover:bg-[#0077ed] text-white text-xs font-semibold shadow-[0_2px_12px_rgba(0,113,227,0.4),inset_0_1px_1px_rgba(255,255,255,0.3)] transition-all active:scale-95"
               >
                 <Download className="w-3.5 h-3.5" />
-                Baixar
+                {t.download}
               </button>
             )}
           </div>
 
-          <button
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="md:hidden p-1.5 text-white/60 hover:text-white focus:outline-none"
-            aria-label="Menu"
-          >
-            {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-          </button>
+          <div className="md:hidden flex items-center gap-1">
+            <LanguageSwitcher />
+            <button
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              className="p-1.5 text-white/60 hover:text-white focus:outline-none"
+              aria-label={t.menu}
+            >
+              {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+            </button>
+          </div>
         </div>
 
         {mobileMenuOpen && (
@@ -272,10 +301,10 @@ export function PluginsLanding() {
               <button
                 type="button"
                 onClick={() => { setMobileMenuOpen(false); openDonate(); }}
-                className="ml-auto inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-white/10 border border-white/15 text-white text-xs font-semibold"
+                className="ms-auto inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-white/10 border border-white/15 text-white text-xs font-semibold"
               >
                 <Heart className="w-3.5 h-3.5 text-[#ff375f]" fill="currentColor" />
-                Doar
+                {t.donate}
               </button>
               {mobile ? (
                 <button
@@ -284,14 +313,14 @@ export function PluginsLanding() {
                   className="inline-flex cursor-not-allowed items-center gap-1.5 px-4 py-2 rounded-full bg-white/10 border border-white/15 text-white/50 text-xs font-semibold"
                 >
                   <Monitor className="w-3.5 h-3.5" />
-                  Só no computador
+                  {t.computerOnlyShort}
                 </button>
               ) : (
                 <button
                   onClick={() => { setMobileMenuOpen(false); requestDownload(os); }}
                   className="px-5 py-2 rounded-full bg-[#0071e3] text-white text-xs font-semibold shadow-[0_2px_12px_rgba(0,113,227,0.35)]"
                 >
-                  Baixar
+                  {t.download}
                 </button>
               )}
             </div>
@@ -317,18 +346,18 @@ export function PluginsLanding() {
           {/* Selo */}
           <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-black/60 backdrop-blur-md text-white/90 text-[13px] sm:text-sm font-medium border border-white/15">
             <span className="h-1.5 w-1.5 rounded-full bg-[#30d158]" aria-hidden="true" />
-            Grátis hoje e sempre
+            {t.hero.badge}
           </div>
 
           {/* Título: equilibrado em duas linhas no celular, sem palavra sozinha */}
           <h1 className="mt-5 sm:mt-6 text-[2.5rem] sm:text-6xl lg:text-7xl font-semibold tracking-[-0.03em] text-white leading-[1.05] max-w-4xl text-balance drop-shadow-xl">
-            Plugins para DaVinci&nbsp;Resolve.
+            {t.hero.title}
           </h1>
 
           {/* Apoio: frase principal mais suave, promessa em destaque */}
           <p className="mt-4 sm:mt-6 max-w-[34ch] sm:max-w-2xl text-[17px] sm:text-2xl leading-[1.5] sm:leading-relaxed tracking-tight text-white/70 text-pretty">
-            Feitos para a comunidade do audiovisual e distribuídos de graça.{' '}
-            <span className="text-white font-medium">Sem taxa, sem marca d&apos;água e sem cobrança surpresa.</span>
+            {t.hero.lead}{' '}
+            <span className="text-white font-medium">{t.hero.promise}</span>
           </p>
 
           <div className="mt-8 sm:mt-10 w-full flex justify-center">{renderDownload(true)}</div>
@@ -336,18 +365,18 @@ export function PluginsLanding() {
           {/* Doação: nível mais baixo da hierarquia, separada do download */}
           <div className="mt-10 sm:mt-12 w-full max-w-sm sm:max-w-lg border-t border-white/10 pt-6">
             <p className="text-[13px] sm:text-sm leading-relaxed text-white/55 text-balance">
-              Quer ajudar a criar os próximos?{' '}
+              {t.hero.donateBefore}{' '}
               <button type="button" onClick={openDonate} className="font-medium text-white underline underline-offset-4 decoration-[#ff375f] decoration-2 hover:text-[#ff8fa3] transition-colors">
-                Faça uma doação
+                {t.hero.donateLink}
               </button>{' '}
-              de qualquer valor. É opcional: os plugins continuam grátis para todo mundo.
+              {t.hero.donateAfter}
             </p>
           </div>
         </div>
 
-        <a href="#plugins" className="relative z-10 mt-10 hidden sm:inline-flex flex-col items-center gap-2.5 group cursor-pointer select-none" aria-label="Ver os plugins">
+        <a href="#plugins" className="relative z-10 mt-10 hidden sm:inline-flex flex-col items-center gap-2.5 group cursor-pointer select-none" aria-label={t.hero.scrollAria}>
           <span className="text-xs font-bold tracking-widest text-white/90 uppercase group-hover:text-[#2997ff] transition-colors">
-            Conheça os plugins
+            {t.hero.scroll}
           </span>
           <div className="w-11 h-11 rounded-full bg-black/40 backdrop-blur-md hover:bg-white/20 text-white flex items-center justify-center border-2 border-white/90 shadow-lg animate-scroll-bounce transition-all active:scale-90">
             <ChevronDown className="w-6 h-6 stroke-[2.5]" />
@@ -358,11 +387,11 @@ export function PluginsLanding() {
       {/* PRONTOS — dark, como a seção de treinamentos */}
       <section id="plugins" className="scroll-section relative z-10 w-full py-16 sm:py-28 border-t border-[#2c2c2e] bg-[#0A0B0E] text-white scroll-mt-11">
         <div className="scroll-content max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="mb-10 text-center sm:text-left">
-            <span className="text-xs uppercase tracking-widest text-white/40 font-semibold mb-3 block">Prontos para baixar</span>
-            <h2 className="text-[1.875rem] leading-[1.1] sm:text-5xl sm:leading-tight font-semibold tracking-tight text-balance text-white mb-3">Três plugins, um instalador.</h2>
+          <div className="mb-10 text-center sm:text-start">
+            <span className="text-xs uppercase tracking-widest text-white/40 font-semibold mb-3 block">{t.ready.eyebrow}</span>
+            <h2 className="text-[1.875rem] leading-[1.1] sm:text-5xl sm:leading-tight font-semibold tracking-tight text-balance text-white mb-3">{t.ready.title}</h2>
             <p className="text-[15px] leading-relaxed sm:text-xl text-white/60 max-w-2xl text-balance mx-auto sm:mx-0">
-              O pacote FLMMKR FX instala os três de uma vez, na versão gratuita ou na Studio do DaVinci Resolve.
+              {t.ready.text}
             </p>
           </div>
 
@@ -373,7 +402,7 @@ export function PluginsLanding() {
                 <article key={p.id} className="rounded-3xl bg-[#16171b] border border-white/10 overflow-hidden flex flex-col">
                   <div className="h-56 bg-[#0d0e11] border-b border-white/10 overflow-hidden">
                     {p.image ? (
-                      <img src={p.image} alt={`Plugin ${p.name} aplicado na viewer do DaVinci Resolve`} loading="lazy"
+                      <img src={p.image} alt={t.ready.imageAlt(p.name)} loading="lazy"
                         className={p.imageVertical ? 'mx-auto h-full w-auto py-4 object-contain rounded-[18px]' : 'h-full w-full object-cover'}
                       />
                     ) : (
@@ -389,8 +418,8 @@ export function PluginsLanding() {
                         </span>
                       )}
                     </div>
-                    <p className="text-sm font-medium text-white/80">{p.tagline}</p>
-                    <p className="text-sm text-white/55 leading-relaxed">{p.description}</p>
+                    <p className="text-sm font-medium text-white/80">{t.plugins[p.id]?.tagline ?? p.tagline}</p>
+                    <p className="text-sm text-white/55 leading-relaxed">{t.plugins[p.id]?.description ?? p.description}</p>
                   </div>
                 </article>
               );
@@ -403,14 +432,16 @@ export function PluginsLanding() {
         </div>
       </section>
 
+      <PluginsInstall detectedOs={os} />
+
       {/* EM PRODUÇÃO — light */}
       <section id="em-producao" className="scroll-section relative z-10 w-full py-16 sm:py-28 border-t border-[#d2d2d7]/60 px-4 sm:px-6 lg:px-8 bg-[#f5f5f7] scroll-mt-11">
         <div className="scroll-content max-w-6xl mx-auto">
           <div className="mb-10 text-center">
-            <span className="text-xs uppercase tracking-widest text-[#86868b] font-semibold mb-3 block">Em produção</span>
-            <h2 className="text-[1.875rem] leading-[1.1] sm:text-5xl sm:leading-tight font-semibold tracking-tight text-balance text-[#1d1d1f] mb-3">O que vem por aí.</h2>
+            <span className="text-xs uppercase tracking-widest text-[#86868b] font-semibold mb-3 block">{t.upcoming.eyebrow}</span>
+            <h2 className="text-[1.875rem] leading-[1.1] sm:text-5xl sm:leading-tight font-semibold tracking-tight text-balance text-[#1d1d1f] mb-3">{t.upcoming.title}</h2>
             <p className="text-[15px] leading-relaxed sm:text-xl text-[#86868b] max-w-xl mx-auto text-balance">
-              Quem tem cadastro recebe o aviso quando cada um sair.
+              {t.upcoming.text}
             </p>
           </div>
 
@@ -421,10 +452,10 @@ export function PluginsLanding() {
                   <div className="p-6 sm:p-8 flex flex-col gap-2.5 flex-1">
                     <div className="flex items-center gap-2">
                       <h3 className="text-2xl font-semibold tracking-tight text-[#1d1d1f]">{p.name}</h3>
-                      <span className="rounded-full bg-[#e8e8ed] px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-[#6e6e73]">Em breve</span>
+                      <span className="rounded-full bg-[#e8e8ed] px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-[#6e6e73]">{t.upcoming.soon}</span>
                     </div>
-                    <p className="text-sm font-medium text-[#1d1d1f]">{p.tagline}</p>
-                    <p className="text-sm text-[#6e6e73] leading-relaxed">{p.description}</p>
+                    <p className="text-sm font-medium text-[#1d1d1f]">{t.plugins[p.id]?.tagline ?? p.tagline}</p>
+                    <p className="text-sm text-[#6e6e73] leading-relaxed">{t.plugins[p.id]?.description ?? p.description}</p>
                   </div>
                 </article>
               );
@@ -440,9 +471,9 @@ export function PluginsLanding() {
             <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-full bg-[#ff375f]/10 text-[#ff375f]">
               <Heart className="w-6 h-6" fill="currentColor" />
             </div>
-            <h2 className="text-[1.875rem] leading-[1.1] sm:text-5xl sm:leading-tight font-semibold tracking-tight text-balance text-[#1d1d1f] mb-4">Apoie os plugins.</h2>
+            <h2 className="text-[1.875rem] leading-[1.1] sm:text-5xl sm:leading-tight font-semibold tracking-tight text-balance text-[#1d1d1f] mb-4">{t.support.title}</h2>
             <p className="text-[15px] sm:text-lg text-[#6e6e73] max-w-xl mx-auto mb-8 leading-relaxed text-balance">
-              Os plugins são gratuitos. Se eles economizam o seu tempo, uma doação de qualquer valor ajuda a manter as atualizações e a lançar os próximos.
+              {t.support.text}
             </p>
 
             <button
@@ -450,9 +481,9 @@ export function PluginsLanding() {
               onClick={openDonate}
               className="w-full max-w-[320px] sm:w-auto h-12 px-8 rounded-full bg-[#0071e3] hover:bg-[#0077ed] text-white text-[15px] sm:text-sm font-semibold transition-all shadow-sm active:scale-95"
             >
-              Doar com Pix ou cartão
+              {t.support.button}
             </button>
-            <p className="mt-5 text-xs text-[#86868b]">Pix ou cartão de crédito, a partir de R$ 5. Pagamento processado pelo Asaas.</p>
+            <p className="mt-5 text-xs text-[#86868b]">{t.support.note}</p>
           </div>
         </div>
       </section>
@@ -460,9 +491,9 @@ export function PluginsLanding() {
       {/* CHAMADA FINAL */}
       <section className="scroll-section relative z-10 w-full py-16 sm:py-28 border-t border-[#d2d2d7]/60 px-4 sm:px-6 lg:px-8 bg-[#f5f5f7]">
         <div className="scroll-content max-w-4xl mx-auto text-center px-6 py-10 sm:p-16 rounded-3xl bg-white border border-[#e5e5e7] shadow-sm">
-          <h2 className="text-[1.875rem] leading-[1.1] sm:text-5xl sm:leading-tight font-semibold tracking-tight text-balance text-[#1d1d1f] mb-4">Baixe e teste hoje.</h2>
+          <h2 className="text-[1.875rem] leading-[1.1] sm:text-5xl sm:leading-tight font-semibold tracking-tight text-balance text-[#1d1d1f] mb-4">{t.cta.title}</h2>
           <p className="text-[15px] sm:text-base leading-relaxed text-[#86868b] max-w-lg mx-auto mb-8 text-balance">
-            Cadastro grátis, um instalador e os três plugins na sua próxima sessão de cor.
+            {t.cta.text}
           </p>
           {renderDownload(false)}
         </div>
@@ -471,16 +502,16 @@ export function PluginsLanding() {
       {/* FOOTER */}
       <footer className="relative z-10 py-10 sm:py-12 bg-white border-t border-[#d2d2d7]/60 text-[#6e6e73] text-xs px-5 sm:px-6 lg:px-8">
         <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
-          <div className="text-center md:text-left">
+          <div className="text-center md:text-start">
             <span className="font-semibold text-[#1d1d1f] text-sm block mb-1.5">FLMMKR Plugins</span>
             <p className="text-[12px] leading-relaxed text-[#86868b] max-w-[36ch] md:max-w-none text-balance">
-              © {new Date().getFullYear()} FLMMKR. DaVinci Resolve é marca da Blackmagic Design; os plugins não são afiliados a ela.
+              {t.footer.rights(new Date().getFullYear())}
             </p>
           </div>
           {/* Links numa linha e redes sociais na outra (no celular); lado a lado no desktop */}
           <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-6">
-            <nav aria-label="Links do rodapé" className="flex items-center gap-5 text-[13px]">
-              <Link href="/plugins/termos" className="py-2 text-[#0066cc] hover:underline">Termos de Uso e Privacidade</Link>
+            <nav aria-label={t.footer.aria} className="flex items-center gap-5 text-[13px]">
+              <Link href="/plugins/termos" className="py-2 text-[#0066cc] hover:underline">{t.footer.terms}</Link>
               <Link href="/" className="py-2 text-[#0066cc] hover:underline">flmmkr.site</Link>
             </nav>
             <div className="flex items-center gap-3">

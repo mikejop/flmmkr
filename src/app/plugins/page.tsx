@@ -1,5 +1,8 @@
 import type { Metadata } from 'next';
+import { cookies, headers } from 'next/headers';
 import { PluginsLanding } from '@/components/plugins/PluginsLanding';
+import { PluginsI18nProvider } from '@/components/plugins/i18n/context';
+import { detectPluginsLocale, PLUGINS_LOCALE_COOKIE } from '@/components/plugins/i18n/locales';
 import { SITE_CONFIG } from '@/config/siteConfig';
 
 const PAGE_URL = `${SITE_CONFIG.seo.url}/plugins`;
@@ -26,6 +29,18 @@ export const metadata: Metadata = {
   twitter: { card: 'summary_large_image', title: TITLE, description: DESCRIPTION, images: [OG_IMAGE.url] },
 };
 
-export default function PluginsPage() {
-  return <PluginsLanding />;
+export default async function PluginsPage() {
+  // Idioma: escolha salva > país do IP (Vercel) > idioma do computador > português.
+  const [h, c] = await Promise.all([headers(), cookies()]);
+  const locale = detectPluginsLocale({
+    cookie: c.get(PLUGINS_LOCALE_COOKIE)?.value,
+    country: h.get('x-vercel-ip-country'),
+    acceptLanguage: h.get('accept-language'),
+    userAgent: h.get('user-agent'),
+  });
+  return (
+    <PluginsI18nProvider initialLocale={locale}>
+      <PluginsLanding />
+    </PluginsI18nProvider>
+  );
 }

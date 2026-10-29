@@ -1,7 +1,10 @@
 'use client';
 
+import { usePluginsI18n } from '@/components/plugins/i18n/context';
+
 /** Consentimento (LGPD) para notificações e e-mail marketing. Começa desligado: a pessoa escolhe ligar. */
 export default function MarketingConsent({ checked, onChange, id }: { checked: boolean; onChange: (value: boolean) => void; id: string }) {
+  const { t } = usePluginsI18n();
   return (
     <div className="flex items-start gap-3 rounded-2xl border border-[#e5e5e7] bg-white p-4">
       <button
@@ -17,8 +20,8 @@ export default function MarketingConsent({ checked, onChange, id }: { checked: b
         <span className={`inline-block h-[22px] w-[22px] rounded-full bg-white shadow transition-transform ${checked ? 'translate-x-[20px]' : 'translate-x-[2px]'}`} />
       </button>
       <label htmlFor={id} className="cursor-pointer text-[13px] leading-snug text-[#6e6e73]">
-        <span className="block font-medium text-[#1d1d1f]">Quero receber novidades da FLMMKR</span>
-        Notificações e e-mails sobre atualizações dos plugins, lançamentos e conteúdos. Você pode cancelar quando quiser.
+        <span className="block font-medium text-[#1d1d1f]">{t.consent.title}</span>
+        {t.consent.text}
       </label>
     </div>
   );

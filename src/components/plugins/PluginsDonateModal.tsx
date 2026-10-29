@@ -4,6 +4,8 @@ import { useEffect, useRef, useState } from 'react';
 import { Check, Copy, CreditCard, Heart, QrCode } from 'lucide-react';
 import TurnstileWidget from '@/components/TurnstileWidget';
 import MarketingConsent from '@/components/plugins/MarketingConsent';
+import { usePluginsI18n } from '@/components/plugins/i18n/context';
+import type { PluginsDict } from '@/components/plugins/i18n/pt';
 import { BR_STATES, maskPhone } from '@/utils/prisma2Lead';
 import {
   amountError, formatBRL, maskCard, maskCep, maskEmail, maskCpfCnpj, maskExpiry, parseAmount, validateCard, validateDonor,
@@ -22,9 +24,11 @@ const field =
 const label = 'mb-1.5 block text-[13px] font-medium text-[#6e6e73]';
 const sectionTitle = 'text-[15px] font-semibold text-[#1d1d1f]';
 
+type LabelKey = { [K in keyof PluginsDict['donateModal']]: PluginsDict['donateModal'][K] extends string ? K : never }[keyof PluginsDict['donateModal']];
+
 type FieldSpec<K extends string> = {
   key: K;
-  label: string;
+  label: LabelKey;
   span?: boolean;
   props: React.InputHTMLAttributes<HTMLInputElement>;
   mask?: (v: string) => string;
@@ -34,31 +38,36 @@ type FieldSpec<K extends string> = {
 const CARD_REQUIRED = new Set<DonorField>(['phone', 'postalCode', 'addressNumber']);
 
 const DONOR_FIELDS: FieldSpec<Exclude<DonorField, 'state'>>[] = [
-  { key: 'firstName', label: 'Nome', props: { autoComplete: 'given-name', maxLength: 60 } },
-  { key: 'lastName', label: 'Sobrenome', props: { autoComplete: 'family-name', maxLength: 80 } },
-  { key: 'email', label: 'E-mail', span: true, mask: maskEmail, props: { type: 'email', inputMode: 'email', autoComplete: 'email', maxLength: 254 } },
-  { key: 'phone', label: 'Telefone', span: true, mask: maskPhone, props: { type: 'tel', inputMode: 'numeric', autoComplete: 'tel-national', placeholder: '(00) 00000-0000', maxLength: 15 } },
+  { key: 'firstName', label: 'firstName', props: { autoComplete: 'given-name', maxLength: 60 } },
+  { key: 'lastName', label: 'lastName', props: { autoComplete: 'family-name', maxLength: 80 } },
+  { key: 'email', label: 'email', span: true, mask: maskEmail, props: { type: 'email', inputMode: 'email', autoComplete: 'email', maxLength: 254 } },
+  { key: 'phone', label: 'phone', span: true, mask: maskPhone, props: { type: 'tel', inputMode: 'numeric', autoComplete: 'tel-national', placeholder: '(00) 00000-0000', maxLength: 15 } },
 ];
 
 const ADDRESS_FIELDS: FieldSpec<Exclude<DonorField, 'state'>>[] = [
-  { key: 'postalCode', label: 'CEP', mask: maskCep, props: { inputMode: 'numeric', autoComplete: 'postal-code', placeholder: '00000-000', maxLength: 9 } },
-  { key: 'addressNumber', label: 'Número', props: { autoComplete: 'address-line2', placeholder: 'Nº ou S/N', maxLength: 10 } },
-  { key: 'street', label: 'Rua', span: true, props: { autoComplete: 'address-line1', maxLength: 120 } },
-  { key: 'city', label: 'Cidade', props: { autoComplete: 'address-level2', maxLength: 80 } },
+  { key: 'postalCode', label: 'postalCode', mask: maskCep, props: { inputMode: 'numeric', autoComplete: 'postal-code', placeholder: '00000-000', maxLength: 9 } },
+  { key: 'addressNumber', label: 'addressNumber', props: { autoComplete: 'address-line2', maxLength: 10 } },
+  { key: 'street', label: 'street', span: true, props: { autoComplete: 'address-line1', maxLength: 120 } },
+  { key: 'city', label: 'city', props: { autoComplete: 'address-level2', maxLength: 80 } },
 ];
 
 const CARD_FIELDS: FieldSpec<CardField>[] = [
-  { key: 'number', label: 'Número do cartão', span: true, mask: maskCard, props: { inputMode: 'numeric', autoComplete: 'cc-number', placeholder: '0000 0000 0000 0000', maxLength: 23 } },
-  { key: 'holderName', label: 'Nome impresso no cartão', span: true, props: { autoComplete: 'cc-name', maxLength: 100 } },
-  { key: 'expiry', label: 'Validade', mask: maskExpiry, props: { inputMode: 'numeric', autoComplete: 'cc-exp', placeholder: 'MM/AA', maxLength: 5 } },
-  { key: 'ccv', label: 'CVV', mask: (v) => v.replace(/\D/g, '').slice(0, 4), props: { inputMode: 'numeric', autoComplete: 'cc-csc', placeholder: '123', maxLength: 4 } },
-  { key: 'cpfCnpj', label: 'CPF ou CNPJ do titular', span: true, mask: maskCpfCnpj, props: { inputMode: 'numeric', maxLength: 18 } },
+  { key: 'number', label: 'cardNumber', span: true, mask: maskCard, props: { inputMode: 'numeric', autoComplete: 'cc-number', placeholder: '0000 0000 0000 0000', maxLength: 23 } },
+  { key: 'holderName', label: 'holderName', span: true, props: { autoComplete: 'cc-name', maxLength: 100 } },
+  { key: 'expiry', label: 'expiry', mask: maskExpiry, props: { inputMode: 'numeric', autoComplete: 'cc-exp', maxLength: 5 } },
+  { key: 'ccv', label: 'cvv', mask: (v) => v.replace(/\D/g, '').slice(0, 4), props: { inputMode: 'numeric', autoComplete: 'cc-csc', placeholder: '123', maxLength: 4 } },
+  { key: 'cpfCnpj', label: 'cpfCnpj', span: true, mask: maskCpfCnpj, props: { inputMode: 'numeric', maxLength: 18 } },
 ];
 
 const EMPTY_DONOR: Record<DonorField, string> = { firstName: '', lastName: '', email: '', phone: '', postalCode: '', street: '', addressNumber: '', city: '', state: '' };
 const EMPTY_CARD: Record<CardField, string> = { number: '', holderName: '', expiry: '', ccv: '', cpfCnpj: '' };
 
 export default function PluginsDonateModal({ onClose }: { onClose: () => void }) {
+  const { t: dict, locale } = usePluginsI18n();
+  const t = dict.donateModal;
+  /** Erro do campo no idioma da página; em português usa a mensagem que vem da validação. */
+  const tr = (key: string, fallback?: string | null) => t.fieldErrors[key] ?? fallback ?? undefined;
+  const placeholder = (key: string) => (key === 'addressNumber' ? t.addressNumberPh : key === 'expiry' ? t.expiryPh : undefined);
   const [amountText, setAmountText] = useState('25');
   const [method, setMethod] = useState<Method>('pix');
   const [donor, setDonor] = useState(EMPTY_DONOR);
@@ -137,13 +146,13 @@ export default function PluginsDonateModal({ onClose }: { onClose: () => void })
   const checkCommon = (forCard: boolean): boolean => {
     const problem = amountError(amount);
     if (problem) {
-      setFieldError({ amount: problem });
+      setFieldError({ amount: tr('amount', problem) });
       focusField('amount');
       return false;
     }
     const checked = validateDonor(donor, forCard);
     if (!checked.ok) {
-      setFieldError({ [checked.field]: checked.error });
+      setFieldError({ [checked.field]: tr(checked.field, checked.error) });
       focusField(checked.field);
       return false;
     }
@@ -169,14 +178,14 @@ export default function PluginsDonateModal({ onClose }: { onClose: () => void })
       const { res, data } = await post({ method: 'pix' });
       if (!res.ok || !data.ok) {
         if (res.status === 400 && data.field) {
-          setFieldError({ [data.field]: data.error });
+          setFieldError({ [data.field]: tr(data.field, data.error) });
           focusField(data.field);
-        } else setError(data.error || 'Não foi possível gerar o Pix agora.');
+        } else setError((locale === 'pt' ? data.error : '') || t.pixError);
         return;
       }
       setPix({ ref: String(data.ref), image: String(data.image), payload: String(data.payload), amount: Number(data.amount) });
     } catch {
-      setError('Sem conexão. Verifique sua internet e tente de novo.');
+      setError(dict.errors.network);
     } finally {
       setSending(false);
     }
@@ -188,27 +197,27 @@ export default function PluginsDonateModal({ onClose }: { onClose: () => void })
     if (!checkCommon(true)) return;
     const checked = validateCard(card);
     if (!checked.ok) {
-      setFieldError({ [checked.field]: checked.error });
+      setFieldError({ [checked.field]: tr(checked.field, checked.error) });
       focusField(checked.field);
       return;
     }
-    if (TURNSTILE_ON && !turnstileToken) return setError('Aguarde a verificação de segurança terminar.');
+    if (TURNSTILE_ON && !turnstileToken) return setError(dict.errors.wait);
     setFieldError({});
     setSending(true);
     try {
       const { res, data } = await post({ method: 'card', card, turnstileToken });
       if (!res.ok || !data.ok) {
         if (res.status === 400 && data.field) {
-          setFieldError({ [data.field]: data.error });
+          setFieldError({ [data.field]: tr(data.field, data.error) });
           focusField(data.field);
-        } else setError(data.error || 'Pagamento não aprovado.');
+        } else setError((locale === 'pt' ? data.error : '') || t.cardError);
         setTurnstileReset((n) => n + 1);
         return;
       }
       setCard(EMPTY_CARD);
       setThanks(Number(data.amount));
     } catch {
-      setError('Sem conexão. Verifique sua internet e tente de novo.');
+      setError(dict.errors.network);
       setTurnstileReset((n) => n + 1);
     } finally {
       setSending(false);
@@ -232,26 +241,26 @@ export default function PluginsDonateModal({ onClose }: { onClose: () => void })
   const donorLabel = (f: FieldSpec<DonorField>, inAddress: boolean) => {
     const required = f.key === 'firstName' || f.key === 'lastName' || f.key === 'email' || (method === 'card' && CARD_REQUIRED.has(f.key));
     // No Pix o título "Endereço (opcional)" já avisa: não repete em cada campo.
-    if (required || (inAddress && method === 'pix')) return f.label;
-    return <>{f.label} <span className="font-normal text-[#86868b]">(opcional)</span></>;
+    if (required || (inAddress && method === 'pix')) return t[f.label];
+    return <>{t[f.label]} <span className="font-normal text-[#86868b]">{t.optional}</span></>;
   };
 
   const renderDonorField = (f: FieldSpec<Exclude<DonorField, 'state'>>, inAddress = false) => (
     <div key={f.key} className={f.span ? 'col-span-2' : ''}>
       <label htmlFor={`dn-${f.key}`} className={label}>{donorLabel(f, inAddress)}</label>
-      <input id={`dn-${f.key}`} className={field} value={donor[f.key]} onChange={(e) => setDonorField(f.key, e.target.value, f.mask)} {...f.props} {...inv(f.key)} />
+      <input id={`dn-${f.key}`} className={field} value={donor[f.key]} onChange={(e) => setDonorField(f.key, e.target.value, f.mask)} {...f.props} placeholder={placeholder(f.key) ?? f.props.placeholder} {...inv(f.key)} />
       {err(f.key)}
     </div>
   );
 
   return (
     <div className="fixed inset-0 z-[100] flex items-end justify-center sm:items-center" role="dialog" aria-modal="true" aria-labelledby="donate-modal-title">
-      <button type="button" aria-label="Fechar" onClick={onClose} className="absolute inset-0 cursor-default bg-black/50 backdrop-blur-sm" />
+      <button type="button" aria-label={dict.close} onClick={onClose} className="absolute inset-0 cursor-default bg-black/50 backdrop-blur-sm" />
       <div className="relative max-h-[92dvh] w-full overflow-y-auto rounded-t-[28px] bg-[#f5f5f7] p-6 shadow-2xl sm:max-w-[480px] sm:rounded-[28px] sm:p-8">
         <button
           type="button"
           onClick={onClose}
-          aria-label="Fechar"
+          aria-label={dict.close}
           className="absolute end-4 top-4 flex h-8 w-8 items-center justify-center rounded-full bg-[#e8e8ed] text-[#6e6e73] transition hover:bg-[#d2d2d7]"
         >
           <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><path d="M1 1l10 10M11 1L1 11" /></svg>
@@ -262,23 +271,23 @@ export default function PluginsDonateModal({ onClose }: { onClose: () => void })
             <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-full bg-[#ff375f]/10 text-[#ff375f]">
               <Heart className="h-6 w-6" fill="currentColor" />
             </div>
-            <h2 id="donate-modal-title" className="text-[28px] font-semibold tracking-tight text-[#1d1d1f]">Obrigado!</h2>
+            <h2 id="donate-modal-title" className="text-[28px] font-semibold tracking-tight text-[#1d1d1f]">{t.thanksTitle}</h2>
             <p className="mx-auto mt-2 max-w-sm text-[17px] leading-snug text-[#6e6e73]">
-              Sua doação de {formatBRL(thanks)} foi recebida e vai direto para o desenvolvimento dos próximos plugins.
+              {t.thanksText(formatBRL(thanks))}
             </p>
             <button type="button" onClick={onClose} className="mt-6 h-12 rounded-full bg-[#0071e3] px-8 text-[17px] font-medium text-white transition hover:bg-[#0077ed]">
-              Fechar
+              {dict.close}
             </button>
           </div>
         ) : pix ? (
           <div className="text-center">
-            <h2 id="donate-modal-title" className="pe-10 text-start text-[28px] font-semibold tracking-tight text-[#1d1d1f]">Pague com Pix</h2>
+            <h2 id="donate-modal-title" className="pe-10 text-start text-[28px] font-semibold tracking-tight text-[#1d1d1f]">{t.pixTitle}</h2>
             <div className="mx-auto mt-6 w-fit rounded-2xl border border-[#e5e5e7] bg-white p-3">
               {/* eslint-disable-next-line @next/next/no-img-element -- imagem gerada pelo Asaas (data URI) */}
-              <img src={`data:image/png;base64,${pix.image}`} alt={`QR Code Pix de ${formatBRL(pix.amount)}`} width={208} height={208} className="h-52 w-52 [image-rendering:pixelated]" />
+              <img src={`data:image/png;base64,${pix.image}`} alt={t.pixAlt(formatBRL(pix.amount))} width={208} height={208} className="h-52 w-52 [image-rendering:pixelated]" />
             </div>
             <p className="mt-3 text-[15px] text-[#1d1d1f]">
-              Escaneie no app do seu banco para doar <strong>{formatBRL(pix.amount)}</strong>.
+              {t.pixScanBefore} <strong>{formatBRL(pix.amount)}</strong>.
             </p>
             <button
               type="button"
@@ -286,34 +295,36 @@ export default function PluginsDonateModal({ onClose }: { onClose: () => void })
               className="mt-4 inline-flex h-11 w-full items-center justify-center gap-2 rounded-full border border-[#d2d2d7] bg-white text-[15px] font-medium text-[#1d1d1f] transition hover:bg-[#f5f5f7]"
             >
               {copied ? <Check className="h-4 w-4 text-[#248a3d]" /> : <Copy className="h-4 w-4" />}
-              {copied ? 'Código copiado' : 'Copiar código Pix (copia e cola)'}
+              {copied ? t.pixCopied : t.pixCopy}
             </button>
             <p className="mt-3 flex items-center justify-center gap-2 text-[13px] text-[#86868b]">
               <span className="h-2 w-2 animate-pulse rounded-full bg-[#30d158]" />
-              Aguardando o pagamento. O código vale por 30 minutos.
+              {t.pixWaiting}
             </p>
             <button type="button" onClick={() => setPix(null)} className="mt-4 text-[15px] text-[#0066cc] hover:underline">
-              Alterar valor ou dados
+              {t.pixChange}
             </button>
           </div>
         ) : (
           <>
-            <h2 id="donate-modal-title" className="pe-10 text-[28px] font-semibold tracking-tight text-[#1d1d1f]">Apoie os plugins</h2>
-            <p className="mt-1 text-[15px] text-[#6e6e73]">Escolha o valor. A partir de {formatBRL(DONATION_MIN)}.</p>
+            <h2 id="donate-modal-title" className="pe-10 text-[28px] font-semibold tracking-tight text-[#1d1d1f]">{t.title}</h2>
+            <p className="mt-1 text-[15px] text-[#6e6e73]">{t.min(formatBRL(DONATION_MIN))}</p>
+            {t.currencyNote && <p className="mt-1 text-[13px] text-[#86868b]">{t.currencyNote}</p>}
 
             {/* Valor */}
             <div className="mt-6">
-              <label htmlFor="dn-amount" className={label}>Valor da doação</label>
+              <label htmlFor="dn-amount" className={label}>{t.amount}</label>
               <div className="relative">
-                <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-[17px] text-[#86868b]">R$</span>
+                <span dir="ltr" className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-[17px] text-[#86868b]">R$</span>
                 <input
                   ref={amountRef}
                   id="dn-amount"
+                  dir="ltr"
                   inputMode="decimal"
                   className={`${field} pl-12 text-[20px] font-semibold`}
                   value={amountText}
                   onChange={(e) => changeAmount(e.target.value.replace(/[^\d,.]/g, '').slice(0, 9))}
-                  onBlur={() => amountText && amountError(amount) && setFieldError((fe) => ({ ...fe, amount: amountError(amount) ?? undefined }))}
+                  onBlur={() => amountText && amountError(amount) && setFieldError((fe) => ({ ...fe, amount: tr('amount', amountError(amount)) }))}
                   {...inv('amount')}
                 />
               </div>
@@ -337,16 +348,16 @@ export default function PluginsDonateModal({ onClose }: { onClose: () => void })
 
             {/* Dados de quem doa */}
             <div className="mt-7">
-              <h3 className={sectionTitle}>Seus dados</h3>
+              <h3 className={sectionTitle}>{t.you}</h3>
               <div className="mt-3 grid grid-cols-2 gap-4">{DONOR_FIELDS.map((f) => renderDonorField(f))}</div>
 
               <h3 className={`${sectionTitle} mt-6`}>
-                Endereço{method === 'pix' && <span className="font-normal text-[#86868b]"> (opcional)</span>}
+                {t.address}{method === 'pix' && <span className="font-normal text-[#86868b]"> {t.optional}</span>}
               </h3>
               <div className="mt-3 grid grid-cols-2 gap-4">
                 {ADDRESS_FIELDS.map((f) => renderDonorField(f, true))}
                 <div>
-                  <label htmlFor="dn-state" className={label}>Estado{method === 'card' && <span className="font-normal text-[#86868b]"> (opcional)</span>}</label>
+                  <label htmlFor="dn-state" className={label}>{t.state}{method === 'card' && <span className="font-normal text-[#86868b]"> {t.optional}</span>}</label>
                   <select
                     id="dn-state"
                     className={`${field} appearance-none`}
@@ -355,7 +366,7 @@ export default function PluginsDonateModal({ onClose }: { onClose: () => void })
                     autoComplete="address-level1"
                     {...inv('state')}
                   >
-                    <option value="">Selecione</option>
+                    <option value="">{t.select}</option>
                     {BR_STATES.map(([code, name]) => (
                       <option key={code} value={code}>{name}</option>
                     ))}
@@ -370,8 +381,8 @@ export default function PluginsDonateModal({ onClose }: { onClose: () => void })
             </div>
 
             {/* Forma de pagamento */}
-            <div className="mt-7 grid grid-cols-2 gap-1 rounded-full bg-[#e8e8ed] p-1" role="tablist" aria-label="Forma de pagamento">
-              {([['pix', 'Pix', QrCode], ['card', 'Cartão de crédito', CreditCard]] as const).map(([key, text, Icon]) => (
+            <div className="mt-7 grid grid-cols-2 gap-1 rounded-full bg-[#e8e8ed] p-1" role="tablist" aria-label={t.method}>
+              {([['pix', t.pix, QrCode], ['card', t.card, CreditCard]] as const).map(([key, text, Icon]) => (
                 <button
                   key={key}
                   type="button"
@@ -396,7 +407,7 @@ export default function PluginsDonateModal({ onClose }: { onClose: () => void })
                   disabled={sending}
                   className="h-12 w-full rounded-full bg-[#0071e3] text-[17px] font-medium text-white transition hover:bg-[#0077ed] disabled:cursor-wait disabled:opacity-60"
                 >
-                  {sending ? 'Gerando…' : `Gerar Pix${amountOk ? ` de ${formatBRL(amount)}` : ''}`}
+                  {sending ? t.generating : t.generatePix(amountOk ? formatBRL(amount) : '')}
                 </button>
               </div>
             ) : (
@@ -404,7 +415,7 @@ export default function PluginsDonateModal({ onClose }: { onClose: () => void })
                 <div className="grid grid-cols-2 gap-4">
                   {CARD_FIELDS.map((f) => (
                     <div key={f.key} className={f.span ? 'col-span-2' : ''}>
-                      <label htmlFor={`dn-${f.key}`} className={label}>{f.label}</label>
+                      <label htmlFor={`dn-${f.key}`} className={label}>{t[f.label]}</label>
                       <input
                         id={`dn-${f.key}`}
                         className={field}
@@ -415,6 +426,7 @@ export default function PluginsDonateModal({ onClose }: { onClose: () => void })
                           clearError(f.key);
                         }}
                         {...f.props}
+                        placeholder={placeholder(f.key) ?? f.props.placeholder}
                         {...inv(f.key)}
                       />
                       {err(f.key)}
@@ -422,7 +434,7 @@ export default function PluginsDonateModal({ onClose }: { onClose: () => void })
                   ))}
                 </div>
                 <p className="mt-3 text-[12px] leading-snug text-[#86868b]">
-                  No cartão, o Asaas (que processa o pagamento) exige CPF, telefone, CEP e número. Os dados do cartão não ficam guardados no site.
+                  {t.cardNote}
                 </p>
                 <div className="mt-4">
                   <TurnstileWidget onToken={setTurnstileToken} resetKey={turnstileReset} />
@@ -433,7 +445,7 @@ export default function PluginsDonateModal({ onClose }: { onClose: () => void })
                   disabled={sending}
                   className="mt-4 h-12 w-full rounded-full bg-[#0071e3] text-[17px] font-medium text-white transition hover:bg-[#0077ed] disabled:cursor-wait disabled:opacity-60"
                 >
-                  {sending ? 'Processando…' : `Doar${amountOk ? ` ${formatBRL(amount)}` : ''}`}
+                  {sending ? t.processing : t.pay(amountOk ? formatBRL(amount) : '')}
                 </button>
               </div>
             )}
@@ -441,8 +453,8 @@ export default function PluginsDonateModal({ onClose }: { onClose: () => void })
             {error && <p role="alert" className="mt-4 rounded-xl bg-[#ff3b30]/10 px-4 py-3 text-[15px] text-[#d70015]">{error}</p>}
 
             <p className="mt-5 text-center text-[12px] leading-snug text-[#86868b]">
-              Doar é opcional. Os plugins continuam grátis para todo mundo. Ao doar, você concorda com os{' '}
-              <a href="/plugins/termos" target="_blank" rel="noopener" className="text-[#0066cc] hover:underline">Termos de Uso e Privacidade</a>.
+              {t.footer}{' '}
+              <a href="/plugins/termos" target="_blank" rel="noopener" className="text-[#0066cc] hover:underline">{dict.footer.terms}</a>.
             </p>
           </>
         )}
