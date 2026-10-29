@@ -14,6 +14,7 @@ import { InstagramIcon, YouTubeIcon, TikTokIcon } from '@/components/SocialIcons
 import { BrandPreloader } from '@/components/BrandPreloader';
 import { getDeviceFingerprint } from '@/utils/deviceFingerprint';
 import { formatAsaas12x, getAsaas12xInstallmentValue } from '@/utils/asaasPricing';
+import { BlackNovemberModal, BlackNovemberNotice, useServerNow, type BlackNovemberStage } from '@/components/BlackNovember';
 
 // Dynamic Modals (Carregados sob demanda para não pesar o bundle inicial)
 const LoginModal = dynamic(
@@ -48,6 +49,27 @@ const PRODUTORAS_LOGOS = [
   { name: 'Pantanal Filmes', src: getMediaUrl('assets/empresas/pantanal-filmes.jpg') },
   { name: 'Plano B', src: getMediaUrl('assets/empresas/plano-b.jpg') },
 ];
+
+/** Resposta de /api/offer-timer (o preço e o cronômetro são sempre decididos no servidor). */
+type OfferTimerResponse = {
+  remainingSeconds?: number;
+  isExpired?: boolean;
+  isClaimed?: boolean;
+  isLaunchPhase?: boolean;
+  isBlackNovember?: boolean;
+  promoPrice: number;
+  currentBatchPrice?: number;
+  regularPrice: number;
+  finalPrice: number;
+  batchName: string;
+  nextPriceDate?: string;
+  timerMinutes?: number;
+  promoPercentOffRegular?: number;
+  promoPercentOffBatch?: number;
+  batchPercentOffRegular?: number;
+  serverNow?: number;
+  blackNovember?: { startsAt: string; endsAt: string };
+};
 
 const MAX_EXPIRED_MODAL_VIEWS = 2;
 
@@ -173,6 +195,48 @@ export const ColorMasterLanding: React.FC = () => {
     batchPercentOffRegular: 51,
   });
 
+  // Black November: início/fim da campanha e diferença entre a hora do servidor e o relógio local
+  const [bnInfo, setBnInfo] = useState<{ startsAtMs: number; endsAtMs: number; serverOffsetMs: number } | null>(null);
+  const [isBlackNovember, setIsBlackNovember] = useState<boolean>(false);
+  // Clicou em comprar durante a Black November: o servidor parou o cronômetro desta pessoa
+  const [isClaimed, setIsClaimed] = useState<boolean>(false);
+  const [bnModalOpen, setBnModalOpen] = useState<boolean>(false);
+  const bnStartSyncedRef = useRef<boolean>(false);
+  // Fim do cronômetro da pessoa no relógio local, calculado a partir dos segundos que o servidor informou
+  const offerDeadlineRef = useRef<number | null>(null);
+
+  /** Aplica a resposta de /api/offer-timer (preço, cronômetro e Black November). Devolve false se veio inválida. */
+  function applyOfferTimerData(data: OfferTimerResponse | null): boolean {
+    if (!data || typeof data.remainingSeconds !== 'number') return false;
+    offerDeadlineRef.current = Date.now() + data.remainingSeconds * 1000;
+    setTimeLeft(data.remainingSeconds);
+    setIsExpired(Boolean(data.isExpired));
+    setIsClaimed(Boolean(data.isClaimed));
+    setIsBlackNovember(Boolean(data.isBlackNovember));
+    if (data.blackNovember && typeof data.serverNow === 'number') {
+      setBnInfo({
+        startsAtMs: Date.parse(data.blackNovember.startsAt),
+        endsAtMs: Date.parse(data.blackNovember.endsAt),
+        serverOffsetMs: data.serverNow - Date.now(),
+      });
+    }
+    setPriceData({
+      promoPrice: data.promoPrice,
+      currentBatchPrice: data.currentBatchPrice || data.finalPrice,
+      regularPrice: data.regularPrice,
+      finalPrice: data.finalPrice,
+      batchName: data.batchName,
+      nextPriceDate: data.nextPriceDate,
+      isLaunchPhase: Boolean(data.isLaunchPhase),
+      timerMinutes: data.timerMinutes,
+      promoPercentOffRegular: data.promoPercentOffRegular,
+      promoPercentOffBatch: data.promoPercentOffBatch,
+      batchPercentOffRegular: data.batchPercentOffRegular,
+    });
+    return true;
+  }
+
+
   // Tooltip de boas-vindas falando a partir do logo FLMMKR (+50% de desconto)
   const [showPromoTooltip, setShowPromoTooltip] = useState<boolean>(false);
   const [promoTooltipExiting, setPromoTooltipExiting] = useState<boolean>(false);
@@ -273,12 +337,22 @@ export const ColorMasterLanding: React.FC = () => {
       sessionStorage.setItem('flmmkr_discount_25', 'true');
     } catch {}
     closeExpiredTooltip();
-    setCheckoutModalOpen(true);
+    openCheckout();
   };
 
   // Disparado ao concluir o preloader: se for a primeira visita, abre o tooltip no logo FLMMKR (apenas 1 vez por usuário)
   const handlePreloaderComplete = () => {
     if (typeof window === 'undefined') return;
+    // Black November chegando (ou valendo para esta pessoa): o modal de alerta abre assim que a página carrega
+    if (bnInfo) {
+      const now = Date.now() + bnInfo.serverOffsetMs;
+      const isSoon = !isBlackNovember && now < bnInfo.startsAtMs;
+      const isLive = isBlackNovember && !isExpired && !isClaimed;
+      if (isSoon || isLive) {
+        setBnModalOpen(true);
+        return;
+      }
+    }
     try {
       const alreadySeen = hasSeenPromoTooltip(deviceMac);
       if (!alreadySeen && !isExpired) {
@@ -379,26 +453,11 @@ export const ColorMasterLanding: React.FC = () => {
         return fetch('/api/offer-timer')
           .then((res) => res.json())
           .then((data) => {
-            if (data && typeof data.remainingSeconds === 'number') {
-              setTimeLeft(data.remainingSeconds);
-              setIsExpired(Boolean(data.isExpired));
-              setPriceData({
-                promoPrice: data.promoPrice,
-                currentBatchPrice: data.currentBatchPrice || data.finalPrice,
-                regularPrice: data.regularPrice,
-                finalPrice: data.finalPrice,
-                batchName: data.batchName,
-                nextPriceDate: data.nextPriceDate,
-                isLaunchPhase: Boolean(data.isLaunchPhase),
-                timerMinutes: data.timerMinutes,
-                promoPercentOffRegular: data.promoPercentOffRegular,
-                promoPercentOffBatch: data.promoPercentOffBatch,
-                batchPercentOffRegular: data.batchPercentOffRegular,
-              });
-
+            if (applyOfferTimerData(data)) {
               // Tooltip apontando para o preço quando o tempo já estiver expirado:
               // Só aparece depois de 1 segundo que a página abriu e some 4 segundos após aparecer
-              if (data.isExpired && !data.isLaunchPhase && !hasTriggeredExpiredTooltipRef.current) {
+              // (na Black November não existe o desconto de 25%: acabou o tempo, volta para R$ 195)
+              if (data.isExpired && !data.isLaunchPhase && !data.isBlackNovember && !hasTriggeredExpiredTooltipRef.current) {
                 hasTriggeredExpiredTooltipRef.current = true;
                 expiredTooltipDelayRef.current = setTimeout(() => {
                   setShowExpiredTooltip(true);
@@ -440,9 +499,9 @@ export const ColorMasterLanding: React.FC = () => {
     };
   }, []);
 
-  // Intervalo local do cronômetro de 15 minutos (só roda se não estiver na fase de lançamento)
+  // Intervalo local do cronômetro de 15 minutos (só roda se não estiver na fase de lançamento nem parado pelo clique em comprar)
   useEffect(() => {
-    if (priceData.isLaunchPhase) return;
+    if (priceData.isLaunchPhase || isClaimed) return;
 
     if (timeLeft <= 0) {
       setIsExpired(true);
@@ -452,17 +511,33 @@ export const ColorMasterLanding: React.FC = () => {
 
     const timer = setInterval(() => {
       setTimeLeft((prev) => {
-        if (prev <= 1) {
+        // Segue o prazo informado pelo servidor (sem acumular atraso de 1 s em 1 s)
+        const next = offerDeadlineRef.current !== null
+          ? Math.max(0, Math.floor((offerDeadlineRef.current - Date.now()) / 1000))
+          : prev - 1;
+        if (next <= 0) {
           setIsExpired(true);
           fetch('/api/offer-timer').catch(() => {});
           return 0;
         }
-        return prev - 1;
+        return next;
       });
     }, 1000);
 
     return () => clearInterval(timer);
-  }, [timeLeft, priceData.isLaunchPhase]);
+  }, [timeLeft, priceData.isLaunchPhase, isClaimed]);
+
+  // Black November: quando a contagem chega no início, pergunta ao servidor (é ele que libera o preço de R$ 67)
+  const bnNow = useServerNow(bnInfo ? bnInfo.serverOffsetMs : null);
+  useEffect(() => {
+    if (!bnInfo || bnNow === null || isBlackNovember || bnStartSyncedRef.current) return;
+    if (bnNow < bnInfo.startsAtMs || bnNow > bnInfo.endsAtMs) return;
+    bnStartSyncedRef.current = true;
+    fetch('/api/offer-timer')
+      .then((res) => res.json())
+      .then((data) => applyOfferTimerData(data))
+      .catch(() => {});
+  }, [bnInfo, bnNow, isBlackNovember]);
 
   // Monitoramento do cronômetro para o Modal de Aviso (01:30) e Tooltip de Expiração
   useEffect(() => {
@@ -472,7 +547,7 @@ export const ColorMasterLanding: React.FC = () => {
     prevTimeLeftRef.current = timeLeft;
 
     // 1. Faltando 1 minuto e 30 segundos (<= 90 segundos e > 0)
-    if (timeLeft <= 90 && timeLeft > 0 && !hasWarnedRef.current && !warningDismissed) {
+    if (timeLeft <= 90 && timeLeft > 0 && !hasWarnedRef.current && !warningDismissed && !isClaimed) {
       hasWarnedRef.current = true;
       setWarningModalOpen(true);
     }
@@ -482,7 +557,7 @@ export const ColorMasterLanding: React.FC = () => {
       hasExpiredRef.current = true;
       setIsExpired(true);
       setWarningModalOpen(false); // Fecha o modal de aviso se ainda estivesse aberto
-      if (!hasTriggeredExpiredTooltipRef.current) {
+      if (!hasTriggeredExpiredTooltipRef.current && !isBlackNovember) {
         hasTriggeredExpiredTooltipRef.current = true;
         expiredTooltipDelayRef.current = setTimeout(() => {
           setShowExpiredTooltip(true);
@@ -490,8 +565,32 @@ export const ColorMasterLanding: React.FC = () => {
         }, 1000);
       }
     }
-  }, [timeLeft, warningDismissed, priceData.isLaunchPhase]);
+  }, [timeLeft, warningDismissed, priceData.isLaunchPhase, isClaimed, isBlackNovember]);
 
+
+  /**
+   * Todos os botões de compra passam por aqui. Na Black November, o clique para o cronômetro da pessoa
+   * no servidor (o preço de R$ 67 fica garantido para ela no checkout).
+   */
+  function openCheckout() {
+    setCheckoutModalOpen(true);
+    if (!isBlackNovember || isClaimed || isExpired) return;
+    setIsClaimed(true);
+    fetch('/api/offer-timer/claim', { method: 'POST' })
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        // Sem confirmação do servidor, o cronômetro volta a correr (quem decide o preço é o servidor)
+        if (!data || typeof data.remainingSeconds !== 'number') {
+          setIsClaimed(false);
+          return;
+        }
+        offerDeadlineRef.current = Date.now() + data.remainingSeconds * 1000;
+        setTimeLeft(data.remainingSeconds);
+        setIsClaimed(Boolean(data.isClaimed));
+        setIsExpired(Boolean(data.isExpired));
+      })
+      .catch(() => setIsClaimed(false));
+  }
 
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
@@ -644,12 +743,26 @@ export const ColorMasterLanding: React.FC = () => {
     : (priceData.currentBatchPrice || priceData.regularPrice);
 
   // Preço final (com 25% de desconto caso acionado pelo tooltip)
-  const displayPrice = hasDiscount25 && isExpired
+  const displayPrice = hasDiscount25 && isExpired && !isBlackNovember
     ? Math.round(baseBatchPrice * 0.75)
     : baseBatchPrice;
 
+  // Estado da Black November para o aviso e o modal: contagem até o início, ou os 7 minutos da pessoa
+  const bnStage: BlackNovemberStage | null = !bnInfo || bnNow === null
+    ? null
+    : isBlackNovember
+      ? (isExpired ? null : { kind: 'live', remainingSeconds: timeLeft })
+      : bnNow < bnInfo.startsAtMs
+        ? { kind: 'soon', startsAtMs: bnInfo.startsAtMs, now: bnNow }
+        : null;
+
   return (
     <div className="min-h-screen bg-[#f5f5f7] text-[#1d1d1f] font-sans antialiased selection:bg-[#0071e3]/20 selection:text-[#0071e3]">
+      {/* Modal de alerta da Black November (abre ao carregar a página) */}
+      {bnModalOpen && bnStage && (
+        <BlackNovemberModal stage={bnStage} onClose={() => setBnModalOpen(false)} onBuy={openCheckout} />
+      )}
+
       {/* Brand Transition Preloader */}
       <BrandPreloader isReady={isPriceLoaded} onComplete={handlePreloaderComplete} />
 
@@ -681,7 +794,7 @@ export const ColorMasterLanding: React.FC = () => {
         regularPrice={priceData.regularPrice}
         checkoutUrl={isExpired ? 'https://www.asaas.com/000/c/iv2p2s5tkbt1qi79' : getAsaasCheckoutUrl()}
         formatTime={formatTime}
-        onOpenCheckout={() => setCheckoutModalOpen(true)}
+        onOpenCheckout={() => openCheckout()}
       />
 
       {/* TOP FIXED COUNTDOWN BANNER (SÓ APARECE APÓS SAIR DA HERO E SE NÃO ESTIVER NA FASE DE LANÇAMENTO NEM EXPIRADO) */}
@@ -809,7 +922,7 @@ export const ColorMasterLanding: React.FC = () => {
                     type="button"
                     onClick={() => {
                       closePromoTooltip();
-                      setCheckoutModalOpen(true);
+                      openCheckout();
                     }}
                     className="flex-1 py-1.5 px-3 rounded-full bg-[#0071e3] hover:bg-[#0077ed] text-white text-xs font-semibold shadow-sm transition-all active:scale-95 flex items-center justify-center cursor-pointer"
                   >
@@ -852,7 +965,7 @@ export const ColorMasterLanding: React.FC = () => {
 
             <button
               type="button"
-              onClick={() => setCheckoutModalOpen(true)}
+              onClick={() => openCheckout()}
               className={`rounded-full bg-[#0071e3] hover:bg-[#0077ed] text-white text-xs font-semibold shadow-[0_2px_12px_rgba(0,113,227,0.4),inset_0_1px_1px_rgba(255,255,255,0.3)] transition-all duration-300 active:scale-95 flex items-center justify-center cursor-pointer whitespace-nowrap overflow-hidden ${
                 showNavCheckout
                   ? 'opacity-100 scale-100 ml-2 sm:ml-3 px-3.5 sm:px-4 py-2 sm:py-1.5 min-h-[44px] sm:min-h-0 pointer-events-auto max-w-[160px]'
@@ -910,6 +1023,9 @@ export const ColorMasterLanding: React.FC = () => {
               Trabalhe a cor com mais precisão, do material recebido ao look final, usando o DaVinci Resolve em projetos de produto para publicidade e conteúdos.
             </p>
 
+            {/* Aviso da Black November: preço de/por e cronômetro */}
+            {bnStage && <BlackNovemberNotice stage={bnStage} isClaimed={isClaimed} onBuy={openCheckout} />}
+
             {/* Commercial Condition / Price Pill */}
             <div className="inline-flex flex-wrap items-center justify-center gap-x-3 sm:gap-x-4 gap-y-1.5 sm:gap-y-2 px-4 py-2 sm:px-8 sm:py-3.5 rounded-2xl sm:rounded-full bg-black/60 backdrop-blur-xl border border-white/20 text-white shadow-2xl mb-6 sm:mb-8 max-w-full">
               {!isExpired ? (
@@ -954,7 +1070,7 @@ export const ColorMasterLanding: React.FC = () => {
                 type="button"
                 onClick={() => {
                   trackProductClick('color-master-produto', 'Color Master Hero CTA', '#checkout', 'other');
-                  setCheckoutModalOpen(true);
+                  openCheckout();
                 }}
                 className="w-full max-w-[260px] sm:max-w-none sm:w-auto px-5 sm:px-8 py-2.5 sm:py-4 rounded-full bg-[#0071e3] hover:bg-[#0077ed] text-white font-semibold text-[14px] sm:text-base transition-all shadow-[0_3px_14px_rgba(0,113,227,0.4)] flex items-center justify-center active:scale-95 cursor-pointer"
               >
@@ -1796,7 +1912,7 @@ export const ColorMasterLanding: React.FC = () => {
               type="button"
               onClick={() => {
                 trackProductClick('color-master-buy', 'Color Master Buy Checkout', '#checkout', 'other');
-                setCheckoutModalOpen(true);
+                openCheckout();
               }}
               className="w-full max-w-[280px] sm:max-w-none sm:w-auto px-6 sm:px-10 py-3 sm:py-4 rounded-full bg-[#0071e3] hover:bg-[#0077ed] text-white font-semibold text-[14px] sm:text-base transition-all shadow-[0_4px_24px_rgba(0,113,227,0.4)] inline-flex items-center justify-center active:scale-95 cursor-pointer"
             >
@@ -1932,7 +2048,7 @@ export const ColorMasterLanding: React.FC = () => {
           </div>
           <button
             type="button"
-            onClick={() => setCheckoutModalOpen(true)}
+            onClick={() => openCheckout()}
             className="px-5 py-2.5 rounded-full bg-[#0071e3] text-white text-xs font-bold shadow-md active:scale-95 shrink-0 min-h-[38px] flex items-center justify-center cursor-pointer"
           >
             Garantir Vaga

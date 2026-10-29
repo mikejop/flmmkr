@@ -1,6 +1,6 @@
 /** Fases de preço e promoção (puro, sem servidor: testável). Tudo é decidido no servidor com a hora do servidor. */
 
-export type PricePhaseId = 'launch' | 'lot125' | 'lot150' | 'full';
+export type PricePhaseId = 'launch' | 'lot125' | 'lot150' | 'full' | 'black';
 
 export interface BatchPriceInfo {
   phaseId: PricePhaseId;
@@ -27,6 +27,9 @@ export interface BatchPriceInfo {
 export const LOTE1_END_ISO = '2026-10-16T23:59:59-03:00'; // R$ 95 fixo, sem cronômetro
 export const LOTE2_END_ISO = '2026-10-19T23:59:59-03:00'; // R$ 125 (cronômetro de 15 min para R$ 95)
 export const LOTE3_END_ISO = '2026-10-22T23:59:59-03:00'; // R$ 150 por 3 dias (cronômetro de 10 min para R$ 95)
+// Black November: R$ 195 por R$ 67, com 7 min por pessoa (uma vez só durante a campanha).
+export const BLACK_NOVEMBER_START_ISO = '2026-10-30T12:30:00-03:00';
+export const BLACK_NOVEMBER_END_ISO = '2026-11-30T23:59:59-03:00';
 
 const REGULAR_PRICE = 195;
 const FULL_PRICE_PROMO_PERCENT = 40; // preço cheio: cronômetro de 3 min com 40% de desconto
@@ -53,12 +56,19 @@ function build(phaseId: PricePhaseId, promoPrice: number, currentBatchPrice: num
  * - até 16/10/2026 23:59: R$ 95 fixo, sem cronômetro;
  * - 17/10 a 19/10 23:59: R$ 125; o cronômetro de 15 min garante R$ 95;
  * - 20/10 a 22/10 23:59: R$ 150; o cronômetro de 10 min garante R$ 95;
- * - depois: R$ 195 (valor real); o cronômetro de 3 min dá 40% de desconto (R$ 117).
+ * - depois: R$ 195 (valor real); o cronômetro de 3 min dá 40% de desconto (R$ 117);
+ * - Black November (30/10/2026 12:30 a 30/11/2026 23:59): R$ 195; o cronômetro de 7 min garante R$ 67.
  */
 export function getCurrentBatchPrice(now: Date = new Date()): BatchPriceInfo {
   const t = now.getTime();
   if (t <= new Date(LOTE1_END_ISO).getTime()) return build('launch', 95, 95, 0, 'Lote Especial de Lançamento', '16/10/2026');
   if (t <= new Date(LOTE2_END_ISO).getTime()) return build('lot125', 95, 125, 15, '2º Lote Promocional', '19/10/2026');
   if (t <= new Date(LOTE3_END_ISO).getTime()) return build('lot150', 95, 150, 10, '3º Lote Promocional', '22/10/2026');
+  if (isBlackNovember(now)) return build('black', 67, REGULAR_PRICE, 7, 'Black November', '30/11/2026');
   return build('full', Math.round(REGULAR_PRICE * (1 - FULL_PRICE_PROMO_PERCENT / 100)), REGULAR_PRICE, 3, 'Preço Oficial Regular');
+}
+
+export function isBlackNovember(now: Date = new Date()): boolean {
+  const t = now.getTime();
+  return t >= new Date(BLACK_NOVEMBER_START_ISO).getTime() && t <= new Date(BLACK_NOVEMBER_END_ISO).getTime();
 }

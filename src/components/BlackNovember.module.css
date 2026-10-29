@@ -1,0 +1,76 @@
+/* Fundo do modal da Black November: "BLACK NOVEMBER" repetido na diagonal, rolando de cima para baixo em loop. */
+.backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  overflow: hidden;
+  background: #000;
+  opacity: 1;
+  transition: opacity 600ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.backdropHidden {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.tilt {
+  position: absolute;
+  inset: -60%;
+  transform: rotate(-14deg);
+}
+
+.track {
+  display: flex;
+  flex-direction: column;
+  animation: bnScroll 18s linear infinite;
+  will-change: transform;
+}
+
+.row {
+  white-space: nowrap;
+  font-family: 'Molde', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Arial, sans-serif;
+  font-weight: 950;
+  font-size: clamp(64px, 11vw, 150px);
+  line-height: 0.92;
+  letter-spacing: -0.02em;
+  color: var(--bn-yellow);
+  text-transform: uppercase;
+}
+
+.row:nth-child(even) {
+  transform: translateX(-0.45em);
+}
+
+/* A trilha tem as linhas duplicadas: andar 50% para baixo cai exatamente no mesmo desenho (loop sem emenda). */
+@keyframes bnScroll {
+  from {
+    transform: translateY(-50%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+.modalTitle {
+  font-family: 'Molde', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Arial, sans-serif;
+  font-weight: 950;
+  line-height: 0.86;
+  letter-spacing: -0.02em;
+  color: var(--bn-yellow);
+  text-transform: uppercase;
+  text-shadow: 0 0 0 #000, 3px 3px 0 #000;
+}
+
+.strip {
+  transform: rotate(-4deg);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .track {
+    animation: none;
+  }
+  .backdrop {
+    transition: none;
+  }
+}

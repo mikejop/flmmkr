@@ -1,7 +1,8 @@
 import 'server-only';
 import type { NextRequest } from 'next/server';
 import { createHash } from 'node:crypto';
-import { getCurrentBatchPrice, resolveOfferTimerSession } from '@/utils/offerPricing';
+import { getCurrentBatchPrice, hashOfferDevice, resolveOfferTimerSession } from '@/utils/offerPricing';
+import { serverNow } from '@/utils/serverClock';
 import { isValidExpiredOfferToken } from '@/utils/promoToken';
 
 export class CheckoutPricingError extends Error {
@@ -25,7 +26,9 @@ export interface CheckoutPrice {
  * e o desconto de 25% do tooltip. Fonte única usada pelo checkout e pela validação de cupom.
  */
 export async function resolveCheckoutPrice(req: NextRequest, productId: string, ip: string): Promise<CheckoutPrice> {
-  const batchInfo = getCurrentBatchPrice(new Date());
+  const now = serverNow(req);
+  const batchInfo = getCurrentBatchPrice(new Date(now));
+  const isBlackNovember = batchInfo.phaseId === 'black';
   let isRealExpired = false;
 
   if (productId !== 'color-master-completo' && !batchInfo.isLaunchPhase) {
@@ -34,8 +37,12 @@ export async function resolveCheckoutPrice(req: NextRequest, productId: string, 
       if (!/^[a-f0-9-]{36}$/i.test(sessionCookie)) {
         throw new CheckoutPricingError('Recarregue a página para validar a oferta.', 409);
       }
-      const timerSession = await resolveOfferTimerSession(createHash('sha256').update(sessionCookie).digest('hex'), ip);
-      isRealExpired = Date.now() >= new Date(timerSession.expiresAt).getTime() || timerSession.isExpired;
+      const timerSession = await resolveOfferTimerSession(createHash('sha256').update(sessionCookie).digest('hex'), ip, {
+        now,
+        deviceHash: hashOfferDevice(ip, req.headers.get('user-agent')),
+      });
+      // isExpired já considera o clique em comprar (cronômetro parado). Fora disso, vale a hora do servidor.
+      isRealExpired = timerSession.isExpired;
     } catch (err) {
       if (err instanceof CheckoutPricingError) throw err;
       console.error('Erro ao validar timer no checkout:', err);
@@ -43,7 +50,8 @@ export async function resolveCheckoutPrice(req: NextRequest, productId: string, 
     }
   }
 
-  const hasDiscount25 = isValidExpiredOfferToken(req.cookies.get('flmmkr_discount_25')?.value) && isRealExpired;
+  // Na Black November, acabou o tempo, volta para R$ 195 (sem o desconto de 25%).
+  const hasDiscount25 = !isBlackNovember && isValidExpiredOfferToken(req.cookies.get('flmmkr_discount_25')?.value) && isRealExpired;
 
   if (productId === 'color-master-completo') {
     return { productId, value: 497.0, description: 'Color Master Completo - FLMMKR', batchName: 'Completo', isRealExpired, hasDiscount25 };

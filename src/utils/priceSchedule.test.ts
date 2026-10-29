@@ -37,5 +37,18 @@ test('descontos concatenados sobre o valor real de R$ 195', () => {
   assert.equal(lot125.promoPercentOffRegular, 51); // 95 sobre 195
   assert.equal(lot125.promoPercentOffBatch, 24); // 95 sobre 125
   assert.equal(at('2026-10-21T12:00:00-03:00').promoPercentOffBatch, 37); // 95 sobre 150
-  assert.equal(at('2026-11-01T12:00:00-03:00').promoPercentOffRegular, 40);
+  assert.equal(at('2026-10-25T12:00:00-03:00').promoPercentOffRegular, 40);
+});
+
+test('Black November: 30/10 12:29:59 ainda é o preço cheio; 12:30 vira R$ 67 com 7 min (66% OFF)', () => {
+  assert.equal(at('2026-10-30T12:29:59-03:00').phaseId, 'full');
+  const p = at('2026-10-30T12:30:00-03:00');
+  assert.deepEqual([p.phaseId, p.promoPrice, p.currentBatchPrice, p.timerMinutes], ['black', 67, 195, 7]);
+  assert.equal(p.promoPercentOffRegular, 66);
+  assert.equal(at('2026-10-30T15:30:00Z').phaseId, 'black'); // 12:30 em Brasília
+});
+
+test('Black November vai até 30/11 23:59:59 e depois volta ao preço cheio', () => {
+  assert.equal(at('2026-11-30T23:59:59-03:00').phaseId, 'black');
+  assert.equal(at('2026-12-01T00:00:00-03:00').phaseId, 'full');
 });

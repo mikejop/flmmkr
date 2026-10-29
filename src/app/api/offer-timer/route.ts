@@ -2,15 +2,23 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createHash, randomUUID } from 'node:crypto';
 import {
   getCurrentBatchPrice,
-  resolveOfferTimerSession
+  hashOfferDevice,
+  remainingOfferSeconds,
+  resolveOfferTimerSession,
+  BLACK_NOVEMBER_START_ISO,
+  BLACK_NOVEMBER_END_ISO,
 } from '@/utils/offerPricing';
 import { createExpiredOfferToken } from '@/utils/promoToken';
 import { getClientIp } from '@/utils/clientIp';
+import { serverNow } from '@/utils/serverClock';
 
 export const dynamic = 'force-dynamic';
 
+const blackNovember = { startsAt: BLACK_NOVEMBER_START_ISO, endsAt: BLACK_NOVEMBER_END_ISO };
+
 export async function GET(req: NextRequest) {
-  const batchInfo = getCurrentBatchPrice(new Date());
+  const now = serverNow(req);
+  const batchInfo = getCurrentBatchPrice(new Date(now));
   if (batchInfo.isLaunchPhase) {
     return NextResponse.json({
       remainingSeconds: 0,
@@ -26,23 +34,29 @@ export async function GET(req: NextRequest) {
       promoPercentOffBatch: batchInfo.promoPercentOffBatch,
       promoPercentOffRegular: batchInfo.promoPercentOffRegular,
       batchPercentOffRegular: batchInfo.batchPercentOffRegular,
+      serverNow: now,
+      blackNovember,
     }, { headers: { 'Cache-Control': 'private, no-store' } });
   }
 
   const existingCookie = req.cookies.get('flmmkr_offer_session')?.value || '';
   const rawIdentifier = /^[a-f0-9-]{36}$/i.test(existingCookie) ? existingCookie : randomUUID();
   const clientIdentifier = createHash('sha256').update(rawIdentifier).digest('hex');
+  const ip = getClientIp(req);
   let session;
   try {
-    session = await resolveOfferTimerSession(clientIdentifier, getClientIp(req));
+    session = await resolveOfferTimerSession(clientIdentifier, ip, {
+      now,
+      deviceHash: hashOfferDevice(ip, req.headers.get('user-agent')),
+    });
   } catch {
     return NextResponse.json({ error: 'Não foi possível carregar a oferta.' }, { status: 503 });
   }
 
-  const now = Date.now();
-  const expiresAtTime = new Date(session.expiresAt).getTime();
-  const remainingSeconds = Math.max(0, Math.floor((expiresAtTime - now) / 1000));
-  const isExpired = remainingSeconds <= 0;
+  // Hora de novo depois de gravar: o tempo restante vale para o momento da resposta.
+  const remainingSeconds = remainingOfferSeconds(session, serverNow(req));
+  const isExpired = session.isExpired;
+  const isBlackNovember = batchInfo.phaseId === 'black';
 
   const finalPrice = isExpired ? batchInfo.currentBatchPrice : batchInfo.promoPrice;
 
@@ -50,7 +64,9 @@ export async function GET(req: NextRequest) {
   const response = NextResponse.json({
     remainingSeconds,
     isExpired,
+    isClaimed: Boolean(session.claimedAt),
     isLaunchPhase: false,
+    isBlackNovember,
     promoPrice: batchInfo.promoPrice,
     currentBatchPrice: batchInfo.currentBatchPrice,
     regularPrice: batchInfo.regularPrice,
@@ -61,9 +77,12 @@ export async function GET(req: NextRequest) {
     promoPercentOffBatch: batchInfo.promoPercentOffBatch,
     promoPercentOffRegular: batchInfo.promoPercentOffRegular,
     batchPercentOffRegular: batchInfo.batchPercentOffRegular,
-  });
+    serverNow: now,
+    blackNovember,
+  }, { headers: { 'Cache-Control': 'private, no-store' } });
 
-  const expiredOfferToken = isExpired ? createExpiredOfferToken(Date.now() + 36 * 60 * 60 * 1000) : null;
+  // Na Black November não existe o desconto de 25% depois que o tempo acaba: volta para R$ 195.
+  const expiredOfferToken = isExpired && !isBlackNovember ? createExpiredOfferToken(Date.now() + 36 * 60 * 60 * 1000) : null;
   if (expiredOfferToken) {
     response.cookies.set('flmmkr_discount_25', expiredOfferToken, {
       maxAge: 36 * 60 * 60,
