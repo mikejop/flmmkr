@@ -145,6 +145,9 @@ export const zh: PluginsDict = {
     agreeBefore: '继续即表示你同意',
     doneTitle: '已开始下载',
     doneText: (file) => `打开 ${file}，按照本页“安装方法”的步骤操作，然后重新打开 DaVinci Resolve。`,
+    doneWarnTitle: '安装前请先阅读说明',
+    doneWarn: '插件仍在测试阶段，首次安装时操作系统可能会进行拦截。分步说明会告诉你如何只需几下点击即可授权。',
+    seeInstall: '查看安装方法',
     retry: '下载没有开始？点击这里。',
   },
 

@@ -82,6 +82,8 @@ export function PluginsLanding() {
   // Celular e tablet: no lugar do download aparece um botão desativado (os plugins são só para computador).
   const mobile = osReady && isMobileDevice();
   const [justRegistered, setJustRegistered] = useState(false);
+  // Sistema escolhido no cadastro: o passo a passo de instalação abre nele.
+  const [downloadedOs, setDownloadedOs] = useState<PluginOs | null>(null);
   const registered = justRegistered || (osReady && readRegistered());
   const [modalOs, setModalOs] = useState<PluginOs | null | undefined>(undefined);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -111,6 +113,7 @@ export function PluginsLanding() {
       window.localStorage.setItem(REGISTERED_KEY, '1');
     } catch {}
     setJustRegistered(true);
+    setDownloadedOs(chosen);
     startDownload(chosen);
   }, []);
 
@@ -432,7 +435,7 @@ export function PluginsLanding() {
         </div>
       </section>
 
-      <PluginsInstall detectedOs={os} />
+      <PluginsInstall detectedOs={downloadedOs ?? os} />
 
       {/* EM PRODUÇÃO — light */}
       <section id="em-producao" className="scroll-section relative z-10 w-full py-16 sm:py-28 border-t border-[#d2d2d7]/60 px-4 sm:px-6 lg:px-8 bg-[#f5f5f7] scroll-mt-11">

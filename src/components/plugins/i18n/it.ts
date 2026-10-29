@@ -145,6 +145,9 @@ export const it: PluginsDict = {
     agreeBefore: 'Continuando, accetti i',
     doneTitle: 'Download avviato',
     doneText: (file) => `Apri ${file} e segui i passaggi “Come installare” di questa pagina. Poi riapri DaVinci Resolve.`,
+    doneWarnTitle: 'Prima di installare, leggi le istruzioni',
+    doneWarn: 'I plugin sono ancora in fase di test e il tuo sistema operativo potrebbe ostacolare la prima installazione. La guida passo dopo passo mostra come autorizzarla in pochi clic.',
+    seeInstall: 'Vedi come installare',
     retry: 'Il download non è partito? Clicca qui.',
   },
 

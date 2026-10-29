@@ -144,6 +144,9 @@ export const pt = {
     agreeBefore: 'Ao continuar, você concorda com os',
     doneTitle: 'Download iniciado',
     doneText: (file: string) => `Abra o ${file} e siga o passo a passo “Como instalar” desta página. Depois, reabra o DaVinci Resolve.`,
+    doneWarnTitle: 'Antes de instalar, leia as instruções',
+    doneWarn: 'Os plugins ainda estão em teste e o seu sistema operacional pode dificultar a instalação na primeira vez. O passo a passo mostra como autorizar em poucos cliques.',
+    seeInstall: 'Ver como instalar',
     retry: 'O download não começou? Clique aqui.',
   },
 

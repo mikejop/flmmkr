@@ -125,7 +125,25 @@ export default function PluginsSignupModal({
             <p className="mx-auto mt-2 max-w-sm text-[17px] leading-snug text-[#6e6e73]">
               {t.signup.doneText(PLUGIN_DOWNLOADS[doneOs].file)}
             </p>
-            <a href={PLUGIN_DOWNLOADS[doneOs].url} download rel="noopener" className="mt-6 inline-block text-[17px] text-[#0066cc] hover:underline">
+            {/* Beta sem certificado: o sistema pode bloquear a primeira abertura, então o passo a passo vem antes de tudo. */}
+            <div role="note" className="mt-6 flex gap-3 rounded-2xl border border-[#ff9f0a]/30 bg-[#ff9f0a]/[0.08] p-4 text-start">
+              <svg className="mt-0.5 h-5 w-5 shrink-0 text-[#c93400]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M12 9v4M12 17h.01M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z" /></svg>
+              <div>
+                <p className="text-[15px] font-semibold text-[#1d1d1f]">{t.signup.doneWarnTitle}</p>
+                <p className="mt-1 text-[14px] leading-snug text-[#424245]">{t.signup.doneWarn}</p>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => {
+                onClose();
+                setTimeout(() => document.getElementById('instalar')?.scrollIntoView({ behavior: 'smooth' }), 50);
+              }}
+              className="mt-5 h-12 w-full rounded-full bg-[#0071e3] text-[17px] font-medium text-white transition hover:bg-[#0077ed] active:bg-[#006edb]"
+            >
+              {t.signup.seeInstall}
+            </button>
+            <a href={PLUGIN_DOWNLOADS[doneOs].url} download rel="noopener" className="mt-4 inline-block text-[15px] text-[#0066cc] hover:underline">
               {t.signup.retry}
             </a>
           </div>
