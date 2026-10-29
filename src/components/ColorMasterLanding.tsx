@@ -349,6 +349,9 @@ export const ColorMasterLanding: React.FC = () => {
       const isSoon = !isBlackNovember && now < bnInfo.startsAtMs;
       const isLive = isBlackNovember && !isExpired && !isClaimed;
       if (isSoon || isLive) {
+        // O aviso de 1:30 da oferta não pode ficar por cima: fecha agora e volta depois que o modal sumir
+        setWarningModalOpen(false);
+        hasWarnedRef.current = false;
         setBnModalOpen(true);
         return;
       }
@@ -547,7 +550,7 @@ export const ColorMasterLanding: React.FC = () => {
     prevTimeLeftRef.current = timeLeft;
 
     // 1. Faltando 1 minuto e 30 segundos (<= 90 segundos e > 0)
-    if (timeLeft <= 90 && timeLeft > 0 && !hasWarnedRef.current && !warningDismissed && !isClaimed) {
+    if (timeLeft <= 90 && timeLeft > 0 && !hasWarnedRef.current && !warningDismissed && !isClaimed && !bnModalOpen) {
       hasWarnedRef.current = true;
       setWarningModalOpen(true);
     }
@@ -565,7 +568,7 @@ export const ColorMasterLanding: React.FC = () => {
         }, 1000);
       }
     }
-  }, [timeLeft, warningDismissed, priceData.isLaunchPhase, isClaimed, isBlackNovember]);
+  }, [timeLeft, warningDismissed, priceData.isLaunchPhase, isClaimed, isBlackNovember, bnModalOpen]);
 
 
   /**

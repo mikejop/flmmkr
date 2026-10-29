@@ -17,6 +17,8 @@ export const BN_PERCENT_OFF = Math.round((1 - BN_PRICE / BN_REGULAR_PRICE) * 100
 export const BN_MINUTES = 7;
 
 const AUTO_CLOSE_MS = 4000;
+// Área girada do fundo: inset -60% = 2,2x a tela (mesmo valor de .tilt no CSS)
+const TILT_SCALE = 2.2;
 const FADE_MS = 600;
 const VIDEO_ID = 'gp75L5H0kIU'; // mesmo vídeo da seção "PROJETO DO MASTERCLASS"
 
@@ -83,6 +85,20 @@ function CountdownBlocks({ ms, size = 'lg' }: { ms: number; size?: 'lg' | 'sm' }
       ))}
     </div>
   );
+}
+
+/**
+ * Quantas linhas e quantas vezes "BLACK NOVEMBER" por linha para o fundo cobrir a tela inteira desde o primeiro quadro.
+ * A trilha tem duas cópias iguais e anda uma cópia por volta: com cada cópia mais alta que a área girada, nunca sobra vazio.
+ */
+function backdropGrid() {
+  const w = typeof window === 'undefined' ? 1440 : window.innerWidth;
+  const h = typeof window === 'undefined' ? 900 : window.innerHeight;
+  const fontSize = Math.min(150, Math.max(64, w * 0.11)); // mesmo clamp de .row no CSS
+  const rows = Math.ceil((TILT_SCALE * h) / (fontSize * 0.92)) + 2;
+  // "BLACK NOVEMBER " na Molde Expanded mede ~13em; +1 por causa do deslocamento das linhas pares
+  const repeats = Math.max(3, Math.ceil((TILT_SCALE * w) / (fontSize * 13)) + 1);
+  return { rows: rows % 2 === 0 ? rows : rows + 1, repeats };
 }
 
 type Stage =
@@ -162,6 +178,7 @@ function SignupForm() {
 export function BlackNovemberModal({ stage, onClose, onBuy }: { stage: Stage; onClose: () => void; onBuy: () => void }) {
   const [visible, setVisible] = useState(false);
   const [showForm, setShowForm] = useState(false);
+  const [grid, setGrid] = useState(backdropGrid);
   const autoCloseRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const closingRef = useRef(false);
 
@@ -181,11 +198,14 @@ export function BlackNovemberModal({ stage, onClose, onBuy }: { stage: Stage; on
     const raf = requestAnimationFrame(() => setVisible(true));
     autoCloseRef.current = setTimeout(() => closeRef.current(), AUTO_CLOSE_MS);
     const onKey = (e: KeyboardEvent) => e.key === 'Escape' && closeRef.current();
+    const onResize = () => setGrid(backdropGrid());
     window.addEventListener('keydown', onKey);
+    window.addEventListener('resize', onResize);
     return () => {
       cancelAnimationFrame(raf);
       if (autoCloseRef.current) clearTimeout(autoCloseRef.current);
       window.removeEventListener('keydown', onKey);
+      window.removeEventListener('resize', onResize);
     };
   }, []);
 
@@ -196,7 +216,8 @@ export function BlackNovemberModal({ stage, onClose, onBuy }: { stage: Stage; on
     }
   };
 
-  const rows = Array.from({ length: 10 }, (_, i) => i);
+  const rows = Array.from({ length: grid.rows }, (_, i) => i);
+  const line = Array.from({ length: grid.repeats }, () => 'BLACK NOVEMBER').join(' ');
 
   return (
     <div
@@ -209,7 +230,7 @@ export function BlackNovemberModal({ stage, onClose, onBuy }: { stage: Stage; on
         <div className={styles.track}>
           {[...rows, ...rows].map((i, idx) => (
             <div key={idx} className={styles.row}>
-              BLACK NOVEMBER BLACK NOVEMBER BLACK NOVEMBER
+              {line}
             </div>
           ))}
         </div>
