@@ -187,7 +187,7 @@ export const ColorMasterLanding: React.FC = () => {
     regularPrice: 195,
     finalPrice: 95,
     batchName: 'Lote Especial de Lançamento',
-    nextPriceDate: '16/10/2026',
+    nextPriceDate: '16/10/2026 às 23:59',
     isLaunchPhase: true,
     timerMinutes: 0,
     promoPercentOffRegular: 51,
@@ -201,6 +201,12 @@ export const ColorMasterLanding: React.FC = () => {
   // Clicou em comprar durante a Black November: o servidor parou o cronômetro desta pessoa
   const [isClaimed, setIsClaimed] = useState<boolean>(false);
   const [bnModalOpen, setBnModalOpen] = useState<boolean>(false);
+  // O aviso da Black November na página só aparece depois de 10 s na página (o anúncio vem primeiro)
+  const [bnNoticeReady, setBnNoticeReady] = useState<boolean>(false);
+  useEffect(() => {
+    const id = setTimeout(() => setBnNoticeReady(true), 10000);
+    return () => clearTimeout(id);
+  }, []);
   const bnStartSyncedRef = useRef<boolean>(false);
   // Fim do cronômetro da pessoa no relógio local, calculado a partir dos segundos que o servidor informou
   const offerDeadlineRef = useRef<number | null>(null);
@@ -347,7 +353,7 @@ export const ColorMasterLanding: React.FC = () => {
     if (bnInfo) {
       const now = Date.now() + bnInfo.serverOffsetMs;
       const isSoon = !isBlackNovember && now < bnInfo.startsAtMs;
-      const isLive = isBlackNovember && !isExpired && !isClaimed;
+      const isLive = isBlackNovember && !isExpired;
       if (isSoon || isLive) {
         // O aviso de 1:30 da oferta não pode ficar por cima: fecha agora e volta depois que o modal sumir
         setWarningModalOpen(false);
@@ -736,6 +742,9 @@ export const ColorMasterLanding: React.FC = () => {
     return 'https://www.asaas.com/000/c/iv2p2s5tkbt1qi79'; // R$ 195 (Regular)
   };
 
+  // Há desconto agora? (até a Black November o preço é o cheio, R$ 195, e não se mostra "de/por")
+  const hasPromoPrice = priceData.promoPrice < priceData.regularPrice;
+
   // Duração do cronômetro da fase atual (15, 10 ou 3 minutos) e preço enquanto ele roda
   const timerMinutes = priceData.timerMinutes || 15;
   const promoPct = priceData.promoPercentOffRegular ?? 0;
@@ -864,7 +873,7 @@ export const ColorMasterLanding: React.FC = () => {
                 aria-live="polite"
                 aria-label={
                   priceData.isLaunchPhase
-                    ? 'Aviso de preço promocional de lançamento até 16/10/2026 às 23:59'
+                    ? `Aviso de preço promocional até ${priceData.nextPriceDate}`
                     : `Aviso de oferta especial com cronômetro regressivo de ${timerMinutes} minutos`
                 }
                 onMouseEnter={handleTooltipMouseEnter}
@@ -895,7 +904,7 @@ export const ColorMasterLanding: React.FC = () => {
                       <span className="relative inline-flex rounded-full h-2 w-2 bg-[#2997ff]"></span>
                     </span>
                     <span className="text-[11px] font-bold uppercase tracking-wider text-[#2997ff]">
-                      {priceData.isLaunchPhase ? 'Oferta de Lançamento' : 'Cronômetro Ativo'}
+                      {priceData.isLaunchPhase ? priceData.batchName : 'Cronômetro Ativo'}
                     </span>
                   </div>
 
@@ -912,7 +921,7 @@ export const ColorMasterLanding: React.FC = () => {
 
                 {priceData.isLaunchPhase ? (
                   <p className="text-[13px] sm:text-[13.5px] leading-snug font-medium text-white/90 mb-3">
-                    O preço promocional vai acabar no dia <strong className="text-white font-bold">16/10/2026 às 23:59</strong>. Aproveite antes que o valor mude!
+                    O preço promocional vai acabar no dia <strong className="text-white font-bold">{priceData.nextPriceDate}</strong>. Aproveite antes que o valor mude!
                   </p>
                 ) : (
                   <p className="text-[13px] sm:text-[13.5px] leading-snug font-medium text-white/90 mb-3">
@@ -1027,7 +1036,7 @@ export const ColorMasterLanding: React.FC = () => {
             </p>
 
             {/* Aviso da Black November: preço de/por e cronômetro */}
-            {bnStage && <BlackNovemberNotice stage={bnStage} isClaimed={isClaimed} onBuy={openCheckout} />}
+            {bnStage && bnNoticeReady && <BlackNovemberNotice stage={bnStage} isClaimed={isClaimed} onBuy={openCheckout} />}
 
             {/* Commercial Condition / Price Pill */}
             <div className="inline-flex flex-wrap items-center justify-center gap-x-3 sm:gap-x-4 gap-y-1.5 sm:gap-y-2 px-4 py-2 sm:px-8 sm:py-3.5 rounded-2xl sm:rounded-full bg-black/60 backdrop-blur-xl border border-white/20 text-white shadow-2xl mb-6 sm:mb-8 max-w-full">
@@ -1041,7 +1050,7 @@ export const ColorMasterLanding: React.FC = () => {
                   </div>
                   <span className="text-white/30 hidden sm:inline">•</span>
                   <div className="flex items-center gap-1.5 text-[13px] sm:text-sm text-white/70">
-                    <span className="line-through text-white/40">R$ 195</span>
+                    {hasPromoPrice && <span className="line-through text-white/40">R$ {priceData.regularPrice}</span>}
                     <span>ou <strong className="text-white font-bold text-[130%] sm:text-inherit">R$ {priceData.promoPrice}</strong> no Pix</span>
                   </div>
                   <span className="text-white/30 hidden sm:inline">•</span>
@@ -1834,20 +1843,24 @@ export const ColorMasterLanding: React.FC = () => {
               {priceData.isLaunchPhase ? (
                 <>
                   <div className="inline-block px-3.5 py-1 rounded-full bg-[#0071e3]/10 text-[#0071e3] text-[12px] font-semibold uppercase tracking-[0.04em] mb-2 border border-[#0071e3]/20">
-                    Lote Especial de Lançamento • Válido até 16/10
+                    {hasPromoPrice ? `${priceData.batchName} • Válido até ${priceData.nextPriceDate?.slice(0, 5)}` : priceData.batchName}
                   </div>
-                  <span className="text-[13px] sm:text-sm text-[#86868b] block line-through">
-                    De R$ 195 por apenas:
-                  </span>
+                  {hasPromoPrice && (
+                    <span className="text-[13px] sm:text-sm text-[#86868b] block line-through">
+                      De R$ {priceData.regularPrice} por apenas:
+                    </span>
+                  )}
                   <div className="text-[39px] leading-tight sm:text-5xl md:text-6xl font-extrabold text-[#1d1d1f] tracking-tight mt-1">
                     R$ {priceData.promoPrice} <span className="text-base sm:text-xl font-normal text-[#6e6e73]">no Pix</span>
                   </div>
                   <div className="text-[15px] sm:text-lg font-bold text-[#0071e3] mt-1.5 sm:mt-2">
                     ou em {formatInstallment(priceData.promoPrice)} no cartão
                   </div>
-                  <span className="text-[12px] sm:text-sm font-medium text-[#86868b] mt-1.5 block">
-                    {priceData.batchName} (Garantido até 16/10/2026 às 23:59)
-                  </span>
+                  {hasPromoPrice && (
+                    <span className="text-[12px] sm:text-sm font-medium text-[#86868b] mt-1.5 block">
+                      {priceData.batchName} (Garantido até {priceData.nextPriceDate})
+                    </span>
+                  )}
                 </>
               ) : !isExpired ? (
                 <>

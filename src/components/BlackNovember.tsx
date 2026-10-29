@@ -15,8 +15,9 @@ export const BN_REGULAR_PRICE = 195;
 export const BN_PRICE = 67;
 export const BN_PERCENT_OFF = Math.round((1 - BN_PRICE / BN_REGULAR_PRICE) * 100); // 66
 export const BN_MINUTES = 7;
+const PLUGINS_TEXT = 'Você também terá acesso aos plugins da FLMMKR, inclusive os que estão em Close Beta.';
 
-const AUTO_CLOSE_MS = 4000;
+const AUTO_CLOSE_MS = 5000;
 // Área girada do fundo: inset -60% = 2,2x a tela (mesmo valor de .tilt no CSS)
 const TILT_SCALE = 2.2;
 const FADE_MS = 600;
@@ -172,8 +173,9 @@ function SignupForm() {
 }
 
 /**
- * Modal de alerta da Black November. Abre ao carregar a página e some sozinho em 4 s (com fade),
+ * Modal de alerta da Black November. Abre ao carregar a página e some sozinho em 5 s (com fade),
  * ou antes ao clicar fora ou no X. Se a pessoa interagir com o modal (tocar, clicar, digitar), ele fica aberto.
+ * Durante a campanha ele aparece sem cronômetro (o tempo da pessoa fica no aviso da página).
  */
 export function BlackNovemberModal({ stage, onClose, onBuy }: { stage: Stage; onClose: () => void; onBuy: () => void }) {
   const [visible, setVisible] = useState(false);
@@ -278,8 +280,10 @@ export function BlackNovemberModal({ stage, onClose, onBuy }: { stage: Stage; on
             </>
           ) : (
             <>
-              <p className="mb-2 text-xs sm:text-sm uppercase tracking-[0.28em]" style={{ color: BN_YELLOW }}>Começou! Seu tempo</p>
-              <CountdownBlocks ms={stage.remainingSeconds * 1000} />
+              <p className="mb-2 text-xs sm:text-sm uppercase tracking-[0.28em]" style={{ color: BN_YELLOW }}>Começou!</p>
+              <div className="inline-block border px-4 py-1.5 text-sm sm:text-base uppercase tracking-[0.14em]" style={{ borderColor: BN_RED }}>
+                Até 30/11 às 23:59
+              </div>
             </>
           )}
 
@@ -299,6 +303,7 @@ export function BlackNovemberModal({ stage, onClose, onBuy }: { stage: Stage; on
               ? `Quando a promoção começar, você vai ter só ${BN_MINUTES} minutos para aproveitar.`
               : `Você tem só ${BN_MINUTES} minutos para aproveitar. Clicou em comprar, o tempo para e o preço fica garantido.`}
           </p>
+          <p className="mt-2 text-[14px] leading-snug text-white/85">{PLUGINS_TEXT}</p>
 
           <div className="mt-5">
             {stage.kind === 'live' ? (
@@ -335,7 +340,7 @@ export function BlackNovemberModal({ stage, onClose, onBuy }: { stage: Stage; on
 /** Aviso da Black November dentro da landing: preço de/por e o cronômetro (até o início, ou os 7 min da pessoa). */
 export function BlackNovemberNotice({ stage, isClaimed, onBuy }: { stage: Stage; isClaimed: boolean; onBuy: () => void }) {
   return (
-    <div className="w-full max-w-3xl mx-auto mb-6 sm:mb-8 rounded-2xl bg-black/80 backdrop-blur-xl ring-1 ring-white/15 px-4 py-4 sm:px-6 sm:py-5 text-white shadow-2xl">
+    <div className={`w-full max-w-3xl mx-auto mb-6 sm:mb-8 rounded-2xl bg-black/80 ${styles.noticeIn} backdrop-blur-xl ring-1 ring-white/15 px-4 py-4 sm:px-6 sm:py-5 text-white shadow-2xl`}>
       <div className="flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-6">
         <div className="text-center sm:text-left">
           <p className={`${styles.modalTitle} text-[26px] sm:text-[30px]`} style={{ ['--bn-yellow' as string]: BN_YELLOW }}>Black November</p>
@@ -351,6 +356,7 @@ export function BlackNovemberNotice({ stage, isClaimed, onBuy }: { stage: Stage;
                 ? 'Seu preço de R$ 67 está garantido.'
                 : `Você tem ${BN_MINUTES} minutos para garantir este preço.`}
           </p>
+          <p className="mt-1 text-xs text-white/60">{PLUGINS_TEXT}</p>
         </div>
         <div className="flex flex-col items-center gap-2 shrink-0">
           <span className="text-[10px] uppercase tracking-[0.22em] text-white/60">

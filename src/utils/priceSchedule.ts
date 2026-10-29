@@ -1,6 +1,6 @@
 /** Fases de preço e promoção (puro, sem servidor: testável). Tudo é decidido no servidor com a hora do servidor. */
 
-export type PricePhaseId = 'launch' | 'lot125' | 'lot150' | 'full' | 'black';
+export type PricePhaseId = 'launch' | 'lot125' | 'lot150' | 'preBlack' | 'full' | 'black';
 
 export interface BatchPriceInfo {
   phaseId: PricePhaseId;
@@ -12,6 +12,7 @@ export interface BatchPriceInfo {
   regularPrice: number;
   batchName: string;
   nextPriceDate?: string;
+  /** Preço fixo, sem cronômetro (lançamento e a espera da Black November). */
   isLaunchPhase: boolean;
   /** Duração do cronômetro desta fase, em minutos (0 = sem cronômetro). */
   timerMinutes: number;
@@ -43,7 +44,7 @@ function build(phaseId: PricePhaseId, promoPrice: number, currentBatchPrice: num
     regularPrice: REGULAR_PRICE,
     batchName,
     nextPriceDate,
-    isLaunchPhase: phaseId === 'launch',
+    isLaunchPhase: timerMinutes === 0,
     timerMinutes,
     promoPercentOffBatch: pct(currentBatchPrice, promoPrice),
     promoPercentOffRegular: pct(REGULAR_PRICE, promoPrice),
@@ -56,14 +57,16 @@ function build(phaseId: PricePhaseId, promoPrice: number, currentBatchPrice: num
  * - até 16/10/2026 23:59: R$ 95 fixo, sem cronômetro;
  * - 17/10 a 19/10 23:59: R$ 125; o cronômetro de 15 min garante R$ 95;
  * - 20/10 a 22/10 23:59: R$ 150; o cronômetro de 10 min garante R$ 95;
- * - depois: R$ 195 (valor real); o cronômetro de 3 min dá 40% de desconto (R$ 117);
- * - Black November (30/10/2026 12:30 a 30/11/2026 23:59): R$ 195; o cronômetro de 7 min garante R$ 67.
+ * - 23/10 até o início da Black November: R$ 195 (valor real), sem desconto e sem cronômetro;
+ * - Black November (30/10/2026 12:30 a 30/11/2026 23:59): R$ 195; o cronômetro de 7 min garante R$ 67;
+ * - depois: R$ 195 (valor real); o cronômetro de 3 min dá 40% de desconto (R$ 117).
  */
 export function getCurrentBatchPrice(now: Date = new Date()): BatchPriceInfo {
   const t = now.getTime();
-  if (t <= new Date(LOTE1_END_ISO).getTime()) return build('launch', 95, 95, 0, 'Lote Especial de Lançamento', '16/10/2026');
+  if (t <= new Date(LOTE1_END_ISO).getTime()) return build('launch', 95, 95, 0, 'Lote Especial de Lançamento', '16/10/2026 às 23:59');
   if (t <= new Date(LOTE2_END_ISO).getTime()) return build('lot125', 95, 125, 15, '2º Lote Promocional', '19/10/2026');
   if (t <= new Date(LOTE3_END_ISO).getTime()) return build('lot150', 95, 150, 10, '3º Lote Promocional', '22/10/2026');
+  if (t < new Date(BLACK_NOVEMBER_START_ISO).getTime()) return build('preBlack', REGULAR_PRICE, REGULAR_PRICE, 0, 'Preço Oficial', '30/10/2026 às 12:30');
   if (isBlackNovember(now)) return build('black', 67, REGULAR_PRICE, 7, 'Black November', '30/11/2026');
   return build('full', Math.round(REGULAR_PRICE * (1 - FULL_PRICE_PROMO_PERCENT / 100)), REGULAR_PRICE, 3, 'Preço Oficial Regular');
 }

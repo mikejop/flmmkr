@@ -66,7 +66,26 @@
   transform: rotate(-4deg);
 }
 
+/* O aviso na página aparece com um fade suave (ele só entra depois de 10 s na página). */
+.noticeIn {
+  animation: bnFadeIn 700ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes bnFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
+  .noticeIn {
+    animation: none;
+  }
   .track {
     animation: none;
   }
