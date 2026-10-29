@@ -177,11 +177,18 @@ function SignupForm() {
  * ou antes ao clicar fora ou no X. Se a pessoa interagir com o modal (tocar, clicar, digitar), ele fica aberto.
  * Durante a campanha ele aparece sem cronômetro (o tempo da pessoa fica no aviso da página).
  */
-export function BlackNovemberModal({ stage, onClose, onBuy }: { stage: Stage; onClose: () => void; onBuy: () => void }) {
+export function BlackNovemberModal({ stage, active, onClose, onBuy }: {
+  stage: Stage;
+  /** false enquanto o preloader ainda cobre a tela: os 5 s só começam a contar quando o anúncio fica visível. */
+  active: boolean;
+  onClose: () => void;
+  onBuy: () => void;
+}) {
   const [visible, setVisible] = useState(false);
   const [showForm, setShowForm] = useState(false);
   const [grid, setGrid] = useState(backdropGrid);
   const autoCloseRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const interactedRef = useRef(false);
   const closingRef = useRef(false);
 
   const close = () => {
@@ -198,7 +205,6 @@ export function BlackNovemberModal({ stage, onClose, onBuy }: { stage: Stage; on
 
   useEffect(() => {
     const raf = requestAnimationFrame(() => setVisible(true));
-    autoCloseRef.current = setTimeout(() => closeRef.current(), AUTO_CLOSE_MS);
     const onKey = (e: KeyboardEvent) => e.key === 'Escape' && closeRef.current();
     const onResize = () => setGrid(backdropGrid());
     window.addEventListener('keydown', onKey);
@@ -211,7 +217,16 @@ export function BlackNovemberModal({ stage, onClose, onBuy }: { stage: Stage; on
     };
   }, []);
 
+  useEffect(() => {
+    if (!active || interactedRef.current) return;
+    autoCloseRef.current = setTimeout(() => closeRef.current(), AUTO_CLOSE_MS);
+    return () => {
+      if (autoCloseRef.current) clearTimeout(autoCloseRef.current);
+    };
+  }, [active]);
+
   const keepOpen = () => {
+    interactedRef.current = true;
     if (autoCloseRef.current) {
       clearTimeout(autoCloseRef.current);
       autoCloseRef.current = null;

@@ -201,6 +201,7 @@ export const ColorMasterLanding: React.FC = () => {
   // Clicou em comprar durante a Black November: o servidor parou o cronômetro desta pessoa
   const [isClaimed, setIsClaimed] = useState<boolean>(false);
   const [bnModalOpen, setBnModalOpen] = useState<boolean>(false);
+  const [preloaderDone, setPreloaderDone] = useState<boolean>(false);
   // O aviso da Black November na página só aparece depois de 10 s na página (o anúncio vem primeiro)
   const [bnNoticeReady, setBnNoticeReady] = useState<boolean>(false);
   useEffect(() => {
@@ -349,19 +350,9 @@ export const ColorMasterLanding: React.FC = () => {
   // Disparado ao concluir o preloader: se for a primeira visita, abre o tooltip no logo FLMMKR (apenas 1 vez por usuário)
   const handlePreloaderComplete = () => {
     if (typeof window === 'undefined') return;
-    // Black November chegando (ou valendo para esta pessoa): o modal de alerta abre assim que a página carrega
-    if (bnInfo) {
-      const now = Date.now() + bnInfo.serverOffsetMs;
-      const isSoon = !isBlackNovember && now < bnInfo.startsAtMs;
-      const isLive = isBlackNovember && !isExpired;
-      if (isSoon || isLive) {
-        // O aviso de 1:30 da oferta não pode ficar por cima: fecha agora e volta depois que o modal sumir
-        setWarningModalOpen(false);
-        hasWarnedRef.current = false;
-        setBnModalOpen(true);
-        return;
-      }
-    }
+    setPreloaderDone(true);
+    // O anúncio da Black November já está montado por baixo do preloader: ele é a próxima coisa a aparecer
+    if (bnModalOpen) return;
     try {
       const alreadySeen = hasSeenPromoTooltip(deviceMac);
       if (!alreadySeen && !isExpired) {
@@ -463,6 +454,20 @@ export const ColorMasterLanding: React.FC = () => {
           .then((res) => res.json())
           .then((data) => {
             if (applyOfferTimerData(data)) {
+              // Black November chegando (ou valendo para esta pessoa): o anúncio é montado por baixo do preloader,
+              // para aparecer logo depois dele, antes da página
+              const bn = data.blackNovember;
+              if (bn && typeof data.serverNow === 'number') {
+                const isSoon = !data.isBlackNovember && data.serverNow < Date.parse(bn.startsAt);
+                const isLive = Boolean(data.isBlackNovember) && !data.isExpired;
+                if (isSoon || isLive) {
+                  // O aviso de 1:30 da oferta não pode ficar por cima: só abre depois que o anúncio sumir
+                  setWarningModalOpen(false);
+                  hasWarnedRef.current = false;
+                  setBnModalOpen(true);
+                }
+              }
+
               // Tooltip apontando para o preço quando o tempo já estiver expirado:
               // Só aparece depois de 1 segundo que a página abriu e some 4 segundos após aparecer
               // (na Black November não existe o desconto de 25%: acabou o tempo, volta para R$ 195)
@@ -772,7 +777,7 @@ export const ColorMasterLanding: React.FC = () => {
     <div className="min-h-screen bg-[#f5f5f7] text-[#1d1d1f] font-sans antialiased selection:bg-[#0071e3]/20 selection:text-[#0071e3]">
       {/* Modal de alerta da Black November (abre ao carregar a página) */}
       {bnModalOpen && bnStage && (
-        <BlackNovemberModal stage={bnStage} onClose={() => setBnModalOpen(false)} onBuy={openCheckout} />
+        <BlackNovemberModal stage={bnStage} active={preloaderDone} onClose={() => setBnModalOpen(false)} onBuy={openCheckout} />
       )}
 
       {/* Brand Transition Preloader */}
