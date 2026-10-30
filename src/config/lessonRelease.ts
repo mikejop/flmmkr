@@ -15,8 +15,9 @@ const LESSON_RELEASE_AT: Record<string, number> = {
   'mod3-2': afterDays(4), // Film Look Creator: +96h
   'mod3-3': afterDays(5), // Dehancer Pro: +120h
   'mod4-1': afterDays(6), // Bônus 1: +144h
-  'mod4-2': afterDays(7), // Bônus 2: +168h
-  'mod4-3': afterDays(8), // Bônus 3: +192h
+  // Bônus 2 e 3 adiados em 72h (30/10/2026): 02/11 e 03/11 às 21h10
+  'mod4-2': afterDays(7) + 3 * DAY_MS, // Bônus 2: +168h +72h
+  'mod4-3': afterDays(8) + 3 * DAY_MS, // Bônus 3: +192h +72h
 };
 
 /** Momento da liberação (ms desde 1970), ou null se a aula já nasce liberada. */
