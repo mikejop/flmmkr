@@ -10,6 +10,9 @@ export interface CouponRow {
   code: string;
   discount_percent: number | null;
   affiliate_name: string | null;
+  /** Conta Asaas do afiliado e percentual do split (os dois juntos ou nenhum). */
+  affiliate_wallet_id: string | null;
+  affiliate_split_percent: number | null;
 }
 
 export type CouponQuote =
@@ -34,7 +37,7 @@ export async function quoteCoupon(rawCode: unknown, basePrice: number): Promise<
 
   const { data, error } = await supabaseAdmin
     .from('coupons')
-    .select('id, code, discount_type, discount_percent, affiliate_name, active, starts_at, expires_at, max_uses, used_count')
+    .select('id, code, discount_type, discount_percent, affiliate_name, affiliate_wallet_id, affiliate_split_percent, active, starts_at, expires_at, max_uses, used_count')
     .eq('code', code)
     .maybeSingle();
   if (error) {
@@ -54,7 +57,7 @@ export async function quoteCoupon(rawCode: unknown, basePrice: number): Promise<
   });
   if (!check.ok) return { ok: false, reason: check.reason, message: MESSAGES[check.reason] };
 
-  const coupon: CouponRow = { id: data.id, code: data.code, discount_percent: data.discount_percent == null ? null : Number(data.discount_percent), affiliate_name: data.affiliate_name };
+  const coupon: CouponRow = { id: data.id, code: data.code, discount_percent: data.discount_percent == null ? null : Number(data.discount_percent), affiliate_name: data.affiliate_name, affiliate_wallet_id: data.affiliate_wallet_id, affiliate_split_percent: data.affiliate_split_percent == null ? null : Number(data.affiliate_split_percent) };
 
   // Cupom de PREÇO (ex.: MAGIC): paga o preço do cupom vigente na data, no lugar do preço do site.
   if (data.discount_type === 'fixed_price') {
@@ -87,6 +90,9 @@ export async function recordCouponOrder(params: {
   original: number;
   discount: number;
   final: number;
+  affiliateWalletId?: string | null;
+  affiliateSplitPercent?: number | null;
+  affiliateAmount?: number | null;
 }): Promise<void> {
   const { error } = await supabaseAdmin.from('coupon_orders').upsert(
     {
@@ -97,6 +103,9 @@ export async function recordCouponOrder(params: {
       original_price: params.original,
       discount_amount: params.discount,
       final_price: params.final,
+      affiliate_wallet_id: params.affiliateWalletId ?? null,
+      affiliate_split_percent: params.affiliateSplitPercent ?? null,
+      affiliate_amount: params.affiliateAmount ?? null,
     },
     { onConflict: 'asaas_payment_id', ignoreDuplicates: true }
   );

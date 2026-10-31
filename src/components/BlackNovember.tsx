@@ -12,8 +12,8 @@ export const BN_YELLOW = '#FFC21A';
 const BN_RED = '#E3262E';
 
 export const BN_REGULAR_PRICE = 195;
-export const BN_PRICE = 67;
-export const BN_PERCENT_OFF = Math.round((1 - BN_PRICE / BN_REGULAR_PRICE) * 100); // 66
+export const BN_PRICE = 95;
+export const BN_PERCENT_OFF = Math.round((1 - BN_PRICE / BN_REGULAR_PRICE) * 100); // 51
 export const BN_MINUTES = 7;
 const PLUGINS_TEXT = 'Você também terá acesso aos plugins da FLMMKR, inclusive os que estão em Close Beta.';
 
@@ -177,12 +177,14 @@ function SignupForm() {
  * ou antes ao clicar fora ou no X. Se a pessoa interagir com o modal (tocar, clicar, digitar), ele fica aberto.
  * Durante a campanha ele aparece sem cronômetro (o tempo da pessoa fica no aviso da página).
  */
-export function BlackNovemberModal({ stage, active, onClose, onBuy }: {
+export function BlackNovemberModal({ stage, active, onClose, onBuy, buyLabel }: {
   stage: Stage;
   /** false enquanto o preloader ainda cobre a tela: os 5 s só começam a contar quando o anúncio fica visível. */
   active: boolean;
   onClose: () => void;
   onBuy: () => void;
+  /** Texto do botão quando há cupom aplicado (ex.: "Garantir Acesso com o cupom WESLEY"). */
+  buyLabel?: string | null;
 }) {
   const [visible, setVisible] = useState(false);
   const [showForm, setShowForm] = useState(false);
@@ -331,7 +333,7 @@ export function BlackNovemberModal({ stage, active, onClose, onBuy }: {
                 className="w-full rounded-full py-3 text-[15px] font-bold text-black transition-transform active:scale-[0.98]"
                 style={{ background: BN_YELLOW }}
               >
-                Garantir por R$ {BN_PRICE}
+                {buyLabel ?? `Garantir por R$ ${BN_PRICE}`}
               </button>
             ) : showForm ? (
               <SignupForm />
@@ -353,7 +355,7 @@ export function BlackNovemberModal({ stage, active, onClose, onBuy }: {
 }
 
 /** Aviso da Black November dentro da landing: preço de/por e o cronômetro (até o início, ou os 7 min da pessoa). */
-export function BlackNovemberNotice({ stage, isClaimed, onBuy }: { stage: Stage; isClaimed: boolean; onBuy: () => void }) {
+export function BlackNovemberNotice({ stage, isClaimed, onBuy, buyLabel }: { stage: Stage; isClaimed: boolean; onBuy: () => void; buyLabel?: string | null }) {
   return (
     <div className={`w-full max-w-3xl mx-auto mb-6 sm:mb-8 rounded-2xl bg-black/80 ${styles.noticeIn} backdrop-blur-xl ring-1 ring-white/15 px-4 py-4 sm:px-6 sm:py-5 text-white shadow-2xl`}>
       <div className="flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-6">
@@ -368,7 +370,7 @@ export function BlackNovemberNotice({ stage, isClaimed, onBuy }: { stage: Stage;
             {stage.kind === 'soon'
               ? `Começa ${formatStart(stage.startsAtMs)} (Brasília). Cada pessoa terá ${BN_MINUTES} minutos.`
               : isClaimed
-                ? 'Seu preço de R$ 67 está garantido.'
+                ? `Seu preço de R$ ${BN_PRICE} está garantido.`
                 : `Você tem ${BN_MINUTES} minutos para garantir este preço.`}
           </p>
           <p className="mt-1 text-xs text-white/60">{PLUGINS_TEXT}</p>
@@ -385,7 +387,7 @@ export function BlackNovemberNotice({ stage, isClaimed, onBuy }: { stage: Stage;
               className="mt-1 rounded-full px-5 py-2 text-sm font-bold text-black active:scale-95"
               style={{ background: BN_YELLOW }}
             >
-              Garantir por R$ {BN_PRICE}
+              {buyLabel ?? `Garantir por R$ ${BN_PRICE}`}
             </button>
           )}
         </div>

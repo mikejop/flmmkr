@@ -49,6 +49,8 @@ interface AsaasPaymentInput {
   };
   /** IP de quem paga (recomendado pelo Asaas em cobrança com cartão). */
   remoteIp?: string;
+  /** Repasse automático (afiliado): valor fixo da cobrança à vista ou total do parcelamento (dividido entre as parcelas). */
+  split?: Array<{ walletId: string; fixedValue?: number; totalFixedValue?: number }>;
 }
 
 interface AsaasCustomer {
@@ -189,6 +191,8 @@ export const asaasService = {
       payload.creditCardHolderInfo = input.creditCardHolderInfo;
       if (input.remoteIp) payload.remoteIp = input.remoteIp;
     }
+
+    if (input.split?.length) payload.split = input.split;
 
     return asaasFetch<AsaasPayment>('/payments', {
       method: 'POST',

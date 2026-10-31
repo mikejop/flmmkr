@@ -125,7 +125,7 @@ export async function POST(req: NextRequest) {
     let productDescription = price.description;
 
     // Cupom: o navegador manda só o código. O desconto e o valor final saem do servidor, sobre o preço atual.
-    let appliedCoupon: { id: string; code: string; original: number; discount: number; final: number } | null = null;
+    let appliedCoupon: { id: string; code: string; original: number; discount: number; final: number; affiliateWalletId: string | null; affiliateSplitPercent: number | null } | null = null;
     const couponCodeInput = typeof requestData.couponCode === 'string' ? requestData.couponCode.trim() : '';
     if (couponCodeInput) {
       if (!(COUPON_PRODUCT_IDS as readonly string[]).includes(productId)) {
@@ -135,11 +135,16 @@ export async function POST(req: NextRequest) {
       if (!quote.ok) {
         return NextResponse.json({ error: quote.message }, { status: quote.reason === 'unavailable' ? 503 : 400 });
       }
-      appliedCoupon = { id: quote.coupon.id, code: quote.coupon.code, original: quote.original, discount: quote.discount, final: quote.final };
+      appliedCoupon = { id: quote.coupon.id, code: quote.coupon.code, original: quote.original, discount: quote.discount, final: quote.final, affiliateWalletId: quote.coupon.affiliate_wallet_id, affiliateSplitPercent: quote.coupon.affiliate_split_percent };
       productValue = quote.final;
       productDescription = `${price.description} - Cupom ${quote.coupon.code}`.slice(0, 480);
     }
     const couponSuffix = appliedCoupon ? `|${appliedCoupon.code}` : '';
+    // Parte do afiliado: percentual sobre o preço da venda (não sobre o líquido do Asaas), ex. 30% de R$ 69 = R$ 20,70.
+    // Fica anotada no pedido; se o afiliado tem carteira Asaas, vai também no split e o Asaas repassa sozinho.
+    const affiliateSplitPercent = appliedCoupon?.affiliateSplitPercent ?? null;
+    const affiliateAmount = affiliateSplitPercent ? Math.round(productValue * affiliateSplitPercent) / 100 : null;
+    const affiliateWalletId = affiliateAmount ? appliedCoupon?.affiliateWalletId ?? null : null;
 
     // Determinar dados de cobrança (se foram informados dados diferentes do cadastro)
     const payerName = billingInfo?.name || name;
@@ -183,6 +188,9 @@ export async function POST(req: NextRequest) {
           dueDate: dueDateStr,
           description: productDescription,
           externalReference: `cm_${Date.now()}${couponSuffix}`,
+          split: affiliateWalletId
+            ? [installmentCountNum ? { walletId: affiliateWalletId, totalFixedValue: affiliateAmount! } : { walletId: affiliateWalletId, fixedValue: affiliateAmount! }]
+            : undefined,
           creditCard,
           creditCardHolderInfo: creditCardHolderInfo || {
             name: payerName,
@@ -195,7 +203,7 @@ export async function POST(req: NextRequest) {
         });
 
         if (appliedCoupon) {
-          await recordCouponOrder({ paymentId: payment.id, couponId: appliedCoupon.id, couponCode: appliedCoupon.code, productId, original: appliedCoupon.original, discount: appliedCoupon.discount, final: appliedCoupon.final });
+          await recordCouponOrder({ paymentId: payment.id, couponId: appliedCoupon.id, couponCode: appliedCoupon.code, productId, original: appliedCoupon.original, discount: appliedCoupon.discount, final: appliedCoupon.final, affiliateWalletId, affiliateSplitPercent, affiliateAmount });
         }
 
         // Verificar se pagamento foi confirmado imediatamente
@@ -288,11 +296,12 @@ export async function POST(req: NextRequest) {
         value: productValue,
         dueDate: dueDateStr,
         description: productDescription,
-        externalReference: pixExternalReference
+        externalReference: pixExternalReference,
+        split: affiliateWalletId ? [{ walletId: affiliateWalletId, fixedValue: affiliateAmount! }] : undefined
       });
 
       if (appliedCoupon) {
-        await recordCouponOrder({ paymentId: payment.id, couponId: appliedCoupon.id, couponCode: appliedCoupon.code, productId, original: appliedCoupon.original, discount: appliedCoupon.discount, final: appliedCoupon.final });
+        await recordCouponOrder({ paymentId: payment.id, couponId: appliedCoupon.id, couponCode: appliedCoupon.code, productId, original: appliedCoupon.original, discount: appliedCoupon.discount, final: appliedCoupon.final, affiliateWalletId, affiliateSplitPercent, affiliateAmount });
       }
 
       // Salvar na tabela de checkouts pendentes aguardando confirmação do PIX

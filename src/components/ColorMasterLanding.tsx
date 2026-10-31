@@ -15,6 +15,7 @@ import { BrandPreloader } from '@/components/BrandPreloader';
 import { getDeviceFingerprint } from '@/utils/deviceFingerprint';
 import { formatAsaas12x, getAsaas12xInstallmentValue } from '@/utils/asaasPricing';
 import { BlackNovemberModal, BlackNovemberNotice, useServerNow, type BlackNovemberStage } from '@/components/BlackNovember';
+import { useCoupon } from '@/hooks/useCoupon';
 
 // Dynamic Modals (Carregados sob demanda para não pesar o bundle inicial)
 const LoginModal = dynamic(
@@ -584,7 +585,7 @@ export const ColorMasterLanding: React.FC = () => {
 
   /**
    * Todos os botões de compra passam por aqui. Na Black November, o clique para o cronômetro da pessoa
-   * no servidor (o preço de R$ 67 fica garantido para ela no checkout).
+   * no servidor (o preço de R$ 95 fica garantido para ela no checkout).
    */
   function openCheckout() {
     setCheckoutModalOpen(true);
@@ -764,6 +765,10 @@ export const ColorMasterLanding: React.FC = () => {
     ? Math.round(baseBatchPrice * 0.75)
     : baseBatchPrice;
 
+  // Cupom da página (link ?cupom= ou digitado no checkout): os botões de compra mostram o cupom aplicado.
+  const couponCtl = useCoupon(`${displayPrice}-${isExpired}`, true);
+  const couponBuyLabel = couponCtl.coupon ? `Garantir Acesso com o cupom ${couponCtl.coupon.code}` : null;
+
   // Estado da Black November para o aviso e o modal: contagem até o início, ou os 7 minutos da pessoa
   const bnStage: BlackNovemberStage | null = !bnInfo || bnNow === null
     ? null
@@ -777,7 +782,7 @@ export const ColorMasterLanding: React.FC = () => {
     <div className="min-h-screen bg-[#f5f5f7] text-[#1d1d1f] font-sans antialiased selection:bg-[#0071e3]/20 selection:text-[#0071e3]">
       {/* Modal de alerta da Black November (abre ao carregar a página) */}
       {bnModalOpen && bnStage && (
-        <BlackNovemberModal stage={bnStage} active={preloaderDone} onClose={() => setBnModalOpen(false)} onBuy={openCheckout} />
+        <BlackNovemberModal stage={bnStage} active={preloaderDone} onClose={() => setBnModalOpen(false)} onBuy={openCheckout} buyLabel={couponBuyLabel} />
       )}
 
       {/* Brand Transition Preloader */}
@@ -795,6 +800,7 @@ export const ColorMasterLanding: React.FC = () => {
         isExpired={isExpired}
         macAddress={deviceMac}
         hasDiscount25={hasDiscount25}
+        couponController={couponCtl}
       />
 
       {/* Modais de Alerta (1:30) */}
@@ -943,7 +949,7 @@ export const ColorMasterLanding: React.FC = () => {
                     }}
                     className="flex-1 py-1.5 px-3 rounded-full bg-[#0071e3] hover:bg-[#0077ed] text-white text-xs font-semibold shadow-sm transition-all active:scale-95 flex items-center justify-center cursor-pointer"
                   >
-                    Garantir Vaga
+                    {couponBuyLabel ?? 'Garantir Vaga'}
                   </button>
 
                   <button
@@ -985,11 +991,11 @@ export const ColorMasterLanding: React.FC = () => {
               onClick={() => openCheckout()}
               className={`rounded-full bg-[#0071e3] hover:bg-[#0077ed] text-white text-xs font-semibold shadow-[0_2px_12px_rgba(0,113,227,0.4),inset_0_1px_1px_rgba(255,255,255,0.3)] transition-all duration-300 active:scale-95 flex items-center justify-center cursor-pointer whitespace-nowrap overflow-hidden ${
                 showNavCheckout
-                  ? 'opacity-100 scale-100 ml-2 sm:ml-3 px-3.5 sm:px-4 py-2 sm:py-1.5 min-h-[44px] sm:min-h-0 pointer-events-auto max-w-[160px]'
+                  ? `opacity-100 scale-100 ml-2 sm:ml-3 px-3.5 sm:px-4 py-2 sm:py-1.5 min-h-[44px] sm:min-h-0 pointer-events-auto ${couponBuyLabel ? 'max-w-[300px]' : 'max-w-[160px]'}`
                   : 'opacity-0 scale-90 max-w-0 ml-0 px-0 py-0 border-0 shadow-none pointer-events-none'
               }`}
             >
-              Garantir Acesso
+              {couponBuyLabel ?? 'Garantir Acesso'}
             </button>
           </div>
         </div>
@@ -1041,7 +1047,7 @@ export const ColorMasterLanding: React.FC = () => {
             </p>
 
             {/* Aviso da Black November: preço de/por e cronômetro */}
-            {bnStage && bnNoticeReady && <BlackNovemberNotice stage={bnStage} isClaimed={isClaimed} onBuy={openCheckout} />}
+            {bnStage && bnNoticeReady && <BlackNovemberNotice stage={bnStage} isClaimed={isClaimed} onBuy={openCheckout} buyLabel={couponBuyLabel} />}
 
             {/* Commercial Condition / Price Pill */}
             <div className="inline-flex flex-wrap items-center justify-center gap-x-3 sm:gap-x-4 gap-y-1.5 sm:gap-y-2 px-4 py-2 sm:px-8 sm:py-3.5 rounded-2xl sm:rounded-full bg-black/60 backdrop-blur-xl border border-white/20 text-white shadow-2xl mb-6 sm:mb-8 max-w-full">
@@ -1091,7 +1097,7 @@ export const ColorMasterLanding: React.FC = () => {
                 }}
                 className="w-full max-w-[260px] sm:max-w-none sm:w-auto px-5 sm:px-8 py-2.5 sm:py-4 rounded-full bg-[#0071e3] hover:bg-[#0077ed] text-white font-semibold text-[14px] sm:text-base transition-all shadow-[0_3px_14px_rgba(0,113,227,0.4)] flex items-center justify-center active:scale-95 cursor-pointer"
               >
-                {!isExpired ? `Garantir por R$ ${priceData.promoPrice}` : 'Garantir Acesso à Masterclass'}
+                {couponBuyLabel ?? (!isExpired ? `Garantir por R$ ${priceData.promoPrice}` : 'Garantir Acesso à Masterclass')}
               </button>
             </div>
 
@@ -1944,7 +1950,7 @@ export const ColorMasterLanding: React.FC = () => {
               }}
               className="w-full max-w-[280px] sm:max-w-none sm:w-auto px-6 sm:px-10 py-3 sm:py-4 rounded-full bg-[#0071e3] hover:bg-[#0077ed] text-white font-semibold text-[14px] sm:text-base transition-all shadow-[0_4px_24px_rgba(0,113,227,0.4)] inline-flex items-center justify-center active:scale-95 cursor-pointer"
             >
-              GARANTIR MINHA VAGA AGORA
+              {couponBuyLabel ?? 'GARANTIR MINHA VAGA AGORA'}
             </button>
 
             {/* Guarantee and Security */}
@@ -2079,7 +2085,7 @@ export const ColorMasterLanding: React.FC = () => {
             onClick={() => openCheckout()}
             className="px-5 py-2.5 rounded-full bg-[#0071e3] text-white text-xs font-bold shadow-md active:scale-95 shrink-0 min-h-[38px] flex items-center justify-center cursor-pointer"
           >
-            Garantir Vaga
+            {couponBuyLabel ?? 'Garantir Vaga'}
           </button>
         </div>
       </div>

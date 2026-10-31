@@ -29,7 +29,7 @@ export function sanitizeCouponInput(raw: string): string {
  * Cupom de desconto no navegador. O servidor valida e calcula (o navegador só manda o código).
  * `priceKey` muda quando o preço do site muda (cronômetro acabou, nova fase): o desconto é recalculado no servidor.
  */
-export function useCoupon(priceKey: string | number): CouponController {
+export function useCoupon(priceKey: string | number, readUrl = false): CouponController {
   const [coupon, setCoupon] = useState<AppliedCoupon | null>(null);
   const [input, setInputState] = useState('');
   const [busy, setBusy] = useState(false);
@@ -59,6 +59,13 @@ export function useCoupon(priceKey: string | number): CouponController {
       if (!silent) setBusy(false);
     }
   }, []);
+
+  // Link de afiliado (?cupom=CODIGO): com readUrl, aplica o cupom sozinho assim que a página abre.
+  useEffect(() => {
+    if (!readUrl) return;
+    const fromUrl = sanitizeCouponInput(new URLSearchParams(window.location.search).get('cupom') || '');
+    if (fromUrl) void request(fromUrl, false);
+  }, [readUrl, request]);
 
   const appliedCode = coupon?.code;
   useEffect(() => {

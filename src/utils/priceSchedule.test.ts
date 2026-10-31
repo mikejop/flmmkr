@@ -41,11 +41,11 @@ test('descontos concatenados sobre o valor real de R$ 195', () => {
   assert.equal(at('2026-12-05T12:00:00-03:00').promoPercentOffRegular, 40);
 });
 
-test('Black November: 30/10 12:29:59 ainda é R$ 195; 12:30 vira R$ 67 com 7 min (66% OFF)', () => {
+test('Black November: 30/10 12:29:59 ainda é R$ 195; 12:30 vira R$ 95 com 7 min (51% OFF)', () => {
   assert.equal(at('2026-10-30T12:29:59-03:00').phaseId, 'preBlack');
   const p = at('2026-10-30T12:30:00-03:00');
-  assert.deepEqual([p.phaseId, p.promoPrice, p.currentBatchPrice, p.timerMinutes], ['black', 67, 195, 7]);
-  assert.equal(p.promoPercentOffRegular, 66);
+  assert.deepEqual([p.phaseId, p.promoPrice, p.currentBatchPrice, p.timerMinutes], ['black', 95, 195, 7]);
+  assert.equal(p.promoPercentOffRegular, 51);
   assert.equal(at('2026-10-30T15:30:00Z').phaseId, 'black'); // 12:30 em Brasília
 });
 
