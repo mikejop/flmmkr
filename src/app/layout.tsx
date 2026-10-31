@@ -25,15 +25,15 @@ export const metadata: Metadata = {
   },
   description: SITE_CONFIG.seo.description,
   applicationName: SITE_CONFIG.name,
-  // Favicon "Fp" no azul do site (#0071e3) sobre fundo branco. O .ico (16/32/48) atende Safari e Windows.
+  // Favicon: o F com glitch do FLMMKR sobre fundo preto. O .ico (16/32/48) atende Safari e Windows; ?v=2 fura o cache do ícone antigo.
   icons: {
     icon: [
-      { url: '/favicon.ico', sizes: '16x16 32x32 48x48' },
-      { url: '/icon-32.png', sizes: '32x32', type: 'image/png' },
-      { url: '/icon-192.png', sizes: '192x192', type: 'image/png' },
-      { url: '/icon-512.png', sizes: '512x512', type: 'image/png' },
+      { url: '/favicon.ico?v=2', sizes: '16x16 32x32 48x48' },
+      { url: '/icon-32.png?v=2', sizes: '32x32', type: 'image/png' },
+      { url: '/icon-192.png?v=2', sizes: '192x192', type: 'image/png' },
+      { url: '/icon-512.png?v=2', sizes: '512x512', type: 'image/png' },
     ],
-    apple: [{ url: '/apple-touch-icon.png', sizes: '180x180', type: 'image/png' }],
+    apple: [{ url: '/apple-touch-icon.png?v=2', sizes: '180x180', type: 'image/png' }],
   },
   authors: [{ name: SITE_CONFIG.author.name, url: SITE_CONFIG.seo.url }],
   generator: 'Next.js',
