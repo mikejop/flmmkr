@@ -3,31 +3,29 @@
  * Aula que não aparece aqui está liberada desde o começo.
  */
 
-/** Início da contagem: 23/10/2026 às 21h10 (horário de Brasília). Cada aula depois de Primárias libera 24h após a anterior. */
-const START = new Date('2026-10-23T21:10:00-03:00').getTime();
-const DAY_MS = 24 * 60 * 60 * 1000;
-const afterDays = (days: number) => START + days * DAY_MS;
+/** Bloqueada sem data de liberação: a aula fica fechada até alguém trocar por uma data. */
+const NO_DATE = Number.POSITIVE_INFINITY;
 
+// Livres: tudo até Primárias. O resto fica bloqueado, sem data (31/10/2026).
 const LESSON_RELEASE_AT: Record<string, number> = {
-  'mod2-2': afterDays(1), // Shot Matching: +24h
-  'mod2-3': afterDays(2), // Secundárias: +48h
-  'mod3-1': afterDays(3), // Criando Look sem Plugins: +72h
-  'mod3-2': afterDays(4), // Film Look Creator: +96h
-  'mod3-3': afterDays(5), // Dehancer Pro: +120h
-  'mod4-1': afterDays(6), // Bônus 1: +144h
-  // Bônus 2 e 3 adiados em 72h (30/10/2026): 02/11 e 03/11 às 21h10
-  'mod4-2': afterDays(7) + 3 * DAY_MS, // Bônus 2: +168h +72h
-  'mod4-3': afterDays(8) + 3 * DAY_MS, // Bônus 3: +192h +72h
+  'mod2-2': NO_DATE, // Shot Matching
+  'mod2-3': NO_DATE, // Secundárias
+  'mod3-1': NO_DATE, // Criando Look sem Plugins
+  'mod3-2': NO_DATE, // Film Look Creator
+  'mod3-3': NO_DATE, // Dehancer Pro
+  'mod4-1': NO_DATE, // Bônus 1
+  'mod4-2': NO_DATE, // Bônus 2
+  'mod4-3': NO_DATE, // Bônus 3
 };
 
-/** Momento da liberação (ms desde 1970), ou null se a aula já nasce liberada. */
+/** Momento da liberação (ms desde 1970), ou null se a aula já nasce liberada. Infinity = bloqueada sem data. */
 export function getLessonReleaseAt(lessonId: string): number | null {
   return Object.hasOwn(LESSON_RELEASE_AT, lessonId) ? LESSON_RELEASE_AT[lessonId] : null;
 }
 
 /** Próximo momento de liberação depois de `now`, para o site se atualizar sozinho quando a hora chegar. */
 export function getNextReleaseAfter(now: number): number | null {
-  const all = Object.values(LESSON_RELEASE_AT).filter((t) => t > now);
+  const all = Object.values(LESSON_RELEASE_AT).filter((t) => t > now && Number.isFinite(t));
   return all.length ? Math.min(...all) : null;
 }
 

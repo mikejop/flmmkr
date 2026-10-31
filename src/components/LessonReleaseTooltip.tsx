@@ -11,7 +11,7 @@ function useCountdown(releaseAt: number | null): string | null {
   const [text, setText] = useState<string | null>(null);
 
   useEffect(() => {
-    if (releaseAt === null) return;
+    if (releaseAt === null || !Number.isFinite(releaseAt)) return;
     const update = () => {
       const now = trustedNow();
       if (now === null) { setText(null); return; }
@@ -67,9 +67,9 @@ export function LessonReleaseTooltip({ lessonId, anchor }: { lessonId: string; a
       </p>
       <p className="flex items-center gap-2 text-sm text-neutral-700">
         <Clock size={14} aria-hidden="true" className="shrink-0 text-neutral-500" />
-        {countdown ? <>Libera em <strong className="tabular-nums text-neutral-900">{countdown}</strong></> : 'Verificando o horário…'}
+        {!Number.isFinite(releaseAt) ? 'Ainda sem data de liberação' : countdown ? <>Libera em <strong className="tabular-nums text-neutral-900">{countdown}</strong></> : 'Verificando o horário…'}
       </p>
-      <p className="border-t border-neutral-200 pt-2 text-xs leading-snug text-neutral-600">{formatReleaseDate(releaseAt)}</p>
+      {Number.isFinite(releaseAt) && <p className="border-t border-neutral-200 pt-2 text-xs leading-snug text-neutral-600">{formatReleaseDate(releaseAt)}</p>}
     </div>,
     document.body,
   );
@@ -88,9 +88,9 @@ export function LessonLockedPanel({ lessonId, title }: { lessonId: string; title
       <h2 className="text-2xl font-black tracking-tight text-neutral-900">{title}</h2>
       <p className="text-base text-neutral-700">Esta aula ainda não foi liberada.</p>
       <p className="rounded-2xl border border-neutral-200 bg-white px-6 py-4 text-lg text-neutral-800 shadow-sm">
-        {countdown ? <>Libera em <strong className="tabular-nums text-neutral-900">{countdown}</strong></> : 'Verificando o horário…'}
+        {releaseAt !== null && !Number.isFinite(releaseAt) ? 'Ainda sem data de liberação' : countdown ? <>Libera em <strong className="tabular-nums text-neutral-900">{countdown}</strong></> : 'Verificando o horário…'}
       </p>
-      {releaseAt !== null && <p className="text-sm text-neutral-600">{formatReleaseDate(releaseAt)}</p>}
+      {releaseAt !== null && Number.isFinite(releaseAt) && <p className="text-sm text-neutral-600">{formatReleaseDate(releaseAt)}</p>}
     </div>
   );
 }
