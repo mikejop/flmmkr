@@ -32,6 +32,8 @@ import VideoLessonPlayer, { VideoLessonPlayerHandle } from '@/components/VideoLe
 import LessonComments from '@/components/LessonComments';
 import NotificationsDropdown from '@/components/NotificationsDropdown';
 import DownloadMenu from '@/components/DownloadMenu';
+import { WhatsAppIcon } from '@/components/WhatsAppIcon';
+import { supportWhatsAppUrl } from '@/config/support';
 import { useViewportMode } from '@/hooks/useViewportMode';
 import LessonCompletionTransition from '@/components/LessonCompletionTransition';
 import IntroducaoDaVinciArticle from '@/components/IntroducaoDaVinciArticle';
@@ -1323,6 +1325,17 @@ export function MemberAreaApp({ skipInternalPreloader = false }: { skipInternalP
                             <User size={14} />
                             <span>Minha Conta</span>
                           </button>
+                          <a
+                            role="menuitem"
+                            href={supportWhatsAppUrl('Olá! Preciso de ajuda na área de membros.')}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            onClick={() => setIsProfileMenuOpen(false)}
+                            className="w-full flex items-center gap-2 px-3 py-2.5 rounded-xl text-[13px] text-neutral-200 hover:text-white hover:bg-white/10 text-left font-medium transition-colors"
+                          >
+                            <WhatsAppIcon className="w-3.5 h-3.5 text-[#25D366]" />
+                            <span>Suporte</span>
+                          </a>
                           <button
                             role="menuitem"
                             onClick={handleLogout}
