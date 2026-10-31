@@ -254,6 +254,7 @@ export const ColorMasterLanding: React.FC = () => {
   const [showExpiredTooltip, setShowExpiredTooltip] = useState<boolean>(false);
   const [expiredTooltipExiting, setExpiredTooltipExiting] = useState<boolean>(false);
   const [hasDiscount25, setHasDiscount25] = useState<boolean>(false);
+  const [offerSessionReady, setOfferSessionReady] = useState(false);
   const expiredTooltipTimerRef = useRef<NodeJS.Timeout | null>(null);
   const expiredTooltipDelayRef = useRef<NodeJS.Timeout | null>(null);
   const hasTriggeredExpiredTooltipRef = useRef<boolean>(false);
@@ -454,6 +455,8 @@ export const ColorMasterLanding: React.FC = () => {
         return fetch('/api/offer-timer')
           .then((res) => res.json())
           .then((data) => {
+            // A sessão da oferta (cookie) já existe: agora o cupom do link pode ser validado
+            setOfferSessionReady(true);
             if (applyOfferTimerData(data)) {
               // Black November chegando (ou valendo para esta pessoa): o anúncio é montado por baixo do preloader,
               // para aparecer logo depois dele, antes da página
@@ -766,7 +769,8 @@ export const ColorMasterLanding: React.FC = () => {
     : baseBatchPrice;
 
   // Cupom da página (link ?cupom= ou digitado no checkout): os botões de compra mostram o cupom aplicado.
-  const couponCtl = useCoupon(`${displayPrice}-${isExpired}`, true);
+  // O do link só é validado depois que a sessão da oferta existe (sem ela o servidor recusa o cupom).
+  const couponCtl = useCoupon(`${displayPrice}-${isExpired}`, offerSessionReady);
   const couponBuyLabel = couponCtl.coupon ? `Garantir Acesso com o cupom ${couponCtl.coupon.code}` : null;
 
   // Estado da Black November para o aviso e o modal: contagem até o início, ou os 7 minutos da pessoa

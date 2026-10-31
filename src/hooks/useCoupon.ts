@@ -60,7 +60,7 @@ export function useCoupon(priceKey: string | number, readUrl = false): CouponCon
     }
   }, []);
 
-  // Link de afiliado (?cupom=CODIGO): com readUrl, aplica o cupom sozinho assim que a página abre.
+  // Link de afiliado (?cupom=CODIGO): aplica o cupom sozinho quando readUrl fica true.
   useEffect(() => {
     if (!readUrl) return;
     const fromUrl = sanitizeCouponInput(new URLSearchParams(window.location.search).get('cupom') || '');
