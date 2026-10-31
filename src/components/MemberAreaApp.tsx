@@ -11,7 +11,7 @@ import { useSidebarMotion, GsapCollapse, GsapChevron, SIDEBAR_WIDTH_OPEN, SIDEBA
 import { 
   Folder, ChevronRight, ChevronLeft,
   CheckCircle2, Lock, PanelLeftClose, PanelLeft, X, Search, Menu,
-  Wand2, Palette, User, LogIn, LogOut, Star, Compass, Undo2
+  Wand2, Palette, User, LogIn, LogOut, Star, Compass, Undo2, Megaphone
 } from 'lucide-react';
 import { modulesData } from '@/data/data';
 import { UserProgress, CourseModule, ModuleId, Subtopic, Challenge } from '@/types/course';
@@ -33,7 +33,7 @@ import LessonComments from '@/components/LessonComments';
 import NotificationsDropdown from '@/components/NotificationsDropdown';
 import DownloadMenu from '@/components/DownloadMenu';
 import { WhatsAppIcon } from '@/components/WhatsAppIcon';
-import { supportWhatsAppUrl } from '@/config/support';
+import { supportWhatsAppUrl, FLMMKR_WHATSAPP_CHANNEL_URL } from '@/config/support';
 import { useViewportMode } from '@/hooks/useViewportMode';
 import LessonCompletionTransition from '@/components/LessonCompletionTransition';
 import IntroducaoDaVinciArticle from '@/components/IntroducaoDaVinciArticle';
@@ -1335,6 +1335,17 @@ export function MemberAreaApp({ skipInternalPreloader = false }: { skipInternalP
                           >
                             <WhatsAppIcon className="w-3.5 h-3.5 text-[#25D366]" />
                             <span>Suporte</span>
+                          </a>
+                          <a
+                            role="menuitem"
+                            href={FLMMKR_WHATSAPP_CHANNEL_URL}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            onClick={() => setIsProfileMenuOpen(false)}
+                            className="w-full flex items-center gap-2 px-3 py-2.5 rounded-xl text-[13px] text-neutral-200 hover:text-white hover:bg-white/10 text-left font-medium transition-colors"
+                          >
+                            <Megaphone size={14} className="text-[#25D366]" />
+                            <span>Canal FLMMKR</span>
                           </a>
                           <button
                             role="menuitem"
