@@ -14,6 +14,8 @@ const BN_RED = '#E3262E';
 export const BN_REGULAR_PRICE = 195;
 export const BN_PRICE = 95;
 export const BN_PERCENT_OFF = Math.round((1 - BN_PRICE / BN_REGULAR_PRICE) * 100); // 51
+/** Desconto sobre o preço cheio para o preço mostrado (o da Black November, ou o do cupom do afiliado). */
+const percentOff = (price: number) => Math.round((1 - price / BN_REGULAR_PRICE) * 100);
 export const BN_MINUTES = 7;
 const PLUGINS_TEXT = 'Você também terá acesso aos plugins da FLMMKR, inclusive os que estão em Close Beta.';
 
@@ -177,7 +179,7 @@ function SignupForm() {
  * ou antes ao clicar fora ou no X. Se a pessoa interagir com o modal (tocar, clicar, digitar), ele fica aberto.
  * Durante a campanha ele aparece sem cronômetro (o tempo da pessoa fica no aviso da página).
  */
-export function BlackNovemberModal({ stage, active, onClose, onBuy, buyLabel }: {
+export function BlackNovemberModal({ stage, active, onClose, onBuy, buyLabel, price = BN_PRICE }: {
   stage: Stage;
   /** false enquanto o preloader ainda cobre a tela: os 5 s só começam a contar quando o anúncio fica visível. */
   active: boolean;
@@ -185,6 +187,8 @@ export function BlackNovemberModal({ stage, active, onClose, onBuy, buyLabel }: 
   onBuy: () => void;
   /** Texto do botão quando há cupom aplicado (ex.: "Garantir Acesso com o cupom WESLEY"). */
   buyLabel?: string | null;
+  /** Preço mostrado: o do cupom aplicado (link do afiliado) ou o da Black November. */
+  price?: number;
 }) {
   const [visible, setVisible] = useState(false);
   const [showForm, setShowForm] = useState(false);
@@ -283,7 +287,7 @@ export function BlackNovemberModal({ stage, active, onClose, onBuy, buyLabel }: 
               <span className="text-[39px] sm:text-[49px]">November</span>
             </h2>
             <div className={`${styles.strip} absolute left-[-6%] right-[-6%] top-[44%] py-1 text-[11px] sm:text-[13px] font-semibold uppercase tracking-[0.16em] text-white`} style={{ background: BN_RED }}>
-              De R$ {BN_REGULAR_PRICE} por R$ {BN_PRICE} • {BN_PERCENT_OFF}% OFF
+              De R$ {BN_REGULAR_PRICE} por R$ {price} • {percentOff(price)}% OFF
             </div>
           </div>
 
@@ -315,7 +319,7 @@ export function BlackNovemberModal({ stage, active, onClose, onBuy, buyLabel }: 
 
           <p className="mt-5 text-[15px] leading-snug text-white/85">
             O Color Master Produtos sai de <span className="line-through text-white/50">R$ {BN_REGULAR_PRICE}</span> por{' '}
-            <strong className="text-white">R$ {BN_PRICE}</strong> ({BN_PERCENT_OFF}% OFF).{' '}
+            <strong className="text-white">R$ {price}</strong> ({percentOff(price)}% OFF).{' '}
             {stage.kind === 'soon'
               ? `Quando a promoção começar, você vai ter só ${BN_MINUTES} minutos para aproveitar.`
               : `Você tem só ${BN_MINUTES} minutos para aproveitar. Clicou em comprar, o tempo para e o preço fica garantido.`}
@@ -333,7 +337,7 @@ export function BlackNovemberModal({ stage, active, onClose, onBuy, buyLabel }: 
                 className="w-full rounded-full py-3 text-[15px] font-bold text-black transition-transform active:scale-[0.98]"
                 style={{ background: BN_YELLOW }}
               >
-                {buyLabel ?? `Garantir por R$ ${BN_PRICE}`}
+                {buyLabel ?? `Garantir por R$ ${price}`}
               </button>
             ) : showForm ? (
               <SignupForm />
@@ -355,7 +359,7 @@ export function BlackNovemberModal({ stage, active, onClose, onBuy, buyLabel }: 
 }
 
 /** Aviso da Black November dentro da landing: preço de/por e o cronômetro (até o início, ou os 7 min da pessoa). */
-export function BlackNovemberNotice({ stage, isClaimed, onBuy, buyLabel }: { stage: Stage; isClaimed: boolean; onBuy: () => void; buyLabel?: string | null }) {
+export function BlackNovemberNotice({ stage, isClaimed, onBuy, buyLabel, price = BN_PRICE }: { stage: Stage; isClaimed: boolean; onBuy: () => void; buyLabel?: string | null; price?: number }) {
   return (
     <div className={`w-full max-w-3xl mx-auto mb-6 sm:mb-8 rounded-2xl bg-black/80 ${styles.noticeIn} backdrop-blur-xl ring-1 ring-white/15 px-4 py-4 sm:px-6 sm:py-5 text-white shadow-2xl`}>
       <div className="flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-6">
@@ -363,14 +367,14 @@ export function BlackNovemberNotice({ stage, isClaimed, onBuy, buyLabel }: { sta
           <p className={`${styles.modalTitle} text-[26px] sm:text-[30px]`} style={{ ['--bn-yellow' as string]: BN_YELLOW }}>Black November</p>
           <p className="mt-1 text-sm text-white/80">
             De <span className="line-through text-white/50">R$ {BN_REGULAR_PRICE}</span> por{' '}
-            <strong className="text-white text-base">R$ {BN_PRICE}</strong>{' '}
-            <span className="rounded px-1.5 py-0.5 text-[11px] font-bold text-white" style={{ background: BN_RED }}>{BN_PERCENT_OFF}% OFF</span>
+            <strong className="text-white text-base">R$ {price}</strong>{' '}
+            <span className="rounded px-1.5 py-0.5 text-[11px] font-bold text-white" style={{ background: BN_RED }}>{percentOff(price)}% OFF</span>
           </p>
           <p className="mt-1 text-xs text-white/60">
             {stage.kind === 'soon'
               ? `Começa ${formatStart(stage.startsAtMs)} (Brasília). Cada pessoa terá ${BN_MINUTES} minutos.`
               : isClaimed
-                ? `Seu preço de R$ ${BN_PRICE} está garantido.`
+                ? `Seu preço de R$ ${price} está garantido.`
                 : `Você tem ${BN_MINUTES} minutos para garantir este preço.`}
           </p>
           <p className="mt-1 text-xs text-white/60">{PLUGINS_TEXT}</p>
@@ -387,7 +391,7 @@ export function BlackNovemberNotice({ stage, isClaimed, onBuy, buyLabel }: { sta
               className="mt-1 rounded-full px-5 py-2 text-sm font-bold text-black active:scale-95"
               style={{ background: BN_YELLOW }}
             >
-              {buyLabel ?? `Garantir por R$ ${BN_PRICE}`}
+              {buyLabel ?? `Garantir por R$ ${price}`}
             </button>
           )}
         </div>

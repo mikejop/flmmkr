@@ -772,6 +772,8 @@ export const ColorMasterLanding: React.FC = () => {
   // O do link só é validado depois que a sessão da oferta existe (sem ela o servidor recusa o cupom).
   const couponCtl = useCoupon(`${displayPrice}-${isExpired}`, offerSessionReady);
   const couponBuyLabel = couponCtl.coupon ? `Garantir Acesso com o cupom ${couponCtl.coupon.code}` : null;
+  // Preço com o cupom aplicado (calculado no servidor): é o que a página mostra no lugar do preço do site.
+  const couponPrice = couponCtl.coupon?.final ?? null;
 
   // Estado da Black November para o aviso e o modal: contagem até o início, ou os 7 minutos da pessoa
   const bnStage: BlackNovemberStage | null = !bnInfo || bnNow === null
@@ -786,7 +788,7 @@ export const ColorMasterLanding: React.FC = () => {
     <div className="min-h-screen bg-[#f5f5f7] text-[#1d1d1f] font-sans antialiased selection:bg-[#0071e3]/20 selection:text-[#0071e3]">
       {/* Modal de alerta da Black November (abre ao carregar a página) */}
       {bnModalOpen && bnStage && (
-        <BlackNovemberModal stage={bnStage} active={preloaderDone} onClose={() => setBnModalOpen(false)} onBuy={openCheckout} buyLabel={couponBuyLabel} />
+        <BlackNovemberModal stage={bnStage} active={preloaderDone} onClose={() => setBnModalOpen(false)} onBuy={openCheckout} buyLabel={couponBuyLabel} price={couponPrice ?? undefined} />
       )}
 
       {/* Brand Transition Preloader */}
@@ -1051,11 +1053,27 @@ export const ColorMasterLanding: React.FC = () => {
             </p>
 
             {/* Aviso da Black November: preço de/por e cronômetro */}
-            {bnStage && bnNoticeReady && <BlackNovemberNotice stage={bnStage} isClaimed={isClaimed} onBuy={openCheckout} buyLabel={couponBuyLabel} />}
+            {bnStage && bnNoticeReady && <BlackNovemberNotice stage={bnStage} isClaimed={isClaimed} onBuy={openCheckout} buyLabel={couponBuyLabel} price={couponPrice ?? undefined} />}
 
             {/* Commercial Condition / Price Pill */}
             <div className="inline-flex flex-wrap items-center justify-center gap-x-3 sm:gap-x-4 gap-y-1.5 sm:gap-y-2 px-4 py-2 sm:px-8 sm:py-3.5 rounded-2xl sm:rounded-full bg-black/60 backdrop-blur-xl border border-white/20 text-white shadow-2xl mb-6 sm:mb-8 max-w-full">
-              {!isExpired ? (
+              {couponPrice !== null ? (
+                <>
+                  <div className="flex items-baseline gap-1 sm:gap-1.5">
+                    <span className="text-[12px] sm:text-sm text-white/70 font-medium">12x de</span>
+                    <span className="text-[22px] sm:text-3xl font-extrabold text-white tracking-tight">
+                      R$ {getAsaas12xInstallmentValue(couponPrice)}
+                    </span>
+                  </div>
+                  <span className="text-white/30 hidden sm:inline">•</span>
+                  <div className="flex items-center gap-1.5 text-[13px] sm:text-sm text-white/70">
+                    <span className="line-through text-white/40">R$ {priceData.regularPrice}</span>
+                    <span>ou <strong className="text-white font-bold text-[130%] sm:text-inherit">R$ {couponPrice}</strong> no Pix</span>
+                  </div>
+                  <span className="text-white/30 hidden sm:inline">•</span>
+                  <span className="text-[12px] sm:text-sm text-white/80 font-medium">1 Ano de Acesso</span>
+                </>
+              ) : !isExpired ? (
                 <>
                   <div className="flex items-baseline gap-1 sm:gap-1.5">
                     <span className="text-[12px] sm:text-sm text-white/70 font-medium">12x de</span>
@@ -1862,7 +1880,22 @@ export const ColorMasterLanding: React.FC = () => {
               )}
 
               {/* Conteúdo do Price Box */}
-              {priceData.isLaunchPhase ? (
+              {couponCtl.coupon && couponPrice !== null ? (
+                <>
+                  <div className="inline-block px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-600 text-[12px] font-semibold uppercase tracking-[0.04em] mb-2 border border-emerald-500/30">
+                    Cupom {couponCtl.coupon.code} aplicado
+                  </div>
+                  <span className="text-[13px] sm:text-sm text-[#86868b] block line-through">
+                    De R$ {priceData.regularPrice} por apenas:
+                  </span>
+                  <div className="text-[39px] leading-tight sm:text-5xl md:text-6xl font-extrabold text-[#1d1d1f] tracking-tight mt-1">
+                    R$ {couponPrice} <span className="text-base sm:text-xl font-normal text-[#6e6e73]">no Pix</span>
+                  </div>
+                  <div className="text-[15px] sm:text-lg font-bold text-emerald-600 mt-1.5 sm:mt-2">
+                    ou em {formatInstallment(couponPrice)} no cartão
+                  </div>
+                </>
+              ) : priceData.isLaunchPhase ? (
                 <>
                   <div className="inline-block px-3.5 py-1 rounded-full bg-[#0071e3]/10 text-[#0071e3] text-[12px] font-semibold uppercase tracking-[0.04em] mb-2 border border-[#0071e3]/20">
                     {hasPromoPrice ? `${priceData.batchName} • Válido até ${priceData.nextPriceDate?.slice(0, 5)}` : priceData.batchName}
@@ -2080,7 +2113,7 @@ export const ColorMasterLanding: React.FC = () => {
           <div className="flex flex-col pl-1 min-w-0">
             <span className="text-[10px] text-white/60 uppercase font-bold tracking-wider leading-none">Acesso Completo</span>
             <span className="text-sm font-extrabold text-white mt-0.5 leading-none truncate">
-              <span className="text-[130%] inline-block font-black">R$ {displayPrice}</span>
+              <span className="text-[130%] inline-block font-black">R$ {couponPrice ?? displayPrice}</span>
               <span className="text-[10px] font-normal text-white/60 ml-1">no Pix</span>
             </span>
           </div>
