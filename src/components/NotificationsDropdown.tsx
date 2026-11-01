@@ -11,6 +11,12 @@ import {
   Loader2,
   X
 } from 'lucide-react';
+import { WhatsAppIcon } from '@/components/WhatsAppIcon';
+
+interface NotificationLink {
+  label: string;
+  url: string;
+}
 
 interface NotificationItem {
   id: string;
@@ -23,6 +29,8 @@ interface NotificationItem {
   comment_id?: string;
   sender_name?: string;
   sender_avatar?: string;
+  details?: string | null;
+  links?: NotificationLink[] | null;
   is_read: boolean;
   created_at: string;
 }
@@ -40,6 +48,7 @@ export default function NotificationsDropdown({
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [loading, setLoading] = useState(false);
+  const [linkModal, setLinkModal] = useState<NotificationItem | null>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   // Carregar notificações
@@ -135,6 +144,13 @@ export default function NotificationsDropdown({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userId, notificationId: notif.id })
       }).catch(() => {});
+    }
+
+    // Notificação com link: abre o modal com a mensagem e os botões.
+    if (notif.links?.length) {
+      setLinkModal(notif);
+      setIsOpen(false);
+      return;
     }
 
     if (notif.lesson_id && onNavigateToLesson) {
@@ -275,7 +291,13 @@ export default function NotificationsDropdown({
                         {notif.message}
                       </p>
 
-                      {notif.lesson_id && (
+                      {!!notif.links?.length && (
+                        <span className="inline-flex items-center gap-1 text-[10px] text-[#00c7fc] font-semibold mt-1">
+                          <span>Ver detalhes</span>
+                          <ExternalLink size={10} />
+                        </span>
+                      )}
+                      {!notif.links?.length && notif.lesson_id && (
                         <span className="inline-flex items-center gap-1 text-[10px] text-[#00c7fc] font-semibold mt-1">
                           <span>{notif.comment_id ? 'Ver comentário' : 'Acessar conteúdo'}</span>
                           <ExternalLink size={10} />
@@ -302,6 +324,52 @@ export default function NotificationsDropdown({
                 );
               })
             )}
+          </div>
+        </div>
+      )}
+
+      {/* MODAL DA NOTIFICAÇÃO COM LINK */}
+      {linkModal && (
+        <div
+          className="fixed inset-0 z-[10000] flex items-center justify-center bg-black/70 backdrop-blur-sm p-4"
+          role="dialog" aria-modal="true" aria-label={linkModal.title}
+          onClick={() => setLinkModal(null)}
+        >
+          <div
+            className="w-full max-w-md bg-[#16161a] border border-white/10 rounded-3xl p-5 sm:p-6 space-y-4 shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-start justify-between gap-3">
+              <div className="flex items-center gap-3 min-w-0">
+                <div className="w-9 h-9 rounded-xl shrink-0 flex items-center justify-center border bg-white/10 border-white/20 text-white">
+                  <Bell size={16} />
+                </div>
+                <h3 className="text-sm font-bold text-white">{linkModal.title}</h3>
+              </div>
+              <button type="button" onClick={() => setLinkModal(null)} aria-label="Fechar" className="text-neutral-400 hover:text-white p-1 rounded-md transition-colors cursor-pointer"><X size={18} /></button>
+            </div>
+
+            <p className="text-[13px] text-neutral-300 leading-relaxed">{linkModal.details || linkModal.message}</p>
+
+            <div className="flex flex-col gap-2">
+              {linkModal.links!.map((link, i) => {
+                const isWhatsApp = /^https:\/\/(wa\.me|(www\.)?whatsapp\.com)\//.test(link.url);
+                return (
+                  <a
+                    key={link.url}
+                    href={link.url} target="_blank" rel="noopener noreferrer"
+                    className={`inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-xs font-semibold transition-colors ${
+                      i === 0
+                        ? isWhatsApp ? 'bg-[#25D366] hover:bg-[#20bd5a] text-[#0b1f12]' : 'bg-[#0071e3] hover:bg-[#0077ed] text-white'
+                        : 'bg-white/10 hover:bg-white/20 text-white border border-white/10'
+                    }`}
+                  >
+                    {isWhatsApp ? <WhatsAppIcon /> : <ExternalLink size={13} />}
+                    {link.label}
+                  </a>
+                );
+              })}
+            </div>
           </div>
         </div>
       )}
