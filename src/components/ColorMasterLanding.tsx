@@ -203,12 +203,6 @@ export const ColorMasterLanding: React.FC = () => {
   const [isClaimed, setIsClaimed] = useState<boolean>(false);
   const [bnModalOpen, setBnModalOpen] = useState<boolean>(false);
   const [preloaderDone, setPreloaderDone] = useState<boolean>(false);
-  // O aviso da Black November na página só aparece depois de 10 s na página (o anúncio vem primeiro)
-  const [bnNoticeReady, setBnNoticeReady] = useState<boolean>(false);
-  useEffect(() => {
-    const id = setTimeout(() => setBnNoticeReady(true), 10000);
-    return () => clearTimeout(id);
-  }, []);
   const bnStartSyncedRef = useRef<boolean>(false);
   // Fim do cronômetro da pessoa no relógio local, calculado a partir dos segundos que o servidor informou
   const offerDeadlineRef = useRef<number | null>(null);
@@ -1051,7 +1045,7 @@ export const ColorMasterLanding: React.FC = () => {
             </p>
 
             {/* Aviso da Black November: preço de/por e cronômetro */}
-            {bnStage && bnNoticeReady && <BlackNovemberNotice stage={bnStage} isClaimed={isClaimed} onBuy={openCheckout} buyLabel={couponBuyLabel} />}
+            {bnStage && <BlackNovemberNotice stage={bnStage} isClaimed={isClaimed} onBuy={openCheckout} buyLabel={couponBuyLabel} />}
 
             {/* Commercial Condition / Price Pill */}
             <div className="inline-flex flex-wrap items-center justify-center gap-x-3 sm:gap-x-4 gap-y-1.5 sm:gap-y-2 px-4 py-2 sm:px-8 sm:py-3.5 rounded-2xl sm:rounded-full bg-black/60 backdrop-blur-xl border border-white/20 text-white shadow-2xl mb-6 sm:mb-8 max-w-full">
