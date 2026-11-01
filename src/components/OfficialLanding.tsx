@@ -283,7 +283,7 @@ export const OfficialLanding: React.FC<OfficialLandingProps> = ({
           {/* CTA Buttons */}
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 w-full sm:w-auto">
             <a
-              href="/produtos/color-master-produto"
+              href="/colormasterproduto"
               className="w-full sm:w-auto px-8 py-3.5 rounded-full bg-[#0071e3] hover:bg-[#0077ed] text-white text-sm font-semibold transition-all shadow-xl active:scale-95 text-center"
             >
               Conhecer o Color Master

@@ -5,7 +5,7 @@
 ## Treinamento em Destaque
 
 ### Color Master® | Produto
-- **URL Canônica**: https://flmmkr.site/produtos/color-master-produto
+- **URL Canônica**: https://flmmkr.site/colormasterproduto
 - **Categoria**: Masterclass de Color Grading no DaVinci Resolve para vídeos de produto e comerciais de TV.
 - **Instrutor**: Michael Oliveira (Diretor, Diretor de Fotografia e Colorista com +20 anos de experiência).
 - **Metodologia**: "Nada de Simulacro". O treinamento não utiliza imagens aleatórias de banco de vídeos. Todo o ensino é baseado em projetos reais, problemas reais e soluções reais criadas para clientes reais do mercado (marcas como Embratur, Ambev, Mandrill, Maria Quitéria).

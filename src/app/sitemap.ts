@@ -61,7 +61,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
   const productPages: MetadataRoute.Sitemap = PRODUCTS.map((product) => {
     const isMainProduct = product.slug === 'color-master-produto';
     return {
-      url: `${baseUrl}/produtos/${product.slug}`,
+      url: `${baseUrl}${product.url}`,
       lastModified: lastModDate,
       changeFrequency: isMainProduct ? 'daily' : 'weekly',
       priority: isMainProduct ? 1.0 : product.isAvailable ? 0.8 : 0.6,

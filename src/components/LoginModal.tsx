@@ -10,7 +10,7 @@ interface LoginModalProps {
   redirectUrl?: string;
 }
 
-export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, redirectUrl = '/color-master-produto' }) => {
+export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, redirectUrl = '/cmpmembers' }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);

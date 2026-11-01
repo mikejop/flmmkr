@@ -207,6 +207,24 @@ export const ColorMasterLanding: React.FC = () => {
   // Fim do cronômetro da pessoa no relógio local, calculado a partir dos segundos que o servidor informou
   const offerDeadlineRef = useRef<number | null>(null);
 
+  /** Voltou para a landing sem comprar (fechou o checkout ou abriu a página de novo): o cronômetro segue de onde parou. */
+  function resumeTimer() {
+    fetch('/api/offer-timer/resume', { method: 'POST' })
+      .then((res) => (res.ok ? res.json() : null))
+      .then(applyTimerSnapshot)
+      .catch(() => {});
+  }
+
+  /** Aplica o cronômetro devolvido por /claim ou /resume. Devolve false se veio inválido. */
+  function applyTimerSnapshot(data: { remainingSeconds?: unknown; isClaimed?: unknown; isExpired?: unknown } | null): boolean {
+    if (!data || typeof data.remainingSeconds !== 'number') return false;
+    offerDeadlineRef.current = Date.now() + data.remainingSeconds * 1000;
+    setTimeLeft(data.remainingSeconds);
+    setIsClaimed(Boolean(data.isClaimed));
+    setIsExpired(Boolean(data.isExpired));
+    return true;
+  }
+
   /** Aplica a resposta de /api/offer-timer (preço, cronômetro e Black November). Devolve false se veio inválida. */
   function applyOfferTimerData(data: OfferTimerResponse | null): boolean {
     if (!data || typeof data.remainingSeconds !== 'number') return false;
@@ -452,6 +470,8 @@ export const ColorMasterLanding: React.FC = () => {
             // A sessão da oferta (cookie) já existe: agora o cupom do link pode ser validado
             setOfferSessionReady(true);
             if (applyOfferTimerData(data)) {
+              // Clicou em comprar numa visita anterior e voltou sem comprar: o tempo volta a correr
+              if (data.isBlackNovember && data.isClaimed) resumeTimer();
               // Black November chegando (ou valendo para esta pessoa): o anúncio é montado por baixo do preloader,
               // para aparecer logo depois dele, antes da página
               const bn = data.blackNovember;
@@ -592,16 +612,14 @@ export const ColorMasterLanding: React.FC = () => {
       .then((res) => (res.ok ? res.json() : null))
       .then((data) => {
         // Sem confirmação do servidor, o cronômetro volta a correr (quem decide o preço é o servidor)
-        if (!data || typeof data.remainingSeconds !== 'number') {
-          setIsClaimed(false);
-          return;
-        }
-        offerDeadlineRef.current = Date.now() + data.remainingSeconds * 1000;
-        setTimeLeft(data.remainingSeconds);
-        setIsClaimed(Boolean(data.isClaimed));
-        setIsExpired(Boolean(data.isExpired));
+        if (!applyTimerSnapshot(data)) setIsClaimed(false);
       })
       .catch(() => setIsClaimed(false));
+  }
+
+  function closeCheckout() {
+    setCheckoutModalOpen(false);
+    if (isClaimed) resumeTimer();
   }
 
   const formatTime = (seconds: number) => {
@@ -767,11 +785,11 @@ export const ColorMasterLanding: React.FC = () => {
   const couponCtl = useCoupon(`${displayPrice}-${isExpired}`, offerSessionReady);
   const couponBuyLabel = couponCtl.coupon ? `Garantir Acesso com o cupom ${couponCtl.coupon.code}` : null;
 
-  // Estado da Black November para o aviso e o modal: contagem até o início, ou os 7 minutos da pessoa
+  // Estado da Black November para o aviso e o modal: contagem até o início, os 7 minutos da pessoa, ou o fim deles
   const bnStage: BlackNovemberStage | null = !bnInfo || bnNow === null
     ? null
     : isBlackNovember
-      ? (isExpired ? null : { kind: 'live', remainingSeconds: timeLeft })
+      ? (isExpired ? { kind: 'ended' } : { kind: 'live', remainingSeconds: timeLeft })
       : bnNow < bnInfo.startsAtMs
         ? { kind: 'soon', startsAtMs: bnInfo.startsAtMs, now: bnNow }
         : null;
@@ -779,7 +797,7 @@ export const ColorMasterLanding: React.FC = () => {
   return (
     <div className="min-h-screen bg-[#f5f5f7] text-[#1d1d1f] font-sans antialiased selection:bg-[#0071e3]/20 selection:text-[#0071e3]">
       {/* Modal de alerta da Black November (abre ao carregar a página) */}
-      {bnModalOpen && bnStage && (
+      {bnModalOpen && bnStage && bnStage.kind !== 'ended' && (
         <BlackNovemberModal stage={bnStage} active={preloaderDone} onClose={() => setBnModalOpen(false)} onBuy={openCheckout} buyLabel={couponBuyLabel} />
       )}
 
@@ -792,7 +810,7 @@ export const ColorMasterLanding: React.FC = () => {
       {/* Custom Checkout Modal (Asaas + Supabase) */}
       <CheckoutModal
         isOpen={checkoutModalOpen}
-        onClose={() => setCheckoutModalOpen(false)}
+        onClose={closeCheckout}
         price={displayPrice}
         regularPrice={priceData.regularPrice}
         isExpired={isExpired}

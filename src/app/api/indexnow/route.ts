@@ -37,7 +37,7 @@ export async function GET(req: NextRequest) {
     `${baseUrl}/`,
     `${baseUrl}/cursos`,
     `${baseUrl}/links`,
-    ...PRODUCTS.map(p => `${baseUrl}/produtos/${p.slug}`),
+    ...PRODUCTS.map(p => `${baseUrl}${p.url}`),
     ...(LESSON_SEO_PUBLISHED
       ? [`${baseUrl}/aulas`, ...LESSON_SEO.map(l => `${baseUrl}/aulas/${l.moduleSlug}/${l.slug}`)]
       : [])

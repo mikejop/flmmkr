@@ -55,7 +55,7 @@ export default function Prisma2Download() {
     <div dir={meta.dir} className="min-h-screen bg-white font-sans text-[#1d1d1f] antialiased selection:bg-[#0071e3]/20">
       <header className="sticky top-0 z-40 border-b border-black/10 bg-white/80 backdrop-blur-xl">
         <div dir="ltr" className="mx-auto flex h-12 max-w-[980px] items-center justify-between px-6">
-          <a href="/produtos/color-master-produto" className="text-[15px] font-bold tracking-[0.18em] transition hover:text-[#0071e3]">FLMMKR</a>
+          <a href="/colormasterproduto" className="text-[15px] font-bold tracking-[0.18em] transition hover:text-[#0071e3]">FLMMKR</a>
           <div className="flex items-center gap-3">
             <label className="relative flex h-7 items-center gap-1 rounded-full px-2 text-[12px] text-[#6e6e73] transition hover:bg-black/5 focus-within:bg-black/5">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9" /><path d="M3 12h18M12 3c2.5 2.7 3.8 5.7 3.8 9s-1.3 6.3-3.8 9c-2.5-2.7-3.8-5.7-3.8-9S9.5 5.7 12 3z" /></svg>
@@ -179,7 +179,7 @@ export default function Prisma2Download() {
 
       <footer className="border-t border-black/10 bg-[#f5f5f7] px-6 py-8">
         <div className="mx-auto flex max-w-[980px] flex-col gap-2 text-[12px] text-[#6e6e73] sm:flex-row sm:justify-between">
-          <span>{rightsBefore}<a href="/produtos/color-master-produto" className="font-bold hover:underline">FLMMKR</a>{rightsAfter}</span>
+          <span>{rightsBefore}<a href="/colormasterproduto" className="font-bold hover:underline">FLMMKR</a>{rightsAfter}</span>
           <span className="flex gap-4">
             <a href="/privacidade" className="hover:underline">{t.privacy}</a>
             <a href="/termos" className="hover:underline">{t.terms}</a>

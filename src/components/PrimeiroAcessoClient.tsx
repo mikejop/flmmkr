@@ -141,7 +141,7 @@ export function PrimeiroAcessoClient({ initialToken = '' }: PrimeiroAcessoProps)
       setSuccess(true);
 
       // Senha criada, mas o login automático falhou: manda para a tela de login em vez de uma área que exige sessão.
-      const destination = data.requiresLogin ? '/?login=true' : '/color-master-produto';
+      const destination = data.requiresLogin ? '/?login=true' : '/cmpmembers';
       setTimeout(() => {
         window.location.href = destination;
       }, 1000);

@@ -15,7 +15,7 @@ export default function robots(): MetadataRoute.Robots {
         allow: '/',
         disallow: [
           '/api/',
-          '/color-master-produto',
+          '/cmpmembers',
           '/conteudo',
           '/primeiro-acesso',
           '/definir-senha',
@@ -28,7 +28,7 @@ export default function robots(): MetadataRoute.Robots {
         allow: '/',
         disallow: [
           '/api/',
-          '/color-master-produto',
+          '/cmpmembers',
           '/conteudo',
           '/primeiro-acesso',
           '/definir-senha',

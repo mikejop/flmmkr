@@ -56,6 +56,10 @@ const nextConfig: NextConfig = {
   async redirects() {
     return [
       { source: '/prisma2', destination: '/prisma2/download', permanent: false },
+      // Endereços novos: landing do Color Master Produtos e área de membros (os antigos continuam funcionando)
+      { source: '/produtos/color-master-produto', destination: '/colormasterproduto', permanent: false },
+      { source: '/color-master-produto', destination: '/cmpmembers', permanent: false },
+      { source: '/color-master-produto/:path*', destination: '/cmpmembers/:path*', permanent: false },
       { source: '/prisma', destination: '/prisma2/download', permanent: false },
       {
         source: '/color-master',
@@ -118,7 +122,7 @@ const nextConfig: NextConfig = {
       ...(process.env.NODE_ENV === 'production'
         ? [{
             // Páginas públicas (estáticas): CSP sem nonce. A área de membros e o login usam a CSP com nonce do proxy.
-            source: '/((?!(?:color-master-produto|conteudo|login|primeiro-acesso|definir-senha|api)(?:/|$)).*)',
+            source: '/((?!(?:cmpmembers|conteudo|login|primeiro-acesso|definir-senha|api)(?:/|$)).*)',
             headers: [
               { key: 'Content-Security-Policy', value: buildPublicCsp() },
               { key: 'Content-Security-Policy-Report-Only', value: buildPublicCsp({ strictStyles: true }) },
@@ -131,11 +135,11 @@ const nextConfig: NextConfig = {
         headers: [{ key: 'Cache-Control', value: 'private, no-store' }],
       },
       {
-        source: '/:area(color-master-produto|conteudo|login|primeiro-acesso|definir-senha)/:path*',
+        source: '/:area(cmpmembers|conteudo|login|primeiro-acesso|definir-senha)/:path*',
         headers: [{ key: 'Cache-Control', value: 'private, no-store' }],
       },
       {
-        source: '/:area(color-master-produto|conteudo|login|primeiro-acesso|definir-senha)',
+        source: '/:area(cmpmembers|conteudo|login|primeiro-acesso|definir-senha)',
         headers: [{ key: 'Cache-Control', value: 'private, no-store' }],
       },
       {

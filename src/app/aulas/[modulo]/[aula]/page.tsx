@@ -60,7 +60,7 @@ export default async function LessonPreviewPage({ params }: { params: Promise<Pa
       teaches: lesson.topics.map((t) => t.heading),
       author: { '@type': 'Person', name: SITE_CONFIG.author.name },
       provider: { '@type': 'Organization', name: SITE_CONFIG.name, url: base },
-      isPartOf: { '@type': 'Course', name: 'Color Master® | Produto', url: `${base}/produtos/color-master-produto`, provider: { '@type': 'Organization', name: SITE_CONFIG.name } },
+      isPartOf: { '@type': 'Course', name: 'Color Master® | Produto', url: `${base}/colormasterproduto`, provider: { '@type': 'Organization', name: SITE_CONFIG.name } },
     },
     {
       '@context': 'https://schema.org',
@@ -112,7 +112,7 @@ export default async function LessonPreviewPage({ params }: { params: Promise<Pa
           <p className="text-lg font-semibold">Continue esta aula na área de membros</p>
           <p className="mt-1 text-neutral-700">Explicações completas, passo a passo, exemplos e vídeos em um só lugar.</p>
           <div className="mt-4 flex flex-wrap gap-3">
-            <Link href="/produtos/color-master-produto" className="rounded-full bg-[#0071e3] px-6 py-3 font-semibold text-white">Garantir acesso</Link>
+            <Link href="/colormasterproduto" className="rounded-full bg-[#0071e3] px-6 py-3 font-semibold text-white">Garantir acesso</Link>
             <Link href="/?login=true" className="rounded-full border border-neutral-300 px-6 py-3 font-semibold">Já sou aluno: entrar</Link>
           </div>
         </div>

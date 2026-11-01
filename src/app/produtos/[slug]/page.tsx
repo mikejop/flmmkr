@@ -36,7 +36,7 @@ export async function generateMetadata({ params }: ProductPageProps): Promise<Me
   if (!product) return {};
 
   const baseUrl = SITE_CONFIG.seo.url;
-  const canonicalUrl = `${baseUrl}/produtos/${product.slug}`;
+  const canonicalUrl = `${baseUrl}${product.url}`;
   const isColorMaster = product.slug === 'color-master-produto' || product.slug === 'color-master';
 
   const title = isColorMaster
@@ -108,7 +108,7 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
   }
 
   const baseUrl = SITE_CONFIG.seo.url;
-  const canonicalUrl = `${baseUrl}/produtos/${product.slug}`;
+  const canonicalUrl = `${baseUrl}${product.url}`;
 
   // Render a landing page ultra especializada com JSON-LD para o Color Master
   if (product.slug === 'color-master-produto' || product.slug === 'color-master') {

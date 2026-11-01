@@ -134,7 +134,7 @@ export async function proxy(request: NextRequest) {
   }
 
   // 4. Proteção estrita de rotas da Área do Aluno
-  const isMemberRoute = url.pathname.startsWith('/color-master-produto') || url.pathname.startsWith('/conteudo');
+  const isMemberRoute = url.pathname.startsWith('/cmpmembers') || url.pathname.startsWith('/conteudo');
   if (isMemberRoute) {
     const allCookies = request.cookies.getAll();
     const hasAuthSession = allCookies.some((c) => 
@@ -156,7 +156,7 @@ export async function proxy(request: NextRequest) {
 // Páginas públicas ficam de fora para continuarem estáticas e em cache. Mantenha as armadilhas em sincronia com HONEYPOT_PATHS.
 export const config = {
   matcher: [
-    '/color-master-produto/:path*',
+    '/cmpmembers/:path*',
     '/conteudo/:path*',
     '/login/:path*',
     '/primeiro-acesso/:path*',

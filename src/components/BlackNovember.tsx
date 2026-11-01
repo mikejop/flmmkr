@@ -104,7 +104,8 @@ function backdropGrid() {
 
 type Stage =
   | { kind: 'soon'; startsAtMs: number; now: number }
-  | { kind: 'live'; remainingSeconds: number };
+  | { kind: 'live'; remainingSeconds: number }
+  | { kind: 'ended' };
 
 /** Formulário de inscrição para ser avisado do início (grava em black_november_leads). */
 function SignupForm() {
@@ -354,7 +355,7 @@ export function BlackNovemberModal({ stage, active, onClose, onBuy, buyLabel }: 
   );
 }
 
-/** Aviso da Black November dentro da landing: preço de/por e o cronômetro (até o início, ou os 7 min da pessoa). */
+/** Aviso da Black November dentro da landing: preço de/por e o cronômetro (até o início, os 7 min da pessoa, ou o fim deles). */
 export function BlackNovemberNotice({ stage, isClaimed, onBuy, buyLabel }: { stage: Stage; isClaimed: boolean; onBuy: () => void; buyLabel?: string | null }) {
   return (
     <div className={`w-full max-w-3xl mx-auto mb-6 sm:mb-8 rounded-2xl bg-black/80 ${styles.noticeIn} backdrop-blur-xl ring-1 ring-white/15 px-4 py-4 sm:px-6 sm:py-5 text-white shadow-2xl`}>
@@ -369,7 +370,9 @@ export function BlackNovemberNotice({ stage, isClaimed, onBuy, buyLabel }: { sta
           <p className="mt-1 text-xs text-white/60">
             {stage.kind === 'soon'
               ? `Começa ${formatStart(stage.startsAtMs)} (Brasília). Cada pessoa terá ${BN_MINUTES} minutos.`
-              : isClaimed
+              : stage.kind === 'ended'
+                ? `O seu tempo para aproveitar a Black November acabou.`
+                : isClaimed
                 ? `Seu preço de R$ ${BN_PRICE} está garantido.`
                 : `Você tem ${BN_MINUTES} minutos para garantir este preço.`}
           </p>
@@ -377,9 +380,9 @@ export function BlackNovemberNotice({ stage, isClaimed, onBuy, buyLabel }: { sta
         </div>
         <div className="flex flex-col items-center gap-2 shrink-0">
           <span className="text-[10px] uppercase tracking-[0.22em] text-white/60">
-            {stage.kind === 'soon' ? 'Começa em' : isClaimed ? 'Tempo parado' : 'Seu tempo'}
+            {stage.kind === 'soon' ? 'Começa em' : stage.kind === 'ended' ? 'Tempo esgotado' : isClaimed ? 'Tempo parado' : 'Seu tempo'}
           </span>
-          <CountdownBlocks ms={stage.kind === 'soon' ? stage.startsAtMs - stage.now : stage.remainingSeconds * 1000} size="sm" />
+          <CountdownBlocks ms={stage.kind === 'soon' ? stage.startsAtMs - stage.now : stage.kind === 'ended' ? 0 : stage.remainingSeconds * 1000} size="sm" />
           {stage.kind === 'live' && (
             <button
               type="button"

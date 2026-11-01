@@ -69,7 +69,7 @@ export default function AulasIndexPage() {
         <div data-nosnippet className="mt-12 rounded-2xl bg-[#f5f5f7] p-6">
           <p className="font-semibold">Quer ver as aulas completas?</p>
           <div className="mt-4 flex flex-wrap gap-3">
-            <Link href="/produtos/color-master-produto" className="rounded-full bg-[#0071e3] px-6 py-3 font-semibold text-white">Garantir acesso</Link>
+            <Link href="/colormasterproduto" className="rounded-full bg-[#0071e3] px-6 py-3 font-semibold text-white">Garantir acesso</Link>
             <Link href="/?login=true" className="rounded-full border border-neutral-300 px-6 py-3 font-semibold">Já sou aluno: entrar</Link>
           </div>
         </div>

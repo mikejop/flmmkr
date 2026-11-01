@@ -10,7 +10,7 @@ export async function tryEnterMemberArea(): Promise<boolean> {
     if (!res.ok) return false;
     const data = await res.json().catch(() => null);
     if (data?.allowed === true) {
-      window.location.assign('/color-master-produto');
+      window.location.assign('/cmpmembers');
       return true;
     }
   } catch {

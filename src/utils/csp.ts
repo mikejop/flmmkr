@@ -16,7 +16,7 @@ function supabaseHost(): string {
 }
 
 /** Rotas dinâmicas (área de membros, login e fluxo de senha): usam CSP com nonce por requisição, definida no proxy. */
-export const NONCE_ROUTE_PREFIXES = ['/color-master-produto', '/conteudo', '/login', '/primeiro-acesso', '/definir-senha'];
+export const NONCE_ROUTE_PREFIXES = ['/cmpmembers', '/conteudo', '/login', '/primeiro-acesso', '/definir-senha'];
 
 export function usesNonceCsp(pathname: string): boolean {
   return NONCE_ROUTE_PREFIXES.some((p) => pathname === p || pathname.startsWith(`${p}/`));

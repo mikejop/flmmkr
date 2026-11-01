@@ -239,6 +239,38 @@ export async function claimOfferTimer(
   return record;
 }
 
+/**
+ * A pessoa voltou para a landing sem comprar: o cronômetro parado volta a correr de onde parou
+ * (o prazo é empurrado pelo tempo em que ficou parado). Um novo clique em comprar para de novo.
+ */
+export async function resumeOfferTimer(
+  clientIdentifier: string,
+  clientIp?: string | null,
+  options: { now?: number; deviceHash?: string | null } = {},
+): Promise<UserTimerRecord> {
+  const now = options.now ?? Date.now();
+  const session = await resolveOfferTimerSession(clientIdentifier, clientIp, { ...options, now });
+  if (getCurrentBatchPrice(new Date(now)).phaseId !== 'black' || !session.claimedAt || !session.id) {
+    return session;
+  }
+  const supabase = getSupabaseAdmin();
+  if (!supabase) throw new Error('Supabase não configurado para persistir a oferta.');
+  const pausedLeftMs = new Date(session.expiresAt).getTime() - new Date(session.claimedAt).getTime();
+  const expiresAt = new Date(now + Math.max(0, pausedLeftMs)).toISOString();
+  const { data, error } = await supabase
+    .from('offer_timer_sessions')
+    .update({ claimed_at: null, expires_at: expiresAt, updated_at: new Date().toISOString() })
+    .eq('id', session.id)
+    .eq('claimed_at', session.claimedAt)
+    .select(SESSION_COLUMNS)
+    .maybeSingle();
+  if (error) throw new Error('Não foi possível retomar o cronômetro da oferta.');
+  if (!data) return session;
+  const record = toRecord(data, session.clientIdentifier!, session.ip, now);
+  updateMemoryCache(record);
+  return record;
+}
+
 /** Identifica o aparelho sem guardar dados em claro: HMAC de IP + navegador. Sem IP (ou sem segredo), null. */
 export function hashOfferDevice(clientIp: string | null | undefined, userAgent: string | null | undefined): string | null {
   if (!clientIp) return null;
