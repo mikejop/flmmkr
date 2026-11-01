@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React from 'react';
 import { ArticleToc, EditorialSection, type TocGroup } from './EditorialLayout';
 import NodeFlowExplorer from './NodeFlowExplorer';
 
@@ -9,8 +9,6 @@ import NodeFlowExplorer from './NodeFlowExplorer';
  *
  * Ferramenta interativa (uma só, onde ela ajuda a entender o texto):
  *  - NodeFlowExplorer → "A base": node graph clicável (Normalizing, Matching, Secondary, Creative) com o que fazer em cada etapa.
- *  - TakeOrderDemo → "Não faça o color de um take inteiro de uma vez": compara trabalhar etapa por etapa
- *    em todos os takes com colorir um take inteiro de cada vez, usando o exemplo do VT do energético.
  */
 
 /* ------------------------------------------------------------------ blocos de apoio */
@@ -112,160 +110,6 @@ function DataTable({ caption, head, rows }: { caption: string; head: string[]; r
         </tbody>
       </table>
     </div>
-  );
-}
-
-/* ------------------------------------------------------------------ ferramenta: ordem de trabalho nos takes */
-
-const TAKES = [
-  { id: 'packshot', name: 'Packshot final (o hero)' },
-  { id: 'lata', name: 'Lata girando em estúdio' },
-  { id: 'parque', name: 'Gente bebendo no parque, de dia' },
-  { id: 'balada', name: 'Balada, à noite' },
-];
-const STAGES = ['Primárias', 'Shot matching', 'Secundárias', 'Creative grade'];
-
-type Mode = 'etapas' | 'take';
-
-/** Número do passo de cada célula (take, etapa) e total de passos, conforme a ordem de trabalho. */
-function stepNumber(mode: Mode, take: number, stage: number): number {
-  if (mode === 'take') return 2 + take * STAGES.length + stage; // um take inteiro, depois o próximo
-  if (stage === STAGES.length - 1) return 2 + (STAGES.length - 1) * TAKES.length; // o look entra de uma vez em todos
-  return 2 + stage * TAKES.length + take; // cada etapa passa por todos os takes
-}
-const totalSteps = (mode: Mode) => (mode === 'take' ? 1 + TAKES.length * STAGES.length : 1 + (STAGES.length - 1) * TAKES.length + 1);
-
-function TakeOrderDemo() {
-  const [mode, setMode] = useState<Mode>('etapas');
-  const [step, setStep] = useState(0);
-  const total = totalSteps(mode);
-  const current = Math.min(step, total);
-
-  const changeMode = (m: Mode) => { setMode(m); setStep(0); };
-
-  let message = 'Mova o controle para ver a ordem em que o trabalho avança.';
-  if (current > 0) {
-    if (mode === 'etapas') {
-      const primariasDone = 1 + TAKES.length;
-      const matchingDone = 1 + 2 * TAKES.length;
-      message =
-        current === total
-          ? 'O look entrou de uma vez em todos os takes, e todos funcionam porque a correção já padronizou tudo.'
-          : current >= matchingDone
-            ? 'Todos os takes já estão neutros e batendo com o hero. Agora as secundárias garantem a cor da marca em todos.'
-            : current >= primariasDone
-              ? 'Todos os takes estão neutros. Com todos neutros, o matching vira ajuste fino.'
-              : 'A preparação é feita uma vez, no grupo, e as primárias avançam take a take.';
-    } else {
-      const firstTakeDone = 1 + STAGES.length;
-      message =
-        current <= firstTakeDone
-          ? 'Só o primeiro take foi trabalhado, do começo ao fim, e os outros ainda nem foram tocados.'
-          : current === total
-            ? 'Cada take foi colorido por inteiro, um depois do outro: os takes não conversam e você refaz tudo no fim.'
-            : 'Os takes novos começam do zero e já não têm a mesma base dos anteriores: nada garante que o filme pareça um só.';
-    }
-  }
-
-  return (
-    <section aria-label="Ordem de trabalho nos takes" className="space-y-5 rounded-2xl border border-[#0071e3]/30 bg-[#0071e3]/[0.04] p-5 font-sans sm:p-6">
-      <header className="space-y-1">
-        <h5 className="text-lg font-bold text-neutral-900">Em que ordem trabalhar nos takes?</h5>
-        <p className="max-w-3xl text-sm text-neutral-600">
-          O exemplo é o VT de 30 segundos do energético, mais adiante na aula. Escolha a ordem de trabalho e avance os passos para ver como cada uma se desenrola.
-        </p>
-      </header>
-
-      <div role="group" aria-label="Ordem de trabalho" className="flex flex-wrap gap-2">
-        {([['etapas', 'Etapa por etapa, em todos os takes'], ['take', 'Um take inteiro de cada vez']] as const).map(([id, label]) => (
-          <button
-            key={id}
-            type="button"
-            aria-pressed={mode === id}
-            onClick={() => changeMode(id)}
-            className={`min-h-11 rounded-full border px-4 text-sm font-semibold transition-colors duration-150 active:scale-[0.97] ${
-              mode === id ? 'border-[#0071e3] bg-[#0071e3] text-white' : 'border-neutral-300 bg-white text-neutral-800 hover:bg-neutral-100'
-            }`}
-          >
-            {label}
-          </button>
-        ))}
-      </div>
-
-      <div className="overflow-x-auto rounded-xl border border-neutral-200 bg-white">
-        <table className="w-full min-w-[640px] border-collapse text-left text-sm">
-          <caption className="sr-only">Número do passo em que cada etapa é feita em cada take</caption>
-          <thead>
-            <tr className="bg-[#f5f5f7] text-neutral-900">
-              <th scope="col" className="p-3 font-bold">Take</th>
-              {STAGES.map((s) => (
-                <th key={s} scope="col" className="p-3 font-bold">{s}</th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            <tr className="border-t border-neutral-200">
-              <th scope="row" className="p-3 font-semibold text-neutral-900">Preparação (Group Pre-Clip)</th>
-              <td colSpan={STAGES.length} className="p-3">
-                <StepBadge n={1} done={current >= 1} label="Color Space Transform e análise técnica, uma vez, para todos os takes" />
-              </td>
-            </tr>
-            {TAKES.map((t, ti) => (
-              <tr key={t.id} className="border-t border-neutral-200">
-                <th scope="row" className="p-3 font-semibold text-neutral-900">{t.name}</th>
-                {STAGES.map((s, si) => {
-                  const n = stepNumber(mode, ti, si);
-                  return (
-                    <td key={s} className="p-3">
-                      <StepBadge n={n} done={current >= n} label={`${s}, ${t.name}`} />
-                    </td>
-                  );
-                })}
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-
-      <div className="flex flex-wrap items-center gap-3">
-        <label htmlFor="tod-step" className="text-sm font-semibold text-neutral-900">Passo</label>
-        <input
-          id="tod-step"
-          type="range"
-          min={0}
-          max={total}
-          step={1}
-          value={current}
-          onChange={(e) => setStep(Number(e.target.value))}
-          className="h-11 min-w-48 flex-1 cursor-pointer accent-[#0071e3]"
-        />
-        <span className="w-16 text-right text-sm tabular-nums text-neutral-700">{current} de {total}</span>
-        <button
-          type="button"
-          onClick={() => setStep(0)}
-          className="min-h-11 rounded-full border border-neutral-300 bg-white px-4 text-sm font-semibold text-neutral-800 transition-colors duration-150 hover:bg-neutral-100 active:scale-[0.97]"
-        >
-          Reiniciar
-        </button>
-      </div>
-
-      <p role="status" aria-live="polite" className="max-w-3xl font-serif text-[16px] leading-snug text-neutral-800">{message}</p>
-    </section>
-  );
-}
-
-function StepBadge({ n, done, label }: { n: number; done: boolean; label: string }) {
-  return (
-    <span
-      title={label}
-      className={`inline-flex h-8 min-w-8 items-center justify-center rounded-full px-2 text-sm font-bold tabular-nums transition-colors duration-200 ${
-        done ? 'bg-[#0071e3] text-white' : 'bg-neutral-200 text-neutral-600'
-      }`}
-    >
-      <span className="sr-only">{label}, passo </span>
-      {n}
-      {done && <span className="sr-only"> (feito)</span>}
-    </span>
   );
 }
 
@@ -558,7 +402,6 @@ export default function FluxoTrabalhoArticle() {
               No Resolve, isso fica mais fácil com stills na galeria e o modo de comparação (wipe ou split screen), olhando os scopes lado a lado. Uma técnica comum é neutralizar com offset olhando a parade e depois comparar com o hero.
             </p>
           </Prose>
-          <TakeOrderDemo />
         </Sub>
 
         <Sub title="Por que na publicidade é diferente do cinema">
