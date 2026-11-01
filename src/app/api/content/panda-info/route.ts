@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getAuthenticatedUser } from '@/utils/supabase/authenticated';
 import { supabaseAdmin } from '@/utils/supabase/admin';
-import { LESSON_VIDEOS, findLessonVideo, pandaEmbedUrl, pandaThumbnailUrl } from '@/config/lessonVideos';
+import { LESSON_VIDEOS, findLessonVideo, pandaConfigUrl, pandaCoverUrl, pandaEmbedUrl, pandaThumbnailUrl } from '@/config/lessonVideos';
 import { createPandaDrmToken, PANDA_DRM_TOKEN_TTL_SECONDS } from '@/utils/pandaDrm';
 import { unstable_cache } from 'next/cache';
 import { cacheGet, cacheSet } from '@/utils/redis';
@@ -11,6 +11,8 @@ interface PandaVideoInfo {
   id: string;
   title: string;
   thumbnail_url: string;
+  /** Capa do player, desenhada pelo site na proporção do vídeo (o Panda a corta em 16:9 antes do play). */
+  poster_url: string;
   duration: number;
   duration_formatted: string;
   embed_url: string;
@@ -44,6 +46,7 @@ function fallbackInfo(videoId: string): PandaVideoInfo {
     id: videoId,
     title: cleanVideoTitle(fallback.title || 'Vídeo da aula'),
     thumbnail_url: fallback.thumbnail_url || '',
+    poster_url: pandaThumbnailUrl(videoId),
     duration,
     duration_formatted: formatDuration(duration),
     embed_url: fallback.embed_url || `https://player-vz-5bb7b1c1-d28.tv.pandavideo.com.br/embed/?v=${videoId}`,
@@ -62,11 +65,16 @@ async function fetchVideoOEmbedRemote(videoId: string): Promise<PandaVideoInfo> 
   if (!res.ok) throw new Error(`Panda API error status ${res.status}`);
 
   const data = await res.json();
+  // Capa enviada no painel do Panda; sem ela, o quadro automático do vídeo.
+  const config = await fetch(pandaConfigUrl(videoId), { next: { revalidate: 3600 } })
+    .then((r) => (r.ok ? r.json() : null))
+    .catch(() => null);
   const duration = Number(data.duration) || fallback.duration || 0;
   return {
     id: videoId,
     title: cleanVideoTitle(data.title || fallback.title || 'Vídeo da aula'),
     thumbnail_url: data.thumbnail_url || fallback.thumbnail_url || '',
+    poster_url: typeof config?.thumb === 'string' && config.thumb ? pandaCoverUrl(config.thumb) : fallback.poster_url,
     duration,
     duration_formatted: formatDuration(duration),
     embed_url: pandaEmbedUrl(videoId),
@@ -76,7 +84,7 @@ async function fetchVideoOEmbedRemote(videoId: string): Promise<PandaVideoInfo> 
 
 // Metadados do vídeo são iguais para todos os alunos: cache compartilhado de 1 hora (tag `panda-meta`, invalidável por /api/revalidate).
 // O embed_url com a marca d'água DRM NUNCA entra aqui: é montado por usuário na rota.
-const fetchVideoOEmbedShared = unstable_cache(fetchVideoOEmbedRemote, ['panda-oembed-v1'], { revalidate: 3600, tags: ['panda-meta'] });
+const fetchVideoOEmbedShared = unstable_cache(fetchVideoOEmbedRemote, ['panda-oembed-v2'], { revalidate: 3600, tags: ['panda-meta'] });
 
 async function fetchVideoOEmbed(videoId: string): Promise<PandaVideoInfo> {
   try {

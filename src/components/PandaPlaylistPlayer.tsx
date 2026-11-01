@@ -19,6 +19,7 @@ export interface PandaVideoItem {
   id: string;
   title: string;
   thumbnail_url: string;
+  poster_url?: string;
   duration: number;
   duration_formatted: string;
   embed_url: string;
@@ -82,6 +83,9 @@ function PandaPlaylistPlayerInner({
   const [iframeKey, setIframeKey] = useState<number>(0);
   // Chave do iframe que já terminou de carregar (preloader aparece enquanto for diferente da chave atual)
   const [loadedKey, setLoadedKey] = useState<string>('');
+  // Capa própria por cima do player até o primeiro play: o Panda corta a capa em 16:9 antes de carregar o vídeo.
+  // Guarda a chave do iframe (vídeo + recarga) em que a capa já saiu.
+  const [posterHiddenKey, setPosterHiddenKey] = useState<string>('');
   const initialCollapseTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const closeSidebarTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const hasAutoCollapsedRef = useRef(false);
@@ -247,7 +251,7 @@ function PandaPlaylistPlayerInner({
           msgData?.event === 'ended';
 
         const isPlay = msgData?.message === 'panda_play' || msgData?.type === 'panda_play' || msgData?.event === 'play';
-        if (isPlay) { setIsPlaying(true); onPlay?.(); }
+        if (isPlay) { setIsPlaying(true); setPosterHiddenKey(`${activeVideo.id}-${iframeKey}`); onPlay?.(); }
         if (msgData?.message === 'panda_pause' || msgData?.type === 'panda_pause') setIsPlaying(false);
 
         if (isEnded) {
@@ -278,7 +282,7 @@ function PandaPlaylistPlayerInner({
     return () => {
       window.removeEventListener('message', handlePandaMessage);
     };
-  }, [currentIndex, videos.length, activeVideo.id, activeVideo.duration, lessonId, tracker, onLessonEnded, onPlay]);
+  }, [currentIndex, videos.length, activeVideo.id, activeVideo.duration, iframeKey, lessonId, tracker, onLessonEnded, onPlay]);
 
   const handleSelectVideo = (index: number) => {
     if (index === currentIndex) return;
@@ -290,6 +294,13 @@ function PandaPlaylistPlayerInner({
   };
 
   const currentKey = `${activeVideo.id}-${iframeKey}`;
+  const showPoster = !!activeVideo.poster_url && !autoPlayNext && posterHiddenKey !== currentKey;
+
+  const playFromPoster = () => {
+    setPosterHiddenKey(currentKey);
+    const frame = document.getElementById(`panda-${activeVideo.id}`) as HTMLIFrameElement | null;
+    frame?.contentWindow?.postMessage({ type: 'play' }, '*');
+  };
   const isPlayerLoading = !tracker || loadedKey !== currentKey;
 
   // Rede de segurança: se o evento de carregamento não chegar, libera o player após 15 s
@@ -372,6 +383,21 @@ function PandaPlaylistPlayerInner({
               onLoad={() => setLoadedKey(currentKey)}
               {...({ fetchPriority: 'high' } as Record<string, string>)}
             />}
+
+            {showPoster && (
+              <button
+                type="button"
+                onClick={playFromPoster}
+                aria-label={`Assistir ${activeVideo.title}`}
+                className="group absolute inset-0 z-[24] cursor-pointer bg-black"
+              >
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={activeVideo.poster_url} alt="" className="h-full w-full object-cover" />
+                <span className="absolute left-1/2 top-1/2 flex h-16 w-16 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-[#0071e3] shadow-lg transition-transform group-hover:scale-105">
+                  <Play className="ml-1 h-7 w-7 fill-white text-white" aria-hidden="true" />
+                </span>
+              </button>
+            )}
 
             {/* Preloader: cobre o player até o vídeo carregar e então some */}
             <div

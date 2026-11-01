@@ -49,6 +49,13 @@ export const pandaEmbedUrl = (id: string) =>
 export const pandaThumbnailUrl = (id: string) =>
   `https://cdn.pandavideo.com/${PANDA_LIBRARY}/${id}/thumbnail.jpg`;
 
+/** Configuração pública do player (traz a capa enviada no painel do Panda). */
+export const pandaConfigUrl = (id: string) =>
+  `https://config.tv.pandavideo.com.br/${PANDA_LIBRARY}/${id}.json`;
+
+export const pandaCoverUrl = (file: string) =>
+  `https://thumbs.tv.pandavideo.com.br/${PANDA_LIBRARY}/${file}`;
+
 /** Procura o vídeo (e a aula) pelo ID. */
 export function findLessonVideo(videoId: string): LessonVideoSeed | undefined {
   for (const list of Object.values(LESSON_VIDEOS)) {
