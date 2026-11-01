@@ -2,7 +2,8 @@
 
 import React, { useEffect, useRef, useState } from 'react';
 import gsap from 'gsap';
-import { Download, FolderArchive, Loader2, AlertCircle, X } from 'lucide-react';
+import { Download, FolderArchive, Loader2, AlertCircle, X, Sparkles } from 'lucide-react';
+import { PluginsDownloadDialog } from '@/components/PluginsDownloadDialog';
 
 const ITEMS = [{ id: 'projeto', label: 'Projeto', hint: 'Arquivo do DaVinci Resolve (.zip)' }] as const;
 
@@ -41,6 +42,7 @@ export default function DownloadMenu({ userId }: { userId?: string | null }) {
   const [showTip, setShowTip] = useState(false);
   const tipRef = useRef<HTMLDivElement>(null);
   const [open, setOpen] = useState(false);
+  const [pluginsOpen, setPluginsOpen] = useState(false);
   const [busy, setBusy] = useState<string | null>(null);
   const [message, setMessage] = useState<{ kind: 'ok' | 'error'; text: string } | null>(null);
   const rootRef = useRef<HTMLDivElement>(null);
@@ -165,6 +167,20 @@ export default function DownloadMenu({ userId }: { userId?: string | null }) {
               </span>
             </button>
           ))}
+          <button
+            type="button"
+            role="menuitem"
+            onClick={() => { setOpen(false); setPluginsOpen(true); }}
+            className="w-full flex items-center gap-3 px-2.5 py-2.5 rounded-xl text-left text-[13px] text-white hover:bg-white/10 transition-colors cursor-pointer"
+          >
+            <span className="shrink-0 w-8 h-8 rounded-lg bg-[#0071e3]/20 text-[#5aa9ff] flex items-center justify-center">
+              <Sparkles size={15} />
+            </span>
+            <span className="min-w-0">
+              <span className="block font-semibold">FLMMKR FX Plugins</span>
+              <span className="block text-[11px] text-[#a1a1a6] truncate">Plugins grátis para DaVinci Resolve</span>
+            </span>
+          </button>
           {message && (
             <p role={message.kind === 'error' ? 'alert' : 'status'} className={`mx-1 mt-1.5 mb-0.5 flex items-start gap-1.5 text-[11px] leading-snug ${message.kind === 'error' ? 'text-red-300' : 'text-[#30d158]'}`}>
               {message.kind === 'error' && <AlertCircle size={12} className="shrink-0 mt-0.5" />}
@@ -173,6 +189,8 @@ export default function DownloadMenu({ userId }: { userId?: string | null }) {
           )}
         </div>
       )}
+
+      {pluginsOpen && <PluginsDownloadDialog onClose={() => setPluginsOpen(false)} />}
     </div>
   );
 }
