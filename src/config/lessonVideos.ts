@@ -27,6 +27,7 @@ export const LESSON_VIDEOS: Record<string, LessonVideoSeed[]> = {
   ],
   'mod1-referencia': [
     { id: 'fe5249ee-acb9-48fe-a718-e52da4829ae1', title: 'Analisando as Referências', partLabel: 'Parte 01' },
+    { id: 'c9e4c369-6fee-4a01-ae92-4151e4320a78', title: 'Analisando as Referências', partLabel: 'Parte 02' },
   ],
   'mod1-analise-tecnica': [
     { id: 'c9f6f93e-36fb-46c0-a414-d2387c356809', title: 'Análise Técnica — Profundidade de bits' },

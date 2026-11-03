@@ -42,6 +42,7 @@ import FluxoTrabalhoArticle from '@/components/FluxoTrabalhoArticle';
 import PrimariasArticle from '@/components/PrimariasArticle';
 import DicasArticle from '@/components/DicasArticle';
 import { useLessonRelease } from '@/hooks/useLessonRelease';
+import { useNewLessons } from '@/hooks/useNewLessons';
 import { LessonReleaseTooltip, LessonLockedPanel } from '@/components/LessonReleaseTooltip';
 import GerenciamentoCoresArticle from '@/components/GerenciamentoCoresArticle';
 import GenericLessonArticle from '@/components/GenericLessonArticle';
@@ -262,6 +263,7 @@ export function MemberAreaApp({ skipInternalPreloader = false }: { skipInternalP
 
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const currentUserIdRef = useRef<string | null>(null);
+  const { isNew: isNewLesson } = useNewLessons(currentUserId, activeLessonId);
   const searchDialogRef = useRef<HTMLDivElement>(null);
   const profileMenuRef = useRef<HTMLDivElement>(null);
   const progressKey = (uid: string | null) => (uid ? `${STORAGE_KEY}:${uid}` : STORAGE_KEY);
@@ -1044,6 +1046,7 @@ export function MemberAreaApp({ skipInternalPreloader = false }: { skipInternalP
                                 <Lock size={11} className="text-neutral-300 shrink-0" />
                               ) : (
                                 <>
+                                  {mod.subtopics.some((sub) => isNewLesson(sub.id)) && <span role="img" aria-label="Tem aula nova" className="h-1.5 w-1.5 shrink-0 rounded-full bg-[#30d158] mr-1.5" />}
                                   {isAllCompleted && <CheckCircle2 size={11} className="text-[#30d158] shrink-0 mr-1" />}
                                   <GsapChevron open={!!expandedEmenta[mod.id]} className={expandedEmenta[mod.id] ? 'text-white' : 'text-neutral-300'}>
                                     <ChevronRight size={12} />
@@ -1101,6 +1104,7 @@ export function MemberAreaApp({ skipInternalPreloader = false }: { skipInternalP
                                     }`}
                                   >
                                     <span className="truncate pr-1">{sub.title.replace(/^\d+\.\s*/, '')}</span>
+                                    {isNewLesson(sub.id) && !releaseLocked && <span role="img" aria-label="Aula nova" className="ml-auto h-2 w-2 shrink-0 rounded-full bg-[#30d158] shadow-[0_0_6px_rgba(48,209,88,0.8)]" />}
                                     {releaseLocked ? (
                                       <Lock size={13} aria-label="Bloqueada até a data de liberação" className="text-[#c7c7cc] shrink-0 ml-1" />
                                     ) : isLockedLesson ? (
@@ -1166,6 +1170,7 @@ export function MemberAreaApp({ skipInternalPreloader = false }: { skipInternalP
                     className="w-full text-left px-2.5 py-2 rounded text-[13px] text-neutral-200 hover:text-white hover:bg-white/10 flex justify-between items-center transition-colors"
                   >
                     <span className="truncate">{sub.title}</span>
+                    {isNewLesson(sub.id) && !isReleaseLocked(sub.id) && <span role="img" aria-label="Aula nova" className="ml-auto mr-1 h-2 w-2 shrink-0 rounded-full bg-[#30d158]" />}
                     {isReleaseLocked(sub.id)
                       ? <Lock size={10} aria-label="Bloqueada até a data de liberação" className="shrink-0 text-[#c7c7cc]" />
                       : progress.completedLessons.includes(sub.id) && <CheckCircle2 size={10} className="text-[#30d158]" />}
