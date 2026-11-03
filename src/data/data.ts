@@ -23,6 +23,13 @@ export const modulesData: CourseModule[] = [
         tips: ['Mantenha sempre os Scopes visíveis em uma janela flutuante para monitorar os níveis com precisão matemática.']
       },
       {
+        id: 'mod1-referencia',
+        title: 'Referência',
+        isFree: false,
+        concept: `Uma boa referência define para onde o color grading vai antes de mexer na imagem. Reúna exemplos de filmes, anúncios e fotografias com a cor, o contraste e o clima que o projeto pede, e use-os como guia durante todo o trabalho.`,
+        steps: []
+      },
+      {
         id: 'mod1-analise-tecnica',
         title: 'Análise da Imagem',
         isFree: true,
