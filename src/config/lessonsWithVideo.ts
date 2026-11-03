@@ -5,6 +5,7 @@
  */
 export const LESSONS_WITH_VIDEO: ReadonlySet<string> = new Set([
   'mod1-1',
+  'mod1-referencia',
   'mod1-analise-tecnica',
   'mod1-2',
   'mod1-4',
