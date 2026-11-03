@@ -26,7 +26,7 @@ export const LESSON_VIDEOS: Record<string, LessonVideoSeed[]> = {
     { id: 'd792f957-2169-4efe-9b64-bc27a16bdb39', title: 'Introdução ao DaVinci Resolve', partLabel: 'Parte 02', duration: 789 },
   ],
   'mod1-referencia': [
-    { id: 'fe5249ee-acb9-48fe-a718-e52da4829ae1', title: 'Referência', partLabel: 'Parte 01' },
+    { id: 'fe5249ee-acb9-48fe-a718-e52da4829ae1', title: 'Analisando as Referências', partLabel: 'Parte 01' },
   ],
   'mod1-analise-tecnica': [
     { id: 'c9f6f93e-36fb-46c0-a414-d2387c356809', title: 'Análise Técnica — Profundidade de bits' },

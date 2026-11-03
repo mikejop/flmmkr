@@ -24,7 +24,7 @@ export const modulesData: CourseModule[] = [
       },
       {
         id: 'mod1-referencia',
-        title: 'Referência',
+        title: 'Analisando as Referências',
         isFree: false,
         concept: `Uma boa referência define para onde o color grading vai antes de mexer na imagem. Reúna exemplos de filmes, anúncios e fotografias com a cor, o contraste e o clima que o projeto pede, e use-os como guia durante todo o trabalho.`,
         steps: []
